@@ -71,23 +71,23 @@ Analise os registros do Diário de Bordo e SUGIRA pontuações de rubrica de des
 Responda APENAS em JSON válido, sem markdown, sem explicações fora do JSON:
 
 {
-  "autonomia": { "score": 1-5, "justificativa": "..." },
-  "social": { "score": 1-5, "justificativa": "..." },
-  "conteudo": { "score": 1-5, "justificativa": "..." },
-  "comportamento": { "score": 1-5, "justificativa": "..." },
+  "autonomia": { "score": 0-4 ou null, "justificativa": "..." },
+  "social": { "score": 0-4 ou null, "justificativa": "..." },
+  "conteudo": { "score": 0-4 ou null, "justificativa": "..." },
+  "comportamento": { "score": 0-4 ou null, "justificativa": "..." },
   "resumo": "Uma frase resumindo o desenvolvimento geral."
 }
 
-Escala:
-1 = Necessita apoio total
-2 = Necessita apoio significativo  
-3 = Necessita apoio moderado
-4 = Necessita apoio esporádico
-5 = Independente/Consolidado
+Escala Omnisfera (a mesma das avaliações diagnóstica e processual):
+0 = Não iniciado: não demonstra mesmo com mediação total
+1 = Emergente: reage, mas ainda sem executar de forma reconhecível
+2 = Em desenvolvimento: realiza parcialmente, com apoio direto e contínuo
+3 = Consolidando: realiza em contexto estruturado, com suporte mínimo
+4 = Consolidado: realiza com autonomia em diferentes contextos
 
 REGRAS:
 - Baseie-se ESTRITAMENTE nos dados dos registros
-- Se dados insuficientes para um eixo, use score 0 e justifique
+- Se os dados forem insuficientes para um eixo, use score null e diga o que falta observar
 - Justificativas devem citar evidências dos registros
 - Máximo 30 palavras por justificativa`;
 

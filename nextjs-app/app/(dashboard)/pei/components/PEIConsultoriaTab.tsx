@@ -158,11 +158,11 @@ export function ConsultoriaTab({
   }
 
   const engineNames: Record<EngineId, string> = {
-    red: "🔴 Red",
-    blue: "🔵 Blue",
-    green: "🟢 Green",
-    yellow: "🟡 Yellow",
-    orange: "🟠 Orange",
+    red: "Red",
+    blue: "Blue",
+    green: "Green",
+    yellow: "Yellow",
+    orange: "Orange (reserva)",
   };
 
   return (
@@ -171,27 +171,27 @@ export function ConsultoriaTab({
       {!serie ? (
         <div role="alert" aria-live="assertive" className="p-4 rounded-lg bg-amber-50 border border-amber-200">
           <p className="text-amber-800 text-sm">
-            ⚠️ Selecione a Série/Ano na aba <strong>Estudante</strong> para ativar o modo especialista.
+            Informe a série do estudante em <strong>Estudo de caso → Dados do estudante</strong>. A IA escreve de um jeito para cada etapa de ensino.
           </p>
         </div>
       ) : (
         <>
           {/* Info box do segmento */}
-          <div role="status" aria-live="polite" className="p-4 rounded-lg border-l-4" style={{ backgroundColor: "#F7FAFC", borderLeftColor: segInfo.cor }}>
-            <p className="font-semibold mb-1" style={{ color: segInfo.cor }}>
-              ℹ️ Modo Especialista: {segInfo.nome}
-            </p>
-            <p className="text-sm text-slate-600">{segInfo.desc}</p>
+          <div className="omni-aviso omni-aviso--info">
+            <div>
+              <div className="omni-aviso__titulo">A IA escreve para {segInfo.nome}</div>
+              <div className="omni-aviso__texto">{segInfo.desc}</div>
+            </div>
           </div>
 
           {/* Se ainda não tem texto ou voltou para rascunho: botões de geração */}
           {(!temTexto || statusValidacao === "rascunho") && (
             <>
-              <details className="p-4 rounded-lg border border-slate-200/60 bg-white" open>
-                <summary className="cursor-pointer font-semibold text-slate-700 mb-3">
-                  🔧 Escolher motor de IA (Red, Blue, Green, Yellow ou Orange)
+              <details className="omni-opcoes-avancadas" style={{ border: "1px solid var(--borda)", borderRadius: "var(--o-radius-md)", padding: "var(--space-3) var(--space-4)" }}>
+                <summary style={{ cursor: "pointer", font: "600 14px/20px var(--font-sans)", color: "var(--tinta-2)" }}>
+                  Opções avançadas · motor de IA: {engineNames[engine]}
                 </summary>
-                <p className="text-xs text-slate-500 mb-3">Selecione qual IA gerará o relatório. Orange = fallback (GPT) se outros falharem.</p>
+                <p className="omni-apoio" style={{ margin: "8px 0" }}>Troque só se a geração falhar ou o texto não ficar bom. Orange é o reserva, usado quando os outros falham.</p>
                 <div className="flex flex-wrap gap-3">
                   {(["red", "blue", "green", "yellow", "orange"] as EngineId[]).map((e) => (
                     <label key={e} className="flex items-center gap-2 cursor-pointer">
@@ -215,24 +215,22 @@ export function ConsultoriaTab({
                     type="button"
                     onClick={() => gerar(false)}
                     disabled={loading}
-                    className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50 hover:bg-cyan-700 transition-colors"
+                    className="omni-btn omni-btn--primario"
                   >
-                    {loading ? "Gerando…" : "✨ Gerar Estratégia Técnica"}
+                    {loading ? "Escrevendo o PEI…" : "Gerar o texto do PEI"}
                   </button>
                   <button
                     type="button"
                     onClick={() => gerar(true)}
                     disabled={loading}
-                    className="px-4 py-2 bg-slate-200 text-slate-800 rounded-lg disabled:opacity-50 hover:bg-slate-300 transition-colors"
+                    className="omni-btn omni-btn--secundario"
                   >
-                    {loading ? "Gerando…" : "🧰 Gerar Guia Prático (Sala de Aula)"}
+                    {loading ? "Escrevendo…" : "Gerar guia prático para a sala"}
                   </button>
                 </div>
                 <div className="md:col-span-2">
-                  <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-                    <p className="text-sm text-blue-800 mb-3 font-semibold">
-                      📊 Mini Relatório: Dados Inseridos no PEI
-                    </p>
+                  <div style={{ padding: "var(--space-4)", border: "1px solid var(--borda)", borderRadius: "var(--o-radius-md)", background: "var(--superficie-2)" }}>
+                    <p className="omni-rotulo" style={{ marginBottom: 8 }}>O que a IA vai usar</p>
                     <div className="grid grid-cols-2 gap-2 text-xs text-blue-700 space-y-1">
                       <div className="flex items-center gap-1">
                         <span className={temDiagnostico ? "text-emerald-600" : "text-slate-400"}>
@@ -290,11 +288,11 @@ export function ConsultoriaTab({
                       </div>
                     </div>
                     <p className="text-xs text-blue-600 mt-3 pt-2 border-t border-blue-200">
-                      💡 Quanto mais completo o <strong>Mapeamento</strong> e o <strong>Plano de Ação</strong>, melhor a precisão do relatório.
+                      Quanto mais completo o estudo de caso (etapa 1), mais preciso fica o texto.
                     </p>
                     {nHab > 0 && habValidadas.length === 0 && (
                       <p className="text-xs text-amber-700 mt-2 bg-amber-50 p-2 rounded border border-amber-200">
-                        ⚠️ Há habilidades selecionadas na aba <strong>BNCC</strong> mas ainda não validadas. Clique em <strong>Validar seleção</strong> naquela aba.
+                        Há habilidades escolhidas em <strong>Habilidades da BNCC</strong> que ainda não foram confirmadas. Confirme lá para a IA usar.
                       </p>
                     )}
                   </div>
@@ -338,7 +336,12 @@ export function ConsultoriaTab({
               </details>
 
               <div>
-                <h4 className="text-base font-semibold text-slate-800 mb-3">📝 Revisão do Plano</h4>
+                <div className="flex flex-wrap items-center gap-3 mb-3">
+                  <h4 className="text-base font-semibold" style={{ margin: 0, color: "var(--tinta)" }}>Texto do PEI</h4>
+                  {statusValidacao === "aprovado"
+                    ? <span className="omni-estado omni-estado--sucesso">Revisado e aprovado</span>
+                    : <span className="omni-estado omni-estado--info">Gerado com IA · revise antes de aprovar</span>}
+                </div>
                 <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 mb-3">
                   <div
                     role="region"
@@ -353,47 +356,42 @@ export function ConsultoriaTab({
 
               <hr className="my-4" />
 
-              <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
-                <p className="text-sm text-amber-800">
-                  <strong>⚠️ Responsabilidade do Educador:</strong> a IA pode errar. Valide e ajuste antes de aplicar.
-                </p>
-              </div>
+              <p className="omni-apoio">A IA pode errar. Leia tudo e ajuste o que não combina com o estudante antes de aprovar.</p>
 
               {statusValidacao === "revisao" && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-wrap gap-3">
                   <button
                     type="button"
                     onClick={() => {
                       updateField("status_validacao_pei", "aprovado");
                     }}
-                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                    className="omni-btn omni-btn--primario"
                   >
-                    ✅ Aprovar Plano
+                    Aprovar o texto
                   </button>
                   <button
                     type="button"
                     onClick={() => {
                       updateField("status_validacao_pei", "ajustando");
                     }}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    className="omni-btn omni-btn--secundario"
                   >
-                    ❌ Solicitar Ajuste
+                    Pedir um ajuste à IA
                   </button>
                 </div>
               )}
 
               {statusValidacao === "aprovado" && (
                 <>
-                  <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200 mb-4">
-                    <p className="text-emerald-800 font-semibold">Plano Validado ✅</p>
-                  </div>
+                  <p className="omni-apoio">Próximo passo: tornar o PEI vigente (etapa 3).</p>
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Edição Final Manual (opcional)</label>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Editar o texto (opcional)</label>
                     <textarea
                       value={peiData.ia_sugestao || ""}
                       onChange={(e) => updateField("ia_sugestao", e.target.value)}
                       rows={12}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-sm"
+                      className="omni-entrada"
+                      style={{ minHeight: 320, lineHeight: "24px" }}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4 mt-4">

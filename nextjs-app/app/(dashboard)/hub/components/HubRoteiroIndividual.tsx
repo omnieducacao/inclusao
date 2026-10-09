@@ -7,6 +7,7 @@ import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import { SalvarNoPlanoButton } from "@/components/SalvarNoPlanoButton";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
+import { ResultadoIA } from "@/components/ia/ResultadoIA";
 import { BookOpen } from "lucide-react";
 import { COMPONENTES, type HubToolProps, type EstruturaBncc } from "../hub-types";
 
@@ -195,45 +196,22 @@ export function RoteiroIndividual({
       </button>
       {erro && <p className="text-red-600 text-sm">{erro}</p>}
       {resultado && (
-        <div className="space-y-4">
-          {validado && (
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-sm font-medium">
-              ✅ ROTEIRO VALIDADO E PRONTO PARA USO
-            </div>
+        <ResultadoIA
+          titulo="Roteiro individual"
+          publico="professor"
+          material={resultado}
+          onRefazer={() => gerar()}
+          refazendo={loading}
+          onDescartar={() => { setResultado(null); setValidado(false); }}
+          onRevisado={setValidado}
+          acoes={(texto) => (
+            <>
+              <DocxDownloadButton texto={texto} titulo="Roteiro de Aula" filename={`Roteiro_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`} />
+              <PdfDownloadButton text={texto} filename={`Roteiro_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Roteiro de Aula" />
+              <SalvarNoPlanoButton conteudo={texto} tipo="Roteiro" className="omni-btn omni-btn--secundario omni-btn--pequeno" />
+            </>
           )}
-          {!validado && (
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setValidado(true)}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
-              >
-                ✅ Validar Roteiro
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setResultado(null);
-                  setValidado(false);
-                }}
-                className="px-4 py-2 bg-slate-400 text-white rounded-lg hover:bg-slate-500 text-sm"
-              >
-                🗑️ Descartar
-              </button>
-            </div>
-          )}
-          <div className="p-6 rounded-2xl bg-linear-to-br from-slate-50 to-white shadow-sm border border-slate-200/60">
-            <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
-              <span className="text-base font-semibold text-slate-800">Roteiro Individual</span>
-              <span className="flex gap-2">
-                <DocxDownloadButton texto={resultado} titulo="Roteiro de Aula" filename={`Roteiro_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`} />
-                <PdfDownloadButton text={resultado} filename={`Roteiro_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Roteiro de Aula" />
-                <SalvarNoPlanoButton conteudo={resultado} tipo="Roteiro" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs" />
-              </span>
-            </div>
-            <FormattedTextDisplay texto={resultado} />
-          </div>
-        </div>
+        />
       )}
     </div>
   );

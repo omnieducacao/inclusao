@@ -4,6 +4,7 @@ import { SafeModuleWrapper } from "@/components/SafeModuleWrapper";
 import dynamic from "next/dynamic";
 import { getAlunosRegente } from "@/lib/dashboard-alunos";
 import { Skeleton } from "@/components/Skeleton";
+import { CabecalhoAvaliacao } from "@/components/avaliacao/CabecalhoAvaliacao";
 
 const AvaliacaoDiagnosticaClient = dynamic(
     () => import("./AvaliacaoDiagnosticaClient"),
@@ -22,11 +23,14 @@ export default async function AvaliacaoDiagnosticaPage() {
     } catch { /* silent */ }
 
     return (
-        <SafeModuleWrapper fallbackTitle="Avaliação Diagnóstica">
-            <AvaliacaoDiagnosticaClient
-                initialAlunos={initialData.alunos}
-                initialProfessorName={initialData.professor.name}
-            />
-        </SafeModuleWrapper>
+        <div className="space-y-6">
+            <CabecalhoAvaliacao atual="diagnostica" />
+            <SafeModuleWrapper fallbackTitle="Avaliação diagnóstica">
+                <AvaliacaoDiagnosticaClient
+                    initialAlunos={initialData.alunos}
+                    initialProfessorName={initialData.professor.name}
+                />
+            </SafeModuleWrapper>
+        </div>
     );
 }

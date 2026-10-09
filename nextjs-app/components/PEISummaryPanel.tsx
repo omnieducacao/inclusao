@@ -47,7 +47,7 @@ export function PEISummaryPanel({ peiData, studentName }: Props) {
           <FileText className="w-5 h-5 text-sky-600" />
           <div>
             <h3 className="text-base font-semibold text-slate-800">
-              PEI - Plano de Ensino Individualizado
+              PEI · Plano Educacional Individualizado
             </h3>
             {studentName && (
               <p className="text-xs text-slate-600 mt-0.5">Estudante: {studentName}</p>

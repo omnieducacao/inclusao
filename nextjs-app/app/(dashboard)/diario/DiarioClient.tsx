@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useConfirmar } from "@/components/Confirmar";
 import { CabecalhoEstudante, EscolherEstudante } from "@/components/estudante/CabecalhoEstudante";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
@@ -75,7 +76,7 @@ const COMPETENCIAS = [
   "organização", "regulação emocional",
 ];
 
-type TabId = "filtros" | "novo" | "lista" | "relatorios" | "configuracoes";
+type TabId = "filtros" | "novo" | "lista" | "relatorios";
 
 type Props = {
   students: Student[];
@@ -144,9 +145,20 @@ function DiarioClientInner({ students, studentId, student }: Props) {
     [student, registros]
   );
 
+  const { confirmar, dialogo } = useConfirmar();
   const deleteRegistro = useCallback(
     async (registroId: string) => {
       if (!student?.id) return false;
+      // Onda 9: confirmação no padrão do design system (antes, confirm() do navegador)
+      const reg = registros.find((r) => r.registro_id === registroId);
+      const ok = await confirmar({
+        titulo: "Excluir este atendimento?",
+        texto: reg?.data_sessao ? `O registro de ${fmtData(reg.data_sessao)} sai da linha do tempo e dos relatórios.` : "O registro sai da linha do tempo e dos relatórios.",
+        acao: "Excluir atendimento",
+        cancelar: "Manter",
+        perigo: true,
+      });
+      if (!ok) return false;
       const lista = registros.filter((r) => r.registro_id !== registroId);
       const data = await updateDiario(student.id, { daily_logs: lista });
       if (data && data.ok) {
@@ -155,7 +167,7 @@ function DiarioClientInner({ students, studentId, student }: Props) {
       }
       return !!(data && data.ok);
     },
-    [student, registros]
+    [student, registros, confirmar]
   );
 
   if (!currentId) {
@@ -178,49 +190,37 @@ function DiarioClientInner({ students, studentId, student }: Props) {
 
   return (
     <div className="space-y-6">
+      {dialogo}
       <CabecalhoEstudante students={students} student={{ ...student, pei_data: peiData }} />
 
       {student && (
         <PEISummaryPanel peiData={peiData} studentName={student.name} />
       )}
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-200 mb-6">
-        {[
-          { id: "filtros" as TabId, label: "🔍 Filtros & Estatísticas", icon: Filter },
-          { id: "novo" as TabId, label: "➕ Novo Registro", icon: Plus },
-          { id: "lista" as TabId, label: "📋 Lista de Registros", icon: List },
-          { id: "relatorios" as TabId, label: "📊 Relatórios", icon: BarChart3 },
-          { id: "configuracoes" as TabId, label: "⚙️ Configurações", icon: Settings },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${activeTab === tab.id
-              ? "border-rose-600 text-rose-600"
-              : "border-transparent text-slate-600 hover:text-slate-900"
-              }`}
-          >
+      {/* Onda 9: registrar e a linha do tempo lado a lado; análise e relatórios numa aba à parte; sem Configurações */}
+      <div className="omni-abas" role="tablist" aria-label="Diário de bordo">
+        {([
+          { id: "novo", label: "Registrar e linha do tempo" },
+          { id: "filtros", label: "Análise" },
+          { id: "relatorios", label: "Relatórios" },
+        ] as Array<{ id: TabId; label: string }>).map((tab) => (
+          <button key={tab.id} type="button" role="tab" aria-selected={activeTab === tab.id} className="omni-aba" onClick={() => setActiveTab(tab.id)}>
             {tab.label}
           </button>
         ))}
       </div>
 
-      {/* Tab Content */}
+      {(activeTab === "novo" || activeTab === "lista") && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <NovoRegistroTab studentId={student.id} onSave={saveRegistro} ultimo={registrosOrdenados[0]} />
+          <ListaTab registros={registrosOrdenados} onDelete={deleteRegistro} />
+        </div>
+      )}
       {activeTab === "filtros" && (
         <FiltrosTab students={students} registros={registrosOrdenados} />
       )}
-      {activeTab === "novo" && (
-        <NovoRegistroTab studentId={student.id} onSave={saveRegistro} />
-      )}
-      {activeTab === "lista" && (
-        <ListaTab registros={registrosOrdenados} onDelete={deleteRegistro} />
-      )}
       {activeTab === "relatorios" && (
         <RelatoriosTab registros={registrosOrdenados} student={student} />
-      )}
-      {activeTab === "configuracoes" && (
-        <ConfiguracoesTab />
       )}
     </div>
   );
@@ -343,21 +343,24 @@ function FiltrosTab({ students, registros }: { students: Student[]; registros: R
 function NovoRegistroTab({
   studentId,
   onSave,
+  ultimo,
 }: {
   studentId: string;
   onSave: (r: RegistroDiario) => Promise<boolean>;
+  /** Onda 9: duração e modalidade começam iguais às do último atendimento (substitui a aba Configurações) */
+  ultimo?: RegistroDiario;
 }) {
   const hoje = new Date().toISOString().slice(0, 10);
   const [dataSessao, setDataSessao] = useState(hoje);
-  const [duracao, setDuracao] = useState(45);
-  const [modalidade, setModalidade] = useState("individual");
+  const [duracao, setDuracao] = useState(ultimo?.duracao_minutos || 45);
+  const [modalidade, setModalidade] = useState(ultimo?.modalidade_atendimento || "individual");
   const [engajamento, setEngajamento] = useState(3);
   const [atividade, setAtividade] = useState("");
   const [objetivos, setObjetivos] = useState("");
   const [estrategias, setEstrategias] = useState("");
   const [recursos, setRecursos] = useState("");
   const [nivelDificuldade, setNivelDificuldade] = useState("adequado");
-  const [competencias, setCompetencias] = useState<string[]>(["atenção", "memória"]);
+  const [competencias, setCompetencias] = useState<string[]>(ultimo?.competencias_trabalhadas || []);
   const [pontosPositivos, setPontosPositivos] = useState("");
   const [dificuldades, setDificuldades] = useState("");
   const [observacoes, setObservacoes] = useState("");
@@ -365,15 +368,19 @@ function NovoRegistroTab({
   const [encaminhamentos, setEncaminhamentos] = useState("");
   const [alertaRegente, setAlertaRegente] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [erroAtividade, setErroAtividade] = useState(false);
   // Onda 5: o registro avisa se salvou ou não (antes só limpava os campos, e a falha era silenciosa)
   const [retorno, setRetorno] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!atividade.trim() || !objetivos.trim() || !estrategias.trim()) {
-      setRetorno({ tipo: "erro", texto: "Preencha a atividade, os objetivos e as estratégias para salvar." });
+    // Onda 9: só "o que foi feito" é obrigatório; o resto pode ficar para depois
+    if (!atividade.trim()) {
+      setErroAtividade(true);
+      document.getElementById("diario-atividade")?.focus();
       return;
     }
+    setErroAtividade(false);
     setRetorno(null);
     setSaving(true);
     const reg: RegistroDiario = {
@@ -397,196 +404,108 @@ function NovoRegistroTab({
     };
     const ok = await onSave(reg);
     if (ok) {
-      setAtividade("");
-      setObjetivos("");
-      setEstrategias("");
-      setRecursos("");
-      setPontosPositivos("");
-      setDificuldades("");
-      setObservacoes("");
-      setProximosPassos("");
-      setEncaminhamentos("");
-      setAlertaRegente(false);
-      setRetorno({ tipo: "ok", texto: `Registro de ${new Date(dataSessao + "T12:00:00").toLocaleDateString("pt-BR")} salvo.` });
+      setAtividade(""); setObjetivos(""); setEstrategias(""); setRecursos("");
+      setPontosPositivos(""); setDificuldades(""); setObservacoes("");
+      setProximosPassos(""); setEncaminhamentos(""); setAlertaRegente(false); setEngajamento(3);
+      setRetorno({ tipo: "ok", texto: `Atendimento de ${new Date(dataSessao + "T12:00:00").toLocaleDateString("pt-BR")} registrado. Ele já aparece na linha do tempo.` });
     } else {
       setRetorno({ tipo: "erro", texto: "Não conseguimos salvar o registro agora. O que você escreveu continua aqui: confira a internet e tente de novo." });
     }
     setSaving(false);
   };
 
+  const ENGAJ = ["Muito baixo", "Baixo", "Médio", "Bom", "Muito bom"];
+
   return (
-    <Card variant="default">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-xl flex items-center gap-2">
-          <span>➕</span> Nova Sessão de AEE
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {retorno && (
-          <div className={`omni-aviso ${retorno.tipo === "ok" ? "omni-aviso--sucesso" : "omni-aviso--erro"} mb-4`} role={retorno.tipo === "erro" ? "alert" : "status"} style={{ maxWidth: "none" }}>
-            <span aria-hidden className="omni-aviso__icone">{retorno.tipo === "ok" ? "✓" : "!"}</span>
-            <div><div className="omni-aviso__titulo">{retorno.texto}</div></div>
-            <span />
+    <section className="omni-cartao omni-cartao--plano" aria-labelledby="diario-novo">
+      <h2 id="diario-novo" className="omni-cartao__titulo" style={{ marginTop: 0 }}>Registrar atendimento</h2>
+      <p className="omni-apoio" style={{ marginTop: 0 }}>Leva menos de um minuto. Só o que foi feito é obrigatório.</p>
+      {retorno && (
+        <div className={`omni-aviso ${retorno.tipo === "ok" ? "omni-aviso--sucesso" : "omni-aviso--erro"}`} role={retorno.tipo === "erro" ? "alert" : "status"} style={{ maxWidth: "none", margin: "12px 0" }}>
+          <div><div className="omni-aviso__texto">{retorno.texto}</div></div>
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="omni-campo">
+            <label className="omni-campo__rotulo" htmlFor="diario-data">Data</label>
+            <input id="diario-data" type="date" className="omni-entrada" value={dataSessao} max={hoje} onChange={(e) => setDataSessao(e.target.value)} />
           </div>
-        )}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Input
-              label="Data da sessão *"
-              type="date"
-              value={dataSessao}
-              onChange={(e) => setDataSessao(e.target.value)}
-              required
-            />
-            <Input
-              label="Duração (min)"
-              type="number"
-              min={15}
-              max={240}
-              step={15}
-              value={duracao}
-              onChange={(e) => setDuracao(Number(e.target.value))}
-            />
-            <Select
-              label="Modalidade"
-              options={MODALIDADES}
-              value={modalidade}
-              onChange={(e) => setModalidade(e.target.value)}
-            />
+          <div className="omni-campo">
+            <label className="omni-campo__rotulo" htmlFor="diario-duracao">Duração (min)</label>
+            <input id="diario-duracao" type="number" className="omni-entrada" min={5} max={240} step={5} value={duracao} onChange={(e) => setDuracao(Number(e.target.value))} />
           </div>
-
-          <Textarea
-            label="Atividade principal *"
-            value={atividade}
-            onChange={(e) => setAtividade(e.target.value)}
-            rows={3}
-            required
-            placeholder="Descreva a atividade..."
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Textarea
-              label="Objetivos trabalhados *"
-              value={objetivos}
-              onChange={(e) => setObjetivos(e.target.value)}
-              rows={3}
-              required
-              placeholder="Quais objetivos?"
-            />
-            <Textarea
-              label="Estratégias utilizadas *"
-              value={estrategias}
-              onChange={(e) => setEstrategias(e.target.value)}
-              rows={3}
-              required
-              placeholder="Ex: Modelagem, dicas visuais..."
-            />
+          <div className="omni-campo">
+            <label className="omni-campo__rotulo" htmlFor="diario-modalidade">Como foi</label>
+            <select id="diario-modalidade" className="omni-entrada" value={modalidade} onChange={(e) => setModalidade(e.target.value)}>
+              {MODALIDADES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+            </select>
           </div>
+        </div>
 
-          <Input
-            label="Recursos e materiais"
-            value={recursos}
-            onChange={(e) => setRecursos(e.target.value)}
-            placeholder="Tablets, jogos..."
-          />
+        <div className="omni-campo" style={{ maxWidth: "none" }}>
+          <label className="omni-campo__rotulo" htmlFor="diario-atividade">O que foi feito</label>
+          <textarea id="diario-atividade" className="omni-entrada" rows={3} value={atividade}
+            onChange={(e) => { setAtividade(e.target.value); if (e.target.value.trim()) setErroAtividade(false); }}
+            aria-invalid={erroAtividade} aria-describedby={erroAtividade ? "diario-atividade-erro" : undefined}
+            placeholder="Ex.: jogo de memória com sílabas; leitura compartilhada do livro da turma" />
+          {erroAtividade && <span id="diario-atividade-erro" className="omni-campo__erro">Escreva o que foi feito para salvar.</span>}
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Slider
-              label="Engajamento (1-5)"
-              min={1}
-              max={5}
-              value={engajamento}
-              onChange={(e) => setEngajamento(Number(e.target.value))}
-              color="#e11d48"
-            />
-            <Select
-              label="Nível de dificuldade"
-              options={NIVEL_DIFICULDADE}
-              value={nivelDificuldade}
-              onChange={(e) => setNivelDificuldade(e.target.value)}
-            />
+        <fieldset className="omni-campo" style={{ maxWidth: "none", border: 0, padding: 0, margin: 0 }}>
+          <legend className="omni-campo__rotulo" style={{ marginBottom: 6 }}>Engajamento do estudante</legend>
+          <div className="omni-segmentado" style={{ flexWrap: "wrap" }}>
+            {ENGAJ.map((rotulo, i) => (
+              <label key={rotulo}>
+                <input type="radio" name="diario-engajamento" checked={engajamento === i + 1} onChange={() => setEngajamento(i + 1)} />
+                {rotulo}
+              </label>
+            ))}
           </div>
+        </fieldset>
 
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-3">Competências trabalhadas</label>
-            <div className="flex flex-wrap gap-3">
-              {COMPETENCIAS.map((c) => (
-                <div key={c} className="bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors">
-                  <Checkbox
-                    label={c}
-                    checked={competencias.includes(c)}
-                    onChange={(e) =>
-                      setCompetencias((prev) =>
-                        e.target.checked ? [...prev, c] : prev.filter((x) => x !== c)
-                      )
-                    }
-                  />
-                </div>
-              ))}
+        <details>
+          <summary style={{ cursor: "pointer", font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>Mais detalhes <span className="omni-apoio" style={{ fontWeight: 400 }}>(opcional)</span></summary>
+          <div className="space-y-4" style={{ marginTop: 12 }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="omni-campo"><label className="omni-campo__rotulo" htmlFor="d-obj">Objetivos trabalhados</label><textarea id="d-obj" className="omni-entrada" rows={2} value={objetivos} onChange={(e) => setObjetivos(e.target.value)} /></div>
+              <div className="omni-campo"><label className="omni-campo__rotulo" htmlFor="d-est">Estratégias usadas</label><textarea id="d-est" className="omni-entrada" rows={2} value={estrategias} onChange={(e) => setEstrategias(e.target.value)} placeholder="Ex.: modelagem, dicas visuais" /></div>
+              <div className="omni-campo"><label className="omni-campo__rotulo" htmlFor="d-rec">Recursos e materiais</label><input id="d-rec" className="omni-entrada" value={recursos} onChange={(e) => setRecursos(e.target.value)} /></div>
+              <div className="omni-campo"><label className="omni-campo__rotulo" htmlFor="d-dif">Nível de dificuldade da atividade</label>
+                <select id="d-dif" className="omni-entrada" value={nivelDificuldade} onChange={(e) => setNivelDificuldade(e.target.value)}>
+                  {NIVEL_DIFICULDADE.map((n) => <option key={n.value} value={n.value}>{n.label}</option>)}
+                </select>
+              </div>
+              <div className="omni-campo"><label className="omni-campo__rotulo" htmlFor="d-pos">O que foi bem</label><textarea id="d-pos" className="omni-entrada" rows={2} value={pontosPositivos} onChange={(e) => setPontosPositivos(e.target.value)} /></div>
+              <div className="omni-campo"><label className="omni-campo__rotulo" htmlFor="d-difi">Dificuldades</label><textarea id="d-difi" className="omni-entrada" rows={2} value={dificuldades} onChange={(e) => setDificuldades(e.target.value)} /></div>
+              <div className="omni-campo"><label className="omni-campo__rotulo" htmlFor="d-prox">Próximos passos</label><textarea id="d-prox" className="omni-entrada" rows={2} value={proximosPassos} onChange={(e) => setProximosPassos(e.target.value)} /></div>
+              <div className="omni-campo"><label className="omni-campo__rotulo" htmlFor="d-enc">Encaminhamentos</label><input id="d-enc" className="omni-entrada" value={encaminhamentos} onChange={(e) => setEncaminhamentos(e.target.value)} /></div>
             </div>
+            <div className="omni-campo" style={{ maxWidth: "none" }}><label className="omni-campo__rotulo" htmlFor="d-obs">Observações</label><textarea id="d-obs" className="omni-entrada" rows={2} value={observacoes} onChange={(e) => setObservacoes(e.target.value)} /></div>
+            <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+              <legend className="omni-campo__rotulo" style={{ marginBottom: 6 }}>Competências trabalhadas</legend>
+              <div className="omni-escolhas" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {COMPETENCIAS.map((c) => (
+                  <label key={c} className="omni-chip" style={{ cursor: "pointer" }}>
+                    <input type="checkbox" checked={competencias.includes(c)} onChange={(e) => setCompetencias((prev) => e.target.checked ? [...prev, c] : prev.filter((x) => x !== c))} /> {c}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
           </div>
+        </details>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Textarea
-              label="Pontos positivos"
-              value={pontosPositivos}
-              onChange={(e) => setPontosPositivos(e.target.value)}
-              rows={2}
-            />
-            <Textarea
-              label="Dificuldades identificadas"
-              value={dificuldades}
-              onChange={(e) => setDificuldades(e.target.value)}
-              rows={2}
-            />
-          </div>
+        <label className="flex items-start gap-3" style={{ padding: "var(--space-3)", border: "1px solid var(--borda)", borderRadius: "var(--o-radius-md)", cursor: "pointer" }}>
+          <input type="checkbox" checked={alertaRegente} onChange={(e) => setAlertaRegente(e.target.checked)} style={{ marginTop: 4 }} />
+          <span>
+            <span style={{ font: "700 15px/22px var(--font-sans)", color: "var(--tinta)", display: "block" }}>Avisar o professor da sala</span>
+            <span className="omni-apoio">Para algo importante que ele precisa saber logo (mudança de comportamento, crise, um avanço). O aviso aparece no PEI por 30 dias.</span>
+          </span>
+        </label>
 
-          <Textarea
-            label="Observações gerais"
-            value={observacoes}
-            onChange={(e) => setObservacoes(e.target.value)}
-            rows={2}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Textarea
-              label="Próximos passos"
-              value={proximosPassos}
-              onChange={(e) => setProximosPassos(e.target.value)}
-              rows={2}
-            />
-            <Input
-              label="Encaminhamentos"
-              value={encaminhamentos}
-              onChange={(e) => setEncaminhamentos(e.target.value)}
-            />
-          </div>
-
-          {/* Notificação Regente */}
-          <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start mt-6 mb-2">
-            <Checkbox
-              id="alertaRegente"
-              label="⚠️ Sinalizar Evolução Crítica (Aviso Regente)"
-              description="Marque esta opção se houve um evento importante nesta sessão que o Professor Regente deve saber imediatamente (ex: mudança de comportamento severa, pico de engajamento, colapso sensorial). O aviso ficará visível no PEI por 30 dias."
-              checked={alertaRegente}
-              onChange={(e) => setAlertaRegente(e.target.checked)}
-            />
-          </div>
-
-          <div className="pt-2">
-            <Button
-              type="submit"
-              variant="primary"
-              className="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 focus-visible:ring-rose-600"
-              disabled={saving}
-              loading={saving}
-            >
-              Salvar registro
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+        <button type="submit" className="omni-btn omni-btn--primario" disabled={saving}>{saving ? "Salvando…" : "Registrar atendimento"}</button>
+      </form>
+    </section>
   );
 }
 
@@ -598,38 +517,24 @@ function ListaTab({
   registros: RegistroDiario[];
   onDelete: (id: string) => void;
 }) {
-  const [viewMode, setViewMode] = useState<"lista" | "timeline">("lista");
+  const [viewMode, setViewMode] = useState<"lista" | "timeline">("timeline");
 
   return (
     <div className="space-y-4">
       <Card variant="default">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-xl flex items-center gap-2">📋 Lista de Registros</CardTitle>
-            <div className="flex gap-2">
-              <Button
-                variant={viewMode === "lista" ? "primary" : "secondary"}
-                size="sm"
-                className={viewMode === "lista" ? "bg-rose-600 hover:bg-rose-700 focus-visible:ring-rose-600" : ""}
-                onClick={() => setViewMode("lista")}
-              >
-                Lista
-              </Button>
-              <Button
-                variant={viewMode === "timeline" ? "primary" : "secondary"}
-                size="sm"
-                className={viewMode === "timeline" ? "bg-rose-600 hover:bg-rose-700 focus-visible:ring-rose-600" : ""}
-                onClick={() => setViewMode("timeline")}
-              >
-                Timeline
-              </Button>
+            <CardTitle className="text-xl flex items-center gap-2">Atendimentos</CardTitle>
+            <div className="flex gap-1" role="group" aria-label="Como ver">
+              <button type="button" className={`omni-btn omni-btn--pequeno ${viewMode === "timeline" ? "omni-btn--secundario" : "omni-btn--discreto"}`} aria-pressed={viewMode === "timeline"} onClick={() => setViewMode("timeline")}>Linha do tempo</button>
+              <button type="button" className={`omni-btn omni-btn--pequeno ${viewMode === "lista" ? "omni-btn--secundario" : "omni-btn--discreto"}`} aria-pressed={viewMode === "lista"} onClick={() => setViewMode("lista")}>Lista</button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           {registros.length === 0 ? (
             <div className="text-(--omni-text-muted) p-4 text-center border-2 border-dashed border-slate-200 rounded-xl mt-4">
-              Nenhum registro ainda. Preencha o formulário acima para criar o primeiro.
+              Nenhum atendimento registrado ainda. O primeiro que você registrar aparece aqui.
             </div>
           ) : viewMode === "lista" ? (
             <div className="space-y-3 mt-4">
@@ -723,7 +628,7 @@ function TimelineView({
                   </div>
                   <button
                     onClick={() => {
-                      if (confirm("Excluir este registro?")) {
+                      {
                         if (r.registro_id) onDelete(r.registro_id);
                       }
                     }}
@@ -763,7 +668,7 @@ function RegistroCard({ registro, onDelete }: { registro: RegistroDiario; onDele
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              if (confirm("Excluir este registro?")) onDelete();
+              onDelete();
             }}
             className="text-red-600 text-sm hover:underline"
           >
@@ -791,164 +696,6 @@ function RegistroCard({ registro, onDelete }: { registro: RegistroDiario; onDele
 
 
 // Aba: Configurações
-function ConfiguracoesTab() {
-  const [duracaoPadrao, setDuracaoPadrao] = useState(45);
-  const [modalidadePadrao, setModalidadePadrao] = useState("individual");
-  const [competenciasPadrao, setCompetenciasPadrao] = useState<string[]>(["atenção", "memória"]);
-  const [notificacoes, setNotificacoes] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    // Carregar configurações salvas do localStorage
-    const saved = localStorage.getItem("diario_config");
-    if (saved) {
-      setTimeout(() => {
-        try {
-          const config = JSON.parse(saved);
-          setDuracaoPadrao(config.duracaoPadrao || 45);
-          setModalidadePadrao(config.modalidadePadrao || "individual");
-          setCompetenciasPadrao(config.competenciasPadrao || ["atenção", "memória"]);
-          setNotificacoes(config.notificacoes !== false);
-        } catch (e) {
-          /* client-side */ console.error("Erro ao carregar configurações:", e);
-        }
-      }, 0);
-    }
-  }, []);
-
-  const handleSave = () => {
-    setSaving(true);
-    const config = {
-      duracaoPadrao,
-      modalidadePadrao,
-      competenciasPadrao,
-      notificacoes,
-    };
-    localStorage.setItem("diario_config", JSON.stringify(config));
-    setTimeout(() => {
-      setSaving(false);
-      alert("Configurações salvas com sucesso!");
-    }, 500);
-  };
-
-  const handleReset = () => {
-    setDuracaoPadrao(45);
-    setModalidadePadrao("individual");
-    setCompetenciasPadrao(["atenção", "memória"]);
-    setNotificacoes(true);
-    localStorage.removeItem("diario_config");
-    alert("Configurações restauradas para os padrões!");
-  };
-
-  return (
-    <div className="space-y-6">
-      <Card variant="default">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xl">⚙️ Configurações do Diário</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-            <div className="space-y-6">
-              <h4 className="font-semibold text-slate-800 border-b border-slate-100 pb-2">Opções Padrão</h4>
-
-              <Input
-                label="Duração Padrão (minutos)"
-                type="number"
-                min={15}
-                max={120}
-                step={15}
-                value={duracaoPadrao}
-                onChange={(e) => setDuracaoPadrao(Number(e.target.value))}
-              />
-
-              <Select
-                label="Modalidade Padrão"
-                value={modalidadePadrao}
-                onChange={(e) => setModalidadePadrao(e.target.value)}
-                options={MODALIDADES}
-              />
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Competências Padrão</label>
-                <div className="flex flex-wrap gap-2">
-                  {COMPETENCIAS.map((c) => (
-                    <label key={c} className="flex items-center gap-2 text-sm bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={competenciasPadrao.includes(c)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setCompetenciasPadrao([...competenciasPadrao, c]);
-                          } else {
-                            setCompetenciasPadrao(competenciasPadrao.filter((x) => x !== c));
-                          }
-                        }}
-                        className="w-4 h-4 text-rose-600 border-slate-300 rounded focus:ring-rose-500"
-                      />
-                      <span className="capitalize">{c}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={notificacoes}
-                    onChange={(e) => setNotificacoes(e.target.checked)}
-                    className="w-4 h-4 text-rose-600 border-slate-300 rounded focus:ring-rose-500"
-                  />
-                  <span className="text-sm font-medium text-slate-700">Receber lembretes de registro contínuo</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="space-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-100">
-              <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
-                <span className="text-xl">💡</span> Ajuda e Boas Práticas
-              </h4>
-              <div className="text-sm text-slate-600 space-y-4 leading-relaxed">
-                <p>Nesta área, você pode definir os valores padrão que virão preenchidos automaticamente num <strong>Novo Registro</strong>, garantindo mais agilidade no dia a dia.</p>
-
-                <div>
-                  <strong className="text-slate-800 block mb-1">Guia de Uso do Diário:</strong>
-                  <ul className="list-disc list-inside space-y-1.5 marker:text-rose-400">
-                    <li><strong className="text-slate-700">Novo Registro:</strong> Preencha todos os campos obrigatórios (*) para criar o documento probatório.</li>
-                    <li><strong className="text-slate-700">Aviso Regente:</strong> Use o alerta no fim do registro apenas para eventos críticos.</li>
-                    <li><strong className="text-slate-700">Relatórios:</strong> Exporte um dossiê robusto usando JSON ou Relatório Resumido para apresentar na coordenação.</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 flex flex-col sm:flex-row gap-4 pt-6 border-t border-slate-100">
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              loading={saving}
-              variant="primary"
-              className="bg-blue-600 hover:bg-blue-700 justify-center w-full sm:w-auto"
-            >
-              💾 Salvar Configurações
-            </Button>
-            <Button
-              onClick={handleReset}
-              variant="secondary"
-              className="justify-center w-full sm:w-auto"
-            >
-              🔄 Restaurar Padrões
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-
-
 export function DiarioClient({ students, studentId, student }: Props) {
   return (
     <Suspense fallback={

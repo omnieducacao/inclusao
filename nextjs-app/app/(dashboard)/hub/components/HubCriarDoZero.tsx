@@ -6,6 +6,7 @@ import { EngineSelector } from "@/components/EngineSelector";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import { SalvarNoPlanoButton } from "@/components/SalvarNoPlanoButton";
+import { ResultadoIA } from "@/components/ia/ResultadoIA";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { OmniLoader } from "@/components/OmniLoader";
 import { BookOpen, GraduationCap } from "lucide-react";
@@ -58,6 +59,7 @@ export function CriarDoZero({
   const [checklist, setChecklist] = useState<ChecklistAdaptacao>({});
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
+  const [notasResultado, setNotasResultado] = useState("");
   const [mapaImagensResultado, setMapaImagensResultado] = useState<Record<number, string>>({});
   const [erro, setErro] = useState<string | null>(null);
   const [validado, setValidado] = useState(false);
@@ -246,7 +248,11 @@ export function CriarDoZero({
         const parts = textoFinal.split("---DIVISOR---");
         const analise = parts[0]?.replace("[ANÁLISE PEDAGÓGICA]", "").trim() || "";
         const atividade = parts[1]?.replace("[ATIVIDADE]", "").trim() || textoFinal;
-        textoFinal = analise ? `## Análise Pedagógica\n\n${analise}\n\n---\n\n## Atividade\n\n${atividade}` : atividade;
+        // Onda 8: a análise é nota para o professor; não entra no material do estudante
+        setNotasResultado(analise);
+        textoFinal = atividade;
+      } else {
+        setNotasResultado("");
       }
 
       const mapa: Record<number, string> = {};
@@ -676,60 +682,31 @@ export function CriarDoZero({
       </button>
       {erro && <div className="text-red-600 text-sm">{erro}</div>}
       {resultado && (
-        <div className="space-y-4">
-          {validado && (
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-sm font-medium">
-              ✅ ATIVIDADE VALIDADA E PRONTA PARA USO
-            </div>
+        <ResultadoIA
+          titulo="Atividade criada"
+          material={resultado}
+          notas={notasResultado}
+          mapaImagens={Object.keys(mapaImagensResultado).length > 0 ? mapaImagensResultado : undefined}
+          onDescartar={() => { setResultado(null); setValidado(false); }}
+          onRevisado={setValidado}
+          acoes={(texto) => (
+            <>
+              <label className="omni-apoio flex items-center gap-1.5 cursor-pointer" title="Fonte OpenDyslexic, 14 pt, espaçamento 1,5 e fundo creme">
+                <input type="checkbox" checked={formatoInclusivo} onChange={(e) => setFormatoInclusivo(e.target.checked)} />
+                Formato para leitura facilitada
+              </label>
+              <DocxDownloadButton
+                texto={texto}
+                titulo="Atividade"
+                filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`}
+                mapaImagens={Object.keys(mapaImagensResultado).length > 0 ? mapaImagensResultado : undefined}
+                formatoInclusivo={formatoInclusivo}
+              />
+              <PdfDownloadButton text={texto} filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Atividade" formatoInclusivo={formatoInclusivo} />
+              <SalvarNoPlanoButton conteudo={texto} tipo="Atividade" className="omni-btn omni-btn--secundario omni-btn--pequeno" />
+            </>
           )}
-          {!validado && (
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setValidado(true)}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
-              >
-                ✅ Validar Atividade
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setResultado(null);
-                  setValidado(false);
-                }}
-                className="px-4 py-2 bg-slate-400 text-white rounded-lg hover:bg-slate-500 text-sm"
-              >
-                🗑️ Descartar
-              </button>
-            </div>
-          )}
-          <div className="p-6 rounded-xl bg-linear-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
-            <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
-              <span className="text-base font-semibold text-slate-800">Atividade Criada</span>
-              <span className="flex gap-2 items-center">
-                <label className="flex items-center gap-1.5 text-xs text-indigo-700 bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-200 cursor-pointer hover:bg-indigo-100 transition-colors" title="Exporta com fonte OpenDyslexic, tamanho 14pt, espaçamento 1.5x e fundo creme (PDF)">
-                  <input
-                    type="checkbox"
-                    checked={formatoInclusivo}
-                    onChange={(e) => setFormatoInclusivo(e.target.checked)}
-                    className="accent-indigo-600"
-                  />
-                  ♿ Formato Inclusivo
-                </label>
-                <DocxDownloadButton
-                  texto={resultado}
-                  titulo="Atividade Criada"
-                  filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`}
-                  mapaImagens={Object.keys(mapaImagensResultado).length > 0 ? mapaImagensResultado : undefined}
-                  formatoInclusivo={formatoInclusivo}
-                />
-                <PdfDownloadButton text={resultado} filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Atividade Criada" formatoInclusivo={formatoInclusivo} />
-                <SalvarNoPlanoButton conteudo={resultado} tipo="Atividade" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs" />
-              </span>
-            </div>
-            <FormattedTextDisplay texto={resultado} mapaImagens={Object.keys(mapaImagensResultado).length > 0 ? mapaImagensResultado : undefined} />
-          </div>
-        </div>
+        />
       )}
     </div>
   );

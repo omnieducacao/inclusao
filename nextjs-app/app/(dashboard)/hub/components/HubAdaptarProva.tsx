@@ -9,6 +9,7 @@ import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import { SalvarNoPlanoButton } from "@/components/SalvarNoPlanoButton";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
+import { ResultadoIA } from "@/components/ia/ResultadoIA";
 import { BookOpen } from "lucide-react";
 import {
   COMPONENTES,
@@ -440,82 +441,38 @@ export function AdaptarProva({
       </button>
       {erro && <div className="text-red-600 text-sm">{erro}</div>}
       {resultado && (
-        <div className="space-y-4">
-          {validado && (
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-sm font-medium">
-              ✅ ATIVIDADE VALIDADA E PRONTA PARA USO
-            </div>
+        <ResultadoIA
+          titulo="Prova adaptada"
+          material={textoComImagensParaDocx}
+          notas={resultado.analise}
+          mapaImagens={Object.keys(mapaImagensParaDocx).length > 0 ? mapaImagensParaDocx : undefined}
+          onRefazer={() => { setRefazendo(true); gerar(true); }}
+          refazendo={refazendo}
+          onDescartar={() => { setResultado(null); setValidado(false); }}
+          onRevisado={setValidado}
+          acoes={(texto) => (
+            <>
+              <label className="omni-apoio flex items-center gap-1.5 cursor-pointer" title="Fonte OpenDyslexic, 14 pt, espaçamento 1,5 e fundo creme">
+                <input type="checkbox" checked={formatoInclusivo} onChange={(e) => setFormatoInclusivo(e.target.checked)} />
+                Formato para leitura facilitada
+              </label>
+              <DocxDownloadButton
+                texto={texto}
+                titulo="Prova adaptada"
+                filename={`Prova_Adaptada_${new Date().toISOString().slice(0, 10)}.docx`}
+                mapaImagens={Object.keys(mapaImagensParaDocx).length > 0 ? mapaImagensParaDocx : undefined}
+                formatoInclusivo={formatoInclusivo}
+              />
+              <PdfDownloadButton
+                text={texto}
+                filename={`Prova_Adaptada_${new Date().toISOString().slice(0, 10)}.pdf`}
+                title="Prova adaptada"
+                formatoInclusivo={formatoInclusivo}
+              />
+              <SalvarNoPlanoButton conteudo={texto} tipo="Prova Adaptada" className="omni-btn omni-btn--secundario omni-btn--pequeno" />
+            </>
           )}
-          {!validado && (
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setValidado(true)}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
-              >
-                ✅ Validar
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setRefazendo(true);
-                  gerar(true);
-                }}
-                disabled={refazendo}
-                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm disabled:opacity-50"
-              >
-                {refazendo ? "Refazendo…" : "🔄 Refazer (+Profundo)"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setResultado(null);
-                  setValidado(false);
-                }}
-                className="px-4 py-2 bg-slate-400 text-white rounded-lg hover:bg-slate-500 text-sm"
-              >
-                🗑️ Descartar
-              </button>
-            </div>
-          )}
-          {resultado.analise && (
-            <div className="p-4 rounded-lg bg-slate-100 border border-slate-200">
-              <div className="text-xs font-semibold text-slate-600 uppercase mb-3">Análise Pedagógica</div>
-              <FormattedTextDisplay texto={resultado.analise} />
-            </div>
-          )}
-          <div className="p-6 rounded-2xl bg-linear-to-br from-slate-50 to-white shadow-sm border border-slate-200/60">
-            <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
-              <span className="text-base font-semibold text-slate-800">Prova Adaptada (DUA)</span>
-              <span className="flex gap-2 items-center">
-                <label className="flex items-center gap-1.5 text-xs text-indigo-700 bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-200 cursor-pointer hover:bg-indigo-100 transition-colors" title="Exporta com fonte OpenDyslexic, tamanho 14pt, espaçamento 1.5x e fundo creme (PDF)">
-                  <input
-                    type="checkbox"
-                    checked={formatoInclusivo}
-                    onChange={(e) => setFormatoInclusivo(e.target.checked)}
-                    className="accent-indigo-600"
-                  />
-                  ♿ Formato Inclusivo
-                </label>
-                <DocxDownloadButton
-                  texto={`${resultado.analise}\n\n---\n\n${textoComImagensParaDocx}`}
-                  titulo="Prova Adaptada (DUA)"
-                  filename={`Prova_Adaptada_${new Date().toISOString().slice(0, 10)}.docx`}
-                  mapaImagens={Object.keys(mapaImagensParaDocx).length > 0 ? mapaImagensParaDocx : undefined}
-                  formatoInclusivo={formatoInclusivo}
-                />
-                <PdfDownloadButton
-                  text={`${resultado.analise}\n\n---\n\n${textoComImagensParaDocx}`}
-                  filename={`Prova_Adaptada_${new Date().toISOString().slice(0, 10)}.pdf`}
-                  title="Prova Adaptada (DUA)"
-                  formatoInclusivo={formatoInclusivo}
-                />
-                <SalvarNoPlanoButton conteudo={`${resultado.analise}\n\n---\n\n${textoComImagensParaDocx}`} tipo="Prova Adaptada" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs" />
-              </span>
-            </div>
-            <FormattedTextDisplay texto={textoComImagensParaDocx} mapaImagens={Object.keys(mapaImagensParaDocx).length > 0 ? mapaImagensParaDocx : undefined} />
-          </div>
-        </div>
+        />
       )}
     </div>
   );

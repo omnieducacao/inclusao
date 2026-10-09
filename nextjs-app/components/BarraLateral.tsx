@@ -23,7 +23,7 @@ import { podeVer } from "@/lib/navegacao";
 
 export { podeVer };
 
-type Item = { href: string; nome: string; Icone: LucideIcon; permissao?: string; cor?: string };
+type Item = { href: string; nome: string; Icone: LucideIcon; permissao?: string; cor?: string; /** outras rotas que acendem este item */ tambem?: string[] };
 type Grupo = { titulo: string | null; itens: Item[] };
 
 export const GRUPOS_NAVEGACAO: Grupo[] = [
@@ -43,8 +43,7 @@ export const GRUPOS_NAVEGACAO: Grupo[] = [
     itens: [
       { href: "/hub", nome: "Hub de recursos", Icone: Sparkles, permissao: "can_hub", cor: "hub" },
       { href: "/plano-curso", nome: "Plano de ensino", Icone: BookMarked, permissao: "can_pei_professor", cor: "hub" },
-      { href: "/avaliacao-diagnostica", nome: "Avaliação diagnóstica", Icone: Brain, permissao: "can_pei_professor", cor: "hub" },
-      { href: "/avaliacao-processual", nome: "Avaliação processual", Icone: ChartLine, permissao: "can_pei_professor", cor: "monitoramento" },
+      { href: "/avaliacao-diagnostica", nome: "Avaliação", Icone: Brain, permissao: "can_pei_professor", cor: "hub", tambem: ["/avaliacao-processual"] },
       { href: "/monitoramento", nome: "Evolução e dados", Icone: ChartLine, permissao: "can_avaliacao", cor: "monitoramento" },
     ],
   },
@@ -82,7 +81,7 @@ function Lista({ grupos, pathname, onNavegar }: { grupos: Grupo[]; pathname: str
         <div key={g.titulo || "inicio"} className="omni-lateral__bloco">
           {g.titulo && <div className="omni-lateral__grupo">{g.titulo}</div>}
           {g.itens.map((i) => {
-            const atual = ativo(pathname, i.href);
+            const atual = ativo(pathname, i.href) || (i.tambem || []).some((h) => ativo(pathname, h));
             return (
               <Link
                 key={i.href}

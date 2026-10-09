@@ -87,7 +87,7 @@ export function SalvarNoPlanoButton({
             {erro && <p className="text-red-600 text-sm mb-3">{erro}</p>}
             {sucesso && <p className="text-emerald-600 text-sm mb-3">Salvo com sucesso!</p>}
             {!loading && planos.length === 0 && !erro && (
-              <p className="text-slate-600 text-sm">Nenhum plano de curso encontrado. Crie um em Plano de Curso primeiro.</p>
+              <p className="text-slate-600 text-sm">Nenhum plano de ensino encontrado. Crie um em Plano de ensino primeiro.</p>
             )}
             {!loading && planos.length > 0 && (
               <ul className="space-y-2 max-h-64 overflow-y-auto">

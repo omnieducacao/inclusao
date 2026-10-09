@@ -10,6 +10,8 @@ import { logger } from "@/lib/logger";
 import { listStudentsDaSessao, type Student } from "@/lib/students";
 import { pendenciasDoInicio, pedemAtencao, saudacao, dataPorExtenso, hojeBrasilia, primeiroNome, type Pendencia } from "@/lib/inicio";
 import type { Vigencia } from "@/lib/estudo-caso";
+import { PrimeirosPassos } from "@/components/inicio/PrimeirosPassos";
+import { primeirosPassos, mostrarPrimeirosPassos, type PassoEscola } from "@/lib/primeiros-passos";
 import { Inicio, type CartaoDeModulo, type GrupoDeModulos, type Atalho } from "@/components/inicio/Inicio";
 
 export default async function RootPage() {
@@ -48,6 +50,7 @@ export default async function RootPage() {
   let diario7d = 0;
   let processualCount = 0;
   let familyModuleEnabled = false;
+  let passosEscola: PassoEscola[] = [];
   try {
     if (sessionNonNull.workspace_id && !sessionNonNull.is_platform_admin) {
       const sb = getSupabase();
@@ -91,6 +94,16 @@ export default async function RootPage() {
           .eq("ano_letivo", new Date().getFullYear());
         processualCount = processualRes.count || 0;
       } catch { /* tabela pode não existir */ }
+
+      // Onda 11: Primeiros passos da escola, só para a coordenação
+      if (sessionNonNull.user_role === "master" && !sessionNonNull.simulating_member_id) {
+        const contar = async (tabela: string) => {
+          const { count } = await sb.from(tabela).select("id", { count: "exact", head: true }).eq("workspace_id", wid);
+          return count || 0;
+        };
+        const [anosLetivos, turmas, equipe] = await Promise.all([contar("school_years"), contar("classes"), contar("workspace_members")]);
+        passosEscola = primeirosPassos({ anosLetivos, turmas, equipe, estudantes: estudantes.length, peisVigentes });
+      }
     }
   } catch (err) {
     logger.error({ err }, "[RootPage] erro ao montar o início");
@@ -114,11 +127,10 @@ export default async function RootPage() {
   ];
   const planejar: Mod[] = [
     { href: "/hub", icone: "sparkles", cor: "hub", titulo: "Hub de recursos", descricao: "Ferramentas de IA para criar e adaptar materiais.", permission: "can_hub" },
-    { href: "/plano-curso", icone: "bookMarked", cor: "hub", titulo: "Plano de curso", descricao: "Planejamento por componente curricular e série.", permission: "can_pei_professor" },
-    { href: "/avaliacao-diagnostica", icone: "brain", cor: "hub", titulo: "Avaliação diagnóstica", descricao: "Questões com IA para conhecer o ponto de partida.", permission: "can_pei_professor" },
-    { href: "/avaliacao-processual", icone: "chartLine", cor: "monitoramento", titulo: "Avaliação processual", descricao: "A evolução do estudante ao longo do ano.", permission: "can_pei_professor",
+    { href: "/plano-curso", icone: "bookMarked", cor: "hub", titulo: "Plano de ensino", descricao: "Planejamento por componente curricular e série.", permission: "can_pei_professor" },
+    { href: "/avaliacao-diagnostica", icone: "brain", cor: "hub", titulo: "Avaliação", descricao: "Diagnóstica no começo e processual a cada bimestre, na escala de 0 a 4.", permission: "can_pei_professor",
       selo: processualCount ? { texto: `${processualCount} registros`, tipo: "neutro" } : undefined },
-    { href: "/monitoramento", icone: "chartLine", cor: "monitoramento", titulo: "Evolução e dados", descricao: "Indicadores e relatórios de progresso.", permission: "can_avaliacao" },
+    { href: "/monitoramento", icone: "chartLine", cor: "monitoramento", titulo: "Evolução e dados", descricao: "Onde a escola está com os PEIs e quem precisa de atenção.", permission: "can_avaliacao" },
   ];
   const gestao: Mod[] = [
     { href: "/pgi", icone: "clipboardList", cor: "gestao", titulo: "PGI", descricao: "Plano de Gestão Inclusiva da escola.", permission: "can_gestao" },
@@ -141,10 +153,10 @@ export default async function RootPage() {
   const atalhos: Atalho[] = [
     ...(canAccessModule("can_hub")
       ? ([
-          { href: "/hub?tool=adaptar-atividade", rotulo: "Adaptar atividade", icone: "sparkles" },
-          { href: "/hub?tool=adaptar-prova", rotulo: "Adaptar prova", icone: "fileText" },
-          { href: "/hub?tool=criar-zero", rotulo: "Criar questões", icone: "brain" },
-          { href: "/hub?tool=plano-aula", rotulo: "Plano de aula (DUA)", icone: "bookMarked" },
+          { href: "/hub?ferramenta=adaptar-atividade", rotulo: "Adaptar atividade", icone: "sparkles" },
+          { href: "/hub?ferramenta=adaptar-prova", rotulo: "Adaptar prova", icone: "fileText" },
+          { href: "/hub?ferramenta=criar-zero", rotulo: "Criar questões", icone: "brain" },
+          { href: "/hub?ferramenta=plano-aula", rotulo: "Plano de aula (DUA)", icone: "bookMarked" },
         ] as Atalho[])
       : []),
     ...(canAccessModule("can_diario") ? ([{ href: "/diario?tab=novo", rotulo: "Novo registro no diário", icone: "notebookPen" }] as Atalho[]) : []),
@@ -175,6 +187,7 @@ export default async function RootPage() {
         grupos={grupos}
         atalhos={atalhos}
         novidades={<OmnisferaFeed />}
+        primeirosPassos={mostrarPrimeirosPassos(passosEscola) ? <PrimeirosPassos passos={passosEscola} /> : undefined}
         rodape={
           <footer className="omni-cartao" style={{ padding: "var(--space-5) var(--space-6)" }}>
             <OmniEducacaoSignature variant="full" />

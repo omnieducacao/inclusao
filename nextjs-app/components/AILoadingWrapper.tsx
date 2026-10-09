@@ -2,13 +2,12 @@
 
 import { AILoadingProvider } from "@/hooks/useAILoading";
 import { AILoadingOverlay } from "@/components/AILoadingOverlay";
-import { GuidedTour } from "@/components/GuidedTour";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { ToastProvider } from "@/components/Toast";
 
 /**
  * Client wrapper that provides AILoading context, renders the overlay,
- * the guided tour for new users, the global search palette, and toast notifications.
+ (onda 11: sem o tour guiado; o Início mostra os Primeiros passos da escola), the global search palette, and toast notifications.
  */
 export function AILoadingWrapper({ children }: { children: React.ReactNode }) {
     return (
@@ -16,7 +15,6 @@ export function AILoadingWrapper({ children }: { children: React.ReactNode }) {
             <ToastProvider>
                 {children}
                 <AILoadingOverlay />
-                <GuidedTour />
                 <GlobalSearch />
             </ToastProvider>
         </AILoadingProvider>

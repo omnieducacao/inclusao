@@ -53,7 +53,7 @@ const ESTADO: Record<TipoPendencia, { classe: string; Icone: LucideIcon }> = {
 const MAX_PENDENCIAS = 6;
 
 export function Inicio({
-  saudacao, nome, escola, data, contexto, pendencias, totalPendencias, grupos, atalhos, novidades, rodape,
+  saudacao, nome, escola, data, contexto, pendencias, totalPendencias, grupos, atalhos, novidades, rodape, primeirosPassos,
 }: {
   saudacao: string;
   nome: string;
@@ -67,6 +67,8 @@ export function Inicio({
   atalhos: Atalho[];
   novidades?: ReactNode;
   rodape?: ReactNode;
+  /** onda 11: cartão de Primeiros passos da escola (só para a coordenação, enquanto falta algo) */
+  primeirosPassos?: ReactNode;
 }) {
   const visiveis = pendencias.slice(0, MAX_PENDENCIAS);
   return (
@@ -79,6 +81,8 @@ export function Inicio({
         </div>
         <SimboloOmnisfera tamanho={132} animacao="respira" className={s.simbolo} />
       </header>
+
+      {primeirosPassos}
 
       <div className={s.colunas}>
         <div className={s.principal}>

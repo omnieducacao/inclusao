@@ -1,94 +1,65 @@
 "use client";
 
+/**
+ * "Ver como" um membro da equipe ou um responsável (onda 11: confirmação e erros no padrão
+ * do design system, em vez de confirm()/alert() do navegador).
+ */
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye } from "lucide-react";
-import { OmniLoader } from "@/components/OmniLoader";
-import { Button } from "@omni/ds";
+import { useConfirmar } from "@/components/Confirmar";
 
-export function SimularButton({ memberId, memberName }: { memberId: string; memberName: string }) {
-    const router = useRouter();
-    const [loading, setLoading] = useState(false);
+function useSimular(rota: string, corpo: Record<string, string>, destino: string) {
+  const router = useRouter();
+  const { confirmar, dialogo } = useConfirmar();
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
 
-    async function handleSimulate() {
-        if (!confirm(`Iniciar simulação como "${memberName}"? Você verá a plataforma como este membro.`)) return;
-        setLoading(true);
-        try {
-            const res = await fetch("/api/simulate-member", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ member_id: memberId }),
-            });
-            const data = await res.json();
-            if (res.ok) {
-                router.push("/");
-                router.refresh();
-            } else {
-                alert(data.error || "Erro ao simular.");
-            }
-        } catch { /* expected fallback */
-            alert("Erro de conexão.");
-        } finally {
-            setLoading(false);
-        }
+  async function simular(titulo: string, texto: string) {
+    if (!(await confirmar({ titulo, texto, acao: "Ver como", cancelar: "Cancelar" }))) return;
+    setLoading(true);
+    setErro(null);
+    try {
+      const res = await fetch(rota, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) { router.push(destino); router.refresh(); }
+      else setErro(data.error || "Não foi possível abrir a visão.");
+    } catch {
+      setErro("Sem conexão. Tente de novo.");
+    } finally {
+      setLoading(false);
     }
-
-    return (
-        <button
-            type="button"
-            onClick={handleSimulate}
-            disabled={loading}
-            className="px-3 py-1.5 border border-purple-200 text-purple-600 rounded-lg text-sm hover:bg-purple-50 flex items-center gap-2 disabled:opacity-50"
-        >
-            {loading ? <OmniLoader size={16} /> : <Eye className="w-4 h-4" />}
-            Simular
-        </button>
-    );
+  }
+  return { simular, loading, erro, dialogo };
 }
 
-export function SimularFamilyButton({
-    responsavelId,
-    responsavelName,
-}: {
-    responsavelId: string;
-    responsavelName: string;
-}) {
-    const router = useRouter();
-    const [loading, setLoading] = useState(false);
+function Botao({ loading, erro, onClick }: { loading: boolean; erro: string | null; onClick: () => void }) {
+  return (
+    <span style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
+      <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" onClick={onClick} disabled={loading}>
+        <Eye aria-hidden /> {loading ? "Abrindo…" : "Ver como"}
+      </button>
+      {erro && <span className="omni-campo__erro" role="alert">{erro}</span>}
+    </span>
+  );
+}
 
-    async function handleSimulate() {
-        if (!confirm(`Iniciar simulação como "${responsavelName}"? Você verá a plataforma como este responsável (área Família).`)) return;
-        setLoading(true);
-        try {
-            const res = await fetch("/api/simulate-family", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ family_responsible_id: responsavelId }),
-            });
-            const data = await res.json();
-            if (res.ok) {
-                router.push("/familia");
-                router.refresh();
-            } else {
-                alert(data.error || "Erro ao simular.");
-            }
-        } catch { /* expected fallback */
-            alert("Erro de conexão.");
-        } finally {
-            setLoading(false);
-        }
-    }
+export function SimularButton({ memberId, memberName }: { memberId: string; memberName: string }) {
+  const s = useSimular("/api/simulate-member", { member_id: memberId }, "/");
+  return (
+    <>
+      {s.dialogo}
+      <Botao loading={s.loading} erro={s.erro} onClick={() => s.simular(`Ver a Omnisfera como ${memberName}?`, "Você vê só o que essa pessoa vê, com as permissões dela. Para voltar, use a faixa no topo da tela.")} />
+    </>
+  );
+}
 
-    return (
-        <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleSimulate}
-            disabled={loading}
-            className="text-amber-600 border-amber-200 hover:bg-amber-50 h-8"
-        >
-            {loading ? <OmniLoader size={14} /> : <Eye size={14} />}
-            Simular
-        </Button>
-    );
+export function SimularFamilyButton({ responsavelId, responsavelName }: { responsavelId: string; responsavelName: string }) {
+  const s = useSimular("/api/simulate-family", { family_responsible_id: responsavelId }, "/familia");
+  return (
+    <>
+      {s.dialogo}
+      <Botao loading={s.loading} erro={s.erro} onClick={() => s.simular(`Ver a área da família como ${responsavelName}?`, "Você vê o que esse responsável vê na área Família. Para voltar, use a faixa no topo da tela.")} />
+    </>
+  );
 }

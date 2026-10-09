@@ -1,5 +1,7 @@
 "use client";
 
+import { ESCALA_OMNISFERA } from "@/lib/omnisfera-types";
+
 import { useState, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -49,7 +51,8 @@ const CRITERIOS: Record<string, string> = {
   conteudo: "Apropriação do Conteúdo (PEI)",
   comportamento: "Regulação Comportamental",
 };
-const OPCOES_RUBRICA = ["Não Iniciado", "Iniciado", "Em Desenvolvimento", "Consolidado"];
+// Onda 10: a mesma escala 0–4 da Avaliação diagnóstica e da processual (antes eram 4 níveis com outros nomes)
+const OPCOES_RUBRICA = ([0, 1, 2, 3, 4] as const).map((n) => ({ valor: ESCALA_OMNISFERA[n].label, rotulo: `${n} · ${ESCALA_OMNISFERA[n].label}`, descricao: ESCALA_OMNISFERA[n].descricao }));
 
 function fmtData(s: string | undefined): string {
   if (!s) return "—";
@@ -123,7 +126,7 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
         return;
       }
       if (data.rubricas) {
-        const map: Record<number, string> = { 1: "Não Iniciado", 2: "Iniciado", 3: "Em Desenvolvimento", 4: "Consolidado", 5: "Consolidado" };
+        const map: Record<number, string> = Object.fromEntries(([0, 1, 2, 3, 4] as const).map((n) => [n, ESCALA_OMNISFERA[n].label]));
         const r = data.rubricas;
         setRubrica({
           autonomia: map[r.autonomia?.score] || "",
@@ -483,11 +486,14 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
                     >
                       <option value="" disabled>Escolha um nível</option>
                       {OPCOES_RUBRICA.map((op) => (
-                        <option key={op} value={op}>
-                          {op}
+                        <option key={op.valor} value={op.valor}>
+                          {op.rotulo}
                         </option>
                       ))}
                     </select>
+                    {rubrica[key] && (
+                      <p className="omni-campo__ajuda" style={{ marginTop: 4 }}>{OPCOES_RUBRICA.find((o) => o.valor === rubrica[key])?.descricao}</p>
+                    )}
                   </div>
                 ))}
               </div>

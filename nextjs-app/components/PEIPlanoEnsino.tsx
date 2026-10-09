@@ -65,7 +65,7 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
     const [expandedView, setExpandedView] = useState(false);
     const [uploadMode, setUploadMode] = useState(false);
 
-    // ─── Fetch available plans from Plano de Curso module ───────────────
+    // ─── Fetch available plans from Plano de ensino module ───────────────
 
     useEffect(() => {
         if (!disciplina || !anoSerie) { setLoading(false); return; }
@@ -157,7 +157,7 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                         <div>
                             <h4 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Plano de Ensino — {disciplina}</h4>
                             <p style={{ margin: 0, fontSize: 12, opacity: 0.85 }}>
-                                {anoSerie} · Vincule um plano criado no Plano de Curso
+                                {anoSerie} · Vincule um plano criado no Plano de ensino
                             </p>
                         </div>
                     </div>
@@ -240,11 +240,11 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                         <Link2 size={18} style={{ color: "#0ea5e9" }} />
                         <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary, #e2e8f0)" }}>
-                            Vincular Plano de Curso
+                            Vincular Plano de ensino
                         </span>
                     </div>
                     <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted, #94a3b8)", lineHeight: 1.4 }}>
-                        Use um plano já criado no módulo Plano de Curso.
+                        Use um plano já criado no módulo Plano de ensino.
                     </p>
                 </button>
 
@@ -289,7 +289,7 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                                     Nenhum plano encontrado
                                 </p>
                                 <p style={{ fontSize: 12, margin: "0 0 12px", opacity: 0.7 }}>
-                                    Crie um plano no módulo <strong>Plano de Curso</strong> para {disciplina} — {anoSerie}.
+                                    Crie um plano no módulo <strong>Plano de ensino</strong> para {disciplina} — {anoSerie}.
                                 </p>
                                 <a href="/plano-curso" style={{
                                     display: "inline-flex", alignItems: "center", gap: 6,
@@ -297,7 +297,7 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                                     background: "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
                                     color: "#fff", textDecoration: "none",
                                 }}>
-                                    <ExternalLink size={14} /> Ir para Plano de Curso
+                                    <ExternalLink size={14} /> Ir para Plano de ensino
                                 </a>
                             </div>
                         ) : (

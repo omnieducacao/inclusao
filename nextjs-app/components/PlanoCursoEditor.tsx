@@ -486,7 +486,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                             <BookOpen size={24} className="text-white drop-shadow-md" />
                         </div>
                         <div>
-                            <h4 className="m-0 text-lg font-bold tracking-tight text-white drop-shadow-sm">Plano de Curso — {componente}</h4>
+                            <h4 className="m-0 text-lg font-bold tracking-tight text-white drop-shadow-sm">Plano de ensino — {componente}</h4>
                             <p className="m-0 text-sm font-medium text-sky-100">
                                 {serie}{bncc && <> · BNCC integrada ({bnccDisciplinas.length} comp.)</>}
                                 {plano.blocos.length > 0 && <> · {plano.blocos.length} bloco{plano.blocos.length !== 1 ? "s" : ""}</>}

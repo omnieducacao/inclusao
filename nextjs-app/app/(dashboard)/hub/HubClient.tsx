@@ -1,14 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { CabecalhoEstudante, EscolherEstudante } from "@/components/estudante/CabecalhoEstudante";
 import { HubHistoricoEstudante } from "./components/HubHistoricoEstudante";
 import { detectarNivelEnsino } from "@/lib/pei";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
-import { LottieIcon } from "@/components/LottieIcon";
-import { Card, Alert } from "@omni/ds";
 import {
   FileText,
   Image as ImageIcon,
@@ -22,6 +20,7 @@ import {
   RefreshCw,
   ToyBrick,
   GraduationCap,
+  ArrowLeft,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -55,208 +54,142 @@ type ToolIdEI = "criar-experiencia" | "estudio-visual" | "rotina-avd" | "inclusa
 type ToolId = ToolIdEFEM | ToolIdEI;
 type EngineId = "red" | "blue" | "green" | "yellow" | "orange";
 
-const TOOLS_EF_EM: { id: ToolIdEFEM; icon: LucideIcon; title: string; desc: string }[] = [
-  { id: "adaptar-prova", icon: FileText, title: "Adaptar Prova", desc: "Upload DOCX, adaptação com DUA" },
-  { id: "adaptar-atividade", icon: ImageIcon, title: "Adaptar Atividade", desc: "Imagem → OCR → IA adapta" },
-  { id: "criar-zero", icon: Sparkles, title: "Criar Questões", desc: "Rápido: BNCC + assunto → questões" },
-  { id: "criar-itens", icon: GraduationCap, title: "Criar Itens", desc: "Avançado: padrão INEP/BNI" },
-  { id: "estudio-visual", icon: Palette, title: "Estúdio Visual", desc: "Pictogramas, cenas sociais" },
-  { id: "roteiro", icon: FileEdit, title: "Roteiro Individual", desc: "Passo a passo de aula personalizado" },
-  { id: "papo-mestre", icon: MessageSquare, title: "Papo de Mestre", desc: "Sugestões de mediação" },
-  { id: "dinamica", icon: Handshake, title: "Dinâmica Inclusiva", desc: "Atividades em grupo DUA" },
-  { id: "plano-aula", icon: ClipboardList, title: "Plano de Aula DUA", desc: "Desenho Universal" },
+type Publico = "estudante" | "professor";
+
+const TOOLS_EF_EM: { id: ToolIdEFEM; icon: LucideIcon; title: string; desc: string; publico: Publico }[] = [
+  { id: "adaptar-prova", icon: FileText, title: "Adaptar prova", desc: "Envie a prova em Word e receba a versão adaptada.", publico: "estudante" },
+  { id: "adaptar-atividade", icon: ImageIcon, title: "Adaptar atividade", desc: "Tire foto da atividade e receba a versão adaptada.", publico: "estudante" },
+  { id: "criar-zero", icon: Sparkles, title: "Criar questões", desc: "Escolha a habilidade da BNCC e o assunto.", publico: "estudante" },
+  { id: "criar-itens", icon: GraduationCap, title: "Criar itens de prova", desc: "Itens no padrão do INEP, com mais controle.", publico: "estudante" },
+  { id: "estudio-visual", icon: Palette, title: "Estúdio visual", desc: "Pictogramas e cenas para apoiar a comunicação.", publico: "estudante" },
+  { id: "roteiro", icon: FileEdit, title: "Roteiro individual", desc: "Passo a passo da aula pensado para o estudante.", publico: "professor" },
+  { id: "papo-mestre", icon: MessageSquare, title: "Papo de mestre", desc: "Como ligar o conteúdo ao que o estudante gosta.", publico: "professor" },
+  { id: "dinamica", icon: Handshake, title: "Dinâmica inclusiva", desc: "Atividade em grupo em que todos participam.", publico: "professor" },
+  { id: "plano-aula", icon: ClipboardList, title: "Plano de aula com DUA", desc: "Desenho Universal para a Aprendizagem na turma toda.", publico: "professor" },
 ];
 
-const TOOLS_EI: { id: ToolIdEI; icon: LucideIcon; title: string; desc: string }[] = [
-  { id: "criar-experiencia", icon: Star, title: "Criar Experiência", desc: "BNCC EI: campos e objetivos" },
-  { id: "estudio-visual", icon: Palette, title: "Estúdio Visual & CAA", desc: "Pictogramas, cenas, símbolos" },
-  { id: "rotina-avd", icon: RefreshCw, title: "Rotina & AVD", desc: "Sequências e autonomia" },
-  { id: "inclusao-brincar", icon: ToyBrick, title: "Inclusão no Brincar", desc: "Brincadeiras acessíveis" },
+const TOOLS_EI: { id: ToolIdEI; icon: LucideIcon; title: string; desc: string; publico: Publico }[] = [
+  { id: "criar-experiencia", icon: Star, title: "Criar experiência", desc: "Campos de experiência e objetivos da BNCC.", publico: "professor" },
+  { id: "estudio-visual", icon: Palette, title: "Estúdio visual e CAA", desc: "Pictogramas, cenas e comunicação alternativa.", publico: "estudante" },
+  { id: "rotina-avd", icon: RefreshCw, title: "Rotina e AVD", desc: "Sequências visuais para atividades de vida diária.", publico: "estudante" },
+  { id: "inclusao-brincar", icon: ToyBrick, title: "Inclusão no brincar", desc: "Brincadeiras em que todos participam.", publico: "professor" },
 ];
 
-// Mapeamento de ícones Lottie distintos para cada ferramenta do Hub
-const HUB_LOTTIE_MAP: Record<string, string> = {
-  "adaptar-prova": "wired-outline-967-questionnaire-hover-pinch",       // questionário/prova
-  "adaptar-atividade": "wired-outline-35-edit-hover-circle",            // editar/adaptar
-  "criar-zero": "wired-outline-36-bulb-morph-turn-on",                  // lâmpada/criar questões
-  "criar-itens": "wired-outline-406-study-graduation-hover-pinch",     // graduação/itens avançados
-  "estudio-visual": "wired-outline-3077-polaroids-photos-hover-pinch",  // polaroids/estúdio visual
-  "roteiro": "wired-outline-1020-rules-book-guideline-hover-flutter",   // guia/roteiro
-  "papo-mestre": "wired-outline-981-consultation-hover-conversation-alt", // conversação/papo de mestre
-  "dinamica": "wired-outline-957-team-work-hover-pinch",                // trabalho em equipe
-  "plano-aula": "wired-outline-738-notebook-2-hover-pinch",            // notebook/plano
-  "criar-experiencia": "wired-outline-458-goal-target-hover-hit",       // objetivo/alvo
-  "rotina-avd": "wired-outline-153-bar-chart-hover-pinch",             // rotina/gráfico
-  "inclusao-brincar": "wired-outline-529-boy-girl-children-hover-pinch", // crianças/brincar
-};
-
-// Componente para card de ferramenta com ícone distinto por recurso
-function ToolCard({
-  tool,
-  isActive,
-  onClick
-}: {
-  tool: { id: string; icon: LucideIcon; title: string; desc: string };
-  isActive: boolean;
-  onClick: () => void;
-}) {
-  const [isHovered, setIsHovered] = useState(false);
+// Cartão de ferramenta: círculo do Hub (roxo), nome e o que ela entrega (design system: CartaoModulo)
+function ToolCard({ tool, onClick }: { tool: { id: string; icon: LucideIcon; title: string; desc: string }; onClick: () => void }) {
   const Icon = tool.icon;
-  const lottieAnimation = HUB_LOTTIE_MAP[tool.id];
-
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={`group relative flex flex-col text-left p-6 rounded-2xl border transition-all duration-300 min-h-[160px] cursor-pointer touch-manipulation ${isActive
-        ? "border-(--omni-primary) shadow-(--omni-shadow-md) bg-white dark:bg-slate-800 scale-[1.01]"
-        : "border-(--omni-border-default) bg-(--omni-bg-secondary) shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-(--omni-shadow-elevated) hover:-translate-y-1"
-        }`}
-    >
-      {/* Ícone dentro do quadrado minimalista */}
-      <div
-        className="rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shadow-xl relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 mb-3 w-[72px] h-[72px] p-1.5"
-      >
-        {lottieAnimation ? (
-          <LottieIcon
-            animation={lottieAnimation}
-            size={60}
-            autoplay={isHovered}
-            className="transition-all duration-300"
-          />
-        ) : (
-          <Icon className="w-10 h-10 text-cyan-600" />
-        )}
-      </div>
-      <div className="font-bold text-slate-800 text-base">{tool.title}</div>
-      <div className="text-sm text-slate-600 mt-1">{tool.desc}</div>
+    <button type="button" onClick={onClick} className="omni-modulo omni-modulo--hub omni-cartao omni-cartao--plano"
+      style={{ display: "flex", gap: "var(--space-4)", alignItems: "flex-start", textAlign: "left", width: "100%", height: "100%", cursor: "pointer" }}>
+      <span className="omni-modulo__selo" aria-hidden style={{ width: 44, height: 44, flex: "none" }}><Icon /></span>
+      <span style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+        <span style={{ font: "800 17px/22px var(--font-sans)", color: "var(--tinta)" }}>{tool.title}</span>
+        <span style={{ font: "400 14px/20px var(--font-sans)", color: "var(--tinta-2)" }}>{tool.desc}</span>
+      </span>
     </button>
   );
 }
 
+const TODAS_IDS = ["criar-zero", "criar-itens", "criar-experiencia", "papo-mestre", "plano-aula", "adaptar-prova", "adaptar-atividade", "estudio-visual", "roteiro", "dinamica", "rotina-avd", "inclusao-brincar"];
+
 export function HubClient({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const currentId = studentId || searchParams?.get("student") || null;
-  const [activeTool, setActiveTool] = useState<ToolId | null>(null);
   const [engine, setEngine] = useState<EngineId>("red");
-
   const peiData = student?.pei_data || {};
   const hiperfoco = (peiData.hiperfoco as string) || (peiData.interesses as string) || "Interesses gerais";
   const serie = (student?.grade as string) || (peiData.serie as string) || "";
   const isEI = detectarNivelEnsino(serie) === "EI";
   const TOOLS = isEI ? TOOLS_EI : TOOLS_EF_EM;
 
+  // Onda 8: cada ferramenta tem a sua tela (?ferramenta=adaptar-prova). Voltar para a lista não
+  // apaga o que foi gerado: a ferramenta aberta continua montada, só fica escondida.
+  const daUrl = (searchParams?.get("ferramenta") || searchParams?.get("tool")) as ToolId | null;
+  const activeTool: ToolId | null = daUrl && TOOLS.some((t) => t.id === daUrl) ? daUrl : null;
+  const [abertas, setAbertas] = useState<ToolId[]>(activeTool ? [activeTool] : []);
+  useEffect(() => {
+    if (activeTool && !abertas.includes(activeTool)) setAbertas((a) => [...a, activeTool]);
+  }, [activeTool, abertas]);
+
+  function abrir(id: ToolId | null) {
+    const p = new URLSearchParams(searchParams?.toString() || "");
+    if (id) p.set("ferramenta", id); else p.delete("ferramenta");
+    router.push(`${pathname}?${p.toString()}`, { scroll: false });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  const voltar = () => abrir(null);
+  const ferramenta = TOOLS.find((t) => t.id === activeTool);
+  const mostra = (id: ToolId) => abertas.includes(id);
+  const oculto = (id: ToolId) => activeTool !== id;
+
   return (
     <div className="space-y-6">
       {currentId && student ? (
-        <>
-          <CabecalhoEstudante students={students} student={{ ...student, pei_data: peiData }} />
-          <PEISummaryPanel peiData={peiData} studentName={student.name} />
-        </>
+        <CabecalhoEstudante students={students} student={{ ...student, pei_data: peiData }} />
       ) : (
-        <EscolherEstudante students={students} texto="Os materiais que você criar ficam guardados no histórico dele." naoEncontrado={Boolean(currentId)} />
+        <EscolherEstudante students={students} texto="Os materiais que você criar ficam guardados no histórico dele. Dá para usar as ferramentas sem estudante, só que sem o perfil dele." naoEncontrado={Boolean(currentId)} />
       )}
 
-      {currentId && student && (
-        <HubHistoricoEstudante studentId={currentId} nome={student.name} atualizar={activeTool ? 0 : 1} />
-      )}
-
-      {currentId && student && (
-        <div className="space-y-2">
+      {ferramenta ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" onClick={voltar}>
+            <ArrowLeft aria-hidden /> Todas as ferramentas
+          </button>
+          <div>
+            <h2 style={{ margin: 0, font: "800 22px/28px var(--font-sans)", color: "var(--tinta)" }}>{ferramenta.title}</h2>
+            <p className="omni-apoio" style={{ margin: 0 }}>{ferramenta.desc}</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          {currentId && student && <PEISummaryPanel peiData={peiData} studentName={student.name} />}
           {isEI && (
-            <Alert variant="warning">
-              <strong>Modo Educação Infantil</strong> — Ferramentas específicas para EI.
-            </Alert>
+            <div className="omni-aviso omni-aviso--info">
+              <div><div className="omni-aviso__texto">Mostrando as ferramentas da Educação Infantil, pela série do estudante.</div></div>
+            </div>
           )}
-          <Card className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6">
-            <div>
-              <div className="text-xs font-semibold text-(--omni-text-muted) uppercase tracking-wide">Nome</div>
-              <div className="font-bold text-(--omni-text-primary)">{student.name}</div>
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-(--omni-text-muted) uppercase tracking-wide">Série</div>
-              <div className="font-bold text-(--omni-text-primary)">{student.grade || "—"}</div>
-            </div>
-            <div className="col-span-2 md:col-span-2">
-              <div className="text-xs font-semibold text-(--omni-text-muted) uppercase tracking-wide">Hiperfoco</div>
-              <div className="font-bold text-(--omni-text-primary) truncate" title={String(hiperfoco)}>{String(hiperfoco)}</div>
-            </div>
-          </Card>
-        </div>
+          {(["estudante", "professor"] as Publico[]).map((pub) => {
+            const lista = TOOLS.filter((t) => t.publico === pub);
+            if (lista.length === 0) return null;
+            return (
+              <section key={pub} aria-labelledby={`hub-${pub}`} className="space-y-3">
+                <div>
+                  <h2 id={`hub-${pub}`} style={{ margin: 0, font: "800 20px/26px var(--font-sans)", color: "var(--tinta)" }}>
+                    {pub === "estudante" ? "Material para o estudante" : "Apoio para você planejar"}
+                  </h2>
+                  <p className="omni-apoio" style={{ margin: 0 }}>
+                    {pub === "estudante" ? "Vira um arquivo para imprimir ou entregar ao estudante." : "Orientações para o professor; não é para entregar ao estudante."}
+                  </p>
+                </div>
+                <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                  {lista.map((t) => <li key={t.id}><ToolCard tool={t} onClick={() => abrir(t.id)} /></li>)}
+                </ul>
+              </section>
+            );
+          })}
+          {currentId && student && (
+            <HubHistoricoEstudante studentId={currentId} nome={student.name} atualizar={abertas.length} />
+          )}
+        </>
       )}
 
-      {!currentId && (
-        <Alert variant="warning">
-          Selecione um estudante para usar as ferramentas do Hub com contexto personalizado.
-        </Alert>
-      )}
+      {mostra("criar-zero") && <div key={`criar-zero-${currentId}`} hidden={oculto("criar-zero")}><CriarDoZero student={student} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
+      {mostra("criar-itens") && <div key={`criar-itens-${currentId}`} hidden={oculto("criar-itens")}><CriarItens student={student} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
+      {mostra("papo-mestre") && <div key={`papo-mestre-${currentId}`} hidden={oculto("papo-mestre")}><PapoDeMestre student={student} hiperfoco={hiperfoco} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
+      {mostra("plano-aula") && <div key={`plano-aula-${currentId}`} hidden={oculto("plano-aula")}><PlanoAulaDua student={student} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
+      {mostra("adaptar-prova") && <div key={`adaptar-prova-${currentId}`} hidden={oculto("adaptar-prova")}><AdaptarProva student={student} hiperfoco={hiperfoco} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
+      {mostra("adaptar-atividade") && <div key={`adaptar-atividade-${currentId}`} hidden={oculto("adaptar-atividade")}><AdaptarAtividade student={student} hiperfoco={hiperfoco} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
+      {mostra("estudio-visual") && <div key={`estudio-visual-${currentId}`} hidden={oculto("estudio-visual")}><EstudioVisual student={student} hiperfoco={hiperfoco} onClose={voltar} /></div>}
+      {mostra("criar-experiencia") && <div key={`criar-experiencia-${currentId}`} hidden={oculto("criar-experiencia")}><CriarDoZero student={student} engine={engine} onEngineChange={setEngine} onClose={voltar} eiMode /></div>}
+      {mostra("rotina-avd") && <div key={`rotina-avd-${currentId}`} hidden={oculto("rotina-avd")}><RotinaAvdTool student={student} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
+      {mostra("inclusao-brincar") && <div key={`inclusao-brincar-${currentId}`} hidden={oculto("inclusao-brincar")}><InclusaoBrincarTool student={student} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
+      {mostra("roteiro") && <div key={`roteiro-${currentId}`} hidden={oculto("roteiro")}><RoteiroIndividual student={student} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
+      {mostra("dinamica") && <div key={`dinamica-${currentId}`} hidden={oculto("dinamica")}><DinamicaInclusiva student={student} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {TOOLS.map((t) => (
-          <ToolCard
-            key={t.id}
-            tool={t}
-            isActive={activeTool === t.id}
-            onClick={() => setActiveTool(activeTool === t.id ? null : t.id)}
-          />
-        ))}
-      </div>
-
-      {activeTool === "criar-zero" && (
-        <CriarDoZero student={student} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
-      )}
-
-      {activeTool === "criar-itens" && (
-        <CriarItens student={student} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
-      )}
-
-      {activeTool === "papo-mestre" && (
-        <PapoDeMestre student={student} hiperfoco={hiperfoco} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
-      )}
-
-      {activeTool === "plano-aula" && (
-        <PlanoAulaDua student={student} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
-      )}
-
-      {activeTool === "adaptar-prova" && (
-        <AdaptarProva student={student} hiperfoco={hiperfoco} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
-      )}
-
-      {activeTool === "adaptar-atividade" && (
-        <AdaptarAtividade student={student} hiperfoco={hiperfoco} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
-      )}
-
-      {activeTool === "estudio-visual" && (
-        <EstudioVisual student={student} hiperfoco={hiperfoco} onClose={() => setActiveTool(null)} />
-      )}
-
-      {activeTool === "criar-experiencia" && (
-        <CriarDoZero student={student} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} eiMode />
-      )}
-
-      {activeTool === "rotina-avd" && (
-        <RotinaAvdTool student={student} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
-      )}
-      {activeTool === "inclusao-brincar" && (
-        <InclusaoBrincarTool student={student} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
-      )}
-
-      {activeTool === "roteiro" && (
-        <RoteiroIndividual student={student} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
-      )}
-
-      {activeTool === "dinamica" && (
-        <DinamicaInclusiva student={student} engine={engine} onEngineChange={setEngine} onClose={() => setActiveTool(null)} />
-      )}
-
-      {activeTool && !["criar-zero", "criar-itens", "criar-experiencia", "papo-mestre", "plano-aula", "adaptar-prova", "adaptar-atividade", "estudio-visual", "roteiro", "dinamica", "rotina-avd", "inclusao-brincar"].includes(activeTool) && (
-        <div className="p-6 rounded-2xl bg-linear-to-br from-slate-50 to-white min-h-[180px] shadow-sm border border-slate-200/60">
-          <p className="text-slate-600">
-            <strong>{TOOLS.find((t) => t.id === activeTool)?.title}</strong> — Em breve nesta versão.
-          </p>
-        </div>
+      {activeTool && !TODAS_IDS.includes(activeTool) && (
+        <p className="omni-apoio">Esta ferramenta ainda não está disponível.</p>
       )}
     </div>
   );

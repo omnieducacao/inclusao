@@ -66,7 +66,6 @@ export default function AvaliacaoDiagnosticaClient({
     const [showOnboarding, setShowOnboarding] = useState(false);
 
     useEffect(() => {
-        if (!localStorage.getItem('onboarding_diagnostica')) setShowOnboarding(true);
     }, []);
 
     // Navigation
@@ -1021,7 +1020,7 @@ export default function AvaliacaoDiagnosticaClient({
                                     <div className="omni-flex-row omni-gap-2">
                                         <FileText size={16} style={{ color: "var(--color-primary)" }} />
                                         <span style={{ fontWeight: 700, fontSize: 14, color: "var(--color-primary)" }}>
-                                            Plano de Curso — {planoVinculado.disciplina}
+                                            Plano de ensino — {planoVinculado.disciplina}
                                             {planoVinculado.ano_serie && <span style={{ fontWeight: 400, fontSize: 12, marginLeft: 6, opacity: .7 }}>({planoVinculado.ano_serie})</span>}
                                         </span>
                                     </div>
@@ -1066,7 +1065,7 @@ export default function AvaliacaoDiagnosticaClient({
                                     </>
                                 ) : (
                                     <>
-                                        <FileText size={16} /> Nenhum plano de curso encontrado para {selectedDisc} ({selectedAluno?.grade}).
+                                        <FileText size={16} /> Nenhum plano de ensino encontrado para {selectedDisc} ({selectedAluno?.grade}).
                                         <a href="/plano-curso" style={{ color: "var(--color-primary)", fontWeight: 600, textDecoration: "none", marginLeft: "auto" }}>Criar plano →</a>
                                     </>
                                 )}

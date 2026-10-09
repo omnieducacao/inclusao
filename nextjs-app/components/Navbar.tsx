@@ -71,7 +71,7 @@ function getNavLottieMap(): Record<string, string> {
     "/estudantes": "estudantes_simples", // Estudantes
     "/pei": "pei_simples", // PEI
     "/pei-regente": "pei_simples", // PEI Regente
-    "/plano-curso": "central_inteligencia_simples", // Plano de Curso
+    "/plano-curso": "central_inteligencia_simples", // Plano de ensino
     "/avaliacao-diagnostica": "hub_simples", // Avaliação Diagnóstica
     "/avaliacao-processual": "dados_simples", // Avaliação Processual
     "/paee": "paee_simples", // PAEE
@@ -146,7 +146,7 @@ function getNavItems(icons: ReturnType<typeof loadNavIcons> extends Promise<infe
     { href: "/avaliacao-diagnostica", label: "Avaliação Diagnóstica", icon: icons.Exam, permission: "can_pei_professor", group: "modules" },
     { href: "/avaliacao-processual", label: "Avaliação Processual", icon: icons.ChartLineUp, permission: "can_pei_professor", group: "modules" },
     { href: "/pei-regente", label: "PEI - Professor", icon: icons.BookOpen, permission: "can_pei_professor", group: "modules" },
-    { href: "/plano-curso", label: "Plano de Curso", icon: icons.BookBookmark, permission: "can_pei_professor", group: "modules" },
+    { href: "/plano-curso", label: "Plano de ensino", icon: icons.BookBookmark, permission: "can_pei_professor", group: "modules" },
     { href: "/hub", label: "Hub", icon: icons.RocketLaunch, permission: "can_hub", group: "modules" },
     { href: "/monitoramento", label: "Evolução & Dados", icon: icons.ChartLineUp, permission: "can_avaliacao", group: "modules" },
     { href: "/infos", label: "Central", icon: icons.BookBookmark, group: "modules" },

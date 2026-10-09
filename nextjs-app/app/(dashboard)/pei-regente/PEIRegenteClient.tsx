@@ -100,7 +100,6 @@ export function PEIRegenteClient() {
     const [showOnboarding, setShowOnboarding] = useState(false);
 
     useEffect(() => {
-        if (!localStorage.getItem('onboarding_pei_regente')) setShowOnboarding(true);
     }, []);
 
     // Ponte Pedagógica state
@@ -405,7 +404,7 @@ export function PEIRegenteClient() {
                                 </details>
                             )}
 
-                            {/* ── Ponte Pedagógica: Plano de Curso + Diagnóstica → PEI ── */}
+                            {/* ── Ponte Pedagógica: Plano de ensino + Diagnóstica → PEI ── */}
                             <div className="p-5 rounded-xl space-y-4 bg-sky-500/10 border border-sky-500/25">
                                 <div className="flex items-center gap-2">
                                     <BookOpen className="w-4 h-4 text-sky-500" />
@@ -414,7 +413,7 @@ export function PEIRegenteClient() {
                                     </h4>
                                 </div>
                                 <p className="text-xs text-(--omni-text-muted)">
-                                    A IA cruza o <strong>Plano de Curso da turma</strong> com o <strong>nível do estudante</strong> (Diagnóstica)
+                                    A IA cruza o <strong>Plano de ensino da turma</strong> com o <strong>nível do estudante</strong> (Diagnóstica)
                                     e suas barreiras/potencialidades para sugerir adaptações individualizadas.
                                 </p>
 
@@ -497,7 +496,7 @@ export function PEIRegenteClient() {
                                                 </span>
                                             )}
                                             <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold ${adaptacaoMeta?.plano_encontrado ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>
-                                                📚 Plano de Curso: {adaptacaoMeta?.plano_encontrado ? "✅ Encontrado" : "⚠️ Não encontrado"}
+                                                📚 Plano de ensino: {adaptacaoMeta?.plano_encontrado ? "✅ Encontrado" : "⚠️ Não encontrado"}
                                             </span>
                                         </div>
 

@@ -56,6 +56,21 @@ type Props = {
 
 type TabId = "mapear-barreiras" | "plano-habilidades" | "tec-assistiva" | "articulacao" | "planejamento" | "execucao" | "jornada";
 
+// Ciclo do AEE (Atendimento Educacional Especializado), na ordem em que acontece
+const FASES_AEE: Array<{ n: number; titulo: string; ajuda: string; abas: Array<{ id: TabId; nome: string }> }> = [
+  { n: 1, titulo: "Avaliar", ajuda: "Barreiras do estudante", abas: [{ id: "mapear-barreiras", nome: "Barreiras" }] },
+  { n: 2, titulo: "Planejar", ajuda: "Habilidades, recursos e ciclo", abas: [
+    { id: "plano-habilidades", nome: "Plano de habilidades" },
+    { id: "tec-assistiva", nome: "Recursos de acessibilidade" },
+    { id: "planejamento", nome: "Ciclo do AEE" },
+  ] },
+  { n: 3, titulo: "Atender", ajuda: "Metas semana a semana", abas: [
+    { id: "execucao", nome: "Execução e metas" },
+    { id: "jornada", nome: "Jornada do estudante" },
+  ] },
+  { n: 4, titulo: "Articular", ajuda: "Com a sala de aula", abas: [{ id: "articulacao", nome: "Com o professor da sala" }] },
+];
+
 function PAEEClientInner({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
   const currentId = studentId || searchParams?.get("student") || null;
@@ -65,7 +80,14 @@ function PAEEClientInner({ students, studentId, student }: Props) {
   // Omni V5: Real-time Multi-User Subscription
   useStudentRealtime(currentId);
 
-  const [activeTab, setActiveTab] = useState<TabId>("planejamento");
+  // Abre na primeira fase do ciclo que falta (antes abria sempre em "Planejamento AEE")
+  const [activeTab, setActiveTab] = useState<TabId>(() => {
+    const pd = (student?.paee_data || {}) as Record<string, unknown>;
+    const tem = (k: string) => Boolean(String(pd[k] || "").trim());
+    if (!tem("conteudo_diagnostico_barreiras")) return "mapear-barreiras";
+    if (!tem("conteudo_plano_habilidades") && !student?.planejamento_ativo) return "plano-habilidades";
+    return "execucao";
+  });
   const [cicloSelecionadoPlanejamento, setCicloSelecionadoPlanejamento] = useState<CicloPAEE | null>(null);
   const [cicloSelecionadoExecucao, setCicloSelecionadoExecucao] = useState<CicloPAEE | null>(null);
   const [cicloPreview, setCicloPreview] = useState<CicloPAEE | null>(null);
@@ -257,15 +279,6 @@ function PAEEClientInner({ students, studentId, student }: Props) {
   const temTec = Boolean((paeeData.conteudo_tecnologia_assistiva as string)?.trim());
   const temArticulacao = Boolean((paeeData.conteudo_documento_articulacao as string)?.trim());
 
-  const tabsConfig: Array<{ id: TabId; label: string; icon: typeof AlertTriangle; desc: string; badge?: boolean }> = [
-    { id: "mapear-barreiras", label: "Mapear Barreiras", icon: AlertTriangle, desc: "Diagnóstico de barreiras para aprendizagem", badge: temBarreiras },
-    { id: "plano-habilidades", label: "Plano de Habilidades", icon: Target, desc: "Plano de intervenção com metas SMART", badge: temPlano },
-    { id: "tec-assistiva", label: "Tec. Assistiva", icon: Puzzle, desc: "Recursos de tecnologia assistiva", badge: temTec },
-    { id: "articulacao", label: "Articulação", icon: Users, desc: "Documento de articulação AEE ↔ Sala Regular", badge: temArticulacao },
-    { id: "planejamento", label: "Planejamento AEE", icon: Search, desc: "Documento de referência (cronograma em fases)", badge: Boolean(cicloAtivoPlanejamento) },
-    { id: "execucao", label: "Execução e Metas SMART", icon: Target, desc: "Norteador operacional (cronograma por semanas)", badge: Boolean(cicloAtivoExecucao) },
-    { id: "jornada", label: "Jornada Gamificada", icon: Map, desc: "Missão gamificada para o estudante e família", badge: false },
-  ];
 
   return (
     <div className="space-y-6">
@@ -301,33 +314,48 @@ function PAEEClientInner({ students, studentId, student }: Props) {
         <PEISummaryPanel peiData={peiData} studentName={student.name} />
       )}
 
-      {/* Tabs Navigation - Melhorada com ícones e badges */}
-      {student && (
-        <div className="flex gap-1.5 p-1.5 bg-(--omni-bg-secondary) rounded-2xl overflow-x-auto scrollbar-hide border border-(--omni-border-default)">
-          {tabsConfig.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`group relative px-4 py-2.5 rounded-xl text-[13px] font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-2 shrink-0 ${isActive
-                  ? "bg-white text-slate-800 shadow-sm"
-                  : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
-                  }`}
-                title={tab.desc}
-              >
-                <Icon className={`w-4 h-4 ${isActive ? "text-(--module-primary)" : "text-slate-400 group-hover:text-(--module-primary)"}`} />
-                <span>{tab.label}</span>
-                {tab.badge && (
-                  <span className={`w-2 h-2 rounded-full shrink-0 ${isActive ? "bg-(--module-primary)" : "bg-emerald-500"}`} title="Conteúdo gerado" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {/* Onda 9: as sete abas viram o ciclo do AEE (Avaliar → Planejar → Atender → Articular) */}
+      {student && (() => {
+        const faseAtual = FASES_AEE.find((f) => f.abas.some((x) => x.id === activeTab)) || FASES_AEE[0];
+        const feito: Record<number, boolean> = {
+          1: temBarreiras,
+          2: temPlano || temTec || Boolean(cicloAtivoPlanejamento),
+          3: Boolean(cicloAtivoExecucao),
+          4: temArticulacao,
+        };
+        return (
+          <>
+            <nav aria-label="Ciclo do AEE">
+              <ol className="omni-passos">
+                {FASES_AEE.map((f) => {
+                  const atual = f.n === faseAtual.n;
+                  return (
+                    <li key={f.n} className={`omni-passo ${feito[f.n] ? "omni-passo--feito" : ""} ${atual ? "omni-passo--atual" : ""}`} style={{ padding: 0 }}>
+                      <button type="button" onClick={() => setActiveTab(f.abas[0].id)} aria-current={atual ? "step" : undefined}
+                        style={{ display: "flex", gap: 10, alignItems: "flex-start", width: "100%", padding: "var(--space-3)", background: "none", border: 0, textAlign: "left", cursor: "pointer", color: "inherit", borderRadius: "inherit" }}>
+                        <span className="omni-passo__num" aria-hidden>{feito[f.n] ? "✓" : f.n}</span>
+                        <span>
+                          <span className="omni-passo__titulo">{f.titulo}</span>
+                          <span className="omni-passo__estado" style={{ display: "block" }}>{feito[f.n] ? "Feito" : f.ajuda}</span>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
+            </nav>
+            {faseAtual.abas.length > 1 && (
+              <div className="omni-abas" role="tablist" aria-label={`Partes de ${faseAtual.titulo}`}>
+                {faseAtual.abas.map((x) => (
+                  <button key={x.id} type="button" role="tab" aria-selected={activeTab === x.id} className="omni-aba" onClick={() => setActiveTab(x.id)}>
+                    {x.nome}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        );
+      })()}
 
       {student && activeTab === "mapear-barreiras" && (
         <MapearBarreirasTab
@@ -666,7 +694,7 @@ export function PAEEClient({ students, studentId, student }: Props) {
         <div className="text-slate-500 text-center py-8">Carregando...</div>
       </div>
     }>
-      <PAEEClientInner students={students} studentId={studentId} student={student} />
+      <PAEEClientInner key={studentId ?? "nenhum"} students={students} studentId={studentId} student={student} />
     </Suspense>
   );
 }

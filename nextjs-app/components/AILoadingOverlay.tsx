@@ -1,182 +1,117 @@
 "use client";
 
+/**
+ * Geração com IA em andamento (onda 8 · design system: GeracaoIA).
+ *
+ * Antes: uma camada escura cobrindo a tela toda, com o nome do motor ("OmniRed está
+ * trabalhando…") e frases genéricas. A pessoa ficava presa até 1–2 minutos sem poder ler nem
+ * mexer em nada.
+ *
+ * Agora é um cartão no canto, que não bloqueia a tela: a pessoa continua lendo, rolando e
+ * preenchendo outros campos. Diz o que está sendo feito, a etapa do momento e, depois de 20 s,
+ * explica que dá para continuar nesta tela. Como a geração acontece nesta aba, sair dela
+ * cancela o resultado: o navegador avisa antes de fechar ou recarregar.
+ *
+ * Os 29 lugares que chamam aiLoadingStart/aiLoadingStop continuam iguais.
+ */
+import { useEffect, useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useAILoading } from "@/hooks/useAILoading";
-import { useState, useEffect } from "react";
-import Image from "next/image";
+import SimboloOmnisfera from "@/components/SimboloOmnisfera";
 
-/* ── Frases rotativas por módulo ── */
-const MODULE_PHRASES: Record<string, string[]> = {
-    pei: [
-        "Analisando barreiras de aprendizagem...",
-        "Consultando habilidades BNCC...",
-        "Elaborando objetivos individualizados...",
-        "Construindo estratégias pedagógicas...",
-        "Personalizando o plano educacional...",
-        "Alinhando com práticas de DUA...",
-    ],
-    paee: [
-        "Planejando ciclo de atendimento...",
-        "Identificando tecnologias assistivas...",
-        "Estruturando cronograma SMART...",
-        "Elaborando documento de articulação...",
-        "Analisando perfil para AEE...",
-        "Cruzando dados com objetivos do PEI...",
-    ],
-    hub: [
-        "Adaptando conteúdo com DUA...",
-        "Criando material inclusivo...",
-        "Personalizando para o perfil do estudante...",
-        "Aplicando checklist pedagógico...",
-        "Gerando recurso adaptado...",
-        "Alinhando com as habilidades BNCC...",
-    ],
-    diario: [
-        "Analisando padrões de engajamento...",
-        "Identificando tendências de aprendizagem...",
-        "Cruzando dados com objetivos...",
-        "Gerando insights pedagógicos...",
-        "Avaliando progressão longitudinal...",
-        "Elaborando recomendações...",
-    ],
-    monitoramento: [
-        "Consolidando dados do PEI e Diário...",
-        "Avaliando rubricas de desenvolvimento...",
-        "Analisando evidências de progresso...",
-        "Calculando indicadores de evolução...",
-    ],
-    diagnostica: [
-        "Criando questões diagnósticas...",
-        "Analisando habilidades selecionadas...",
-        "Calibrando ao nível Omnisfera...",
-        "Gerando itens com distratores pedagógicos...",
-        "Ajustando complexidade cognitiva...",
-        "Finalizando a avaliação adaptada...",
-    ],
-    pei_regente: [
-        "Cruzando PEI com plano de ensino...",
-        "Gerando adaptações para sua disciplina...",
-        "Construindo a Ponte Pedagógica...",
-        "Alinhando objetivos individualizados...",
-    ],
-    pgi: [
-        "Analisando dimensionamento da escola...",
-        "Gerando ações prioritárias...",
-        "Estruturando o plano inclusivo...",
-        "Sugerindo estratégias de gestão...",
-    ],
-    default: [
-        "Processando solicitação...",
-        "Analisando contexto pedagógico...",
-        "Elaborando resposta educacional...",
-        "Gerando conteúdo personalizado...",
-        "Consultando base de conhecimento...",
-        "Finalizando análise...",
-    ],
+const TITULO: Record<string, string> = {
+  pei: "Escrevendo o PEI",
+  paee: "Montando o PAEE",
+  hub: "Criando o material",
+  diario: "Lendo os registros do diário",
+  monitoramento: "Consolidando a evolução",
+  diagnostica: "Montando a avaliação diagnóstica",
+  pei_regente: "Adaptando para a sua disciplina",
+  pgi: "Montando o plano da escola",
+  default: "Gerando com IA",
 };
 
-/* ── Cores por motor ── */
-const ENGINE_COLORS: Record<string, { gradient: string; name: string }> = {
-    red: { gradient: "from-red-500 to-rose-600", name: "OmniRed" },
-    blue: { gradient: "from-blue-500 to-cyan-600", name: "OmniBlue" },
-    green: { gradient: "from-emerald-500 to-green-600", name: "OmniGreen" },
-    yellow: { gradient: "from-amber-400 to-yellow-500", name: "OmniYellow" },
-    orange: { gradient: "from-orange-500 to-amber-600", name: "OmniOrange" },
+const ETAPAS: Record<string, string[]> = {
+  pei: ["lendo o estudo de caso…", "escolhendo habilidades da BNCC…", "escrevendo os objetivos…", "propondo estratégias…", "revisando o texto…"],
+  paee: ["lendo o PEI…", "organizando o ciclo do AEE…", "sugerindo recursos de acessibilidade…", "montando o cronograma…"],
+  hub: ["lendo o perfil do estudante…", "adaptando o conteúdo…", "ajustando a linguagem…", "conferindo o checklist de adaptação…"],
+  diario: ["lendo os atendimentos…", "procurando padrões…", "escrevendo a análise…"],
+  monitoramento: ["juntando PEI, PAEE e diário…", "comparando com as metas…", "escrevendo a síntese…"],
+  diagnostica: ["lendo as habilidades escolhidas…", "escrevendo as questões…", "conferindo as alternativas…"],
+  pei_regente: ["lendo o PEI…", "cruzando com o plano de ensino…", "escrevendo as adaptações…"],
+  pgi: ["lendo os dados da escola…", "priorizando ações…", "escrevendo o plano…"],
+  default: ["lendo o contexto…", "escrevendo…", "revisando…"],
 };
+
+const NOTA_DEPOIS_MS = 20000;
 
 export function AILoadingOverlay() {
-    const { state } = useAILoading();
-    const [phraseIndex, setPhraseIndex] = useState(0);
-    const [visible, setVisible] = useState(false);
+  const { state } = useAILoading();
+  const [etapa, setEtapa] = useState(0);
+  const [demorando, setDemorando] = useState(false);
+  const [recolhido, setRecolhido] = useState(false);
 
-    const phrases = MODULE_PHRASES[state.module] || MODULE_PHRASES.default;
-    const engineInfo = ENGINE_COLORS[state.engine] || { gradient: "from-blue-500 to-indigo-600", name: state.engine || "Omnisfera" };
+  const modulo = TITULO[state.module] ? state.module : "default";
+  const etapas = ETAPAS[modulo];
 
-    // Rotate phrases every 4 seconds
-    useEffect(() => {
-        if (!state.isLoading) return;
-        const initTimer = setTimeout(() => setPhraseIndex(0), 0);
-        const interval = setInterval(() => {
-            setPhraseIndex((prev) => (prev + 1) % phrases.length);
-        }, 4000);
-        return () => {
-            clearTimeout(initTimer);
-            clearInterval(interval);
-        };
-    }, [state.isLoading, state.module, phrases.length]);
+  useEffect(() => {
+    if (!state.isLoading) return;
+    setEtapa(0); setDemorando(false); setRecolhido(false);
+    // avança pelas etapas e para na última (não volta ao começo: não é um carrossel)
+    const passo = setInterval(() => setEtapa((e) => Math.min(e + 1, etapas.length - 1)), 6000);
+    const nota = setTimeout(() => setDemorando(true), NOTA_DEPOIS_MS);
+    // sair da aba cancela a geração: o navegador pergunta antes
+    const avisar = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", avisar);
+    return () => { clearInterval(passo); clearTimeout(nota); window.removeEventListener("beforeunload", avisar); };
+  }, [state.isLoading, etapas.length]);
 
-    // Smooth enter/exit
-    useEffect(() => {
-        if (state.isLoading) {
-            const timer = setTimeout(() => setVisible(true), 0);
-            return () => clearTimeout(timer);
-        } else {
-            const timer = setTimeout(() => setVisible(false), 300);
-            return () => clearTimeout(timer);
-        }
-    }, [state.isLoading]);
+  if (!state.isLoading) return null;
 
-    if (!visible) return null;
-
-    return (
-        <div
-            className={`fixed inset-0 z-9999 flex items-center justify-center transition-all duration-300 ${state.isLoading ? "opacity-100" : "opacity-0 pointer-events-none"
-                }`}
-            style={{ backgroundColor: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(4px)" }}
-        >
-            <div role="status" aria-live="assertive" className="flex flex-col items-center gap-6 max-w-lg px-8">
-                {/* Logo girando */}
-                <div className="relative flex items-center justify-center" style={{ width: 88, height: 88 }}>
-                    {/* Glow ring */}
-                    <div
-                        className="absolute inset-0 rounded-full"
-                        style={{
-                            background: `radial-gradient(circle, ${engineInfo.gradient.includes("red") ? "rgba(239,68,68,.15)" : engineInfo.gradient.includes("blue") ? "rgba(59,130,246,.15)" : engineInfo.gradient.includes("emerald") ? "rgba(16,185,129,.15)" : "rgba(148,163,184,.1)"} 0%, transparent 70%)`,
-                        }}
-                    />
-                    {/* Single spinning logo — fast to show activity */}
-                    <div className="omni-logo-spin-fast">
-                        <Image
-                            src="/omni_icone.webp"
-                            alt=""
-                            width={72}
-                            height={72}
-                            className="object-contain"
-                        />
-                    </div>
-                </div>
-
-                {/* Nome do motor */}
-                <div className="text-center">
-                    <span
-                        className={`inline-block text-lg font-bold bg-linear-to-r ${engineInfo.gradient} bg-clip-text text-transparent`}
-                    >
-                        {engineInfo.name}
-                    </span>
-                    <span className="text-white/80 text-lg font-medium"> está trabalhando...</span>
-                </div>
-
-                {/* Frase rotativa */}
-                <p
-                    key={phraseIndex}
-                    className="text-white/70 text-sm text-center animate-fade-in min-h-[20px]"
-                    aria-live="polite"
-                    aria-atomic="true"
-                >
-                    {phrases[phraseIndex]}
-                </p>
-
-                {/* Estimativa */}
-                <p className="text-white/40 text-xs">
-                    Isso pode levar até 1-2 minutos
-                </p>
-
-                {/* Barra de progresso indeterminada */}
-                <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden">
-                    <div
-                        className={`h-full rounded-full bg-linear-to-r ${engineInfo.gradient} animate-indeterminate-bar`}
-                    />
-                </div>
-            </div>
+  return (
+    <div
+      className="omni-geracao omni-geracao--flutuante"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      style={{
+        position: "fixed", right: 16, bottom: "calc(16px + env(safe-area-inset-bottom, 0px))", zIndex: 60,
+        width: recolhido ? "auto" : "min(400px, calc(100vw - 32px))",
+        padding: recolhido ? "10px 14px" : "var(--space-5)",
+        gap: recolhido ? 10 : "var(--space-4)",
+        alignItems: "center",
+        boxShadow: "var(--sombra-2, 0 12px 32px rgb(0 0 0 / .14))",
+      }}
+    >
+      <span className="omni-geracao__marca" aria-hidden style={recolhido ? { width: 28, height: 28 } : { width: 48, height: 48 }}>
+        <SimboloOmnisfera tamanho={recolhido ? 28 : 48} animacao="vez" />
+      </span>
+      <div style={{ minWidth: 0 }}>
+        <div className="flex items-start justify-between gap-2">
+          <p className="omni-geracao__titulo" style={{ margin: 0, fontSize: recolhido ? 15 : 17, lineHeight: recolhido ? "20px" : "22px" }}>
+            {TITULO[modulo]}
+          </p>
+          <button
+            type="button"
+            className="omni-btn omni-btn--discreto omni-btn--icone"
+            style={{ minHeight: 28, width: 28, padding: 0, marginTop: -4 }}
+            aria-label={recolhido ? "Mostrar detalhes da geração" : "Recolher"}
+            onClick={() => setRecolhido((v) => !v)}
+          >
+            {recolhido ? <ChevronUp aria-hidden /> : <ChevronDown aria-hidden />}
+          </button>
         </div>
-    );
+        {!recolhido && (
+          <>
+            <p className="omni-geracao__frase" style={{ margin: "2px 0 0", fontSize: 15 }}>{etapas[etapa]}</p>
+            <p className="omni-geracao__nota" style={{ fontSize: 13, lineHeight: "18px" }}>
+              {demorando
+                ? "Ainda escrevendo. Pode continuar usando esta tela; só não feche nem troque de página, senão o texto se perde."
+                : "Pode continuar lendo e preenchendo esta tela enquanto isso."}
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+  );
 }

@@ -11,7 +11,6 @@ import {
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 import { RubricaOmnisfera } from "@/components/RubricaOmnisfera";
 import { OnboardingPanel } from "@/components/OnboardingPanel";
-import { PageHero } from "@/components/PageHero";
 import { OmniLoader } from "@/components/OmniLoader";
 import type { AlunoProcessual as Aluno, HabilidadeAvaliada, TipoPeriodo } from "./types";
 import { cardS, headerS, bodyS, NIVEL_COLORS, PERIODOS } from "./types";
@@ -99,7 +98,6 @@ export default function AvaliacaoProcessualClient() {
 
     useEffect(() => {
         if (typeof window === "undefined") return;
-        if (!localStorage.getItem("onboarding_processual")) setShowOnboarding(true);
     }, []);
 
     // ─── Load existing processual for this bimestre ─────────────────────
@@ -127,7 +125,7 @@ export default function AvaliacaoProcessualClient() {
         } catch { /* silent */ }
     }, []);
 
-    // ─── Load habilidades: Plano de Curso → Matriz → BNCC ─────────────────
+    // ─── Load habilidades: Plano de ensino → Matriz → BNCC ─────────────────
 
     const [habSource, setHabSource] = useState<string>("");
 
@@ -553,7 +551,7 @@ export default function AvaliacaoProcessualClient() {
                     <div className={`${headerS} bg-emerald-500/5`}>
                         <BookOpen size={16} className="text-emerald-500" />
                         <span className="font-bold text-sm text-emerald-500">
-                            {habSource === "plano_curso_professor" ? "Habilidades do Plano de Curso" :
+                            {habSource === "plano_curso_professor" ? "Habilidades do Plano de ensino" :
                                 habSource === "matriz_referencia" ? "Habilidades da Matriz de Referência" :
                                     "Habilidades BNCC"}
                         </span>
@@ -962,22 +960,7 @@ export default function AvaliacaoProcessualClient() {
                 />
             )}
 
-            {/* Page header — unified PageHero */}
-            <PageHero
-                route="/avaliacao-processual"
-                title="Avaliação processual"
-                desc={`${professorName} · ${alunos.length} estudante${alunos.length !== 1 ? "s" : ""}`}
-            />
-
-            {/* Link to Diagnóstica */}
-            <div className="flex items-center justify-between px-4 py-2.5 rounded-xl mb-5 bg-blue-500/5 border border-blue-500/15">
-                <span className="text-xs text-(--tinta-2)">
-                    📋 Precisa fazer a avaliação diagnóstica inicial?
-                </span>
-                <a href="/avaliacao-diagnostica" className="text-xs font-bold text-blue-500 no-underline hover:underline">
-                    Ir para Diagnóstica →
-                </a>
-            </div>
+            <p className="omni-apoio" style={{ margin: "0 0 12px" }}>{professorName ? `${professorName} · ` : ""}{alunos.length} estudante{alunos.length !== 1 ? "s" : ""}</p>
 
             {/* Empty state */}
             {alunos.length === 0 && (

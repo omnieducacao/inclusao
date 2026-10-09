@@ -7,6 +7,7 @@ import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import { SalvarNoPlanoButton } from "@/components/SalvarNoPlanoButton";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
+import { ResultadoIA } from "@/components/ia/ResultadoIA";
 import { RefreshCw } from "lucide-react";
 import type { HubToolProps } from "../hub-types";
 
@@ -76,50 +77,23 @@ export function RotinaAvdTool({
             </button>
             {erro && <p className="text-red-600 text-sm">{erro}</p>}
             {resultado && (
-                <div className="space-y-4">
-                    {validado && (
-                        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-sm font-medium">
-                            ✅ ROTINA VALIDADA!
-                        </div>
-                    )}
-                    {!validado && (
-                        <div className="flex gap-2">
-                            <button
-                                type="button"
-                                onClick={() => setValidado(true)}
-                                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
-                            >
-                                ✅ Validar Rotina
-                            </button>
-                            <details className="flex-1 border border-slate-200 rounded p-2">
-                                <summary className="text-sm cursor-pointer text-slate-600">🔄 Refazer adaptação</summary>
-                                <div className="mt-2 flex flex-wrap gap-2 items-center">
-                                    <input
-                                        type="text"
-                                        value={feedback}
-                                        onChange={(e) => setFeedback(e.target.value)}
-                                        placeholder="O que ajustar na rotina?"
-                                        className="flex-1 min-w-[120px] px-2 py-1 border rounded text-sm"
-                                    />
-                                    <button type="button" onClick={() => gerar(true)} disabled={loading} className="px-3 py-1 bg-slate-200 rounded text-sm hover:bg-slate-300">
-                                        Refazer Rotina
-                                    </button>
-                                </div>
-                            </details>
-                        </div>
-                    )}
-                    <div className="p-6 rounded-2xl bg-linear-to-br from-slate-50 to-white shadow-sm border border-slate-200/60">
-                        <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
-                            <span className="text-base font-semibold text-slate-800">Rotina &amp; Previsibilidade</span>
-                            <span className="flex gap-2">
-                                <DocxDownloadButton texto={resultado} titulo="Rotina e AVD" filename={`Rotina_AVD_${new Date().toISOString().slice(0, 10)}.docx`} />
-                                <PdfDownloadButton text={resultado} filename={`Rotina_AVD_${new Date().toISOString().slice(0, 10)}.pdf`} title="Rotina e AVD" />
-                                <SalvarNoPlanoButton conteudo={resultado} tipo="Rotina e AVD" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs" />
-                            </span>
-                        </div>
-                        <FormattedTextDisplay texto={resultado} />
-                    </div>
-                </div>
+              <ResultadoIA
+                titulo="Rotina e AVD"
+                publico="professor"
+                material={resultado}
+                onRefazer={() => gerar(true)}
+                refazendo={loading}
+                ajuste={{ valor: feedback, onChange: setFeedback }}
+                onDescartar={() => { hub.setResultado(null); setValidado(false); }}
+                onRevisado={setValidado}
+                acoes={(texto) => (
+                  <>
+                    <DocxDownloadButton texto={texto} titulo="Rotina e AVD" filename={`Rotina_AVD_${new Date().toISOString().slice(0, 10)}.docx`} />
+                    <PdfDownloadButton text={texto} filename={`Rotina_AVD_${new Date().toISOString().slice(0, 10)}.pdf`} title="Rotina e AVD" />
+                    <SalvarNoPlanoButton conteudo={texto} tipo="Rotina e AVD" className="omni-btn omni-btn--secundario omni-btn--pequeno" />
+                  </>
+                )}
+              />
             )}
         </div>
     );

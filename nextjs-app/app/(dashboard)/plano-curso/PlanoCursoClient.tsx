@@ -67,7 +67,6 @@ export default function PlanoCursoClient() {
     const [showOnboarding, setShowOnboarding] = useState(false);
 
     useEffect(() => {
-        if (!localStorage.getItem('onboarding_plano_curso')) setShowOnboarding(true);
     }, []);
 
     // ─── Fetch data ─────────────────────────────────────────────────────────
@@ -154,7 +153,7 @@ export default function PlanoCursoClient() {
             {showOnboarding && (
                 <OnboardingPanel
                     moduleKey="plano_curso"
-                    moduleTitle="Bem-vindo ao Plano de Curso"
+                    moduleTitle="Bem-vindo ao Plano de ensino"
                     moduleSubtitle="Organize seu planejamento por componente e série"
                     accentColor="#0ea5e9"
                     accentColorLight="#38bdf8"

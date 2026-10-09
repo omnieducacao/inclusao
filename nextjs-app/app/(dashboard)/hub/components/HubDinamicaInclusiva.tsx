@@ -7,6 +7,7 @@ import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import { SalvarNoPlanoButton } from "@/components/SalvarNoPlanoButton";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
+import { ResultadoIA } from "@/components/ia/ResultadoIA";
 import { BookOpen } from "lucide-react";
 import { COMPONENTES, type HubToolProps, type EstruturaBncc } from "../hub-types";
 
@@ -221,17 +222,22 @@ export function DinamicaInclusiva({
       </button>
       {erro && <p className="text-red-600 text-sm">{erro}</p>}
       {resultado && (
-        <div className="p-6 rounded-xl bg-linear-to-br from-slate-50 to-white border-2 border-slate-200 shadow-sm">
-          <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
-            <span className="text-base font-semibold text-slate-800">Dinâmica Inclusiva</span>
-            <span className="flex gap-2">
-              <DocxDownloadButton texto={resultado} titulo="Dinâmica Inclusiva" filename={`Dinamica_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`} />
-              <PdfDownloadButton text={resultado} filename={`Dinamica_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Dinâmica Inclusiva" />
-              <SalvarNoPlanoButton conteudo={resultado} tipo="Dinâmica Inclusiva" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs" />
-            </span>
-          </div>
-          <FormattedTextDisplay texto={resultado} />
-        </div>
+        <ResultadoIA
+          titulo="Dinâmica inclusiva"
+          publico="professor"
+          material={resultado}
+          onRefazer={() => gerar()}
+          refazendo={loading}
+          onDescartar={() => { setResultado(null); setValidado(false); }}
+          onRevisado={setValidado}
+          acoes={(texto) => (
+            <>
+              <DocxDownloadButton texto={texto} titulo="Dinâmica Inclusiva" filename={`Dinamica_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`} />
+              <PdfDownloadButton text={texto} filename={`Dinamica_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Dinâmica Inclusiva" />
+              <SalvarNoPlanoButton conteudo={texto} tipo="Dinâmica Inclusiva" className="omni-btn omni-btn--secundario omni-btn--pequeno" />
+            </>
+          )}
+        />
       )}
     </div>
   );
