@@ -91,7 +91,6 @@ function PAEEClientInner({ students, studentId, student }: Props) {
   const [cicloSelecionadoPlanejamento, setCicloSelecionadoPlanejamento] = useState<CicloPAEE | null>(null);
   const [cicloSelecionadoExecucao, setCicloSelecionadoExecucao] = useState<CicloPAEE | null>(null);
   const [cicloPreview, setCicloPreview] = useState<CicloPAEE | null>(null);
-  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [jornadaEngine, setJornadaEngine] = useState<EngineId>("red");
   const [paeeData, setPaeeData] = useState<Record<string, unknown>>({});
@@ -158,7 +157,9 @@ function PAEEClientInner({ students, studentId, student }: Props) {
         }
       }
 
-      await mutation.updatePAEECiclos(student.id, {
+      // Onda 16: o salvar do ciclo mostra "Salvando…" e avisa quando falha (antes dizia ok sempre)
+      setSalvamento({ estado: "salvando" });
+      const resultado = await mutation.updatePAEECiclos(student.id, {
         paee_ciclos: ciclosAtualizados,
         planejamento_ativo: cicloComId.ciclo_id,
         status_planejamento: cicloComId.status,
@@ -169,6 +170,11 @@ function PAEEClientInner({ students, studentId, student }: Props) {
         setCicloPreview(null);
         // O backend via Supabase Realtime emitirá o router.refresh() automático
       });
+      if (!resultado) {
+        setSalvamento({ estado: "erro" });
+        return false;
+      }
+      setSalvamento({ estado: "salvo", hora: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) });
       return true;
     },
     [student?.id, ciclos, mutation]
@@ -556,7 +562,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                 Visualização
               </h3>
               {cicloParaVerPlanejamento ? (
-                <CicloCard ciclo={cicloParaVerPlanejamento} onSalvar={cicloPreview?.tipo === "planejamento_aee" ? () => saveCiclo(cicloParaVerPlanejamento) : undefined} saving={saving} onLimpar={() => setCicloPreview(null)} />
+                <CicloCard ciclo={cicloParaVerPlanejamento} onSalvar={cicloPreview?.tipo === "planejamento_aee" ? () => saveCiclo(cicloParaVerPlanejamento) : undefined} saving={savingCiclo} onLimpar={() => setCicloPreview(null)} />
               ) : (
                 <div className="p-6 rounded-lg border border-slate-200 bg-slate-50 text-slate-500">
                   Selecione um ciclo ou gere um novo.
@@ -641,7 +647,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                 Visualização
               </h3>
               {cicloParaVerExecucao ? (
-                <CicloCard ciclo={cicloParaVerExecucao} onSalvar={cicloPreview?.tipo === "execucao_smart" ? () => saveCiclo(cicloParaVerExecucao) : undefined} saving={saving} onLimpar={() => setCicloPreview(null)} />
+                <CicloCard ciclo={cicloParaVerExecucao} onSalvar={cicloPreview?.tipo === "execucao_smart" ? () => saveCiclo(cicloParaVerExecucao) : undefined} saving={savingCiclo} onLimpar={() => setCicloPreview(null)} />
               ) : (
                 <div className="p-6 rounded-lg border border-slate-200 bg-slate-50 text-slate-500">
                   Gere um ciclo de execução à esquerda.

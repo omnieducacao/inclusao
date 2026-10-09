@@ -94,12 +94,12 @@ export function FinalizarPeiDisciplinaButton({
                     className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50 ${finalizando ? 'bg-slate-400' : 'bg-linear-to-br from-emerald-600 to-emerald-500'}`}
                 >
                     <CheckCircle2 size={14} />
-                    Finalizar e devolver ao especialista
+                    Concluir e enviar à coordenação
                 </button>
             ) : (
                 <div className="p-4 rounded-xl space-y-3 border-2 border-emerald-500/20 bg-emerald-500/5">
                     <p className="text-xs font-bold text-emerald-600">
-                        📝 Devolutiva para o Especialista (opcional)
+                        Observação para a coordenação (opcional)
                     </p>
                     <textarea
                         value={feedbackProfessor}
@@ -117,7 +117,7 @@ export function FinalizarPeiDisciplinaButton({
                                 }`}
                         >
                             {finalizando ? <OmniLoader engine="green" size={14} /> : <CheckCircle2 size={14} />}
-                            {finalizando ? "Finalizando..." : "Confirmar e devolver"}
+                            {finalizando ? "Finalizando..." : "Confirmar e enviar"}
                         </button>
                         <button
                             type="button"

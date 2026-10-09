@@ -149,7 +149,7 @@ export async function gerarPdfDocumentoOficial(
         doc.setFontSize(13);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(15, 23, 42);
-        doc.text("PLANO DE ENSINO INDIVIDUALIZADO", MARGIN_L, 24);
+        doc.text("PLANO EDUCACIONAL INDIVIDUALIZADO", MARGIN_L, 24);
 
         doc.setFontSize(9);
         doc.setFont("helvetica", "normal");

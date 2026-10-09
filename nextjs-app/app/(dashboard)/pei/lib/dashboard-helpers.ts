@@ -70,8 +70,10 @@ export function extrairMetasEstruturadas(texto: string | undefined): { Curto: st
     if (!dentroMetas) continue;
     if (!clean || clean.length < 3) continue;
 
-    // Detectar sub-seção curto/médio/longo
-    if (upper.includes("CURTO")) {
+    // Detectar sub-seção curto/médio/longo — só no rótulo, antes dos dois-pontos
+    // (onda 16: "textos curtos" no meio de uma meta de longo prazo era lido como curto prazo)
+    const rotulo = upper.split(":")[0];
+    if (rotulo.includes("CURTO")) {
       secaoAtual = "curto";
       // Se tiver conteúdo na mesma linha após ":" 
       const afterColon = clean.split(":").slice(1).join(":").trim();
@@ -80,7 +82,7 @@ export function extrairMetasEstruturadas(texto: string | undefined): { Curto: st
       }
       continue;
     }
-    if (upper.includes("MÉDIO") || upper.includes("MEDIO")) {
+    if (rotulo.includes("MÉDIO") || rotulo.includes("MEDIO")) {
       secaoAtual = "medio";
       const afterColon = clean.split(":").slice(1).join(":").trim();
       if (afterColon && afterColon.length > 5) {
@@ -88,7 +90,7 @@ export function extrairMetasEstruturadas(texto: string | undefined): { Curto: st
       }
       continue;
     }
-    if (upper.includes("LONGO")) {
+    if (rotulo.includes("LONGO")) {
       secaoAtual = "longo";
       const afterColon = clean.split(":").slice(1).join(":").trim();
       if (afterColon && afterColon.length > 5) {

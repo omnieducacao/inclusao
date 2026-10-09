@@ -4,17 +4,22 @@ import { NextResponse } from "next/server";
 import { chatCompletionText } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
+import { prepararPaee } from "@/lib/paee-servidor";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
 import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
    const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
-   const { error: authError } = await requireAuth(); if (authError) return authError;
+   const { session, error: authError } = await requireAuth(); if (authError) return authError;
    try {
       const parsed = await parseBody(req, paeeDocumentoArticulacaoSchema);
       if (parsed.error) return parsed.error;
       const body = parsed.data;
       const { frequencia, acoes, studentId, studentName, contextoPei, diagnosis, feedback, engine = "red" } = body;
+      // Onda 16: confere o vínculo com a turma e lê metas, barreiras e níveis do PEI no banco
+      const preparo = await prepararPaee(session, studentId);
+      if (preparo.negado) return preparo.negado;
+      const estruturado = preparo.contexto;
 
       if (!acoes || !studentName) {
          return NextResponse.json({ error: "Ações desenvolvidas e nome do estudante são obrigatórios." }, { status: 400 });
@@ -29,6 +34,7 @@ export async function POST(req: Request) {
     Frequência no AEE: ${frequencia || "Não informado"}.
     Ações desenvolvidas no AEE: ${acoes}.
     ${contextoPei ? `\nPERFIL DO ESTUDANTE (PEI):\n${(contextoPei).slice(0, 2000)}\n` : ""}
+    ${estruturado ? `\n${estruturado.slice(0, 2500)}\n` : ""}
     ${feedback ? `\nFEEDBACK PARA AJUSTE (revisão do professor): ${feedback}\n` : ""}
     
     ESTRUTURA DO DOCUMENTO:

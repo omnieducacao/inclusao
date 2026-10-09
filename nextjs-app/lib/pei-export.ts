@@ -23,7 +23,7 @@ function formatarData(val: string | Date | undefined): string {
 export function peiDataToFullText(dados: PEIData): string {
   const sections: string[] = [];
 
-  sections.push("PEI — PLANO DE ENSINO INDIVIDUALIZADO");
+  sections.push("PEI — PLANO EDUCACIONAL INDIVIDUALIZADO");
   sections.push("");
 
   // 1. Identificação

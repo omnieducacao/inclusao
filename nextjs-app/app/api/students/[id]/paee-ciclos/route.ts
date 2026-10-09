@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
+import { requirePermission } from "@/lib/permissions";
 
 export async function PATCH(
   req: Request,
@@ -13,6 +14,10 @@ export async function PATCH(
   if (!session?.workspace_id) {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
+
+  // Onda 16: só quem tem o PAEE mexe nos ciclos
+  const denied = requirePermission(session, "can_paee");
+  if (denied) return denied;
 
   const { id } = await params;
   const foraDoVinculo = await negadoForaDoVinculo(session, id);

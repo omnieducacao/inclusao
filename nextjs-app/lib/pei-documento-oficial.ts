@@ -171,7 +171,7 @@ export function serializarPeiParaTexto(dados: PEIData): string {
 export function promptDocumentoOficial(textoSerializado: string): Array<{ role: string; content: string }> {
     const systemPrompt = `Voce e um especialista em educacao inclusiva e redacao de documentos pedagogicos oficiais brasileiros.
 
-Sua tarefa e transformar os dados estruturados de um PEI (Plano de Ensino Individualizado) em um DOCUMENTO OFICIAL fluido, coeso e profissional.
+Sua tarefa e transformar os dados estruturados de um PEI (Plano Educacional Individualizado) em um DOCUMENTO OFICIAL fluido, coeso e profissional.
 
 REGRAS OBRIGATORIAS:
 

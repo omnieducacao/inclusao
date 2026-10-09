@@ -25,6 +25,19 @@ type Announcement = {
  * NotificationBell — shows a bell icon with a badge count.
  * Fetches notifications on hover/click from /api/notifications.
  */
+// Onda 16: o professor vai para o PEI do professor; o alerta do AEE abre a ficha do estudante
+function destinoDaNotificacao(id: string, type: string, studentId: string): string {
+    if (id.startsWith("pei-devolutiva-")) return "/pei-regente?aba=disciplina";
+    if (id.startsWith("pei-ciencia-")) return "/pei-regente";
+    if (id.startsWith("diario-alerta-")) return `/estudantes/${studentId}`;
+    return type === "diario" ? `/diario?studentId=${studentId}` : `/pei?studentId=${studentId}`;
+}
+function rotuloDaNotificacao(id: string, type: string): string {
+    if (id.startsWith("pei-devolutiva-") || id.startsWith("pei-ciencia-")) return "Abrir PEI do professor";
+    if (id.startsWith("diario-alerta-")) return "Abrir a ficha";
+    return type === "diario" ? "Ir para Diário" : "Ir para PEI";
+}
+
 export function NotificationBell() {
     const [open, setOpen] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -261,17 +274,13 @@ export function NotificationBell() {
                                                     type="button"
                                                     onClick={() => {
                                                         setOpen(false);
-                                                        router.push(
-                                                            n.type === "diario"
-                                                                ? `/diario?studentId=${n.studentId}`
-                                                                : `/pei?studentId=${n.studentId}`
-                                                        );
+                                                        router.push(destinoDaNotificacao(n.id, n.type, n.studentId!));
                                                     }}
                                                     className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 font-semibold"
-                                                    aria-label={`Ir para ${n.type === "diario" ? "Diário" : "PEI"} de ${n.studentName || 'estudante'}`}
+                                                    aria-label={`${rotuloDaNotificacao(n.id, n.type)} de ${n.studentName || 'estudante'}`}
                                                 >
                                                     <ExternalLink className="w-3 h-3" />
-                                                    Ir para {n.type === "diario" ? "Diário" : "PEI"}
+                                                    {rotuloDaNotificacao(n.id, n.type)}
                                                 </button>
                                             )}
                                         </div>

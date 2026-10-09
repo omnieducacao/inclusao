@@ -252,6 +252,17 @@ function PEIDoEstudante({
             </button>
           )}
           <span className={s.espaco} />
+          {/* Onda 16: o PEI não termina aqui — leva ao atendimento especializado e aos materiais */}
+          {etapa === 4 && (
+            <>
+              <a className="omni-btn omni-btn--secundario" href={`/hub?student=${currentStudentId}`}>Criar material no Hub</a>
+              {modo === "completo" && (
+                <a className="omni-btn omni-btn--primario" href={`/paee?student=${currentStudentId}`}>
+                  Planejar o AEE <ArrowRight aria-hidden />
+                </a>
+              )}
+            </>
+          )}
           {ACAO_FINAL[etapa] && (
             <button type="button" className="omni-btn omni-btn--primario" onClick={() => irPara((etapa + 1) as Etapa)}>
               {ACAO_FINAL[etapa]} <ArrowRight aria-hidden />

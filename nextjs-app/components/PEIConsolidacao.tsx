@@ -16,6 +16,9 @@ interface ResumoDisc {
     adaptacoes: boolean;
     feedback_professor?: string;
     data_devolucao?: string;
+    devolutiva?: string | null;
+    devolutiva_em?: string | null;
+    devolutiva_lida_em?: string | null;
 }
 
 interface ConsolidacaoData {
@@ -101,8 +104,7 @@ export function PEIConsolidacao({ studentId, consolidadoEm, onConsolidar }: Prop
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     id: discId,
-                    fase_status: "pei_disciplina",
-                    feedback_professor: feedbackText.trim(),
+                    devolutiva: feedbackText.trim(),
                 }),
             });
             if (!res.ok) {
@@ -209,8 +211,11 @@ export function PEIConsolidacao({ studentId, consolidadoEm, onConsolidar }: Prop
                     const status = d.fase_status as FaseStatusPEIDisciplina;
                     const discData = discMap.get(d.disciplina);
                     const discId = (discData?.id as string) || d.id || "";
-                    const lastFeedback = (discData?.feedback_professor as string) || d.feedback_professor || "";
-                    const lastDevolucao = (discData?.data_devolucao as string) || d.data_devolucao || "";
+                    // Onda 16: devolutiva da coordenação e observação do professor em campos separados
+                    const lastFeedback = (discData?.devolutiva as string) || d.devolutiva || "";
+                    const lastDevolucao = (discData?.devolutiva_em as string) || d.devolutiva_em || "";
+                    const lidaEm = (discData?.devolutiva_lida_em as string) || d.devolutiva_lida_em || "";
+                    const obsProfessor = (discData?.feedback_professor as string) || d.feedback_professor || "";
                     const isFeedbackOpen = feedbackFor === discId;
                     const canDevolver = status === "pei_disciplina" || status === "concluido";
                     const detalhes = [
@@ -232,9 +237,15 @@ export function PEIConsolidacao({ studentId, consolidadoEm, onConsolidar }: Prop
                                 )}
                             </div>
 
+                            {obsProfessor && obsProfessor !== lastFeedback && (
+                                <p className="omni-apoio" style={{ margin: 0 }}>
+                                    <strong>Observação de {d.professor_regente}:</strong> {obsProfessor}
+                                </p>
+                            )}
                             {lastFeedback && !isFeedbackOpen && (
                                 <p className="omni-apoio" style={{ margin: 0 }}>
-                                    <strong>Última devolutiva{lastDevolucao ? ` (${new Date(lastDevolucao).toLocaleDateString("pt-BR")})` : ""}:</strong> {lastFeedback}
+                                    <strong>Sua devolutiva{lastDevolucao ? ` (${new Date(lastDevolucao).toLocaleDateString("pt-BR")})` : ""}:</strong> {lastFeedback}
+                                    {" "}<span className={`omni-estado ${lidaEm ? "omni-estado--sucesso" : "omni-estado--atencao"}`}>{lidaEm ? `lida em ${new Date(lidaEm).toLocaleDateString("pt-BR")}` : "ainda não lida"}</span>
                                 </p>
                             )}
 

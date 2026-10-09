@@ -4,17 +4,22 @@ import { NextResponse } from "next/server";
 import { chatCompletionText } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
+import { prepararPaee } from "@/lib/paee-servidor";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
 import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
-  const { error: authError } = await requireAuth(); if (authError) return authError;
+  const { session, error: authError } = await requireAuth(); if (authError) return authError;
   try {
     const parsed = await parseBody(req, planoHabilidadesSchema);
     if (parsed.error) return parsed.error;
     const body = parsed.data;
     const { focoTreino, studentId, studentName, contextoPei, feedback, engine = "red" } = body;
+    // Onda 16: confere o vínculo com a turma e lê metas, barreiras e níveis do PEI no banco
+    const preparo = await prepararPaee(session, studentId);
+    if (preparo.negado) return preparo.negado;
+    const estruturado = preparo.contexto;
 
     if (!focoTreino || !studentName) {
       return NextResponse.json({ error: "Foco do atendimento e nome do estudante são obrigatórios." }, { status: 400 });
@@ -26,6 +31,7 @@ export async function POST(req: Request) {
     CRIE PLANO DE INTERVENÇÃO AEE.
     FOCO: ${focoTreino}.
     ESTUDANTE: ${studentName} | CONTEXTO PEI: ${(contextoPei || "").slice(0, 2000)}
+    ${estruturado ? `\n${estruturado.slice(0, 2500)}\n` : ""}
     ${feedback ? `\nFEEDBACK PARA AJUSTE (revisão do professor): ${feedback}\n` : ""}
     
     GERE 3 METAS SMART (Curto, Médio, Longo prazo) com estrutura completa:

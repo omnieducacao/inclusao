@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
+import { getSession, memberIdDaSessao } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 
@@ -13,7 +13,7 @@ import { logger } from "@/lib/logger";
  *
  * PATCH /api/pei/disciplina
  * Atualiza status do PEI por disciplina.
- * Body: { id, fase_status }
+ * Body: { id, fase_status, feedback_professor? } | { id, devolutiva } (coordenação) | { id, devolutiva_lida: true }
  */
 
 export async function GET(req: Request) {
@@ -136,46 +136,72 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json();
-    const { id, fase_status, feedback_professor } = body as {
+    const { id, fase_status, feedback_professor, devolutiva, devolutiva_lida } = body as {
         id: string;
-        fase_status: string;
+        fase_status?: string;
         feedback_professor?: string;
+        /** Onda 16: devolutiva da coordenação, em campo próprio */
+        devolutiva?: string;
+        /** Onda 16: o professor abriu a devolutiva */
+        devolutiva_lida?: boolean;
     };
 
-    if (!id || !fase_status) {
-        return NextResponse.json(
-            { error: "id e fase_status são obrigatórios" },
-            { status: 400 }
-        );
+    if (!id) {
+        return NextResponse.json({ error: "id é obrigatório" }, { status: 400 });
     }
 
-    const validStatuses = ["plano_ensino", "diagnostica", "pei_disciplina", "concluido"];
-    if (!validStatuses.includes(fase_status)) {
-        return NextResponse.json(
-            { error: `fase_status inválido. Valores aceitos: ${validStatuses.join(", ")}` },
-            { status: 400 }
-        );
-    }
+    const agora = new Date().toISOString();
+    const updateFields: Record<string, unknown> = { updated_at: agora };
 
-    const updateFields: Record<string, unknown> = {
-        fase_status,
-        updated_at: new Date().toISOString(),
-    };
-
-    // Save professor feedback and return timestamp
-    if (feedback_professor !== undefined) {
-        updateFields.feedback_professor = feedback_professor;
-        updateFields.data_devolucao = new Date().toISOString();
+    if (devolutiva_lida) {
+        updateFields.devolutiva_lida_em = agora;
+        delete updateFields.updated_at;
+    } else if (devolutiva !== undefined) {
+        // Só quem coordena o PEI devolve uma disciplina
+        const m = (session.member || {}) as Record<string, unknown>;
+        const coordena = session.is_platform_admin || session.user_role === "master" || !!m.can_pei;
+        if (!coordena) return NextResponse.json({ error: "Só a coordenação do PEI pode devolver uma disciplina." }, { status: 403 });
+        const texto = String(devolutiva || "").trim().slice(0, 2000);
+        if (!texto) return NextResponse.json({ error: "Escreva o que precisa ser revisto." }, { status: 400 });
+        Object.assign(updateFields, {
+            fase_status: "pei_disciplina",
+            devolutiva: texto,
+            devolutiva_em: agora,
+            devolutiva_por: session.usuario_nome || null,
+            devolutiva_lida_em: null,
+        });
+    } else {
+        const validStatuses = ["plano_ensino", "diagnostica", "pei_disciplina", "concluido"];
+        if (!fase_status || !validStatuses.includes(fase_status)) {
+            return NextResponse.json(
+                { error: `fase_status inválido. Valores aceitos: ${validStatuses.join(", ")}` },
+                { status: 400 }
+            );
+        }
+        updateFields.fase_status = fase_status;
+        // Observação do professor ao concluir a parte dele
+        if (feedback_professor !== undefined) {
+            updateFields.feedback_professor = feedback_professor;
+            updateFields.data_devolucao = agora;
+        }
     }
 
     const sb = getSupabase();
-    const { data, error } = await sb
-        .from("pei_disciplinas")
-        .update(updateFields)
-        .eq("id", id)
-        .eq("workspace_id", session.workspace_id)
-        .select()
-        .single();
+    const atualizar = (campos: Record<string, unknown>) => {
+        let q = sb.from("pei_disciplinas").update(campos).eq("id", id).eq("workspace_id", session.workspace_id);
+        // A devolutiva só conta como lida quando quem abre é o professor da disciplina
+        if (devolutiva_lida) q = q.eq("professor_regente_id", memberIdDaSessao(session) || "00000000-0000-0000-0000-000000000000");
+        return q.select().maybeSingle();
+    };
+    let { data, error } = await atualizar(updateFields);
+
+    // Antes da migração da onda 16 as colunas da devolutiva não existem: grava do jeito antigo
+    if (error && /devolutiva/.test(error.message || "")) {
+        if (devolutiva_lida) return NextResponse.json({ ok: true, semMigracao: true });
+        if (devolutiva !== undefined) {
+            ({ data, error } = await atualizar({ fase_status: "pei_disciplina", feedback_professor: updateFields.devolutiva, data_devolucao: agora, updated_at: agora }));
+        }
+    }
 
     if (error) {
         logger.error({ err: error }, "PATCH /api/pei/disciplina:");

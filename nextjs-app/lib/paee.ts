@@ -2,6 +2,7 @@
  * PAEE - Plano de Atendimento Educacional Especializado
  * Tipos e funções para ciclos, metas e acompanhamento.
  */
+import { metasDoPei } from "@/lib/pei-metas";
 
 export type MetaPei = {
   id: string;
@@ -71,9 +72,9 @@ const MARKERS = [
 export function extrairMetasDoPei(peiData: Record<string, unknown> | null): MetaPei[] {
   if (!peiData) return [];
 
-  if (Array.isArray(peiData.metas)) {
-    return peiData.metas as MetaPei[];
-  }
+  // Onda 16: primeiro as metas como dados (metas gravadas, metas SMART do PEI, disciplinas)
+  const estruturadas = metasDoPei(peiData);
+  if (estruturadas.length) return estruturadas;
 
   let texto = "";
   if (typeof peiData.ia_sugestao === "string") {

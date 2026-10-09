@@ -145,8 +145,52 @@ export async function GET() {
                         id: `pei-ciencia-${st.id}-${v.versao}`,
                         type: "pei",
                         title: "PEI aguardando sua leitura",
-                        description: `O PEI de ${st.name} (versão ${v.versao}) está vigente. Leia e registre ciência em PEI - Professor.`,
+                        description: `O PEI de ${st.name} (versão ${v.versao}) está vigente. Leia e registre ciência em PEI do professor.`,
                         severity: "info",
+                        studentId: st.id,
+                        studentName: st.name,
+                    });
+                }
+            }
+        }
+
+        // 3c. Onda 16: devolutiva da coordenação ainda não lida e alerta do AEE no diário (para o professor)
+        if (session.user_role === "member" && meuId) {
+            const { data: devs, error: errDev } = await sb
+                .from("pei_disciplinas")
+                .select("id, student_id, disciplina, devolutiva_em, devolutiva_lida_em")
+                .eq("workspace_id", workspaceId)
+                .eq("professor_regente_id", meuId)
+                .not("devolutiva_em", "is", null)
+                .is("devolutiva_lida_em", null);
+            if (!errDev) {
+                for (const d of (devs || []) as Array<{ id: string; student_id: string; disciplina: string }>) {
+                    const nome = students.find((x) => x.id === d.student_id)?.name || "o estudante";
+                    notifications.push({
+                        id: `pei-devolutiva-${d.id}`,
+                        type: "pei",
+                        title: "A coordenação devolveu uma disciplina",
+                        description: `${d.disciplina} de ${nome} voltou com observações. Veja em PEI do professor.`,
+                        severity: "warning",
+                        studentId: d.student_id,
+                        studentName: nome,
+                    });
+                }
+            }
+            const seteDias = Date.now() - 7 * 86_400_000;
+            for (const st of students.slice(0, 60)) {
+                const alertas = ((st.daily_logs || []) as Array<{ data_sessao?: string; alerta_regente?: boolean; registro_id?: string }>)
+                    .filter((r) => r?.alerta_regente && r.data_sessao && new Date(`${r.data_sessao}T12:00:00`).getTime() >= seteDias);
+                if (alertas.length) {
+                    const reg = [...alertas].sort((a, b) => (a.data_sessao || "").localeCompare(b.data_sessao || "")).at(-1) as Record<string, unknown>;
+                    const ultimo = String(reg.data_sessao);
+                    const recado = String(reg.encaminhamentos || reg.proximos_passos || reg.observacoes || "").trim();
+                    notifications.push({
+                        id: `diario-alerta-${st.id}-${ultimo}`,
+                        type: "diario",
+                        title: "O AEE pediu sua atenção",
+                        description: `No atendimento de ${new Date(`${ultimo}T12:00:00`).toLocaleDateString("pt-BR")}, o AEE (Atendimento Educacional Especializado) marcou um ponto de atenção sobre ${st.name}${recado ? `: ${recado.length > 160 ? `${recado.slice(0, 157)}…` : recado}` : "."}`,
+                        severity: "warning",
                         studentId: st.id,
                         studentName: st.name,
                     });

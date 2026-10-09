@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useCallback, useMemo, Suspense, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useConfirmar } from "@/components/Confirmar";
 import { CabecalhoEstudante, EscolherEstudante } from "@/components/estudante/CabecalhoEstudante";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
-import { useStudentMutation } from "@/hooks/useStudentMutation";
 import { useStudentRealtime } from "@/hooks/useStudentRealtime";
 import { getColorClasses } from "@/lib/colors";
 import { Card, CardHeader, CardTitle, CardContent, Input, Textarea, Select, Button, Checkbox, Slider } from "@omni/ds";
@@ -96,7 +95,7 @@ function fmtData(s: string | undefined): string {
 function DiarioClientInner({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
   const currentId = studentId || searchParams?.get("student") || null;
-  const { updateDiario } = useStudentMutation();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabId>("novo");
 
   // Omni V5: Real-time Multi-User Subscription
@@ -117,24 +116,15 @@ function DiarioClientInner({ students, studentId, student }: Props) {
     async (reg: RegistroDiario) => {
       if (!student?.id) return false;
       try {
-        const lista = [...registros];
-        const id = reg.registro_id || crypto.randomUUID();
-        const novo: RegistroDiario = { ...reg, registro_id: id, student_id: student.id };
-        if (!reg.registro_id) {
-          novo.criado_em = new Date().toISOString();
-          lista.push(novo);
-        } else {
-          const idx = lista.findIndex((r) => r.registro_id === reg.registro_id);
-          if (idx >= 0) {
-            novo.atualizado_em = new Date().toISOString();
-            lista[idx] = novo;
-          } else lista.push(novo);
-        }
-
-        const data = await updateDiario(student.id, { daily_logs: lista });
-        if (data && data.ok) {
+        // Onda 16: um registro por vez; o servidor junta à lista sem apagar o de ninguém
+        const res = await fetch(`/api/students/${student.id}/diario`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ registro: { ...reg, student_id: student.id } }),
+        });
+        if (res.ok) {
           setRefreshKey((k) => k + 1);
-          // O backend via Supabase Realtime emitirá o router.refresh() automático
+          router.refresh();
           return true;
         }
       } catch (e) {
@@ -142,7 +132,7 @@ function DiarioClientInner({ students, studentId, student }: Props) {
       }
       return false;
     },
-    [student, registros]
+    [student, router]
   );
 
   const { confirmar, dialogo } = useConfirmar();
@@ -159,15 +149,14 @@ function DiarioClientInner({ students, studentId, student }: Props) {
         perigo: true,
       });
       if (!ok) return false;
-      const lista = registros.filter((r) => r.registro_id !== registroId);
-      const data = await updateDiario(student.id, { daily_logs: lista });
-      if (data && data.ok) {
+      const res = await fetch(`/api/students/${student.id}/diario?registro_id=${encodeURIComponent(registroId)}`, { method: "DELETE" }).catch(() => null);
+      if (res?.ok) {
         setRefreshKey((k) => k + 1);
-        window.location.reload();
+        router.refresh();
       }
-      return !!(data && data.ok);
+      return !!res?.ok;
     },
-    [student, registros, confirmar]
+    [student, registros, confirmar, router]
   );
 
   if (!currentId) {

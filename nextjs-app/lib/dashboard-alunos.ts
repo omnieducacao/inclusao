@@ -228,6 +228,7 @@ export async function getAlunosRegente(session: any) {
             nivel_omnisfera: number | null;
             avaliacao_status: string;
             is_virtual: boolean;
+            devolutiva?: { texto: string; em: string | null; por: string | null; lida_em: string | null } | null;
         }>;
     }>();
 
@@ -267,6 +268,8 @@ export async function getAlunosRegente(session: any) {
             nivel_omnisfera: avData?.nivel || null,
             avaliacao_status: avData?.status || "pendente",
             is_virtual: false,
+            // Onda 16: a devolutiva da coordenação chega ao professor
+            devolutiva: d.devolutiva ? { texto: d.devolutiva, em: d.devolutiva_em || null, por: d.devolutiva_por || null, lida_em: d.devolutiva_lida_em || null } : null,
         });
     }
 

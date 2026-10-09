@@ -4,16 +4,21 @@ import { NextResponse } from "next/server";
 import { chatCompletionText } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { requireAuth } from "@/lib/permissions";
+import { prepararPaee } from "@/lib/paee-servidor";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
 import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
-  const { error: authError } = await requireAuth(); if (authError) return authError;
+  const { session, error: authError } = await requireAuth(); if (authError) return authError;
   try {
     const parsed = await parseBody(req, diagnosticoBarreirasSchema);
     if (parsed.error) return parsed.error;
     const { observacoes, studentId, studentName, diagnosis, contextoPei, feedback, engine } = parsed.data;
+    // Onda 16: confere o vínculo com a turma e lê metas, barreiras e níveis do PEI no banco
+    const preparo = await prepararPaee(session, studentId);
+    if (preparo.negado) return preparo.negado;
+    const estruturado = preparo.contexto;
 
     const engineId = engine as EngineId;
 
@@ -21,6 +26,7 @@ export async function POST(req: Request) {
     ATUAR COMO: Especialista em AEE.
     ESTUDANTE: ${studentName} | DIAGNÓSTICO (clínico/CID): ${diagnosis || "Não informado"}
     CONTEXTO DO PEI: ${(contextoPei || "").slice(0, 2500)}
+    ${estruturado ? `\n${estruturado.slice(0, 2500)}\n` : ""}
     OBSERVAÇÃO ATUAL: ${observacoes}
     ${feedback ? `\nFEEDBACK PARA AJUSTE (revisão do professor): ${feedback}\n` : ""}
     

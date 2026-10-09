@@ -1,5 +1,5 @@
 /**
- * Tipos e funções para pei_data (PEI - Plano de Ensino Individualizado)
+ * Tipos e funções para pei_data (PEI - Plano Educacional Individualizado)
  * Estrutura compatível com o Streamlit.
  */
 export type PEIData = {

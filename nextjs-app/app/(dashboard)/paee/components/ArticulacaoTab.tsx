@@ -100,21 +100,8 @@ export function ArticulacaoTab({
       setDocumento(docTexto);
       setStatus("revisao");
 
-      // Salvar no Supabase
-      if (student?.id) {
-        try {
-          const saveRes = await fetch(`/api/students/${student.id}/paee`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ paee_data: novoPaeeData }),
-          });
-          if (!saveRes.ok) {
-            /* client-side */ console.error("Erro ao salvar articulação no Supabase:", await saveRes.text());
-          }
-        } catch (saveErr) {
-          /* client-side */ console.error("Erro ao salvar articulação:", saveErr);
-        }
-      }
+      // Onda 16: quem salva é o onUpdate do PAEE, que mostra "Salvo" ou o aviso de erro
+      // (aqui havia um segundo salvamento que, se falhasse, só ia para o console).
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao gerar documento");
     } finally {

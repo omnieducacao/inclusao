@@ -28,6 +28,7 @@ interface AlunoDisc {
     nivel_omnisfera: number | null;
     avaliacao_status: string;
     is_virtual: boolean;
+    devolutiva?: { texto: string; em: string | null; por: string | null; lida_em: string | null } | null;
 }
 
 interface Aluno {
@@ -754,6 +755,30 @@ export function PEIRegenteClient() {
                                         )}
                                     </div>
                                 </div>
+
+                                {/* Onda 16: devolutiva da coordenação */}
+                                {disc.devolutiva && (
+                                    <div className={`omni-aviso ${disc.devolutiva.lida_em ? "omni-aviso--info" : "omni-aviso--atencao"}`} role="status" style={{ maxWidth: "none", margin: "0 20px 12px" }}>
+                                        <div>
+                                            <div className="omni-aviso__titulo">
+                                                {disc.devolutiva.por ? `${disc.devolutiva.por} devolveu ${disc.disciplina}` : `A coordenação devolveu ${disc.disciplina}`}
+                                                {disc.devolutiva.em ? ` em ${new Date(disc.devolutiva.em).toLocaleDateString("pt-BR")}` : ""}
+                                            </div>
+                                            <div className="omni-aviso__texto">{disc.devolutiva.texto}</div>
+                                            {!disc.devolutiva.lida_em && (
+                                                <div className="omni-aviso__acoes">
+                                                    <button type="button" className="omni-btn omni-btn--secundario omni-btn--pequeno"
+                                                        onClick={async () => {
+                                                            await fetch("/api/pei/disciplina", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: disc.id, devolutiva_lida: true }) }).catch(() => null);
+                                                            fetchData();
+                                                        }}>
+                                                        Entendi, vou rever
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Pipeline steps */}
                                 <div className="px-5 pb-4 flex items-center gap-2">

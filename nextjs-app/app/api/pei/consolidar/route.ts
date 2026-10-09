@@ -78,6 +78,9 @@ export async function GET(req: Request) {
             adaptacoes: !!data.adaptacoes,
             feedback_professor: d.feedback_professor || null,
             data_devolucao: d.data_devolucao || null,
+            devolutiva: (d as { devolutiva?: string }).devolutiva || null,
+            devolutiva_em: (d as { devolutiva_em?: string }).devolutiva_em || null,
+            devolutiva_lida_em: (d as { devolutiva_lida_em?: string }).devolutiva_lida_em || null,
             updated_at: d.updated_at,
         };
     });

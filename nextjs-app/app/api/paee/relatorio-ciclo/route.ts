@@ -1,3 +1,4 @@
+import { negadoForaDoVinculo } from "@/lib/turmas";
 import { parseBody, paeeRelatorioCicloSchema } from "@/lib/validation";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
@@ -37,6 +38,8 @@ export async function POST(req: Request) {
         // Fetch diário entries for this student within the cycle period
         // Onda 1: estudante sempre da escola da sessão; o diário mora em students.daily_logs
         // (a tabela "diario_registros" nunca existiu).
+        const foraDoVinculo = await negadoForaDoVinculo(session, studentId);
+        if (foraDoVinculo) return foraDoVinculo;
         const student = await getStudent(session.workspace_id, studentId);
         if (!student) {
             return NextResponse.json({ error: "Estudante não encontrado." }, { status: 404 });
