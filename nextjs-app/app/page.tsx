@@ -4,6 +4,7 @@ import { getSupabase } from "@/lib/supabase";
 import { Navbar } from "@/components/Navbar";
 import { TermsOfUseModal } from "@/components/TermsOfUseModal";
 import { SimulationBanner } from "@/components/SimulationBanner";
+import { MemberSimulationBanner } from "@/components/MemberSimulationBanner";
 import { OmnisferaFeed } from "@/components/OmnisferaFeed";
 import { OmniEducacaoSignature } from "@/components/Footer";
 import { logger } from "@/lib/logger";
@@ -175,6 +176,7 @@ export default async function RootPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--fundo)" }}>
       <SimulationBanner session={sessionNonNull} />
+      <MemberSimulationBanner session={sessionNonNull} />
       <Navbar session={sessionNonNull} hideMenu={true} />
       <Inicio
         saudacao={saudacao()}

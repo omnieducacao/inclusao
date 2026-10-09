@@ -15,6 +15,8 @@ export function TermsOfUseModal({ session }: Props) {
   useEffect(() => {
     // Verificar se o usuário já aceitou os termos
     async function checkTermsAccepted() {
+      // Vendo "como" um professor, quem está na tela é a coordenação: não pedir (nem registrar) o aceite em nome dele
+      if (session.simulating_member_id) return;
       if (session.user_role === "platform_admin" || session.user_role === "master") {
         // Admins e masters não precisam aceitar termos
         return;

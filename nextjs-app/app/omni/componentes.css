@@ -386,6 +386,9 @@ html.high-contrast :is(.omni-aviso,.omni-estado,.omni-cartao--plano,.omni-cartao
 .omni-lateral--fixa:hover::-webkit-scrollbar-thumb{background:var(--borda-forte)}
 @media (max-height:820px){.omni-lateral--fixa .omni-lateral__item{min-height:36px;padding-block:6px}.omni-lateral--fixa .omni-lateral__grupo{padding-top:var(--space-3)}}
 
+/* Dialogo: o reset do Tailwind zera a margem e o diálogo ia para o canto; volta ao centro, com texto à esquerda */
+.omni-dialogo:modal{position:fixed;inset:0;margin:auto;height:fit-content;max-height:calc(100dvh - 32px);overflow:auto;text-align:left}
+
 
 /* Tela de carregamento do Next (app/loading.tsx): só aparece depois de 300 ms, para não piscar em navegação rápida */
 .omni-carregando--atrasado{animation:omni-aparece var(--duracao-base) var(--curva-padrao) .3s both}

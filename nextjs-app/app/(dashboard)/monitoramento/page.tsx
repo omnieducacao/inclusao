@@ -6,6 +6,7 @@ import { getAdminConfig } from "@/lib/getAdminConfig";
 import { getStudentsWithFallback } from "@/lib/getStudentWithFallback";
 import dynamic from "next/dynamic";
 import { VisaoEscola, type LinhaVisao } from "@/components/evolucao/VisaoEscola";
+import { podeVer } from "@/lib/navegacao";
 import { situacaoDoPei, hojeBrasilia } from "@/lib/inicio";
 
 const MonitoramentoClient = dynamic(
@@ -39,7 +40,7 @@ export default async function MonitoramentoPage({ searchParams }: Props) {
           desc={studentId ? "O que o PEI, o PAEE e o diário já registraram sobre o estudante, e a avaliação do progresso." : "Onde a escola está com os PEIs e o AEE, e quem precisa de atenção agora."}
         />
 
-        {!studentId && students.length > 0 && <VisaoEscola linhas={linhas} />}
+        {!studentId && students.length > 0 && <VisaoEscola linhas={linhas} podeAgir={{ pei: podeVer({ permissao: "can_pei" }, session || {}), paee: podeVer({ permissao: "can_paee" }, session || {}) }} />}
 
         <MonitoramentoClient
           students={students.map((s) => ({ id: s.id, name: s.name, grade: s.grade, class_group: s.class_group }))}

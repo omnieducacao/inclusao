@@ -18,17 +18,18 @@ export type LinhaVisao = {
   paeeAtivo: boolean;
 };
 
-type Grupo = { chave: string; titulo: string; tom: "erro" | "atencao" | "neutro" | "sucesso" | "info"; filtro: (l: LinhaVisao) => boolean; acao: string; href: (id: string) => string };
+type Grupo = { chave: string; titulo: string; tom: "erro" | "atencao" | "neutro" | "sucesso" | "info"; filtro: (l: LinhaVisao) => boolean; acao: string; href: (id: string) => string; modulo: "pei" | "paee" };
 
 const GRUPOS: Grupo[] = [
-  { chave: "vencida", titulo: "Revisão do PEI vencida", tom: "erro", filtro: (l) => l.pei.rotulo === "Revisão vencida", acao: "Revisar", href: (id) => `/pei?student=${id}&etapa=4` },
-  { chave: "chegando", titulo: "Revisão nos próximos 15 dias", tom: "atencao", filtro: (l) => l.pei.rotulo === "Revisão chegando", acao: "Abrir PEI", href: (id) => `/pei?student=${id}&etapa=4` },
-  { chave: "rascunho", titulo: "PEI em rascunho", tom: "atencao", filtro: (l) => l.pei.rotulo === "Rascunho" || l.pei.rotulo === "Em revisão", acao: "Continuar", href: (id) => `/pei?student=${id}` },
-  { chave: "sem", titulo: "Sem PEI", tom: "neutro", filtro: (l) => l.pei.rotulo === "Sem PEI", acao: "Começar", href: (id) => `/pei?student=${id}` },
-  { chave: "aee", titulo: "PEI vigente, sem ciclo de AEE ativo", tom: "info", filtro: (l) => l.pei.versao != null && !l.paeeAtivo, acao: "Abrir PAEE", href: (id) => `/paee?student=${id}` },
+  { chave: "vencida", titulo: "Revisão do PEI vencida", tom: "erro", filtro: (l) => l.pei.rotulo === "Revisão vencida", acao: "Revisar", href: (id) => `/pei?student=${id}&etapa=4`, modulo: "pei" },
+  { chave: "chegando", titulo: "Revisão nos próximos 15 dias", tom: "atencao", filtro: (l) => l.pei.rotulo === "Revisão chegando", acao: "Abrir PEI", href: (id) => `/pei?student=${id}&etapa=4`, modulo: "pei" },
+  { chave: "rascunho", titulo: "PEI em rascunho", tom: "atencao", filtro: (l) => l.pei.rotulo === "Rascunho" || l.pei.rotulo === "Em revisão", acao: "Continuar", href: (id) => `/pei?student=${id}`, modulo: "pei" },
+  { chave: "sem", titulo: "Sem PEI", tom: "neutro", filtro: (l) => l.pei.rotulo === "Sem PEI", acao: "Começar", href: (id) => `/pei?student=${id}`, modulo: "pei" },
+  { chave: "aee", titulo: "PEI vigente, sem ciclo de AEE ativo", tom: "info", filtro: (l) => l.pei.versao != null && !l.paeeAtivo, acao: "Abrir PAEE", href: (id) => `/paee?student=${id}`, modulo: "paee" },
 ];
 
-export function VisaoEscola({ linhas }: { linhas: LinhaVisao[] }) {
+/** podeAgir: quem não edita PEI/PAEE (ex.: professor) vê a ficha do estudante no lugar da ação */
+export function VisaoEscola({ linhas, podeAgir = { pei: true, paee: true } }: { linhas: LinhaVisao[]; podeAgir?: { pei: boolean; paee: boolean } }) {
   const total = linhas.length;
   const vigentes = linhas.filter((l) => l.pei.versao != null && l.pei.rotulo !== "Em revisão").length;
   const pct = total ? Math.round((vigentes / total) * 100) : 0;
@@ -75,7 +76,9 @@ export function VisaoEscola({ linhas }: { linhas: LinhaVisao[] }) {
                           <Link href={`/monitoramento?student=${l.id}`} style={{ font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>{l.name}</Link>
                           <span className="omni-apoio" style={{ fontSize: 14 }}> · {[l.grade, l.class_group].filter(Boolean).join(" ") || "sem turma"}</span>
                         </span>
-                        <Link href={g.href(l.id)} className="omni-btn omni-btn--discreto omni-btn--pequeno">{g.acao}</Link>
+                        {podeAgir[g.modulo]
+                          ? <Link href={g.href(l.id)} className="omni-btn omni-btn--discreto omni-btn--pequeno">{g.acao}</Link>
+                          : <Link href={`/estudantes/${l.id}`} className="omni-btn omni-btn--discreto omni-btn--pequeno">Ver ficha</Link>}
                       </li>
                     ))}
                   </ul>
