@@ -1,4 +1,5 @@
 import { parseBody, hubRotinaAvdSchema } from "@/lib/validation";
+import { regrasDaFerramenta } from "@/lib/ferramentas/regras";
 import { registrarMaterial } from "@/lib/hub-tracking";
 import { enriquecerComPei } from "@/lib/ferramentas/contexto-pei";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
@@ -53,7 +54,7 @@ Retorne:
 Use linguagem simples e prática. NÃO inclua diagnóstico ou CID.`;
 
   try {
-    const { anonymized, restore } = anonymizeMessages([{ role: "user", content: prompt }], estudanteNome);
+    const { anonymized, restore } = anonymizeMessages([{ role: "user", content: prompt + regrasDaFerramenta("ei") }], estudanteNome);
     const textoRaw = await chatCompletionText(engine, anonymized, { temperature: 0.7 });
     const saida = restore(textoRaw || "").trim();
     registrarMaterial({ session, studentId: pei?.studentId, versaoPei: pei?.versaoPei, contentType: "rotina_avd", descricao: "Rotina e AVD", engine: String(body.engine || ""), conteudo: saida });

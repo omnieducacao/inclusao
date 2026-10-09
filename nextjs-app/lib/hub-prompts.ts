@@ -1,3 +1,8 @@
+import { regrasDaFerramenta } from "@/lib/ferramentas/regras";
+
+/** Onda 3: tamanho do resumo do PEI que entra nos prompts (antes eram 300 a 1.000 caracteres). */
+const LIMITE_PEI = 2400;
+
 /**
  * Serviço de Prompts para o Hub de Inclusão
  * Baseado em services/hub_ia.py do Streamlit
@@ -18,7 +23,7 @@ export interface CriarAtividadeParams {
   ia_sugestao?: string;
 }
 
-export function criarPromptProfissional(params: CriarAtividadeParams): string {
+function criarPromptProfissionalBase(params: CriarAtividadeParams): string {
   const {
     materia,
     objeto,
@@ -131,13 +136,13 @@ REGRA DE OURO GRAMATICAL (IMPERATIVO):
 ${ia_sugestao ? `
 9. PERFIL DO ESTUDANTE (PEI):
    Considere o seguinte perfil ao elaborar as questões:
-   ${ia_sugestao.slice(0, 800)}
+   ${ia_sugestao.slice(0, LIMITE_PEI)}
    Adapte linguagem, complexidade e abordagem de acordo com as necessidades indicadas.
 ` : ""}${instrucao_bloom}${instrucao_habilidades}${instrucoes_checklist}
 
 SAÍDA OBRIGATÓRIA:
 [ANÁLISE PEDAGÓGICA]
-...análise...
+...para o professor: o que foi adaptado e por quê, nível cognitivo original × adaptado (devem ser equivalentes) e o gabarito...
 ---DIVISOR---
 [ATIVIDADE]
 ...questões...
@@ -166,7 +171,7 @@ export interface AdaptarProvaParams {
   objeto_conhecimento?: string;
 }
 
-export function adaptarPromptProva(params: AdaptarProvaParams): string {
+function adaptarPromptProvaBase(params: AdaptarProvaParams): string {
   const {
     aluno,
     texto,
@@ -275,7 +280,7 @@ NUNCA esqueça de inserir as tags [[IMG_N]] para questões com imagens mapeadas.
 
   return `
 ESPECIALISTA EM DUA E INCLUSÃO. ${style}
-1. ANALISE O PERFIL: ${(aluno.ia_sugestao || "").slice(0, 1000)}
+1. ANALISE O PERFIL: ${(aluno.ia_sugestao || "").slice(0, LIMITE_PEI)}
 2. ADAPTE A ${tipo_atv}: Use o hiperfoco (${aluno.hiperfoco || "Geral"}) em 30% das questões.
 ${instrucoes_checklist}${infoBncc}${instrucaoImagens}
 
@@ -286,7 +291,7 @@ NUNCA remova ou mova imagens de sua posição original.
 
 SAÍDA OBRIGATÓRIA (Use EXATAMENTE este divisor):
 [ANÁLISE PEDAGÓGICA]
-...análise...
+...para o professor: o que foi adaptado e por quê, nível cognitivo original × adaptado (devem ser equivalentes) e o gabarito...
 ---DIVISOR---
 [ATIVIDADE]
 ...atividade...
@@ -313,7 +318,7 @@ export interface AdaptarAtividadeParams {
   objeto_conhecimento?: string;
 }
 
-export function adaptarPromptAtividade(params: AdaptarAtividadeParams): string {
+function adaptarPromptAtividadeBase(params: AdaptarAtividadeParams): string {
   const {
     aluno,
     materia,
@@ -392,7 +397,7 @@ export function adaptarPromptAtividade(params: AdaptarAtividadeParams): string {
   return `
     ATUAR COMO: Especialista em Acessibilidade e OCR. ${style}
     1. Transcreva o texto da imagem. ${instrucao_livro}
-    2. Adapte para o estudante (PEI: ${(aluno.ia_sugestao || "").slice(0, 800)}).
+    2. Adapte para o estudante (PEI: ${(aluno.ia_sugestao || "").slice(0, LIMITE_PEI)}).
     3. HIPERFOCO (${hiperfoco}): Use o hiperfoco do estudante sempre que possível para conectar e engajar na questão.
     ${instrucoes_checklist}
     4. REGRA DE IMAGEM:
@@ -402,7 +407,7 @@ export function adaptarPromptAtividade(params: AdaptarAtividadeParams): string {
     ${infoBncc}
     SAÍDA OBRIGATÓRIA (Respeite o divisor):
     [ANÁLISE PEDAGÓGICA]
-    ...análise...
+    ...para o professor: o que foi adaptado e por quê, nível cognitivo original × adaptado (devem ser equivalentes) e o gabarito...
     ---DIVISOR---
     [ATIVIDADE]
     ...atividade...
@@ -425,7 +430,7 @@ export interface RoteiroAulaParams {
   feedback_anterior?: string;
 }
 
-export function gerarPromptRoteiroAula(params: RoteiroAulaParams): string {
+function gerarPromptRoteiroAulaBase(params: RoteiroAulaParams): string {
   const {
     aluno,
     materia,
@@ -460,7 +465,7 @@ export function gerarPromptRoteiroAula(params: RoteiroAulaParams): string {
     Crie um ROTEIRO DE AULA INDIVIDUALIZADO para ${aluno.nome}.
     
     INFORMAÇÕES DO ESTUDANTE:
-    - Perfil: ${(aluno.ia_sugestao || "").slice(0, 500)}
+    - Perfil: ${(aluno.ia_sugestao || "").slice(0, LIMITE_PEI)}
     - Hiperfoco: ${aluno.hiperfoco || "Geral"}
     
     INFORMAÇÕES DA AULA:
@@ -515,7 +520,7 @@ export interface DinamicaInclusivaParams {
   feedback_anterior?: string;
 }
 
-export function gerarPromptDinamicaInclusiva(params: DinamicaInclusivaParams): string {
+function gerarPromptDinamicaInclusivaBase(params: DinamicaInclusivaParams): string {
   const {
     aluno,
     materia,
@@ -553,7 +558,7 @@ export function gerarPromptDinamicaInclusiva(params: DinamicaInclusivaParams): s
     
     INFORMAÇÕES DO ESTUDANTE FOCAL:
     - Nome: ${aluno.nome}
-    - Perfil: ${(aluno.ia_sugestao || "").slice(0, 400)}
+    - Perfil: ${(aluno.ia_sugestao || "").slice(0, LIMITE_PEI)}
     - Hiperfoco: ${aluno.hiperfoco || "Geral"}
     
     INFORMAÇÕES DA DINÂMICA:
@@ -609,7 +614,7 @@ export interface PlanoAulaParams {
   duracao_minutos?: number;
 }
 
-export function gerarPromptPlanoAula(params: PlanoAulaParams): string {
+function gerarPromptPlanoAulaBase(params: PlanoAulaParams): string {
   const {
     materia,
     assunto,
@@ -647,7 +652,7 @@ export function gerarPromptPlanoAula(params: PlanoAulaParams): string {
     INFORMAÇÕES DO ESTUDANTE (DUA):
     - Nome: ${aluno_info.nome || ""}
     - Hiperfoco: ${aluno_info.hiperfoco || ""}
-    - Perfil: ${(aluno_info.ia_sugestao || "").slice(0, 300)}
+    - Perfil: ${(aluno_info.ia_sugestao || "").slice(0, LIMITE_PEI)}
     `
     : "";
 
@@ -740,7 +745,7 @@ export interface PapoMestreParams {
   tema_turma_extra?: string;
 }
 
-export function gerarPromptPapoMestre(params: PapoMestreParams): string {
+function gerarPromptPapoMestreBase(params: PapoMestreParams): string {
   const { aluno, materia, assunto, tema_turma_extra = "" } = params;
 
   return `
@@ -765,7 +770,7 @@ export interface ExperienciaEiParams {
   feedback_anterior?: string;
 }
 
-export function gerarPromptExperienciaEi(params: ExperienciaEiParams): string {
+function gerarPromptExperienciaEiBase(params: ExperienciaEiParams): string {
   const { aluno, campo_exp, objetivo, feedback_anterior = "" } = params;
 
   const ajuste_prompt = feedback_anterior
@@ -776,7 +781,7 @@ export function gerarPromptExperienciaEi(params: ExperienciaEiParams): string {
     ATUAR COMO: Especialista em Educação Infantil (BNCC) e Inclusão.
     ESTUDANTE: ${aluno.nome} (Educação Infantil).
     HIPERFOCO: ${aluno.hiperfoco || "Brincar"}.
-    RESUMO DAS NECESSIDADES (PEI): ${(aluno.ia_sugestao || "").slice(0, 600)}
+    RESUMO DAS NECESSIDADES (PEI): ${(aluno.ia_sugestao || "").slice(0, LIMITE_PEI)}
     
     SUA MISSÃO: Criar uma EXPERIÊNCIA LÚDICA, CONCRETA E VISUAL focada no Campo de Experiência: "${campo_exp}".
     Objetivo(s) de Aprendizagem (BNCC - use APENAS estes, não invente): ${objetivo}
@@ -805,7 +810,7 @@ export interface MapaMentalParams {
   materia: string;
   assunto: string;
   planoTexto: string;
-  estudante?: { nome?: string; hiperfoco?: string };
+  estudante?: { nome?: string; hiperfoco?: string; perfil?: string };
   unidade_tematica?: string;
   objeto_conhecimento?: string;
 }
@@ -848,7 +853,7 @@ STYLE RULES:
 CRITICAL: This is an IMAGE of a mind map, not text. Create a visual diagram.`.trim();
 }
 
-export function gerarPromptMapaMentalHtml(params: MapaMentalParams): string {
+function gerarPromptMapaMentalHtmlBase(params: MapaMentalParams): string {
   const { materia, assunto, planoTexto, estudante, unidade_tematica, objeto_conhecimento } = params;
   const hiperfoco = estudante?.hiperfoco || "Geral";
 
@@ -865,7 +870,7 @@ Você é um designer de mapas mentais interativos. Crie um arquivo HTML COMPLETO
 INFORMAÇÕES DA AULA:
 - Componente Curricular: ${materia}
 - Assunto: ${assunto}
-- Hiperfoco do estudante: ${hiperfoco}
+- Hiperfoco do estudante: ${hiperfoco}${estudante?.perfil ? `\n- Como o estudante aprende melhor (do PEI; adapte linguagem e quantidade de texto, sem citar no mapa): ${estudante.perfil.slice(0, LIMITE_PEI)}` : ""}
 ${infoBncc ? `- ${infoBncc}` : ""}
 
 CONTEÚDO DO PLANO (extraia os conceitos-chave):
@@ -911,7 +916,7 @@ SAÍDA: Apenas o HTML completo. Nenhum texto antes ou depois. Comece com <!DOCTY
 // com a mesma UI do "Criar Questões".
 // ==============================================================================
 
-export function criarPromptItensAvancado(params: CriarAtividadeParams): string {
+function criarPromptItensAvancadoBase(params: CriarAtividadeParams): string {
   const {
     materia,
     objeto,
@@ -1041,7 +1046,7 @@ Aplique essas orientações de forma coerente nos itens criados.
     ? `
 PERFIL DO ESTUDANTE (PEI — OBRIGATÓRIO CONSIDERAR):
 Considere o seguinte perfil ao elaborar os itens:
-${ia_sugestao.slice(0, 800)}
+${ia_sugestao.slice(0, LIMITE_PEI)}
 Adapte linguagem, complexidade e abordagem de acordo com as necessidades indicadas.
 `
     : "";
@@ -1162,4 +1167,45 @@ ${tipo_q === "Objetiva"
       : "Após todos os itens, inclua seção PADRÃO DE RESPOSTA com a grade de correção, tópicos essenciais e pontuação de cada item."
     }
 `.trim();
+}
+
+// ── Onda 3: toda ferramenta termina com as regras de qualidade trazidas do OmniProf ──
+export function criarPromptProfissional(params: CriarAtividadeParams): string {
+  return criarPromptProfissionalBase(params) + regrasDaFerramenta("questoes");
+}
+
+export function adaptarPromptProva(params: AdaptarProvaParams): string {
+  return adaptarPromptProvaBase(params) + regrasDaFerramenta("adaptar");
+}
+
+export function adaptarPromptAtividade(params: AdaptarAtividadeParams): string {
+  return adaptarPromptAtividadeBase(params) + regrasDaFerramenta("adaptar");
+}
+
+export function gerarPromptRoteiroAula(params: RoteiroAulaParams): string {
+  return gerarPromptRoteiroAulaBase(params) + regrasDaFerramenta("aula");
+}
+
+export function gerarPromptDinamicaInclusiva(params: DinamicaInclusivaParams): string {
+  return gerarPromptDinamicaInclusivaBase(params) + regrasDaFerramenta("dinamica");
+}
+
+export function gerarPromptPlanoAula(params: PlanoAulaParams): string {
+  return gerarPromptPlanoAulaBase(params) + regrasDaFerramenta("aula");
+}
+
+export function gerarPromptPapoMestre(params: PapoMestreParams): string {
+  return gerarPromptPapoMestreBase(params) + regrasDaFerramenta("abertura");
+}
+
+export function gerarPromptExperienciaEi(params: ExperienciaEiParams): string {
+  return gerarPromptExperienciaEiBase(params) + regrasDaFerramenta("ei");
+}
+
+export function gerarPromptMapaMentalHtml(params: MapaMentalParams): string {
+  return gerarPromptMapaMentalHtmlBase(params) + regrasDaFerramenta("visual");
+}
+
+export function criarPromptItensAvancado(params: CriarAtividadeParams): string {
+  return criarPromptItensAvancadoBase(params) + regrasDaFerramenta("questoes");
 }

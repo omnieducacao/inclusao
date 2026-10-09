@@ -51,7 +51,7 @@ export async function saveHubGeneratedContent(params: SaveHubContentParams): Pro
 }
 
 /** Versão dos prompts das ferramentas: sobe quando um prompt muda, para saber o que gerou cada material. */
-export const PROMPT_VERSION_HUB = "2026-10-onda3";
+export const PROMPT_VERSION_HUB = "2026-10-onda3b"; // regras de qualidade do OmniProf + resumo do PEI completo
 
 const NOMES: Record<HubContentType, string> = {
   criar_atividade: "Atividade",
