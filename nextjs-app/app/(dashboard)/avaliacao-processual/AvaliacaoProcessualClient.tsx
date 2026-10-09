@@ -965,7 +965,7 @@ export default function AvaliacaoProcessualClient() {
             {/* Page header — unified PageHero */}
             <PageHero
                 route="/avaliacao-processual"
-                title="Avaliação Processual"
+                title="Avaliação processual"
                 desc={`${professorName} · ${alunos.length} estudante${alunos.length !== 1 ? "s" : ""}`}
             />
 

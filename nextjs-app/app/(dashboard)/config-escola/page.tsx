@@ -12,7 +12,7 @@ export default async function ConfigEscolaPage() {
     <PageAccentProvider adminKey="config-escola" serverConfig={adminConfig}>
       <div className="space-y-6">
         <PageHero moduleKey="cursos" adminKey="config-escola" serverConfig={adminConfig}
-          title="Configuração da Escola"
+          title="Configuração da escola"
           desc="Ano letivo, séries e turmas."
         />
         <Suspense fallback={<Skeleton className="min-h-[200px] w-full rounded-2xl" />}>

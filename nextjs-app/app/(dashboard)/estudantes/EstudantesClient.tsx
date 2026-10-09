@@ -1,655 +1,226 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
-import { motion } from "framer-motion";
-import { useVirtualizer } from "@tanstack/react-virtual";
+/**
+ * Lista de estudantes (onda 6).
+ *
+ * Antes: cartões que abriam um painel com diagnóstico, botões de "apagar relatórios" e "apagar
+ * jornada" e uma edição de série/turma digitada à mão, sem dizer em que pé estava cada PEI.
+ * Agora: uma tabela com a situação do PEI e do PAEE de cada estudante; a linha abre a ficha,
+ * onde ficam a edição, os responsáveis e a exportação. O cadastro usa as turmas da escola.
+ */
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ClipboardList, FileText, Map, Trash2, ChevronDown, ChevronUp, X, AlertTriangle, Edit2, Save, XCircle, Download } from "lucide-react";
-import { ResponsaveisSection } from "@/components/ResponsaveisSection";
-import { Card, Button, EmptyState } from "@omni/ds";
-import { useStudentMutation } from "@/hooks/useStudentMutation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Search, UserPlus, X } from "lucide-react";
+import type { SituacaoPei } from "@/lib/inicio";
+import css from "./Estudantes.module.css";
 
-type Student = {
+export type LinhaEstudante = {
   id: string;
   name: string;
-  grade?: string | null;
-  class_group?: string | null;
-  diagnosis?: string | null;
-  pei_data?: Record<string, unknown>;
-  paee_ciclos?: unknown[];
+  grade: string | null;
+  class_group: string | null;
+  pei: SituacaoPei;
+  paee: "ativo" | "sem_ativo" | "nenhum";
 };
 
-type Props = {
-  students: Student[];
-  familyModuleEnabled?: boolean;
-};
+type Turma = { id: string; grade: string; class_group: string };
 
-// Animações de Stagger foram desativadas para ganho absurdo de performance em listas grandes
+const FILTROS = ["Todos", "Sem PEI", "Rascunho", "Vigente", "Revisão chegando", "Revisão vencida", "Em revisão"] as const;
 
-export function EstudantesClient({ students, familyModuleEnabled = false }: Props) {
+function dataBr(iso: string | null) {
+  if (!iso) return "—";
+  const [a, m, d] = iso.slice(0, 10).split("-");
+  return `${d}/${m}/${a}`;
+}
+
+function NovoEstudante({ turmas, onFechar }: { turmas: Turma[]; onFechar: () => void }) {
   const router = useRouter();
-  const [search, setSearch] = useState("");
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [updating, setUpdating] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<{
-    name: string;
-    grade: string;
-    class_group: string;
-    diagnosis: string;
-  } | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [exporting, setExporting] = useState<string | null>(null);
-  const mutation = useStudentMutation();
+  const [nome, setNome] = useState("");
+  const [turmaId, setTurmaId] = useState("");
+  const [serie, setSerie] = useState("");
+  const [turmaTexto, setTurmaTexto] = useState("");
+  const [erro, setErro] = useState<string | null>(null);
+  const [salvando, setSalvando] = useState(false);
+  const campoNome = useRef<HTMLInputElement | null>(null);
+  useEffect(() => { campoNome.current?.focus(); }, []);
 
-  async function handleExportar(studentId: string, studentName: string) {
-    setExporting(studentId);
+  async function enviar(e: React.FormEvent) {
+    e.preventDefault();
+    if (!nome.trim()) { setErro("Escreva o nome do estudante."); campoNome.current?.focus(); return; }
+    const t = turmas.find((x) => x.id === turmaId);
+    if (turmas.length > 0 && !t) { setErro("Escolha a turma."); return; }
+    setSalvando(true); setErro(null);
     try {
-      const res = await fetch(`/api/students/${studentId}/export`);
-      if (!res.ok) {
-        const data = await res.json();
-        alert(data.error || "Erro ao exportar dados.");
-        return;
-      }
-      const data = await res.json();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `dados_${studentName.replace(/\s+/g, "_").toLowerCase()}_${new Date().toISOString().slice(0, 10)}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch { /* expected fallback */
-      alert("Erro ao exportar dados. Tente novamente.");
-    } finally {
-      setExporting(null);
-    }
-  }
-
-  const filtered = useMemo(() => {
-    if (!search.trim()) return students;
-    const q = search.trim().toLowerCase();
-    return students.filter(
-      (s) =>
-        (s.name || "").toLowerCase().includes(q) ||
-        (s.grade || "").toLowerCase().includes(q) ||
-        (s.class_group || "").toLowerCase().includes(q) ||
-        (s.diagnosis || "").toLowerCase().includes(q)
-    );
-  }, [students, search]);
-
-  const parentRef = useRef<HTMLDivElement>(null);
-  const rowVirtualizer = useVirtualizer({
-    count: filtered.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: (index) => {
-      const studentId = filtered[index].id;
-      return expandedIds.has(studentId) ? 250 : 76;
-    },
-    overscan: 5,
-  });
-
-  function toggleExpand(studentId: string) {
-    setExpandedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(studentId)) {
-        next.delete(studentId);
-      } else {
-        next.add(studentId);
-      }
-      return next;
-    });
-  }
-
-  async function handleDelete(studentId: string) {
-    if (!confirm("Tem certeza que deseja excluir este estudante? Esta ação não pode ser desfeita.")) {
-      return;
-    }
-
-    setDeleting(true);
-    try {
-      await mutation.deleteStudent(studentId, () => router.refresh());
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Erro ao excluir estudante. Tente novamente.");
-      /* client-side */ console.error(err);
-    } finally {
-      setDeleting(false);
-      setConfirmDeleteId(null);
-    }
-  }
-
-  async function handleApagarRelatorios(studentId: string, peiData: Record<string, unknown>) {
-    if (!confirm("Apagar relatórios PEI? Esta ação não pode ser desfeita.")) {
-      return;
-    }
-
-    setUpdating(studentId);
-    try {
-      const peiNovo = { ...peiData };
-      peiNovo.ia_sugestao = "";
-      peiNovo.status_validacao_pei = "rascunho";
-
-      await mutation.updatePEIData(studentId, peiNovo, () => router.refresh());
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Erro ao apagar relatórios.");
-      /* client-side */ console.error(err);
-    } finally {
-      setUpdating(null);
-    }
-  }
-
-  async function handleApagarJornada(studentId: string, peiData: Record<string, unknown>) {
-    if (!confirm("Apagar jornada gamificada? Esta ação não pode ser desfeita.")) {
-      return;
-    }
-
-    setUpdating(studentId);
-    try {
-      const peiNovo = { ...peiData };
-      peiNovo.ia_mapa_texto = "";
-      peiNovo.status_validacao_game = "rascunho";
-
-      await mutation.updatePEIData(studentId, peiNovo, () => router.refresh());
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Erro ao apagar jornada.");
-      /* client-side */ console.error(err);
-    } finally {
-      setUpdating(null);
-    }
-  }
-
-  function iniciarEdicao(student: Student) {
-    setEditingId(student.id);
-    setEditForm({
-      name: student.name || "",
-      grade: student.grade || "",
-      class_group: student.class_group || "",
-      diagnosis: student.diagnosis || "",
-    });
-  }
-
-  function cancelarEdicao() {
-    setEditingId(null);
-    setEditForm(null);
-  }
-
-  async function salvarEdicao(studentId: string) {
-    if (!editForm) return;
-
-    setSaving(true);
-    try {
-      await mutation.updateEstudante(studentId, {
-        name: editForm.name.trim() || null,
-        grade: editForm.grade.trim() || null,
-        class_group: editForm.class_group.trim() || null,
-        diagnosis: editForm.diagnosis.trim() || null,
-      }, () => {
-        setEditingId(null);
-        setEditForm(null);
-        router.refresh();
+      const res = await fetch("/api/students", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: nome.trim(),
+          grade: t ? t.grade : serie.trim() || null,
+          class_group: t ? t.class_group : turmaTexto.trim() || null,
+        }),
       });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Não foi possível cadastrar.");
+      router.push(`/estudantes/${data.student.id}`);
+      router.refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erro ao salvar alterações.");
-      /* client-side */ console.error(err);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleApagarCiclos(studentId: string) {
-    if (!confirm("Apagar todos os ciclos PAEE? Esta ação não pode ser desfeita.")) {
-      return;
-    }
-
-    setUpdating(studentId);
-    try {
-      await mutation.updatePAEECiclos(studentId, { paee_ciclos: [] }, () => router.refresh());
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Erro ao apagar ciclos.");
-      /* client-side */ console.error(err);
-    } finally {
-      setUpdating(null);
+      setErro(err instanceof Error ? err.message : "Não foi possível cadastrar.");
+      setSalvando(false);
     }
   }
 
   return (
-    <Card padding="none">
-      <div className="p-4 border-b border-(--omni-border-default) flex items-center justify-between flex-wrap gap-4">
-        <input
-          type="search"
-          placeholder="Buscar por nome, série, turma..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="px-3 py-2 border border-(--omni-border-default) rounded-lg text-sm w-72 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none bg-(--omni-bg-primary) text-(--omni-text-primary)"
-        />
-        <div className="flex gap-2">
-          <Link
-            href="/pei"
-            className="px-4 py-2 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700 transition-colors"
-          >
-            Ir para PEI
-          </Link>
-          <Link
-            href="/"
-            className="px-4 py-2 border border-(--omni-border-default) text-(--omni-text-secondary) text-sm font-medium rounded-lg hover:bg-(--omni-bg-secondary) transition-colors"
-          >
-            Voltar
-          </Link>
+    <form onSubmit={enviar} className="omni-cartao omni-cartao--plano space-y-4" aria-labelledby="novo-titulo" noValidate>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 id="novo-titulo" className="omni-cartao__titulo">Cadastrar estudante</h2>
+          <p className="omni-apoio">Só o nome e a turma. O resto entra no estudo de caso do PEI.</p>
         </div>
+        <button type="button" className="omni-btn omni-btn--discreto omni-btn--icone" aria-label="Fechar cadastro" onClick={onFechar}><X aria-hidden /></button>
+      </div>
+      {erro && <div className="omni-aviso omni-aviso--erro" role="alert"><div><div className="omni-aviso__texto">{erro}</div></div></div>}
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="omni-campo">
+          <label className="omni-campo__rotulo" htmlFor="novo-nome">Nome completo</label>
+          <input ref={campoNome} id="novo-nome" className="omni-entrada" value={nome} onChange={(e) => setNome(e.target.value)} autoComplete="off" required />
+        </div>
+        {turmas.length > 0 ? (
+          <div className="omni-campo">
+            <label className="omni-campo__rotulo" htmlFor="novo-turma">Turma</label>
+            <select id="novo-turma" className="omni-entrada" value={turmaId} onChange={(e) => setTurmaId(e.target.value)} required>
+              <option value="">Escolha a turma</option>
+              {turmas.map((t) => <option key={t.id} value={t.id}>{[t.grade, t.class_group].filter(Boolean).join(" · ")}</option>)}
+            </select>
+            <span className="omni-campo__ajuda">As turmas vêm de Configuração da escola.</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="omni-campo">
+              <label className="omni-campo__rotulo" htmlFor="novo-serie">Série <span className="omni-campo__opcional">(opcional)</span></label>
+              <input id="novo-serie" className="omni-entrada" value={serie} onChange={(e) => setSerie(e.target.value)} placeholder="4º ano" />
+            </div>
+            <div className="omni-campo">
+              <label className="omni-campo__rotulo" htmlFor="novo-turma-txt">Turma <span className="omni-campo__opcional">(opcional)</span></label>
+              <input id="novo-turma-txt" className="omni-entrada" value={turmaTexto} onChange={(e) => setTurmaTexto(e.target.value)} placeholder="A" />
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button type="submit" className="omni-btn omni-btn--primario" disabled={salvando}>{salvando ? "Cadastrando…" : "Cadastrar e abrir a ficha"}</button>
+        <button type="button" className="omni-btn omni-btn--discreto" onClick={onFechar}>Cancelar</button>
+      </div>
+    </form>
+  );
+}
+
+export function EstudantesClient({
+  students, turmas, podeCriar,
+}: { students: LinhaEstudante[]; turmas: Turma[]; podeCriar: boolean }) {
+  const params = useSearchParams();
+  const [busca, setBusca] = useState("");
+  const [filtro, setFiltro] = useState<(typeof FILTROS)[number]>("Todos");
+  const [novo, setNovo] = useState(params?.get("novo") === "1" && podeCriar);
+
+  const lista = useMemo(() => {
+    const q = busca.trim().toLowerCase();
+    return students
+      .filter((s) => filtro === "Todos" || s.pei.rotulo === filtro)
+      .filter((s) => !q || [s.name, s.grade, s.class_group].some((v) => (v || "").toLowerCase().includes(q)))
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  }, [students, busca, filtro]);
+
+  const contagem = useMemo(() => {
+    const c: Record<string, number> = {};
+    for (const s of students) c[s.pei.rotulo] = (c[s.pei.rotulo] || 0) + 1;
+    return c;
+  }, [students]);
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="omni-campo" style={{ minWidth: 240 }}>
+            <label className="omni-campo__rotulo" htmlFor="busca-estudante">Buscar</label>
+            <div className="relative">
+              <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: "var(--tinta-3)" }} />
+              <input id="busca-estudante" className="omni-entrada" style={{ paddingLeft: 36 }} value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Nome, série ou turma" />
+            </div>
+          </div>
+          <div className="omni-campo">
+            <label className="omni-campo__rotulo" htmlFor="filtro-pei">Situação do PEI</label>
+            <select id="filtro-pei" className="omni-entrada" value={filtro} onChange={(e) => setFiltro(e.target.value as typeof filtro)}>
+              {FILTROS.map((f) => (
+                <option key={f} value={f}>{f}{f === "Todos" ? ` (${students.length})` : contagem[f] ? ` (${contagem[f]})` : " (0)"}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        {podeCriar && !novo && (
+          <button type="button" className="omni-btn omni-btn--primario" onClick={() => setNovo(true)}>
+            <UserPlus aria-hidden /> Cadastrar estudante
+          </button>
+        )}
       </div>
 
+      {novo && <NovoEstudante turmas={turmas} onFechar={() => setNovo(false)} />}
+
       {students.length === 0 ? (
-        <div className="p-12 text-center">
-          <div className="mb-4 flex justify-center">
-            <ClipboardList className="w-16 h-16 text-(--omni-text-muted)" />
-          </div>
-          <p className="text-(--omni-text-secondary) font-medium">Nenhum estudante encontrado</p>
-          <p className="text-sm text-(--omni-text-muted) mt-2 max-w-md mx-auto">
-            Para começar, crie um PEI no módulo Estratégias & PEI — o estudante é cadastrado junto com o plano.
+        <div className="omni-cartao omni-cartao--plano">
+          <h2 className="omni-cartao__titulo">Nenhum estudante ainda</h2>
+          <p className="omni-apoio">
+            {podeCriar ? "Cadastre o primeiro estudante para começar o PEI." : "Peça à coordenação para ligar você às suas turmas ou estudantes."}
           </p>
-          <div className="mt-6 flex gap-3 justify-center">
-            <Link
-              href="/pei"
-              className="px-4 py-2 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700"
-            >
-              Ir para Estratégias & PEI
-            </Link>
-            <Link
-              href="/"
-              className="px-4 py-2 border border-(--omni-border-default) text-(--omni-text-secondary) text-sm font-medium rounded-lg hover:bg-(--omni-bg-secondary)"
-            >
-              Página Inicial
-            </Link>
-          </div>
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="p-8 text-center">
-          <p className="text-(--omni-text-secondary)">Nenhum resultado para &quot;{search}&quot;</p>
-          <button
-            type="button"
-            onClick={() => setSearch("")}
-            className="mt-2 text-sm text-sky-600 hover:underline"
-          >
-            Limpar busca
-          </button>
         </div>
       ) : (
-        <div ref={parentRef} className="max-h-[750px] overflow-auto rounded-xl border border-(--omni-border-default) bg-(--omni-bg-primary)">
-          <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
-            {rowVirtualizer.getVirtualItems().map((vRow) => {
-              const s = filtered[vRow.index];
-              const peiData = (s.pei_data || {}) as Record<string, unknown>;
-              const paeeCiclos = Array.isArray(s.paee_ciclos) ? s.paee_ciclos : [];
-              const temRelatorio = Boolean((peiData?.ia_sugestao as string)?.trim());
-              const temJornada = Boolean((peiData?.ia_mapa_texto as string)?.trim());
-              const nCiclos = paeeCiclos.length;
-              const isExpanded = expandedIds.has(s.id);
-              const isConfirmingDelete = confirmDeleteId === s.id;
-              const isUpdating = updating === s.id;
-
-              return (
-                <div
-                  key={s.id}
-                  data-index={vRow.index}
-                  ref={rowVirtualizer.measureElement}
-                  className="absolute top-0 left-0 w-full animate-in fade-in duration-300"
-                  style={{ transform: `translateY(${vRow.start}px)` }}
-                >
-                  <div className="border-b border-(--omni-border-default) last:border-b-0 bg-(--omni-bg-primary)">
-                    {/* Header do estudante */}
-                    <div className="p-4 hover:bg-(--omni-bg-secondary) transition-colors">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <button
-                            type="button"
-                            onClick={() => toggleExpand(s.id)}
-                            className="w-full text-left flex items-center justify-between gap-2 group"
-                          >
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-(--omni-text-primary) group-hover:text-sky-600 transition-colors">
-                                {s.name || "—"}
-                              </h3>
-                              <div className="flex gap-2 mt-1 flex-wrap">
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-sky-50 text-sky-700 border border-sky-100">
-                                  {s.grade || "—"}
-                                </span>
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                  {s.class_group || "—"}
-                                </span>
-                                {temRelatorio && (
-                                  <span className="text-xs text-amber-600 inline-flex items-center gap-1">
-                                    <FileText className="w-3 h-3" />
-                                    PEI
-                                  </span>
-                                )}
-                                {temJornada && (
-                                  <span className="text-xs text-violet-600 inline-flex items-center gap-1">
-                                    <Map className="w-3 h-3" />
-                                    Jornada
-                                  </span>
-                                )}
-                                {nCiclos > 0 && (
-                                  <span className="text-xs text-(--omni-text-muted)">{nCiclos} ciclo(s) PAEE</span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              {isExpanded ? (
-                                <ChevronUp className="w-5 h-5 text-(--omni-text-muted)" />
-                              ) : (
-                                <ChevronDown className="w-5 h-5 text-(--omni-text-muted)" />
-                              )}
-                            </div>
-                          </button>
-                        </div>
-                        <div className="flex gap-2 shrink-0 flex-wrap items-center">
-                          <Link
-                            href={`/pei?student=${s.id}`}
-                            className="px-3 py-1.5 text-sm font-medium text-sky-600 hover:bg-sky-50 rounded-lg"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            PEI
-                          </Link>
-                          <Link
-                            href={`/paee?student=${s.id}`}
-                            className="px-3 py-1.5 text-sm font-medium text-violet-600 hover:bg-violet-50 rounded-lg"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            PAEE
-                          </Link>
-                          <Link
-                            href={`/diario?student=${s.id}`}
-                            className="px-3 py-1.5 text-sm font-medium text-rose-600 hover:bg-rose-50 rounded-lg"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            Diário
-                          </Link>
-                          <Link
-                            href={`/monitoramento?student=${s.id}`}
-                            className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            Monitoramento
-                          </Link>
-                        </div>
-                      </div>
+        <div className={`omni-tabela-caixa ${css.caixa}`}>
+          <table className={`omni-tabela ${css.tabela}`}>
+            <caption className="omni-so-leitor">Estudantes e situação do PEI e do PAEE</caption>
+            <thead>
+              <tr>
+                <th scope="col">Estudante</th>
+                <th scope="col">PEI</th>
+                <th scope="col">Próxima revisão</th>
+                <th scope="col">PAEE</th>
+                <th scope="col"><span className="omni-so-leitor">Ação</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {lista.map((s) => (
+                <tr key={s.id}>
+                  <td>
+                    <Link href={`/estudantes/${s.id}`} className="omni-tabela__nome" style={{ color: "var(--tinta)", fontWeight: 700 }}>{s.name}</Link>
+                    <div className="omni-tabela__sub" style={{ color: "var(--tinta-2)", fontSize: 14 }}>
+                      {[s.grade, s.class_group].filter(Boolean).join(" · ") || "Sem turma"}
                     </div>
-
-                    {/* Conteúdo expandido */}
-                    {isExpanded && (
-                      <div className="px-4 pb-4 pt-0 bg-(--omni-bg-secondary) border-t border-(--omni-border-default) animate-in slide-in-from-top-2 fade-in duration-200">
-                        {isConfirmingDelete ? (
-                          <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                            <div className="flex items-start gap-2 mb-3">
-                              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                              <div>
-                                <p className="font-semibold text-amber-800">Excluir {s.name}?</p>
-                                <p className="text-sm text-amber-700 mt-1">Esta ação <strong>não pode ser desfeita</strong>. Os seguintes dados serão removidos permanentemente:</p>
-                                <ul className="text-sm text-amber-700 mt-2 space-y-1 list-disc list-inside">
-                                  <li>Dados do PEI (todas as fases e versões)</li>
-                                  <li>PEI por disciplina (planos vinculados, adaptações IA)</li>
-                                  <li>Avaliações diagnósticas (questões, gabaritos, nível)</li>
-                                  {temRelatorio && <li>Relatório PEI (consultoria IA)</li>}
-                                  {temJornada && <li>Jornada gamificada</li>}
-                                  {nCiclos > 0 && <li>{nCiclos} ciclo(s) PAEE</li>}
-                                </ul>
-                              </div>
-                            </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleDelete(s.id)}
-                                disabled={deleting}
-                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 text-sm"
-                              >
-                                {deleting ? "Excluindo..." : "Sim, excluir tudo"}
-                              </button>
-                              <button
-                                onClick={() => setConfirmDeleteId(null)}
-                                className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 text-sm"
-                              >
-                                Cancelar
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="mt-4 space-y-4">
-                            {/* Edição Inline de Campos Básicos */}
-                            {editingId === s.id ? (
-                              <div className="bg-white border border-sky-200 rounded-lg p-4 space-y-4">
-                                <div className="flex items-center justify-between mb-3">
-                                  <h4 className="text-sm font-semibold text-slate-800">Editar dados do estudante</h4>
-                                  <div className="flex gap-2">
-                                    <button
-                                      onClick={() => salvarEdicao(s.id)}
-                                      disabled={saving}
-                                      className="px-3 py-1.5 text-xs font-medium text-white bg-sky-600 hover:bg-sky-700 rounded-lg disabled:opacity-50 flex items-center gap-1.5"
-                                    >
-                                      <Save className="w-3.5 h-3.5" />
-                                      Salvar
-                                    </button>
-                                    <button
-                                      onClick={cancelarEdicao}
-                                      disabled={saving}
-                                      className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg border border-slate-300 disabled:opacity-50 flex items-center gap-1.5"
-                                    >
-                                      <XCircle className="w-3.5 h-3.5" />
-                                      Cancelar
-                                    </button>
-                                  </div>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div>
-                                    <label className="block text-xs font-medium text-slate-700 mb-1">Nome</label>
-                                    <input
-                                      type="text"
-                                      value={editForm?.name || ""}
-                                      onChange={(e) => setEditForm({ ...editForm!, name: e.target.value })}
-                                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                                      placeholder="Nome do estudante"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-xs font-medium text-slate-700 mb-1">Série</label>
-                                    <input
-                                      type="text"
-                                      value={editForm?.grade || ""}
-                                      onChange={(e) => setEditForm({ ...editForm!, grade: e.target.value })}
-                                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                                      placeholder="Ex: 1º ano, 2º ano"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-xs font-medium text-slate-700 mb-1">Turma</label>
-                                    <input
-                                      type="text"
-                                      value={editForm?.class_group || ""}
-                                      onChange={(e) => setEditForm({ ...editForm!, class_group: e.target.value })}
-                                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                                      placeholder="Ex: A, B, C"
-                                    />
-                                  </div>
-                                  <div className="md:col-span-2">
-                                    <label className="block text-xs font-medium text-slate-700 mb-1">Contexto (equipe)</label>
-                                    <textarea
-                                      value={editForm?.diagnosis || ""}
-                                      onChange={(e) => setEditForm({ ...editForm!, diagnosis: e.target.value })}
-                                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none"
-                                      placeholder="Diagnóstico ou contexto do estudante"
-                                      rows={3}
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                                <div className="flex items-center justify-between mb-3">
-                                  <h4 className="text-sm font-semibold text-slate-800">Dados básicos</h4>
-                                  <button
-                                    onClick={() => iniciarEdicao(s)}
-                                    className="px-3 py-1.5 text-xs font-medium text-sky-600 hover:bg-sky-50 rounded-lg border border-sky-200 flex items-center gap-1.5"
-                                  >
-                                    <Edit2 className="w-3.5 h-3.5" />
-                                    Editar
-                                  </button>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                  <div>
-                                    <span className="text-slate-500">Nome:</span>
-                                    <span className="ml-2 font-medium text-slate-800">{s.name || "—"}</span>
-                                  </div>
-                                  <div>
-                                    <span className="text-slate-500">Série:</span>
-                                    <span className="ml-2 font-medium text-slate-800">{s.grade || "—"}</span>
-                                  </div>
-                                  <div>
-                                    <span className="text-slate-500">Turma:</span>
-                                    <span className="ml-2 font-medium text-slate-800">{s.class_group || "—"}</span>
-                                  </div>
-                                  {s.diagnosis && (
-                                    <div className="md:col-span-2">
-                                      <span className="text-slate-500">Contexto (equipe):</span>
-                                      <p className="mt-1 text-slate-700">{s.diagnosis}</p>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Contexto (modo visualização - apenas se não estiver editando) */}
-                            {editingId !== s.id && s.diagnosis && (
-                              <div>
-                                <p className="text-sm font-semibold text-slate-700 mb-1">Contexto (equipe):</p>
-                                <p className="text-sm text-slate-600">{s.diagnosis}</p>
-                              </div>
-                            )}
-
-                            {/* Responsáveis (Módulo Família) */}
-                            {familyModuleEnabled && (
-                              <ResponsaveisSection
-                                studentId={s.id}
-                                studentName={s.name || "—"}
-                                onRefresh={() => router.refresh()}
-                              />
-                            )}
-
-                            {/* O que está anexado */}
-                            <div>
-                              <p className="text-sm font-semibold text-slate-700 mb-2">O que está anexado</p>
-                              <div className="space-y-1 mb-3">
-                                {temRelatorio && (
-                                  <p className="text-sm text-slate-600 flex items-center gap-2">
-                                    <FileText className="w-4 h-4 text-amber-600" />
-                                    Relatório PEI (Consultoria IA)
-                                  </p>
-                                )}
-                                {temJornada && (
-                                  <p className="text-sm text-slate-600 flex items-center gap-2">
-                                    <Map className="w-4 h-4 text-violet-600" />
-                                    Jornada gamificada
-                                  </p>
-                                )}
-                                {nCiclos > 0 && (
-                                  <p className="text-sm text-slate-600 flex items-center gap-2">
-                                    <ClipboardList className="w-4 h-4 text-slate-600" />
-                                    Ciclos PAEE ({nCiclos})
-                                  </p>
-                                )}
-                                {!temRelatorio && !temJornada && nCiclos === 0 && (
-                                  <p className="text-xs text-slate-500 italic">Nenhum relatório ou jornada anexada ainda.</p>
-                                )}
-                              </div>
-
-                              {/* Botões para apagar */}
-                              {(temRelatorio || temJornada || nCiclos > 0) && (
-                                <div>
-                                  <p className="text-xs text-slate-500 mb-2">Apagar apenas relatórios ou jornada (sem excluir o estudante):</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {temRelatorio && (
-                                      <button
-                                        onClick={() => handleApagarRelatorios(s.id, peiData)}
-                                        disabled={isUpdating}
-                                        className="px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50"
-                                      >
-                                        Apagar relatórios
-                                      </button>
-                                    )}
-                                    {temJornada && (
-                                      <button
-                                        onClick={() => handleApagarJornada(s.id, peiData)}
-                                        disabled={isUpdating}
-                                        className="px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50"
-                                      >
-                                        Apagar jornada
-                                      </button>
-                                    )}
-                                    {nCiclos > 0 && (
-                                      <button
-                                        onClick={() => handleApagarCiclos(s.id)}
-                                        disabled={isUpdating}
-                                        className="px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50"
-                                      >
-                                        Apagar ciclos PAEE
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* PEI Data completa (visualização) */}
-                            {Object.keys(peiData).length > 0 && (
-                              <div>
-                                <p className="text-sm font-semibold text-slate-700 mb-2">Dados completos do PEI</p>
-                                <div className="bg-white border border-slate-200 rounded-lg p-4 max-h-96 overflow-y-auto">
-                                  <pre className="text-xs text-slate-600 whitespace-pre-wrap font-mono">
-                                    {JSON.stringify(peiData, null, 2)}
-                                  </pre>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Ações: Exportar + Excluir */}
-                            <div className="pt-2 border-t border-slate-200 flex flex-wrap gap-2">
-                              <button
-                                onClick={() => handleExportar(s.id, s.name || "estudante")}
-                                disabled={exporting === s.id}
-                                aria-label={`Exportar dados de ${s.name || "estudante"}`}
-                                className="px-4 py-2 text-sm font-medium text-sky-600 hover:bg-sky-50 rounded-lg border border-sky-200 disabled:opacity-50 flex items-center gap-2"
-                              >
-                                <Download className="w-4 h-4" />
-                                {exporting === s.id ? "Exportando..." : "Exportar Dados (LGPD)"}
-                              </button>
-                              <button
-                                onClick={() => setConfirmDeleteId(s.id)}
-                                disabled={deleting || isUpdating}
-                                aria-label={`Excluir estudante ${s.name || ""}`}
-                                className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50 flex items-center gap-2"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                                Excluir estudante
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  </td>
+                  <td>
+                    <span className={css.rotuloCelular}>PEI</span>
+                    <span className={`omni-estado omni-estado--${s.pei.tom}`}>{s.pei.rotulo}{s.pei.versao ? ` · v${s.pei.versao}` : ""}</span>
+                  </td>
+                  <td className="num"><span className={css.rotuloCelular}>Próxima revisão</span>{dataBr(s.pei.proximaRevisao)}</td>
+                  <td>
+                    <span className={css.rotuloCelular}>PAEE</span>
+                    {s.paee === "ativo" ? <span className="omni-estado omni-estado--sucesso">Ciclo ativo</span>
+                      : s.paee === "sem_ativo" ? <span className="omni-estado omni-estado--atencao">Sem ciclo ativo</span>
+                      : <span className="omni-estado omni-estado--neutro">Não começado</span>}
+                  </td>
+                  <td style={{ textAlign: "right" }}>
+                    <Link href={`/estudantes/${s.id}`} className="omni-btn omni-btn--discreto omni-btn--pequeno" aria-label={`Abrir a ficha de ${s.name}`}>
+                      Abrir ficha
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+              {lista.length === 0 && (
+                <tr><td colSpan={5} className="omni-apoio">Nenhum estudante com esse filtro.</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
       )}
-      {students.length > 0 && (
-        <p className="p-3 text-xs text-slate-400 border-t border-slate-100">
-          Dados sensíveis: uso exclusivo da equipe pedagógica. Não compartilhar com estudantes ou famílias.
-        </p>
-      )}
-    </Card>
+    </div>
   );
 }

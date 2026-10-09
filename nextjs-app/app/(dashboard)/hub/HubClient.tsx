@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { StudentSelector } from "@/components/StudentSelector";
+import { CabecalhoEstudante, EscolherEstudante } from "@/components/estudante/CabecalhoEstudante";
 import { HubHistoricoEstudante } from "./components/HubHistoricoEstudante";
 import { detectarNivelEnsino } from "@/lib/pei";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
@@ -38,7 +38,7 @@ const CriarItens = dynamic(() => import("./components/HubCriarItens").then(mod =
 const AdaptarProva = dynamic(() => import("./components/HubAdaptarProva").then(mod => mod.AdaptarProva));
 const AdaptarAtividade = dynamic(() => import("./components/HubAdaptarAtividade").then(mod => mod.AdaptarAtividade));
 
-type Student = { id: string; name: string };
+type Student = { id: string; name: string; grade?: string | null; class_group?: string | null };
 type StudentFull = Student & {
   grade?: string | null;
   pei_data?: Record<string, unknown>;
@@ -150,10 +150,13 @@ export function HubClient({ students, studentId, student }: Props) {
 
   return (
     <div className="space-y-6">
-      <StudentSelector students={students} currentId={currentId} placeholder="Selecione o estudante" />
-
-      {currentId && student && (
-        <PEISummaryPanel peiData={peiData} studentName={student.name} />
+      {currentId && student ? (
+        <>
+          <CabecalhoEstudante students={students} student={{ ...student, pei_data: peiData }} />
+          <PEISummaryPanel peiData={peiData} studentName={student.name} />
+        </>
+      ) : (
+        <EscolherEstudante students={students} texto="Os materiais que você criar ficam guardados no histórico dele." naoEncontrado={Boolean(currentId)} />
       )}
 
       {currentId && student && (

@@ -1,0 +1,24 @@
+/* PEI em quatro etapas · Omni Design System */
+.passo { padding: 0; }
+.passoBotao {
+  display: flex; gap: 10px; align-items: flex-start; width: 100%; height: 100%;
+  padding: var(--space-3); background: none; border: 0; border-radius: inherit;
+  text-align: left; cursor: pointer; color: inherit; font: inherit;
+}
+.passoBotao:focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; }
+.etapa {
+  scroll-margin-top: 80px;
+  border: 1px solid var(--borda); border-radius: var(--o-radius-lg);
+  background: var(--superficie);
+  padding: var(--space-6);
+  display: flex; flex-direction: column; gap: var(--space-5);
+}
+.etapaTopo { display: flex; flex-direction: column; gap: 2px; }
+.etapaTitulo { margin: 0; font: 800 24px/30px var(--font-sans); letter-spacing: -.015em; color: var(--tinta); }
+.secao { min-width: 0; }
+.rodape { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding-top: var(--space-5); border-top: 1px solid var(--borda); }
+.espaco { flex: 1; }
+@media (max-width: 640px) {
+  .etapa { padding: var(--space-4); }
+  .etapaTitulo { font-size: 20px; line-height: 26px; }
+}

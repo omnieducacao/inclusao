@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { Navbar } from "@/components/Navbar";
+import { BarraLateral } from "@/components/BarraLateral";
 import { AIEnginesBadge } from "@/components/AIEnginesBadge";
 import { Footer } from "@/components/Footer";
 import { AILoadingWrapper } from "@/components/AILoadingWrapper";
@@ -33,13 +34,17 @@ export default async function DashboardLayout({
         </a>
         <SimulationBanner session={session} />
         <MemberSimulationBanner session={session} />
-        <nav aria-label="Navegação principal">
-          <Navbar session={session} />
-        </nav>
-        <main id="main-content" className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-6 flex-1">{children}</main>
-        <footer className="w-full px-6" role="contentinfo">
-          <Footer />
-        </footer>
+        {/* Onda 6: topo com logo, busca, sino e perfil; a navegação vai para a barra lateral */}
+        <Navbar session={session} hideMenu />
+        <div className="omni-moldura">
+          <BarraLateral session={session} />
+          <div className="flex-1 min-w-0 flex flex-col">
+            <main id="main-content" className="w-full max-w-[1320px] mx-auto px-4 sm:px-6 py-6 flex-1">{children}</main>
+            <div className="w-full px-6">
+              <Footer />
+            </div>
+          </div>
+        </div>
         <AIEnginesBadge />
         <AnnouncementModal />
       </div>

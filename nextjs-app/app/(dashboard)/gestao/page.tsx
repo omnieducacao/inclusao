@@ -32,7 +32,7 @@ export default async function GestaoPage() {
     <PageAccentProvider adminKey="gestao" serverConfig={adminConfig}>
       <div className="space-y-6">
         <PageHero moduleKey="gestao" serverConfig={adminConfig}
-          title="Gestão de Usuários"
+          title="Equipe e papéis"
           desc="Membros e permissões do workspace."
         />
         <Suspense fallback={<Skeleton className="min-h-[200px] w-full rounded-2xl" />}>

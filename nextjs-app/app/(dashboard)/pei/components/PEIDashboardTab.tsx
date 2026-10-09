@@ -285,7 +285,7 @@ export function DashboardTab({
 
       <div className="flex items-center gap-2 mb-4">
         <FileDown className="w-5 h-5 text-sky-600" />
-        <h3 className="text-lg font-semibold text-slate-800">Dashboard e Exportação</h3>
+        <h3 className="text-lg font-semibold text-slate-800">Acompanhamento</h3>
       </div>
 
       {/* CSS Customizado (Modernizado para Violeta do PEI) */}
@@ -479,24 +479,6 @@ export function DashboardTab({
         }
       `}</style>
 
-      {/* Hero */}
-      <div className="dash-hero">
-        <div className="flex items-center gap-5">
-          <div className="apple-avatar">{initAvatar}</div>
-          <div className="text-white">
-            <h1 className="text-2xl font-bold m-0 leading-tight">{peiData.nome}</h1>
-            <p className="mt-1.5 mb-0 opacity-90">
-              {serieTxt} • Turma {turmaTxt} • Matrícula/RA: {matriculaTxt}
-            </p>
-            <p className="mt-1.5 mb-0 opacity-80 text-sm">{vinculoTxt}</p>
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="text-xs opacity-85">IDADE</div>
-          <div className="text-xl font-extrabold">{idadeStr}</div>
-        </div>
-      </div>
-
       {/* Compliance LBI - Checklist retrátil */}
       <Card variant="default" className="mb-6 overflow-hidden">
         <details className="group">
@@ -512,101 +494,6 @@ export function DashboardTab({
           </CardContent>
         </details>
       </Card>
-
-      {/* Exportação - Movido para antes dos cards */}
-      <Card variant="glass" className="mb-6">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">📤 Exportação e Sincronização</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div>
-              <p className="text-xs text-slate-600 mb-2">📄 PDF Dados</p>
-              <PeiExportPdfButton peiData={peiData} />
-            </div>
-            <div>
-              <p className="text-xs text-slate-600 mb-2">📋 PDF Oficial (IA)</p>
-              <PeiExportPdfOficialButton peiData={peiData} />
-            </div>
-            <div>
-              <p className="text-xs text-slate-600 mb-2">📝 Word</p>
-              <PeiExportDocxButton peiData={peiData} />
-            </div>
-            <div>
-              <p className="text-xs text-slate-600 mb-2">💾 JSON</p>
-              <a
-                href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(peiData, null, 2))}`}
-                download={`PEI_${(peiData.nome || "Estudante").toString().replace(/\s+/g, "_")}.json`}
-                className="flex justify-center items-center h-10 w-full px-4 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 text-sm font-semibold transition-all shadow-sm"
-              >
-                Baixar JSON
-              </a>
-            </div>
-            <div>
-              <p className="text-xs text-slate-600 mb-2">☁️ {isEditing ? "Atualizar PEI" : "Criar Novo Estudante"}</p>
-              {peiData.nome ? (
-                isEditing ? (
-                  <Button
-                    variant="primary"
-                    className="w-full bg-emerald-600 hover:bg-emerald-500 focus-visible:ring-emerald-500"
-                    onClick={onUpdate}
-                    disabled={saving}
-                    loading={saving}
-                  >
-                    <Download className="w-4 h-4" />
-                    Atualizar PEI
-                  </Button>
-                ) : (
-                  <Button
-                    variant="primary"
-                    className="w-full bg-violet-600 hover:bg-violet-500 focus-visible:ring-violet-500"
-                    onClick={onSave}
-                    disabled={saving}
-                    loading={saving}
-                  >
-                    <Download className="w-4 h-4" />
-                    Criar Estudante
-                  </Button>
-                )
-              ) : (
-                <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
-                  <p className="text-xs text-amber-800">Preencha o nome na aba Estudante</p>
-                </div>
-              )}
-            </div>
-          </div>
-          {!peiData.ia_sugestao && (
-            <p className="text-xs text-slate-500 mt-4">
-              💡 Gere o Plano na aba <strong>Consultoria IA</strong> para incluir o planejamento pedagógico detalhado no documento.
-            </p>
-          )}
-
-          {/* Status de Envio — link para aba Regentes */}
-          {(peiData as Record<string, unknown>).fase_pei === "fase_2" ? (
-            <div className="mt-4 p-3 rounded-xl flex items-center gap-3" style={{
-              background: "var(--color-success-subtle)", border: "1px solid var(--color-success-strong)",
-            }}>
-              <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <span className="text-sm font-semibold text-emerald-700">✅ PEI enviado aos Professores Regentes</span>
-                <p className="text-xs text-slate-500 mt-0.5">Gerencie os vínculos na aba <strong>Regentes</strong>.</p>
-              </div>
-            </div>
-          ) : currentStudentId && (
-            <div className="mt-4 p-3 rounded-xl flex items-center gap-3" style={{
-              background: "var(--color-info-subtle)", border: "1px solid var(--color-info-strong)",
-            }}>
-              <Send className="w-4 h-4 text-indigo-500 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <span className="text-xs text-indigo-700 font-medium">PEI ainda não foi enviado aos professores regentes.</span>
-                <p className="text-xs text-slate-500 mt-0.5">Vá até a aba <strong>Regentes</strong> para vincular.</p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <hr className="my-6" />
 
       {/* KPIs — 4 Cards Compactos */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

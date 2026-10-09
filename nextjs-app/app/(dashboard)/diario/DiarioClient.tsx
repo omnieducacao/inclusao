@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { StudentSelector } from "@/components/StudentSelector";
+import { CabecalhoEstudante, EscolherEstudante } from "@/components/estudante/CabecalhoEstudante";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { useStudentMutation } from "@/hooks/useStudentMutation";
@@ -23,7 +23,7 @@ const RelatoriosTab = dynamic(() => import("./components/RelatoriosTab"), {
   )
 });
 
-type Student = { id: string; name: string };
+type Student = { id: string; name: string; grade?: string | null; class_group?: string | null };
 type StudentFull = Student & {
   grade?: string | null;
   daily_logs?: RegistroDiario[];
@@ -160,59 +160,29 @@ function DiarioClientInner({ students, studentId, student }: Props) {
 
   if (!currentId) {
     return (
-      <div className="space-y-4">
-        <StudentSelector students={students} currentId={currentId} placeholder="Selecione o estudante" />
-        <div className="bg-amber-50 text-amber-800 p-4 rounded-lg">
-          Selecione um estudante para registrar atendimentos.
-        </div>
-      </div>
+      <EscolherEstudante students={students} texto="Os atendimentos registrados aparecem na linha do tempo dele." />
     );
   }
 
   if (!student && studentId) {
     return (
-      <div className="space-y-4">
-        <StudentSelector students={students} currentId={currentId} />
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-          <p className="text-amber-800 font-medium">Estudante não encontrado</p>
-        </div>
-      </div>
+      <EscolherEstudante students={students} texto="" naoEncontrado />
     );
   }
 
   if (!student) {
     return (
-      <div className="space-y-4">
-        <StudentSelector students={students} currentId={currentId} />
-        <div className="text-slate-500 text-center py-8">
-          Selecione um estudante para visualizar o diário.
-        </div>
-      </div>
+      <EscolherEstudante students={students} texto="Os atendimentos registrados aparecem na linha do tempo dele." />
     );
   }
 
   return (
     <div className="space-y-6">
-      <StudentSelector students={students} currentId={currentId} />
+      <CabecalhoEstudante students={students} student={{ ...student, pei_data: peiData }} />
 
       {student && (
         <PEISummaryPanel peiData={peiData} studentName={student.name} />
       )}
-
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 rounded-2xl border border-(--omni-border-default) shadow-sm min-h-[140px]" style={{ backgroundColor: getColorClasses("rose").bg }}>
-        <div>
-          <div className="text-xs font-semibold text-slate-500 uppercase">Estudante</div>
-          <div className="font-bold text-slate-800">{student.name}</div>
-        </div>
-        <div>
-          <div className="text-xs font-semibold text-slate-500 uppercase">Série</div>
-          <div className="font-bold text-slate-800">{student.grade || "—"}</div>
-        </div>
-        <div>
-          <div className="text-xs font-semibold text-slate-500 uppercase">Registros</div>
-          <div className="font-bold text-slate-800">{registros.length}</div>
-        </div>
-      </div>
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-slate-200 mb-6">

@@ -17,7 +17,7 @@ export default async function InfosPage() {
     <PageAccentProvider adminKey="infos" serverConfig={adminConfig}>
       <div className="space-y-6">
         <PageHero moduleKey="gestao" adminKey="infos" serverConfig={adminConfig}
-          title="Central de Inteligência Inclusiva"
+          title="Central de inteligência"
           desc="Fundamentos Pedagógicos, Marcos Legais e Ferramentas Práticas."
         />
 

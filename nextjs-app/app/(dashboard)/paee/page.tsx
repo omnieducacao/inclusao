@@ -27,12 +27,12 @@ export default async function PAEEPage({ searchParams }: Props) {
     <PageAccentProvider adminKey="paee" serverConfig={adminConfig}>
       <div className="space-y-6">
         <PageHero moduleKey="paee" serverConfig={adminConfig}
-          title="Plano de Ação / PAEE"
+          title="PAEE"
           desc="Atendimento Educacional Especializado — Planeje e implemente estratégias de AEE para eliminação de barreiras"
         />
 
         <PAEEClient
-          students={students.map((s) => ({ id: s.id, name: s.name }))}
+          students={students.map((s) => ({ id: s.id, name: s.name, grade: s.grade, class_group: s.class_group }))}
           studentId={studentId}
           student={
             student
@@ -40,6 +40,7 @@ export default async function PAEEPage({ searchParams }: Props) {
                 id: student.id,
                 name: student.name,
                 grade: student.grade,
+                class_group: student.class_group,
                 diagnosis: student.diagnosis,
                 pei_data: (student.pei_data || {}) as Record<string, unknown>,
                 paee_ciclos: (student.paee_ciclos || []) as CicloPAEE[],

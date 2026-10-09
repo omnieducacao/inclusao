@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { pendenciasDoInicio, pedemAtencao, dataCurta, primeiroNome, saudacao, hojeBrasilia } from "@/lib/inicio";
+import { pendenciasDoInicio, pedemAtencao, dataCurta, primeiroNome, saudacao, hojeBrasilia, situacaoDoPei, iniciais } from "@/lib/inicio";
 
 const HOJE = "2026-10-09";
 const est = (id: string, name: string, pei: Record<string, unknown> | null) => ({ id, name, grade: "4º Ano (EFAI)", pei_data: pei });
@@ -39,5 +39,30 @@ describe("início · textos", () => {
     expect(saudacao(new Date("2026-10-09T18:00:00Z"))).toBe("Boa tarde");
     expect(saudacao(new Date("2026-10-10T00:30:00Z"))).toBe("Boa noite");
     expect(hojeBrasilia(new Date("2026-10-10T01:00:00Z"))).toBe("2026-10-09");
+  });
+});
+
+
+describe("situacaoDoPei (onda 6)", () => {
+  const hoje = "2026-10-09";
+  it("sem nada é Sem PEI", () => {
+    expect(situacaoDoPei({}, hoje).rotulo).toBe("Sem PEI");
+    expect(situacaoDoPei({ nome: "X", serie: "3º ano" }, hoje).rotulo).toBe("Sem PEI");
+  });
+  it("conteúdo sem vigência é rascunho", () => {
+    expect(situacaoDoPei({ potencias: ["desenho"] }, hoje).rotulo).toBe("Rascunho");
+  });
+  it("vigente, chegando e vencida", () => {
+    expect(situacaoDoPei({ vigencia: { status: "vigente", versao: 2, proxima_revisao: "2027-02-01" } }, hoje)).toMatchObject({ rotulo: "Vigente", versao: 2 });
+    expect(situacaoDoPei({ vigencia: { status: "vigente", versao: 1, proxima_revisao: "2026-10-20" } }, hoje).rotulo).toBe("Revisão chegando");
+    expect(situacaoDoPei({ vigencia: { status: "vigente", versao: 1, proxima_revisao: "2026-10-01" } }, hoje).tom).toBe("erro");
+  });
+  it("em revisão", () => {
+    expect(situacaoDoPei({ vigencia: { status: "em_revisao", versao: 3 } }, hoje).rotulo).toBe("Em revisão");
+  });
+  it("iniciais", () => {
+    expect(iniciais("Ana Beatriz Souza")).toBe("AS");
+    expect(iniciais("Lia")).toBe("L");
+    expect(iniciais("")).toBe("?");
   });
 });

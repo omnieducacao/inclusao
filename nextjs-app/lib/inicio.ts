@@ -139,3 +139,39 @@ export function primeiroNome(nome: string | null | undefined): string {
   const n = (nome || "").trim().split(/\s+/)[0] || "";
   return n ? n[0].toUpperCase() + n.slice(1) : "";
 }
+
+/**
+ * Situação do PEI de um estudante, numa palavra, para listas e cabeçalhos (onda 6).
+ * Mesmas regras das pendências do Início, para a lista de Estudantes e a ficha dizerem o mesmo.
+ */
+export type SituacaoPei = {
+  rotulo: "Sem PEI" | "Rascunho" | "Vigente" | "Em revisão" | "Revisão chegando" | "Revisão vencida";
+  tom: "neutro" | "info" | "sucesso" | "atencao" | "erro";
+  versao: number | null;
+  proximaRevisao: string | null;
+};
+
+export function situacaoDoPei(peiData: Record<string, unknown> | null | undefined, hoje: string): SituacaoPei {
+  const pei = (peiData || {}) as Record<string, unknown>;
+  const vig = pei.vigencia as Vigencia | undefined;
+  const versao = vig && vig.versao > 0 ? vig.versao : null;
+  const proximaRevisao = vig?.proxima_revisao || null;
+  const base = { versao, proximaRevisao };
+  if (vig?.status === "em_revisao") return { ...base, rotulo: "Em revisão", tom: "info" };
+  if (vig?.status === "vigente") {
+    if (proximaRevisao && proximaRevisao < hoje) return { ...base, rotulo: "Revisão vencida", tom: "erro" };
+    if (proximaRevisao && proximaRevisao <= somarDias(hoje, 15)) return { ...base, rotulo: "Revisão chegando", tom: "atencao" };
+    return { ...base, rotulo: "Vigente", tom: "sucesso" };
+  }
+  if (vig?.status === "rascunho" || temPei(pei)) return { ...base, rotulo: "Rascunho", tom: "atencao" };
+  return { ...base, rotulo: "Sem PEI", tom: "neutro" };
+}
+
+/** "Ana Beatriz Souza" → "AS" */
+export function iniciais(nome: string | null | undefined): string {
+  const partes = (nome || "").trim().split(/\s+/).filter(Boolean);
+  if (partes.length === 0) return "?";
+  const a = partes[0][0] || "";
+  const b = partes.length > 1 ? partes[partes.length - 1][0] : "";
+  return (a + b).toUpperCase();
+}

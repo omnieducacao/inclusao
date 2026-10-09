@@ -26,12 +26,12 @@ export default async function DiarioPage({ searchParams }: Props) {
     <PageAccentProvider adminKey="diario" serverConfig={adminConfig}>
       <div className="space-y-6">
         <PageHero moduleKey="diario" serverConfig={adminConfig}
-          title="Diário de Bordo"
+          title="Diário de bordo"
           desc="Registro de atendimentos e sessões AEE."
         />
 
         <DiarioClient
-          students={students.map((s) => ({ id: s.id, name: s.name }))}
+          students={students.map((s) => ({ id: s.id, name: s.name, grade: s.grade, class_group: s.class_group }))}
           studentId={studentId}
           student={
             student
@@ -39,6 +39,7 @@ export default async function DiarioPage({ searchParams }: Props) {
                 id: student.id,
                 name: student.name,
                 grade: student.grade,
+                class_group: student.class_group,
                 daily_logs: (student.daily_logs || []) as Record<string, unknown>[],
               }
               : null

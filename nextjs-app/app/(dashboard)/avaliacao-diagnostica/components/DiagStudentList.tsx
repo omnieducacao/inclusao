@@ -56,7 +56,7 @@ export function DiagStudentList({
             {/* Page header — unified PageHero */}
             <PageHero
                 route="/avaliacao-diagnostica"
-                title="Avaliação Diagnóstica"
+                title="Avaliação diagnóstica"
                 desc={`${professorName} · ${alunos.length} estudante${alunos.length !== 1 ? "s" : ""}`}
             />
 

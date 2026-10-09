@@ -3,14 +3,14 @@
 import { useState, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { StudentSelector } from "@/components/StudentSelector";
+import { CabecalhoEstudante, EscolherEstudante } from "@/components/estudante/CabecalhoEstudante";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { CheckCircle2, Info, AlertTriangle, Save, Sparkles, TrendingUp, ExternalLink } from "lucide-react";
 import { OmniLoader } from "@/components/OmniLoader";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { Card, CardHeader, CardTitle, CardContent, ActivityRow, SubjectProgressRow, StatusDot, Button, Select, Textarea, Alert } from "@omni/ds";
 
-type Student = { id: string; name: string };
+type Student = { id: string; name: string; grade?: string | null; class_group?: string | null };
 type CicloPAEE = {
   ciclo_id?: string;
   config_ciclo?: { data_inicio?: string; data_fim?: string; foco_principal?: string };
@@ -225,20 +225,16 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
 
   return (
     <div className="space-y-6">
-      <StudentSelector
-        students={students}
-        currentId={currentId}
-        placeholder="Selecione o estudante"
-      />
-
-      {!currentId && (
-        <Alert variant="warning">
-          Selecione um estudante para ver o consolidado de dados (PEI, PAEE, Diário) e registrar avaliações.
-        </Alert>
+      {!(currentId && student) && (
+        <EscolherEstudante
+          students={students}
+          texto="Você vê o que o PEI, o PAEE e o Diário já registraram e avalia o progresso."
+          naoEncontrado={Boolean(currentId)}
+        />
       )}
 
-      {currentId && !student && (
-        <div className="text-(--omni-text-muted)">Estudante não encontrado.</div>
+      {currentId && student && (
+        <CabecalhoEstudante students={students} student={{ ...student, pei_data: peiData }} />
       )}
 
       {currentId && student && (

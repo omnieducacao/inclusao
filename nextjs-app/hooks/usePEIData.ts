@@ -295,43 +295,55 @@ export function usePEIData({ students, studentId, initialPeiData }: UsePEIDataOp
         }
     }, [peiData, markClean]);
 
-    const handleUpdate = useCallback(async () => {
-        if (!selectedStudentId) return;
+    // Onda 7: o PEI salva sozinho. handleUpdate continua existindo para os botões antigos,
+    // mas não abre mais alert(): o estado aparece como "Salvando… / Salvo às 10:42 / erro".
+    const [salvoEm, setSalvoEm] = useState<string | null>(null);
+    const [erroSalvar, setErroSalvar] = useState<string | null>(null);
+    const peiRef = useRef(peiData);
+    peiRef.current = peiData;
+    const ultimoSalvoRef = useRef<string>(JSON.stringify(initialPeiData || {}));
+
+    const salvarPei = useCallback(async (opcoes?: { silencioso?: boolean }) => {
+        if (!selectedStudentId) return false;
+        const dados = peiRef.current;
+        const texto = JSON.stringify(dados);
         setSaving(true);
-        setErroGlobal(null);
+        setErroSalvar(null);
         try {
             const res = await fetch(`/api/students/${selectedStudentId}/pei-data`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ pei_data: peiData }),
+                body: JSON.stringify({ pei_data: dados }),
             });
             if (!res.ok) {
                 const data = await res.json().catch(() => ({}));
                 throw new Error(data.error || `HTTP ${res.status}`);
             }
-            await fetch(`/api/students/${selectedStudentId}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    name: peiData.nome?.toString().trim() || undefined,
-                    grade: peiData.serie || undefined,
-                    class_group: peiData.turma || undefined,
-                    diagnosis: peiData.diagnostico || undefined,
-                }),
-            });
+            ultimoSalvoRef.current = texto;
             setSaved(true);
+            setSalvoEm(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
             markClean();
-            createPEISnapshot(selectedStudentId, `Atualização — ${new Date().toLocaleDateString("pt-BR")}`);
-            setTimeout(() => setSaved(false), 3000);
-            alert(`✅ PEI de "${peiData.nome}" atualizado com sucesso! ☁️`);
+            if (!opcoes?.silencioso) {
+                createPEISnapshot(selectedStudentId, `Atualização — ${new Date().toLocaleDateString("pt-BR")}`);
+            }
+            return true;
         } catch (err) {
-            const mensagem = err instanceof Error ? err.message : "Erro ao atualizar PEI";
-            setErroGlobal(mensagem);
-            alert(`Erro ao atualizar PEI: ${mensagem}`);
+            setErroSalvar(err instanceof Error ? err.message : "Erro ao salvar o PEI");
+            return false;
         } finally {
             setSaving(false);
         }
-    }, [peiData, selectedStudentId, markClean]);
+    }, [selectedStudentId, markClean]);
+
+    const handleUpdate = useCallback(async () => { await salvarPei(); }, [salvarPei]);
+
+    // Salva 2 s depois da última mudança (só quando há estudante e algo mudou de fato)
+    useEffect(() => {
+        if (!selectedStudentId) return;
+        if (JSON.stringify(peiData) === ultimoSalvoRef.current) return;
+        const t = setTimeout(() => { void salvarPei({ silencioso: true }); }, 2000);
+        return () => clearTimeout(t);
+    }, [peiData, selectedStudentId, salvarPei]);
 
     // ─── Student fetching ───────────────────────────────────────────────
 
@@ -350,7 +362,9 @@ export function usePEIData({ students, studentId, initialPeiData }: UsePEIDataOp
                 })
                 .then((data) => {
                     if (!data) return;
-                    if (data.pei_data) { setPeiData(data.pei_data as PEIData); } else { setPeiData({} as PEIData); }
+                    const carregado = (data.pei_data || {}) as PEIData;
+                    ultimoSalvoRef.current = JSON.stringify(carregado);
+                    setPeiData(carregado);
                     setSaved(false);
                     setErroGlobal(null);
                 })
@@ -436,6 +450,7 @@ export function usePEIData({ students, studentId, initialPeiData }: UsePEIDataOp
         // Computed
         currentStudentId: selectedStudentId,
         progresso,
+        salvoEm, erroSalvar, salvarPei,
         tabStatuses,
     };
 }

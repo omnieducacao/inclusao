@@ -29,6 +29,8 @@ type Props = {
   usuarioNome?: string;
   onSalvar: () => void | Promise<void>;
   saving: boolean;
+  /** Onda 7: o passo 3 mostra vigência e ciência; o passo 4, as revisões */
+  parte?: "vigencia" | "revisao";
 };
 
 type Ciencias = {
@@ -40,7 +42,9 @@ type Ciencias = {
 const campo = "w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white";
 const dataBR = (iso?: string) => (iso ? new Date(`${iso.slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR") : "—");
 
-export function PEITabVigencia({ peiData, updateField, currentStudentId, usuarioNome, onSalvar, saving }: Props) {
+export function PEITabVigencia({ peiData, updateField, currentStudentId, usuarioNome, onSalvar, saving, parte }: Props) {
+  const mostraVigencia = parte !== "revisao";
+  const mostraRevisao = parte !== "vigencia";
   const vig: Vigencia = (peiData.vigencia as Vigencia) || { status: "rascunho", versao: 0 };
   const revisoes = (peiData.revisoes as Revisao[]) || [];
   const ec = (peiData.estudo_caso || {}) as EstudoCaso;
@@ -100,13 +104,15 @@ export function PEITabVigencia({ peiData, updateField, currentStudentId, usuario
 
   return (
     <div className="space-y-6">
+      {!parte && (
       <div>
-        <h3 className="text-lg font-semibold text-slate-800">Vigência e revisões</h3>
-        <p className="text-sm text-slate-600 mt-1 max-w-[65ch]">
-          Quando o PEI fica pronto, ele passa a valer: os professores do estudante leem e dão ciência, e a escola revisa no
-          prazo combinado. A Portaria MEC 421/2026 pede ao menos uma revisão por ano.
-        </p>
-      </div>
+          <h3 className="text-lg font-semibold text-slate-800">{parte === "revisao" ? "Revisão do PEI" : parte === "vigencia" ? "Vigente e ciência" : "Vigência e revisões"}</h3>
+          <p className="text-sm text-slate-600 mt-1 max-w-[65ch]">
+            Quando o PEI fica pronto, ele passa a valer: os professores do estudante leem e dão ciência, e a escola revisa no
+            prazo combinado. A Portaria MEC 421/2026 pede ao menos uma revisão por ano.
+          </p>
+        </div>
+      )}
 
       {/* Situação */}
       <div
@@ -135,7 +141,7 @@ export function PEITabVigencia({ peiData, updateField, currentStudentId, usuario
       </div>
 
       {/* Fechar / publicar versão */}
-      {vig.status !== "vigente" && (
+      {mostraVigencia && vig.status !== "vigente" && (
         <div className="p-4 rounded-xl border border-slate-200 space-y-4">
           <h4 className="font-semibold text-slate-800 flex items-center gap-2">
             <FileCheck2 className="w-4 h-4 text-sky-600" /> Tornar o PEI vigente
@@ -145,7 +151,7 @@ export function PEITabVigencia({ peiData, updateField, currentStudentId, usuario
               {ecOk ? "✓" : "○"} Estudo de caso com os quatro passos
             </li>
             <li className={temPei ? "text-emerald-700" : "text-slate-500"}>
-              {temPei ? "✓" : "○"} Texto do PEI gerado e revisado (aba Consultoria IA)
+              {temPei ? "✓" : "○"} Texto do PEI gerado e revisado (etapa 2 · Texto do PEI)
             </li>
             <li className={currentStudentId ? "text-emerald-700" : "text-slate-500"}>
               {currentStudentId ? "✓" : "○"} Estudante salvo na nuvem
@@ -173,7 +179,7 @@ export function PEITabVigencia({ peiData, updateField, currentStudentId, usuario
       )}
 
       {/* Ciência dos professores */}
-      {vig.status !== "rascunho" && (
+      {mostraVigencia && vig.status !== "rascunho" && (
         <div className="p-4 rounded-xl border border-slate-200 space-y-3">
           <h4 className="font-semibold text-slate-800 flex items-center gap-2">
             <Users className="w-4 h-4 text-sky-600" /> Ciência dos professores · versão {vig.versao}
@@ -218,7 +224,10 @@ export function PEITabVigencia({ peiData, updateField, currentStudentId, usuario
       )}
 
       {/* Revisões */}
-      {vig.status === "vigente" && (
+      {mostraRevisao && vig.status !== "vigente" && parte === "revisao" && (
+        <p className="text-sm text-slate-600">A revisão começa quando o PEI estiver vigente (passo 3).</p>
+      )}
+      {mostraRevisao && vig.status === "vigente" && (
         <div className="p-4 rounded-xl border border-slate-200 space-y-3">
           <h4 className="font-semibold text-slate-800 flex items-center gap-2">
             <History className="w-4 h-4 text-sky-600" /> Registrar revisão
@@ -258,7 +267,7 @@ export function PEITabVigencia({ peiData, updateField, currentStudentId, usuario
         </div>
       )}
 
-      {revisoes.length > 0 && (
+      {mostraRevisao && revisoes.length > 0 && (
         <div className="space-y-2">
           <h4 className="font-semibold text-slate-800">Histórico de revisões</h4>
           <ol className="space-y-2">

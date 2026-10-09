@@ -54,12 +54,12 @@ export default async function HubPage({ searchParams }: Props) {
     <PageAccentProvider adminKey="hub" serverConfig={adminConfig}>
       <div className="space-y-6">
         <PageHero moduleKey="hub" serverConfig={adminConfig}
-          title="Hub de Recursos"
+          title="Hub de recursos"
           desc="Adaptar provas, atividades, criar do zero e muito mais."
         />
 
         <HubClient
-          students={students.map((s) => ({ id: s.id, name: s.name }))}
+          students={students.map((s) => ({ id: s.id, name: s.name, grade: s.grade, class_group: s.class_group }))}
           studentId={studentId}
           student={
             student
@@ -67,6 +67,7 @@ export default async function HubPage({ searchParams }: Props) {
                 id: student.id,
                 name: student.name,
                 grade: student.grade,
+                class_group: student.class_group,
                 pei_data: {
                   ...((student.pei_data || {}) as Record<string, unknown>),
                   ...(pontePedagogica ? { ponte_pedagogica: pontePedagogica } : {}),

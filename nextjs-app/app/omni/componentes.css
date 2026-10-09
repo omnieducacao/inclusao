@@ -170,6 +170,24 @@ a.omni-cartao:hover,button.omni-cartao:hover{box-shadow:var(--sombra-2);border-c
 .omni-lateral__item[aria-current="page"]{background:var(--acao-suave);color:var(--tinta)}
 .omni-lateral__item[aria-current="page"] svg{color:var(--acao)}
 
+/* Moldura das telas logadas: barra lateral fixa em telas grandes, gaveta no celular (onda 6) */
+.omni-moldura{display:flex;flex:1;min-height:0;width:100%}
+.omni-lateral__bloco{display:flex;flex-direction:column;gap:2px}
+.omni-lateral__item.omni-modulo[aria-current="page"] svg{color:var(--mod)}
+.omni-lateral--fixa{position:sticky;top:calc(68px + env(safe-area-inset-top,0px));align-self:flex-start;flex:none;height:calc(100vh - 68px);overflow-y:auto;border-right:1px solid var(--borda);background:var(--superficie)}
+.omni-menu-movel{display:none}
+.omni-gaveta{position:fixed;inset:0;z-index:var(--camada-menu);display:flex}
+.omni-gaveta__fundo{position:absolute;inset:0;background:rgba(13,21,38,.5);border:0;padding:0;cursor:pointer}
+.omni-gaveta__painel{position:relative;width:min(300px,85vw);height:100%;overflow-y:auto;box-shadow:var(--sombra-2);padding-top:calc(var(--space-3) + env(safe-area-inset-top,0px));animation:omni-gaveta-entra var(--duracao-base) var(--curva-padrao)}
+.omni-gaveta__fechar{align-self:flex-end;margin-bottom:var(--space-2)}
+@keyframes omni-gaveta-entra{from{transform:translateX(-24px);opacity:0}}
+@media (max-width:1023px){
+  .omni-moldura{flex-direction:column}
+  .omni-lateral--fixa{display:none}
+  .omni-menu-movel{display:flex;padding:var(--space-3) var(--space-4) 0}
+}
+@media (prefers-reduced-motion:reduce){.omni-gaveta__painel{animation:none}}
+
 /* ───────────────────────── Tabela ───────────────────────── */
 .omni-tabela-caixa{overflow-x:auto;border:1px solid var(--borda);border-radius:var(--o-radius-md);background:var(--superficie)}
 .omni-tabela{width:100%;border-collapse:collapse;font:400 15px/22px var(--font-sans);color:var(--tinta)}

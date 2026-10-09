@@ -187,14 +187,14 @@ export default function AvaliacaoDiagnosticaClient({
 
     // ─── Fetch students (removidos devido ao Shift Left para o Server) ─────────────────────────────────────────────────
 
-    // Auto-select student + discipline when coming from PEI module
+    // Onda 6: ?student= abre já no estudante (vale para a ficha e o PEI do professor).
+    // ?studentId=&fromPEI=true continua aceito para links antigos.
     useEffect(() => {
         if (alunos.length === 0 || selectedAluno) return;
         const params = new URLSearchParams(window.location.search);
-        const fromPEI = params.get("fromPEI");
-        const studentId = params.get("studentId");
+        const studentId = params.get("student") || params.get("studentId");
         const disciplina = params.get("disciplina");
-        if (fromPEI && studentId) {
+        if (studentId) {
             const aluno = alunos.find(a => a.id === studentId);
             if (aluno) {
                 setSelectedAluno(aluno);

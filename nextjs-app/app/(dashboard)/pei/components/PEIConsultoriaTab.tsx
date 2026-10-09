@@ -99,7 +99,7 @@ export function ConsultoriaTab({
 
   const gerar = async (modoPratico: boolean, feedback?: string) => {
     if (!serie) {
-      setErro("Selecione a Série/Ano na aba Estudante.");
+      setErro("Informe a série em Estudo de caso → Dados do estudante.");
       return;
     }
     setLoading(true);

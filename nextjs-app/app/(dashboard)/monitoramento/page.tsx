@@ -26,12 +26,12 @@ export default async function MonitoramentoPage({ searchParams }: Props) {
     <PageAccentProvider adminKey="monitoramento" serverConfig={adminConfig}>
       <div className="space-y-6">
         <PageHero moduleKey="monitoramento" serverConfig={adminConfig}
-          title="Evolução & Dados"
+          title="Evolução e dados"
           desc="Indicadores, gráficos e relatórios de progresso dos estudantes."
         />
 
         <MonitoramentoClient
-          students={students.map((s) => ({ id: s.id, name: s.name }))}
+          students={students.map((s) => ({ id: s.id, name: s.name, grade: s.grade, class_group: s.class_group }))}
           studentId={studentId}
           student={student}
         />

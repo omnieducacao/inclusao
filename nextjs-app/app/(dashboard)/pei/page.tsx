@@ -37,12 +37,12 @@ export default async function PEIPage({ searchParams }: Props) {
     <PageAccentProvider adminKey="pei" serverConfig={adminConfig}>
       <div className="space-y-6">
         <PageHero moduleKey="pei" serverConfig={adminConfig}
-          title="Estratégias & PEI"
-          desc="Plano Educacional Individual com objetivos, avaliações e acompanhamento."
+          title="PEI"
+          desc="Plano Educacional Individualizado: do estudo de caso à revisão, em quatro etapas."
         />
 
         <PEIClient
-          students={students.map((s) => ({ id: s.id, name: s.name }))}
+          students={students.map((s) => ({ id: s.id, name: s.name, grade: s.grade, class_group: s.class_group }))}
           studentId={studentId}
           studentName={student?.name || null}
           initialPeiData={peiData}

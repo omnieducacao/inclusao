@@ -1,55 +1,50 @@
 import { getSession } from "@/lib/session";
-import { getSupabase } from "@/lib/supabase";
 import { listStudentsDaSessao } from "@/lib/students";
+import { turmasDaEscola } from "@/lib/turmas";
+import { situacaoDoPei, hojeBrasilia } from "@/lib/inicio";
 import { PageHero } from "@/components/PageHero";
-import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { SafeModuleWrapper } from "@/components/SafeModuleWrapper";
-import dynamic from "next/dynamic";
-import { Skeleton } from "@/components/Skeleton";
-import { getAdminConfig } from "@/lib/getAdminConfig";
-
-const EstudantesClient = dynamic(
-  () => import("./EstudantesClient").then(mod => ({ default: mod.EstudantesClient })),
-  { loading: () => <Skeleton className="min-h-[200px] w-full rounded-2xl" /> }
-);
+import { EstudantesClient, type LinhaEstudante } from "./EstudantesClient";
 
 export default async function EstudantesPage() {
   const session = await getSession();
   const workspaceId = session?.workspace_id;
   const students = await listStudentsDaSessao(session);
+  const hoje = hojeBrasilia();
 
-  let familyModuleEnabled = false;
-  if (workspaceId) {
-    const sb = getSupabase();
-    const { data } = await sb.from("workspaces").select("family_module_enabled").eq("id", workspaceId).maybeSingle();
-    familyModuleEnabled = Boolean((data as { family_module_enabled?: boolean } | null)?.family_module_enabled);
-  }
+  const member = (session?.member || {}) as Record<string, boolean>;
+  const podeCriar = Boolean(session?.is_platform_admin || session?.user_role === "master" || member.can_estudantes);
+  const turmas = workspaceId && podeCriar ? await turmasDaEscola(workspaceId) : [];
 
-  const adminConfig = await getAdminConfig();
+  // Só a situação vai para o navegador: o PEI inteiro (com dados sensíveis) fica no servidor
+  const linhas: LinhaEstudante[] = students.map((s) => {
+    const ciclos = (s.paee_ciclos || []) as Array<{ status?: string }>;
+    return {
+      id: s.id,
+      name: s.name,
+      grade: s.grade,
+      class_group: s.class_group,
+      pei: situacaoDoPei(s.pei_data, hoje),
+      paee: ciclos.some((c) => c.status === "ativo") ? "ativo" : ciclos.length ? "sem_ativo" : "nenhum",
+    };
+  });
 
   return (
-    <PageAccentProvider adminKey="estudantes" serverConfig={adminConfig}>
-      <div className="space-y-6">
-        <PageHero
-          moduleKey="omnisfera" serverConfig={adminConfig}
-          title="Gestão de Estudantes"
-          desc="Dados dos estudantes vinculados aos PEIs neste workspace."
+    <div className="space-y-6">
+      <PageHero
+        moduleKey="omnisfera"
+        title="Estudantes"
+        desc="Em que pé está o PEI e o PAEE de cada estudante. Abra a ficha para ver tudo sobre ele."
+      />
+      <SafeModuleWrapper fallbackTitle="Estudantes">
+        <EstudantesClient
+          students={linhas}
+          podeCriar={podeCriar}
+          turmas={turmas
+            .map((t) => ({ id: t.id, grade: t.grade?.label || "", class_group: t.class_group || "" }))
+            .sort((a, b) => (a.grade + a.class_group).localeCompare(b.grade + b.class_group, "pt-BR", { numeric: true }))}
         />
-        <SafeModuleWrapper fallbackTitle="Estudantes">
-          <EstudantesClient
-            students={students.map((s) => ({
-              id: s.id,
-              name: s.name,
-              grade: s.grade,
-              class_group: s.class_group,
-              diagnosis: s.diagnosis,
-              pei_data: s.pei_data,
-              paee_ciclos: s.paee_ciclos,
-            }))}
-            familyModuleEnabled={familyModuleEnabled}
-          />
-        </SafeModuleWrapper>
-      </div>
-    </PageAccentProvider>
+      </SafeModuleWrapper>
+    </div>
   );
 }

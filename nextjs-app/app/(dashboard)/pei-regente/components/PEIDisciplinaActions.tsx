@@ -230,7 +230,7 @@ export function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina
                             {avaliacao.questoes} questões · Aplique no módulo Avaliação Diagnóstica
                         </div>
                     </div>
-                    <a href={`/avaliacao-diagnostica?studentId=${studentId}&disciplina=${encodeURIComponent(disciplina)}&fromPEI=true`} className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl omni-body font-bold bg-linear-to-br from-amber-500 to-amber-600 text-white transition-opacity hover:opacity-90">
+                    <a href={`/avaliacao-diagnostica?student=${studentId}&disciplina=${encodeURIComponent(disciplina)}`} className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl omni-body font-bold bg-linear-to-br from-amber-500 to-amber-600 text-white transition-opacity hover:opacity-90">
                         <ExternalLink size={14} /> Aplicar
                     </a>
                 </div>
@@ -246,7 +246,7 @@ export function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina
                     <p className="text-xs text-(--omni-text-muted) mb-4">
                         Gere e aplique uma avaliação no módulo <strong>Avaliação Diagnóstica</strong> para {studentName} em {disciplina}.
                     </p>
-                    <a href={`/avaliacao-diagnostica?studentId=${studentId}&disciplina=${encodeURIComponent(disciplina)}&fromPEI=true`} className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-linear-to-br from-blue-600 to-blue-500 text-white transition-opacity hover:opacity-90">
+                    <a href={`/avaliacao-diagnostica?student=${studentId}&disciplina=${encodeURIComponent(disciplina)}`} className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-linear-to-br from-blue-600 to-blue-500 text-white transition-opacity hover:opacity-90">
                         <ExternalLink size={16} /> Ir para Avaliação Diagnóstica
                     </a>
                 </div>

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { StudentSelector } from "@/components/StudentSelector";
+import { CabecalhoEstudante, EscolherEstudante } from "@/components/estudante/CabecalhoEstudante";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { EngineSelector } from "@/components/EngineSelector";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
@@ -38,7 +38,7 @@ import { useStudentMutation } from "@/hooks/useStudentMutation";
 import { useStudentRealtime } from "@/hooks/useStudentRealtime";
 import { Card, Button, Select } from "@omni/ds";
 
-type Student = { id: string; name: string };
+type Student = { id: string; name: string; grade?: string | null; class_group?: string | null };
 type StudentFull = Student & {
   grade?: string | null;
   diagnosis?: string | null;
@@ -235,46 +235,12 @@ function PAEEClientInner({ students, studentId, student }: Props) {
 
   if (!currentId) {
     return (
-      <div className="space-y-4">
-        <StudentSelector students={students} currentId={currentId} placeholder="Selecione o estudante" />
-        <div className="bg-amber-50 text-amber-800 p-4 rounded-lg">
-          Selecione um estudante para visualizar e editar o PAEE.
-        </div>
-        <a href="/estudantes" className="text-sky-600 hover:underline text-sm">
-          Ir para Estudantes
-        </a>
-      </div>
-    );
-  }
-
-  if (!student && studentId) {
-    return (
-      <div className="space-y-4">
-        <StudentSelector students={students} currentId={currentId} />
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-          <p className="text-amber-800 font-medium">Estudante não encontrado</p>
-          <p className="text-sm text-amber-700 mt-1">
-            O estudante selecionado não foi encontrado neste workspace. Verifique se o estudante existe e se você tem acesso a ele.
-          </p>
-          {students.length > 0 && (
-            <p className="text-xs text-amber-600 mt-2">
-              Estudantes disponíveis neste workspace: {students.length}
-            </p>
-          )}
-        </div>
-      </div>
+      <EscolherEstudante students={students} texto="O PAEE organiza o AEE (Atendimento Educacional Especializado) dele em ciclos." />
     );
   }
 
   if (!student) {
-    return (
-      <div className="space-y-4">
-        <StudentSelector students={students} currentId={currentId} />
-        <div className="text-slate-500 text-center py-8">
-          Selecione um estudante para visualizar o PAEE.
-        </div>
-      </div>
-    );
+    return <EscolherEstudante students={students} texto="O PAEE organiza o AEE (Atendimento Educacional Especializado) dele em ciclos." naoEncontrado={Boolean(studentId)} />;
   }
 
   const ciclosPlanejamento = ciclos.filter((c) => c.tipo === "planejamento_aee");
@@ -313,50 +279,26 @@ function PAEEClientInner({ students, studentId, student }: Props) {
           <span />
         </div>
       )}
-      <div className="flex flex-wrap items-center gap-3">
-        <StudentSelector students={students} currentId={currentId} />
-        {salvamento && salvamento.estado !== "erro" && (
-          <span className="omni-apoio" role="status" aria-live="polite">
-            {salvamento.estado === "salvando" ? "Salvando…" : `Salvo às ${salvamento.hora}`}
-          </span>
-        )}
-        {currentId && (
-          <a
-            href={`/pei?student=${currentId}`}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-sky-600 hover:text-sky-700 hover:bg-sky-50 rounded-lg border border-sky-200 transition-colors"
-          >
-            <FileText className="w-4 h-4" />
-            Ver PEI
-            <ExternalLink className="w-3 h-3" />
-          </a>
-        )}
-      </div>
+      <CabecalhoEstudante
+        students={students}
+        student={{ ...student, pei_data: peiData }}
+        acoes={
+          <>
+            {salvamento && salvamento.estado !== "erro" && (
+              <span className="omni-apoio" role="status" aria-live="polite">
+                {salvamento.estado === "salvando" ? "Salvando…" : `Salvo às ${salvamento.hora}`}
+              </span>
+            )}
+            <a href={`/pei?student=${student.id}`} className="omni-btn omni-btn--discreto omni-btn--pequeno">
+              <FileText aria-hidden /> Ver PEI
+            </a>
+          </>
+        }
+      />
 
       {/* Painel PEI Retrátil */}
       {student && (
         <PEISummaryPanel peiData={peiData} studentName={student.name} />
-      )}
-
-      {/* Card de informações do estudante */}
-      {student && (
-        <Card padding="none" className="p-6 bg-(--module-primary-soft) border-(--module-primary)/10">
-          <div className="space-y-1">
-            <div className="text-xs font-bold text-(--module-primary) uppercase tracking-wider">Nome</div>
-            <div className="font-bold text-slate-900 text-lg">{student.name}</div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-xs font-bold text-(--module-primary) uppercase tracking-wider">Série</div>
-            <div className="font-bold text-slate-800">{student.grade || "—"}</div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-xs font-bold text-(--module-primary) uppercase tracking-wider">Diagnóstico</div>
-            <div className="font-semibold text-slate-800 truncate" title={diagnosis}>{diagnosis}</div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-xs font-bold text-(--module-primary) uppercase tracking-wider">Hiperfoco</div>
-            <div className="font-semibold text-slate-800 truncate" title={hiperfoco}>{hiperfoco}</div>
-          </div>
-        </Card>
       )}
 
       {/* Tabs Navigation - Melhorada com ícones e badges */}

@@ -1,0 +1,29 @@
+/* Cabeçalho do estudante · Omni Design System */
+.faixa {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--space-3) var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--borda);
+  border-radius: var(--o-radius-md);
+  background: var(--superficie);
+}
+.quem { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; min-width: 0; }
+.avatar { width: 44px; height: 44px; font-size: 15px; background: var(--encontro-azul-suave); color: var(--encontro-azul-forte, var(--modulo-pei)); flex: none; }
+.nomes { min-width: 0; }
+.nome { margin: 0; font: 800 18px/24px var(--font-sans); color: var(--tinta); overflow-wrap: anywhere; }
+.turma { margin: 0; font: 400 14px/20px var(--font-sans); color: var(--tinta-2); }
+.acoes { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
+.troca { flex-basis: 100%; padding-top: var(--space-3); border-top: 1px solid var(--borda); }
+.lista { max-width: 420px; }
+.lista select { width: 100%; }
+.vazio {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(220px, 320px); align-items: center;
+  gap: var(--space-5); padding: var(--space-6);
+  border: 1.5px dashed var(--borda-forte); border-radius: var(--o-radius-lg);
+  background: var(--superficie);
+}
+.vazioTitulo { margin: 0 0 4px; font: 800 20px/26px var(--font-sans); color: var(--tinta); }
+@media (max-width: 760px) {
+  .vazio { grid-template-columns: 1fr; padding: var(--space-5); }
+  .faixa { padding: var(--space-4); }
+}

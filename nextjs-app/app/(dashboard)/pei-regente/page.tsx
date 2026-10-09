@@ -27,7 +27,7 @@ export default async function PEIRegentePage() {
         <PageAccentProvider adminKey="pei-regente" serverConfig={adminConfig}>
             <div className="space-y-6">
                 <PageHero moduleKey="pei" adminKey="pei-regente" serverConfig={adminConfig}
-                    title="PEI - Professor"
+                    title="PEI do professor"
                     desc={simplificado
                         ? "Os PEIs dos seus estudantes: leia, leve para a sala e registre que está ciente."
                         : "Plano de Ensino, Avaliação Diagnóstica e PEI por Componente Curricular."}

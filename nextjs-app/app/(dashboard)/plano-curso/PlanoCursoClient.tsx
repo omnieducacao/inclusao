@@ -171,7 +171,7 @@ export default function PlanoCursoClient() {
             {/* Header — unified PageHero */}
             <PageHero
                 route="/plano-curso"
-                title="Plano de Curso"
+                title="Plano de ensino"
                 desc={`${professorName} · ${combos.length} componente${combos.length !== 1 ? "s" : ""}/série${combos.length !== 1 ? "s" : ""} vinculado${combos.length !== 1 ? "s" : ""}`}
             />
 

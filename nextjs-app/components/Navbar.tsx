@@ -450,6 +450,8 @@ function ProfileDropdown({
         aria-label="Menu do perfil"
         aria-expanded={isOpen}
         aria-haspopup="true"
+        onClick={() => setIsOpen((v) => !v)}
+        onKeyDown={(e) => { if (e.key === "Escape") setIsOpen(false); }}
         className="flex items-center gap-3 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
       >
         <div className="hidden lg:flex flex-col items-end text-right">
@@ -461,7 +463,7 @@ function ProfileDropdown({
           </span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-9 h-9 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-md ring-2 ring-white">
+          <div className="omni-avatar" aria-hidden="true">
             {initials}
           </div>
           <svg

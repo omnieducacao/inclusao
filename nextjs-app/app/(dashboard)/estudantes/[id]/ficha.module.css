@@ -1,0 +1,31 @@
+/* Ficha do estudante · Omni Design System */
+.voltar { align-self: flex-start; }
+.topo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-5); padding-bottom: var(--space-6); border-bottom: 1px solid var(--borda); }
+.avatar { width: 64px; height: 64px; font-size: 22px; background: var(--encontro-azul-suave); color: var(--encontro-azul-forte); flex: none; }
+.quem { min-width: 0; flex: 1 1 240px; }
+.nome { margin: 2px 0 0; font: 800 30px/36px var(--font-sans); letter-spacing: -.02em; color: var(--tinta); text-wrap: balance; overflow-wrap: anywhere; }
+.turma { margin: 0; font: 400 16px/24px var(--font-sans); color: var(--tinta-2); }
+.secaoTitulo { margin: 0 0 var(--space-3); font: 800 20px/26px var(--font-sans); color: var(--tinta); }
+.grade { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-4); }
+.cartao {
+  display: flex; gap: var(--space-4); align-items: flex-start; height: 100%;
+  padding: var(--space-5); border: 1px solid var(--borda); border-radius: var(--o-radius-md);
+  background: var(--superficie); color: var(--tinta); text-decoration: none;
+  transition: border-color var(--duracao-rapida), box-shadow var(--duracao-rapida);
+}
+.cartao:hover { border-color: var(--borda-forte); box-shadow: var(--sombra-1, 0 2px 8px rgb(0 0 0 / .06)); }
+.cartao:focus-visible { outline: 3px solid var(--foco, var(--acao)); outline-offset: 2px; }
+.selo { width: 44px !important; height: 44px !important; flex: none; }
+.selo svg { width: 22px; height: 22px; }
+.cartaoTexto { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
+.cartaoTitulo { font: 800 17px/22px var(--font-sans); }
+.cartaoResumo { font: 400 14px/20px var(--font-sans); color: var(--tinta-2); }
+.cartaoAcao { font: 700 14px/20px var(--font-sans); color: var(--acao); }
+.dados { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-5); align-items: start; }
+.bloco { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5); border: 1px solid var(--borda); border-radius: var(--o-radius-md); background: var(--superficie); }
+.blocoTitulo { margin: 0; font: 800 17px/22px var(--font-sans); color: var(--tinta); }
+.lista { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px var(--space-4); font: 400 15px/22px var(--font-sans); }
+.lista dt { color: var(--tinta-2); }
+.lista dd { margin: 0; color: var(--tinta); }
+.linhaAcoes { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+@media (max-width: 640px) { .nome { font-size: 24px; line-height: 30px; } .avatar { width: 52px; height: 52px; font-size: 18px; } }
