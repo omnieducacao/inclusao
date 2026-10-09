@@ -378,6 +378,14 @@ html.high-contrast :is(.omni-aviso,.omni-estado,.omni-cartao--plano,.omni-cartao
 /* GeracaoIA flutuante (onda 8) */
 .omni-geracao--flutuante{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:60;width:min(400px,calc(100vw - 32px));padding:var(--space-5);gap:var(--space-4);align-items:center;box-shadow:var(--sombra-2,0 12px 32px rgb(0 0 0 / .14))}
 
+/* Barra lateral: rolagem discreta (antes aparecia uma faixa grossa quando o menu não cabia na altura) */
+.omni-lateral--fixa{scrollbar-width:thin;scrollbar-color:transparent transparent}
+.omni-lateral--fixa:hover,.omni-lateral--fixa:focus-within{scrollbar-color:var(--borda-forte) transparent}
+.omni-lateral--fixa::-webkit-scrollbar{width:6px}
+.omni-lateral--fixa::-webkit-scrollbar-thumb{background:transparent;border-radius:6px}
+.omni-lateral--fixa:hover::-webkit-scrollbar-thumb{background:var(--borda-forte)}
+@media (max-height:820px){.omni-lateral--fixa .omni-lateral__item{min-height:36px;padding-block:6px}.omni-lateral--fixa .omni-lateral__grupo{padding-top:var(--space-3)}}
+
 
 /* Tela de carregamento do Next (app/loading.tsx): só aparece depois de 300 ms, para não piscar em navegação rápida */
 .omni-carregando--atrasado{animation:omni-aparece var(--duracao-base) var(--curva-padrao) .3s both}

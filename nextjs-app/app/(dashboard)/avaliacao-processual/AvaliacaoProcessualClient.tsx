@@ -990,7 +990,7 @@ export default function AvaliacaoProcessualClient() {
                                     </div>
                                     <div className="text-xs text-(--tinta-2)">
                                         {aluno.grade} {aluno.class_group && `— ${aluno.class_group}`}
-                                        {aluno.diagnostico && ` · ${aluno.diagnostico}`}
+                                        {/* diagnóstico não aparece ao lado do nome (design system: CabecalhoEstudante) */}
                                     </div>
                                 </div>
                             </div>

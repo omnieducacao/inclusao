@@ -154,7 +154,7 @@ export function PEITabVigencia({ peiData, updateField, currentStudentId, usuario
               {temPei ? "✓" : "○"} Texto do PEI gerado e revisado (etapa 2 · Texto do PEI)
             </li>
             <li className={currentStudentId ? "text-emerald-700" : "text-slate-500"}>
-              {currentStudentId ? "✓" : "○"} Estudante salvo na nuvem
+              {currentStudentId ? "✓" : "○"} Estudante cadastrado
             </li>
           </ul>
           <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-3 items-end">

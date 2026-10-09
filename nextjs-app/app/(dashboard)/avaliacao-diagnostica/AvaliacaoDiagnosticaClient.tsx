@@ -746,7 +746,7 @@ export default function AvaliacaoDiagnosticaClient({
                     </div>
                     <p className="omni-m-0 omni-text-sm">
                         Estudante: <strong>{selectedAluno.name}</strong> · {selectedAluno.grade}
-                        {selectedAluno.diagnostico && ` · ${selectedAluno.diagnostico}`}
+                        {/* diagnóstico não aparece ao lado do nome */}
                     </p>
                 </div>
 

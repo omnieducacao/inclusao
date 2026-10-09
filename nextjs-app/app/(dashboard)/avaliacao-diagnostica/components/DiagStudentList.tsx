@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { OnboardingPanel } from "@/components/OnboardingPanel";
-import { PageHero } from "@/components/PageHero";
 import { Card, CardHeader, CardTitle, CardContent } from "@omni/ds";
 import type { Aluno } from "../types";
 
@@ -53,26 +52,8 @@ export function DiagStudentList({
                 />
             )}
 
-            {/* Page header — unified PageHero */}
-            <PageHero
-                route="/avaliacao-diagnostica"
-                title="Avaliação diagnóstica"
-                desc={`${professorName} · ${alunos.length} estudante${alunos.length !== 1 ? "s" : ""}`}
-            />
-
-            {/* Cross-link to Processual */}
-            <div style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "10px 16px", borderRadius: 10, marginBottom: 20,
-                background: "var(--color-success-subtle)", border: "1px solid var(--color-success-border)",
-            }}>
-                <span className="omni-text-sm omni-text-muted">
-                    📊 Já fez a diagnóstica? Registre a evolução bimestral.
-                </span>
-                <a href="/avaliacao-processual" style={{
-                    fontSize: 12, fontWeight: 700, color: "var(--color-success)", textDecoration: "none",
-                }}>Ir para Processual →</a>
-            </div>
+            {/* Onda 10/teste: o título "Avaliação" e as abas vêm da página; aqui só o contexto */}
+            <p className="omni-apoio" style={{ margin: "0 0 12px" }}>{professorName ? `${professorName} · ` : ""}{alunos.length} estudante{alunos.length !== 1 ? "s" : ""}</p>
 
             {/* ── Stepper: Jornada do Professor ── */}
             <div style={{
@@ -263,7 +244,7 @@ export function DiagStudentList({
                                                 </div>
                                                 <div style={{ fontSize: 12, color: "var(--text-muted, #94a3b8)" }}>
                                                     {aluno.grade} {aluno.class_group && `— ${aluno.class_group}`}
-                                                    {aluno.diagnostico && ` · ${aluno.diagnostico}`}
+                                                    {/* diagnóstico não aparece ao lado do nome */}
                                                 </div>
                                             </div>
                                         </div>

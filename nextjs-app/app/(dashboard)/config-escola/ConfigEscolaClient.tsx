@@ -247,6 +247,7 @@ export function ConfigEscolaClient() {
             <AddClassForm
               years={years}
               activeYearId={activeYear.id}
+              segmentoInicial={grades.find((g) => selectedGradeIds.includes(g.id))?.segment_id || "EFAI"}
               onSuccess={() => {
                 loadClasses();
                 loadGrades();
@@ -412,7 +413,7 @@ function GradesSelector({
   return (
     <div className="space-y-3">
       {Array.from(new Set(gradeOptions.map((g) => g._seg))).map((seg) => (
-        <fieldset key={seg} className="omni-escolhas">
+        <fieldset key={seg} className="omni-escolhas" style={{ marginBottom: "var(--space-3)" }}>
           <legend>{seg}</legend>
           {gradeOptions.filter((g) => g._seg === seg).map((g) => (
             <label key={g.id} className="omni-chip">
@@ -446,15 +447,19 @@ function GradesSelector({
 function AddClassForm({
   years,
   activeYearId,
+  segmentoInicial,
   onSuccess,
   onError,
 }: {
   years: SchoolYear[];
   activeYearId: string;
+  /** a primeira etapa que a escola oferece (antes começava sempre em Anos Iniciais) */
+  segmentoInicial: string;
   onSuccess: () => void;
   onError: (err: string) => void;
 }) {
-  const [segmentId, setSegmentId] = useState("EFAI");
+  const [segmentId, setSegmentId] = useState(segmentoInicial);
+  useEffect(() => { setSegmentId(segmentoInicial); }, [segmentoInicial]);
   const [gradesForWorkspace, setGradesForWorkspace] = useState<Grade[]>([]);
   const [yearId, setYearId] = useState(activeYearId);
   const [gradeId, setGradeId] = useState("");
