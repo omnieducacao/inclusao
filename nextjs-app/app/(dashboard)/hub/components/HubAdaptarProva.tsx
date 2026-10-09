@@ -128,6 +128,7 @@ export function AdaptarProva({
           modo_profundo: usarModoProfundo || modoProfundo,
           unidade_tematica: unidadeSel || undefined,
           objeto_conhecimento: objetoSel || undefined,
+          student_id: student?.id || undefined,
           estudante: student ? { nome: student.name, hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 1000) || undefined } : { hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 1000) || undefined },
           texto: texto || undefined,
           questoes_com_imagem: questoesComImagem,

@@ -7,7 +7,8 @@ import { garantirTagImagem } from "@/lib/hub-utils";
 import { comprimirArquivoImagem } from "@/lib/image-compression";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeText } from "@/lib/ai-anonymize";
-import { saveHubGeneratedContent } from "@/lib/hub-tracking";
+import { saveHubGeneratedContent, PROMPT_VERSION_HUB } from "@/lib/hub-tracking";
+import { enriquecerComPei, type ContextoPei } from "@/lib/ferramentas/contexto-pei";
 import { logger } from "@/lib/logger";
 
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB
@@ -32,6 +33,7 @@ export async function POST(req: Request) {
   let estudante: { nome?: string; hiperfoco?: string; perfil?: string } = {};
   let modoProfundo = false;
   let engine: EngineId = "red";
+  let pei: ContextoPei | null = null;
   let unidadeTematica = "";
   let objetoConhecimento = "";
 
@@ -51,6 +53,8 @@ export async function POST(req: Request) {
     if (meta) {
       try {
         const parsed = JSON.parse(meta);
+        // Onda 3: o PEI do estudante entra como contexto (montado no servidor)
+        pei = await enriquecerComPei(session, parsed);
         materia = parsed.materia || materia;
         tema = parsed.tema || tema;
         tipo = parsed.tipo || tipo;
@@ -222,11 +226,11 @@ export async function POST(req: Request) {
       saveHubGeneratedContent({
         workspaceId: wsId,
         memberId: (session?.member as { id?: string } | undefined)?.id,
-        studentId: null,
+        studentId: pei?.studentId ?? null,
         contentType: "adaptar_atividade",
         description: estudante.nome ? `Atividade adaptada para ${estudante.nome}` : `Atividade adaptada: ${materia}`,
         engine,
-        metadata: { materia, tipo },
+        metadata: { materia, tipo, prompt_version: PROMPT_VERSION_HUB, versao_pei: pei?.versaoPei ?? null, conteudo: pei ? String(atividade).slice(0, 60_000) : undefined },
       }).catch(() => {});
     }
 

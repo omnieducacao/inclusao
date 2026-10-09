@@ -1,4 +1,6 @@
 import { parseBody, hubMapaMentalSchema } from "@/lib/validation";
+import { registrarMaterial } from "@/lib/hub-tracking";
+import { enriquecerComPei } from "@/lib/ferramentas/contexto-pei";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineErrorWithWorkspace, type EngineId } from "@/lib/ai-engines";
@@ -13,6 +15,8 @@ export async function POST(req: Request) {
     const parsed = await parseBody(req, hubMapaMentalSchema);
     if (parsed.error) return parsed.error;
     const body = parsed.data;
+    // Onda 3: o PEI do estudante entra como contexto (montado no servidor, com escola e vínculo conferidos)
+    const pei = await enriquecerComPei(session, body as Record<string, unknown>);
 
     const { tipo, materia, assunto, plano_texto, estudante, unidade_tematica, objeto_conhecimento } = body;
 
@@ -120,7 +124,9 @@ export async function POST(req: Request) {
                 const cleanHtml = htmlMatch ? htmlMatch[0] : html;
 
                 if (cleanHtml.includes("<html") && cleanHtml.includes("</html>")) {
-                    return NextResponse.json({ html: restore(cleanHtml) });
+                    const htmlFinal = restore(cleanHtml);
+                    registrarMaterial({ session, studentId: pei?.studentId, versaoPei: pei?.versaoPei, contentType: "mapa_mental", descricao: `Mapa mental: ${assunto || materia || "aula"}`, engine, conteudo: htmlFinal });
+                    return NextResponse.json({ html: htmlFinal });
                 }
 
                 // Se não tem HTML válido, tentar próximo engine

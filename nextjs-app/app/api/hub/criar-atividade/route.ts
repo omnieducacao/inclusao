@@ -1,11 +1,12 @@
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { enriquecerComPei } from "@/lib/ferramentas/contexto-pei";
 import { parseBody, criarAtividadeSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineErrorWithWorkspace, type EngineId } from "@/lib/ai-engines";
 import { criarPromptProfissional } from "@/lib/hub-prompts";
 import { requireAuth } from "@/lib/permissions";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
-import { saveHubGeneratedContent } from "@/lib/hub-tracking";
+import { saveHubGeneratedContent, PROMPT_VERSION_HUB } from "@/lib/hub-tracking";
 import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
@@ -14,6 +15,8 @@ export async function POST(req: Request) {
   const parsed = await parseBody(req, criarAtividadeSchema);
   if (parsed.error) return parsed.error;
   const body = parsed.data;
+  // Onda 3: o PEI do estudante entra como contexto (montado no servidor, com escola e vínculo conferidos)
+  const pei = await enriquecerComPei(session, body as Record<string, unknown>);
 
   const assunto = (body.assunto || "").trim();
   const habilidades = body.habilidades || [];
@@ -98,11 +101,11 @@ export async function POST(req: Request) {
       saveHubGeneratedContent({
         workspaceId: wsId,
         memberId: (session?.member as { id?: string } | undefined)?.id,
-        studentId: null,
+        studentId: pei?.studentId ?? null,
         contentType: "criar_atividade",
         description: estudante.nome ? `Atividade para ${estudante.nome}${estudante.serie ? `, ${estudante.serie}` : ""}` : `Atividade: ${assunto || "BNCC"}`,
         engine,
-        metadata: { assunto, qtd_questoes: qtdQuestoes, tipo_questao: tipoQuestao },
+        metadata: { assunto, qtd_questoes: qtdQuestoes, tipo_questao: tipoQuestao, prompt_version: PROMPT_VERSION_HUB, versao_pei: pei?.versaoPei ?? null, conteudo: pei ? String(texto).slice(0, 60_000) : undefined },
       }).catch(() => { });
     }
     return NextResponse.json({ texto });

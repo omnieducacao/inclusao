@@ -100,8 +100,66 @@ export async function getEngineErrorWithWorkspace(
   return null;
 }
 
-/** Chat completion para motores de texto (red, blue, orange). */
+/**
+ * Onda 3 (trazido do OmniProf): tempo-limite e motor reserva.
+ * Tenta o motor escolhido; se ele demorar demais, falhar ou responder vazio, tenta um motor reserva
+ * configurado (nunca o Claude, que é restrito ao plano). Um só reserva.
+ */
+const ORDEM_RESERVA: EngineId[] = ["red", "orange", "yellow", "blue"];
+const TEMPO_PRINCIPAL_MS = 90_000; // o Render não corta a rota; um PEI longo pode levar mais de 1 min
+const TEMPO_RESERVA_MS = 75_000;
+
+export function motoresParaTentar(escolhido: EngineId, temErro: (e: EngineId) => boolean): EngineId[] {
+  const reserva = ORDEM_RESERVA.find((e) => e !== escolhido && !(escolhido === "blue" && e === "red") && !temErro(e));
+  return reserva ? [escolhido, reserva] : [escolhido];
+}
+
+export async function comFallback<T>(
+  motores: EngineId[],
+  executar: (motor: EngineId, indice: number) => Promise<T>,
+  tempos: number[] = [TEMPO_PRINCIPAL_MS, TEMPO_RESERVA_MS],
+  valido: (r: T) => boolean = () => true
+): Promise<T> {
+  let ultimoErro: unknown = new Error("Nenhum motor de IA disponível.");
+  for (let i = 0; i < motores.length; i++) {
+    const motor = motores[i];
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const tempo = new Promise<never>((_, rej) => {
+        timer = setTimeout(() => rej(new Error(`O motor ${ENGINE_NAMES[motor] ?? motor} demorou demais.`)), tempos[i] ?? tempos[tempos.length - 1]);
+      });
+      const r = await Promise.race([executar(motor, i), tempo]);
+      if (!valido(r)) throw new Error(`Resposta vazia do motor ${ENGINE_NAMES[motor] ?? motor}.`);
+      return r;
+    } catch (err) {
+      ultimoErro = err;
+      if (i < motores.length - 1) {
+        logger.warn({ err: err instanceof Error ? err.message : String(err), motor, reserva: motores[i + 1] }, "IA: usando motor reserva");
+      }
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+  throw ultimoErro;
+}
+
+/** Chat completion com tempo-limite e motor reserva (use esta). */
 export async function chatCompletionText(
+  engine: EngineId,
+  messages: Array<{ role: string; content: string }>,
+  options?: { temperature?: number; apiKey?: string; workspaceId?: string; source?: string; trackUsage?: boolean; useCache?: boolean; max_tokens?: number }
+): Promise<string> {
+  const motores = motoresParaTentar(engine, (e) => Boolean(getEngineError(e)));
+  return comFallback(
+    motores,
+    (motor, i) => chatCompletionTextMotor(motor, messages, i === 0 ? options : { ...options, apiKey: undefined }),
+    undefined,
+    (r) => typeof r === "string" && r.trim().length > 0
+  );
+}
+
+/** Chat completion num motor só, sem reserva (red, blue, orange, green, yellow). */
+export async function chatCompletionTextMotor(
   engine: EngineId,
   messages: Array<{ role: string; content: string }>,
   options?: { temperature?: number; apiKey?: string; workspaceId?: string; source?: string; trackUsage?: boolean; useCache?: boolean; max_tokens?: number }
@@ -193,7 +251,7 @@ export async function chatCompletionText(
     } catch (err) {
       logger.error({ err: err instanceof Error ? err : new Error(String(err)) }, "OmniBlue falhou, ativando fallback para OmniRed");
       // Fallback automático para OmniRed (DeepSeek)
-      return await chatCompletionText("red", messages, {
+      return await chatCompletionTextMotor("red", messages, {
         ...options,
         temperature: temp,
       });

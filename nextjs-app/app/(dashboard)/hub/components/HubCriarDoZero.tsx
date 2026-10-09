@@ -208,6 +208,7 @@ export function CriarDoZero({
           tipo_questao: tipoQuestao,
           qtd_imagens: usarImagens ? qtdImagens : 0,
           checklist_adaptacao: Object.keys(checklist).length > 0 ? checklist : undefined,
+          student_id: student?.id || undefined,
           estudante: student ? (() => {
             const pd = (student.pei_data || {}) as Record<string, unknown>;
             // Build structured PEI context for AI

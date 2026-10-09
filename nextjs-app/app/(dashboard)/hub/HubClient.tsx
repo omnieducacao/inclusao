@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { StudentSelector } from "@/components/StudentSelector";
+import { HubHistoricoEstudante } from "./components/HubHistoricoEstudante";
 import { detectarNivelEnsino } from "@/lib/pei";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { LottieIcon } from "@/components/LottieIcon";
@@ -153,6 +154,10 @@ export function HubClient({ students, studentId, student }: Props) {
 
       {currentId && student && (
         <PEISummaryPanel peiData={peiData} studentName={student.name} />
+      )}
+
+      {currentId && student && (
+        <HubHistoricoEstudante studentId={currentId} nome={student.name} atualizar={activeTool ? 0 : 1} />
       )}
 
       {currentId && student && (

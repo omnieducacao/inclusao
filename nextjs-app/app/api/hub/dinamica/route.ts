@@ -1,4 +1,6 @@
 import { parseBody, hubDinamicaSchema } from "@/lib/validation";
+import { registrarMaterial } from "@/lib/hub-tracking";
+import { enriquecerComPei } from "@/lib/ferramentas/contexto-pei";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineErrorWithWorkspace, type EngineId } from "@/lib/ai-engines";
@@ -13,6 +15,8 @@ export async function POST(req: Request) {
   const parsed = await parseBody(req, hubDinamicaSchema);
   if (parsed.error) return parsed.error;
   const body = parsed.data;
+  // Onda 3: o PEI do estudante entra como contexto (montado no servidor, com escola e vínculo conferidos)
+  const pei = await enriquecerComPei(session, body as Record<string, unknown>);
 
   const aluno = body.aluno || {};
   const materia = (body.materia || "Geral").trim();
@@ -55,7 +59,9 @@ export async function POST(req: Request) {
     const studentName = aluno?.nome || null;
     const { anonymized, restore } = anonymizeMessages([{ role: "user", content: prompt }], studentName);
     const textoRaw = await chatCompletionText(engine, anonymized, { temperature: 0.7 });
-    return NextResponse.json({ texto: restore(textoRaw) });
+    const saida = restore(textoRaw);
+    registrarMaterial({ session, studentId: pei?.studentId, versaoPei: pei?.versaoPei, contentType: "dinamica", descricao: `Dinâmica: ${String(body.assunto || "aula")}`, engine: String(body.engine || ""), conteudo: saida });
+    return NextResponse.json({ texto: saida });
   } catch (e) {
     logger.error({ err: e }, "Hub dinamica:");
     return NextResponse.json(

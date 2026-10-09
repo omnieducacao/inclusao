@@ -1,4 +1,6 @@
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { registrarMaterial } from "@/lib/hub-tracking";
+import { enriquecerComPei } from "@/lib/ferramentas/contexto-pei";
 import { parseBody, planoAulaSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineErrorWithWorkspace, type EngineId } from "@/lib/ai-engines";
@@ -13,6 +15,8 @@ export async function POST(req: Request) {
   const parsed = await parseBody(req, planoAulaSchema);
   if (parsed.error) return parsed.error;
   const body = parsed.data;
+  // Onda 3: o PEI do estudante entra como contexto (montado no servidor, com escola e vínculo conferidos)
+  const pei = await enriquecerComPei(session, body as Record<string, unknown>);
 
   const materia = (body.materia || "Geral").trim();
   const assunto = (body.assunto || "").trim();
@@ -65,7 +69,9 @@ export async function POST(req: Request) {
     const studentName = estudante?.nome || null;
     const { anonymized, restore } = anonymizeMessages([{ role: "user", content: prompt }], studentName);
     const textoRaw = await chatCompletionText(engine, anonymized, { temperature: 0.7 });
-    return NextResponse.json({ texto: restore(textoRaw) });
+    const saida = restore(textoRaw);
+    registrarMaterial({ session, studentId: pei?.studentId, versaoPei: pei?.versaoPei, contentType: "plano_aula", descricao: `Plano de aula: ${String(body.assunto || "aula")}`, engine: String(body.engine || ""), conteudo: saida });
+    return NextResponse.json({ texto: saida });
   } catch (err) {
     logger.error({ err: err }, "Hub plano-aula:");
     return NextResponse.json(

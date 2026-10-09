@@ -22,6 +22,8 @@ export function InclusaoBrincarTool({
     const [feedback, setFeedback] = useState("");
 
     const hub = useHubGenerate({
+
+        studentId: student?.id,
         endpoint: "/api/hub/inclusao-brincar",
         engine,
         validate: () => !tema.trim() ? "Informe o tema/momento." : null,

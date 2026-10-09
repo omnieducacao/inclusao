@@ -45,6 +45,8 @@ export function PlanoAulaDua({
     const temBnccPreenchida = habilidadesSel.length > 0;
 
     const hub = useHubGenerate({
+
+        studentId: student?.id,
         endpoint: "/api/hub/plano-aula",
         engine,
         validate: () => (!assunto.trim() && !temBnccPreenchida) ? "Informe o assunto ou selecione habilidades BNCC." : null,
@@ -267,7 +269,7 @@ export function PlanoAulaDua({
                                             const res = await fetch("/api/hub/mapa-mental", {
                                                 method: "POST",
                                                 headers: { "Content-Type": "application/json" },
-                                                body: JSON.stringify({
+                                                body: JSON.stringify({ student_id: student?.id || undefined,
                                                     tipo: "html",
                                                     materia: componenteSel || materia,
                                                     assunto: assunto || "Geral",

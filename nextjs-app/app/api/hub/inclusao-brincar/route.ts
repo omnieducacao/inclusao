@@ -1,4 +1,6 @@
 import { parseBody, hubInclusaoBrincarSchema } from "@/lib/validation";
+import { registrarMaterial } from "@/lib/hub-tracking";
+import { enriquecerComPei } from "@/lib/ferramentas/contexto-pei";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineErrorWithWorkspace } from "@/lib/ai-engines";
@@ -13,6 +15,8 @@ export async function POST(req: Request) {
   const parsed = await parseBody(req, hubInclusaoBrincarSchema);
   if (parsed.error) return parsed.error;
   const body = parsed.data;
+  // Onda 3: o PEI do estudante entra como contexto (montado no servidor, com escola e vínculo conferidos)
+  const pei = await enriquecerComPei(session, body as Record<string, unknown>);
   const engine: EngineId = ["red", "blue", "green", "yellow", "orange"].includes(body.engine || "")
     ? (body.engine as EngineId)
     : "red";
@@ -51,7 +55,9 @@ Use linguagem simples e prática. NÃO inclua diagnóstico ou CID.`;
   try {
     const { anonymized, restore } = anonymizeMessages([{ role: "user", content: prompt }], estudanteNome);
     const textoRaw = await chatCompletionText(engine, anonymized, { temperature: 0.7 });
-    return NextResponse.json({ texto: restore(textoRaw || "").trim() });
+    const saida = restore(textoRaw || "").trim();
+    registrarMaterial({ session, studentId: pei?.studentId, versaoPei: pei?.versaoPei, contentType: "inclusao_brincar", descricao: `Inclusão no brincar${body.tema ? `: ${String(body.tema)}` : ""}`, engine: String(body.engine || ""), conteudo: saida });
+    return NextResponse.json({ texto: saida });
   } catch (e) {
     logger.error({ err: e }, "Inclusão Brincar:");
     return NextResponse.json({ error: e instanceof Error ? e.message : "Erro." }, { status: 500 });

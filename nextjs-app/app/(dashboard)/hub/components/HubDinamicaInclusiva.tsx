@@ -33,6 +33,8 @@ export function DinamicaInclusiva({
   const temBnccPreenchida = habilidadesSel.length > 0;
 
   const hub = useHubGenerate({
+
+      studentId: student?.id,
     endpoint: "/api/hub/dinamica",
     engine,
     validate: () => (!assunto.trim() && !temBnccPreenchida) ? "Informe o assunto ou selecione habilidades BNCC." : null,

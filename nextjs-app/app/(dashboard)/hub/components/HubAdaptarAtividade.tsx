@@ -152,6 +152,7 @@ export function AdaptarAtividade({
           engine,
           unidade_tematica: unidadeSel || undefined,
           objeto_conhecimento: objetoSel || undefined,
+          student_id: student?.id || undefined,
           estudante: student ? { nome: student.name, hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 1000) || undefined } : { hiperfoco, perfil: (peiData.ia_sugestao as string)?.slice(0, 1000) || undefined },
         })
       );

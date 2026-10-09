@@ -18,6 +18,8 @@ interface UseHubGenerateOptions {
     validate?: () => string | null;
     /** Transform the API response data into the result string */
     extractResult?: (data: Record<string, unknown>) => string;
+    /** Onda 3: estudante escolhido — o servidor monta o contexto do PEI a partir do id */
+    studentId?: string | null;
 }
 
 interface UseHubGenerateReturn {
@@ -63,6 +65,7 @@ export function useHubGenerate({
     module: moduleName = "hub",
     validate,
     extractResult,
+    studentId,
 }: UseHubGenerateOptions): UseHubGenerateReturn {
     const [loading, setLoading] = useState(false);
     const [erro, setErro] = useState<string | null>(null);
@@ -89,7 +92,7 @@ export function useHubGenerate({
             const res = await fetch(endpoint, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
+                body: JSON.stringify(studentId && !body.student_id ? { ...body, student_id: studentId } : body),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Erro ao gerar");
@@ -105,7 +108,7 @@ export function useHubGenerate({
             setLoading(false);
             aiLoadingStop();
         }
-    }, [endpoint, engine, moduleName, validate, extractResult]);
+    }, [endpoint, engine, moduleName, validate, extractResult, studentId]);
 
     const reset = useCallback(() => {
         setLoading(false);

@@ -21,6 +21,8 @@ export function PapoDeMestre({
     const [hiperfocoEditavel, setHiperfocoEditavel] = useState(hiperfoco);
 
     const hub = useHubGenerate({
+
+        studentId: student?.id,
         endpoint: "/api/hub/papo-mestre",
         engine,
         validate: () => !assunto.trim() ? "Informe o assunto da aula." : null,

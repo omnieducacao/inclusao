@@ -21,6 +21,8 @@ export function RotinaAvdTool({
     const [feedback, setFeedback] = useState("");
 
     const hub = useHubGenerate({
+
+        studentId: student?.id,
         endpoint: "/api/hub/rotina-avd",
         engine,
         validate: () => !rotinaDetalhada.trim() ? "Descreva a rotina da turma." : null,

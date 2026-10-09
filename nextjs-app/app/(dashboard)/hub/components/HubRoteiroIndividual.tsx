@@ -30,6 +30,8 @@ export function RoteiroIndividual({
   const temBnccPreenchida = habilidadesSel.length > 0;
 
   const hub = useHubGenerate({
+
+      studentId: student?.id,
     endpoint: "/api/hub/roteiro",
     engine,
     validate: () => (!assunto.trim() && !temBnccPreenchida) ? "Informe o assunto ou selecione habilidades BNCC." : null,
