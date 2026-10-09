@@ -1,10 +1,18 @@
 "use client";
 
-import { useState } from "react";
+/**
+ * "O que o PEI diz" nas telas dos módulos (PAEE, Hub, Diário, Evolução).
+ *
+ * Teste no ar (out/2026): o painel antigo era uma faixa azul com "Expandir", abria primeiro no
+ * diagnóstico, falava em "OmniRed" e mandava gerar o relatório "na aba Consultoria IA", que não
+ * existe mais. Agora é uma faixa recolhida no design system com o que o professor usa na sala:
+ * interesses, potencialidades, barreiras principais e estratégias. O texto completo fica num
+ * segundo nível, e o diagnóstico não aparece aqui (ele está no PEI, para quem precisa).
+ */
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ChevronDown, ChevronUp, FileText, User, AlertTriangle, Target, Users, BookOpen } from "lucide-react";
+import { FileText } from "lucide-react";
 import type { PEIData } from "@/lib/pei";
-import { LISTAS_BARREIRAS, NIVEIS_SUPORTE } from "@/lib/pei";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 
 type Props = {
@@ -12,243 +20,77 @@ type Props = {
   studentName?: string;
 };
 
+function Lista({ titulo, itens }: { titulo: string; itens: string[] }) {
+  if (!itens.length) return null;
+  return (
+    <div>
+      <p className="omni-rotulo" style={{ margin: "0 0 6px" }}>{titulo}</p>
+      <ul className="flex flex-wrap gap-1.5" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+        {itens.map((i) => <li key={i} className="omni-estado omni-estado--neutro" style={{ whiteSpace: "normal" }}>{i}</li>)}
+      </ul>
+    </div>
+  );
+}
+
 export function PEISummaryPanel({ peiData, studentName }: Props) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const searchParams = useSearchParams();
-  const studentId = searchParams.get("student");
+  const studentId = searchParams?.get("student");
+  if (!peiData || Object.keys(peiData).length === 0) return null;
 
-  if (!peiData || Object.keys(peiData).length === 0) {
-    return null;
-  }
-
-  const relatorioIA = (peiData.ia_sugestao as string) || "";
+  const texto = ((peiData.ia_sugestao as string) || "").trim();
   const barreiras = (peiData.barreiras_selecionadas || {}) as Record<string, string[]>;
-  const niveis = (peiData.niveis_suporte || {}) as Record<string, string>;
-  const potencias = (peiData.potencias || []) as string[];
-  const hiperfoco = (peiData.hiperfoco as string) || "";
-  const redeApoio = (peiData.rede_apoio || []) as string[];
-  const diagnostico = (peiData.diagnostico as string) || "";
-  const estrategiasAcesso = (peiData.estrategias_acesso || []) as string[];
-  const estrategiasEnsino = (peiData.estrategias_ensino || []) as string[];
-  const estrategiasAvaliacao = (peiData.estrategias_avaliacao || []) as string[];
-
-  const totalBarreiras = Object.values(barreiras).reduce((acc, arr) => acc + (arr?.length || 0), 0);
-  const temRelatorioIA = !!relatorioIA && relatorioIA.trim().length > 0;
+  const principais = Object.values(barreiras).flat().filter(Boolean).slice(0, 6);
+  const potencias = ((peiData.potencias || []) as string[]).filter(Boolean);
+  const interesse = ((peiData.hiperfoco as string) || (peiData.interesses as string) || "").trim();
+  const acesso = (peiData.estrategias_acesso || []) as string[];
+  const ensino = (peiData.estrategias_ensino || []) as string[];
+  const avaliacao = (peiData.estrategias_avaliacao || []) as string[];
+  const temResumo = Boolean(interesse || potencias.length || principais.length || acesso.length || ensino.length || avaliacao.length);
 
   return (
-    <div className="mb-6 rounded-lg border-2 border-sky-200 bg-linear-to-r from-sky-50 to-blue-50 shadow-sm">
-      <button
-          aria-label="Expandir"
-        type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-4 text-left hover:bg-sky-100/50 transition-colors rounded-t-lg"
-      >
-        <div className="flex items-center gap-3">
-          <FileText className="w-5 h-5 text-sky-600" />
-          <div>
-            <h3 className="text-base font-semibold text-slate-800">
-              PEI · Plano Educacional Individualizado
-            </h3>
-            {studentName && (
-              <p className="text-xs text-slate-600 mt-0.5">Estudante: {studentName}</p>
+    <details className="omni-cartao omni-cartao--plano" style={{ padding: "var(--space-4) var(--space-5)" }}>
+      <summary style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <FileText aria-hidden size={18} style={{ color: "var(--modulo-pei)" }} />
+        <span style={{ font: "700 16px/22px var(--font-sans)", color: "var(--tinta)" }}>
+          O que o PEI{studentName ? ` de ${studentName.split(" ")[0]}` : ""} diz
+        </span>
+        <span className="omni-apoio" style={{ fontSize: 14 }}>interesses, barreiras e estratégias</span>
+      </summary>
+
+      <div className="space-y-4" style={{ marginTop: "var(--space-4)" }}>
+        {temResumo ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {interesse && (
+              <div>
+                <p className="omni-rotulo" style={{ margin: "0 0 6px" }}>Interesse do estudante</p>
+                <p style={{ margin: 0 }}>{interesse}</p>
+              </div>
             )}
+            <Lista titulo="Potencialidades" itens={potencias} />
+            <Lista titulo="Barreiras principais" itens={principais} />
+            <Lista titulo="Estratégias de acesso" itens={acesso} />
+            <Lista titulo="Estratégias de ensino" itens={ensino} />
+            <Lista titulo="Na avaliação" itens={avaliacao} />
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 px-2 py-1 bg-white rounded">
-            {isExpanded ? "Recolher" : "Expandir"}
-          </span>
-          {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-sky-600" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-sky-600" />
-          )}
-        </div>
-      </button>
+        ) : (
+          <p className="omni-apoio" style={{ margin: 0 }}>O estudo de caso deste estudante ainda está vazio.</p>
+        )}
 
-      {isExpanded && (
-        <div className="p-4 pt-0 space-y-4 border-t border-sky-200">
-          {/* Relatório Completo da IA - Documento Norteador */}
-          {temRelatorioIA ? (
-            <div className="p-4 rounded-lg bg-white border border-sky-200">
-              <div className="flex items-center gap-2 mb-3">
-                <FileText className="w-5 h-5 text-sky-600" />
-                <h4 className="text-sm font-semibold text-slate-800">PEI Completo - Relatório Gerado pela IA</h4>
-              </div>
-              <div className="prose prose-slate max-w-none">
-                <FormattedTextDisplay texto={relatorioIA} />
-              </div>
-            </div>
-          ) : (
-            <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="w-4 h-4 text-amber-600" />
-                <h4 className="text-sm font-semibold text-amber-800">Relatório não gerado</h4>
-              </div>
-              <p className="text-gray-500 dark:text-gray-400 mt-1">Este rascunho de PEI é um ponto de partida sugerido pela &quot;OmniRed&quot;. Edite e valide estas informações com seu olhar pedagógico.</p>
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
-    {/* eslint-disable-next-line react/no-unescaped-entities */}
-              <p className="text-xs text-amber-700 mb-2">Gere o relatório na aba "Consultoria IA" do PEI.</p>
-              <a
-                href={`/pei?student=${studentId || ""}`}
-                className="text-xs text-amber-700 hover:text-amber-800 hover:underline flex items-center gap-1 font-medium"
-              >
-                <FileText className="w-3 h-3" />
-                Ir para PEI e gerar relatório →
-              </a>
-            </div>
-          )}
-
-          {/* Informações Resumidas (Contexto Rápido) */}
-          <details className="border border-slate-200 rounded-lg">
-            <summary className="px-3 py-2 cursor-pointer text-xs font-medium text-slate-600 hover:bg-slate-50">
-              📋 Ver informações resumidas (diagnóstico, barreiras, estratégias)
-            </summary>
-            <div className="p-3 space-y-3 bg-slate-50">
-              {/* Diagnóstico */}
-              {diagnostico && (
-                <div className="p-2 rounded bg-white border border-slate-200">
-                  <div className="flex items-center gap-2 mb-1">
-                    <AlertTriangle className="w-3 h-3 text-sky-600" />
-                    <h5 className="text-xs font-semibold text-slate-800">Diagnóstico</h5>
-                  </div>
-                  <p className="text-xs text-slate-700">{diagnostico}</p>
-                </div>
-              )}
-
-              {/* Potencialidades e Hiperfoco */}
-              {(potencias.length > 0 || hiperfoco) && (
-                <div className="p-2 rounded bg-white border border-emerald-200">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Target className="w-3 h-3 text-emerald-600" />
-                    <h5 className="text-xs font-semibold text-slate-800">Potencialidades</h5>
-                  </div>
-                  {hiperfoco && (
-                    <p className="text-xs text-slate-700 mb-1">
-                      <strong>Hiperfoco:</strong> {hiperfoco}
-                    </p>
-                  )}
-                  {potencias.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {potencias.map((p, idx) => (
-                        <span
-                          key={idx}
-                          className="text-xs px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded"
-                        >
-                          {p}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Barreiras */}
-              {totalBarreiras > 0 && (
-                <div className="p-2 rounded bg-white border border-amber-200">
-                  <div className="flex items-center gap-2 mb-1">
-                    <AlertTriangle className="w-3 h-3 text-amber-600" />
-                    <h5 className="text-xs font-semibold text-slate-800">
-                      Barreiras ({totalBarreiras})
-                    </h5>
-                  </div>
-                  <div className="space-y-1">
-                    {Object.entries(barreiras).slice(0, 3).map(([dom, barrs]) => {
-                      if (!barrs || barrs.length === 0) return null;
-                      return (
-                        <div key={dom} className="text-xs">
-                          <strong className="text-amber-900">{dom}:</strong>{" "}
-                          <span className="text-slate-700">
-                            {barrs.slice(0, 2).join(", ")}
-                            {barrs.length > 2 && ` +${barrs.length - 2} mais`}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Rede de Apoio */}
-              {redeApoio.length > 0 && (
-                <div className="p-2 rounded bg-white border border-purple-200">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Users className="w-3 h-3 text-purple-600" />
-                    <h5 className="text-xs font-semibold text-slate-800">
-                      Rede de Apoio ({redeApoio.length})
-                    </h5>
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {redeApoio.slice(0, 4).map((p, idx) => (
-                      <span
-                        key={idx}
-                        className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-800 rounded"
-                      >
-                        {p}
-                      </span>
-                    ))}
-                    {redeApoio.length > 4 && (
-                      <span className="text-xs px-1.5 py-0.5 text-slate-600">
-                        +{redeApoio.length - 4} mais
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Estratégias */}
-              {(estrategiasAcesso.length > 0 || estrategiasEnsino.length > 0 || estrategiasAvaliacao.length > 0) && (
-                <div className="p-2 rounded bg-white border border-blue-200">
-                  <div className="flex items-center gap-2 mb-1">
-                    <BookOpen className="w-3 h-3 text-blue-600" />
-                    <h5 className="text-xs font-semibold text-slate-800">Estratégias</h5>
-                  </div>
-                  <div className="space-y-1 text-xs">
-                    {estrategiasAcesso.length > 0 && (
-                      <div>
-                        <strong className="text-blue-900">Acesso:</strong>{" "}
-                        <span className="text-slate-700">
-                          {estrategiasAcesso.slice(0, 2).join(", ")}
-                          {estrategiasAcesso.length > 2 && ` +${estrategiasAcesso.length - 2} mais`}
-                        </span>
-                      </div>
-                    )}
-                    {estrategiasEnsino.length > 0 && (
-                      <div>
-                        <strong className="text-blue-900">Ensino:</strong>{" "}
-                        <span className="text-slate-700">
-                          {estrategiasEnsino.slice(0, 2).join(", ")}
-                          {estrategiasEnsino.length > 2 && ` +${estrategiasEnsino.length - 2} mais`}
-                        </span>
-                      </div>
-                    )}
-                    {estrategiasAvaliacao.length > 0 && (
-                      <div>
-                        <strong className="text-blue-900">Avaliação:</strong>{" "}
-                        <span className="text-slate-700">
-                          {estrategiasAvaliacao.slice(0, 2).join(", ")}
-                          {estrategiasAvaliacao.length > 2 && ` +${estrategiasAvaliacao.length - 2} mais`}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+        {texto ? (
+          <details>
+            <summary style={{ cursor: "pointer", font: "600 15px/22px var(--font-sans)", color: "var(--acao)" }}>Ler o texto completo do PEI</summary>
+            <div style={{ marginTop: 10, maxHeight: "50vh", overflowY: "auto", padding: "var(--space-4)", border: "1px solid var(--borda)", borderRadius: "var(--o-radius-md)", background: "var(--superficie)" }}>
+              <FormattedTextDisplay texto={texto} />
             </div>
           </details>
+        ) : (
+          <p className="omni-apoio" style={{ margin: 0 }}>O texto do PEI ainda não foi escrito.</p>
+        )}
 
-          {/* Link para PEI completo */}
-          <div className="pt-2 border-t border-sky-200">
-            <a
-              href={`/pei?student=${studentId || ""}`}
-              className="text-xs text-sky-600 hover:text-sky-700 hover:underline flex items-center gap-1 font-medium"
-            >
-              <FileText className="w-3 h-3" />
-              Editar PEI completo →
-            </a>
-          </div>
-        </div>
-      )}
-    </div>
+        {studentId && (
+          <Link href={`/pei?student=${studentId}`} className="omni-btn omni-btn--discreto omni-btn--pequeno">Abrir o PEI</Link>
+        )}
+      </div>
+    </details>
   );
 }

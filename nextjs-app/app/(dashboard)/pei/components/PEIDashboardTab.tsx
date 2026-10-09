@@ -148,7 +148,7 @@ export function DashboardTab({
   if (!peiData.nome) {
     return (
       <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-        <p className="text-blue-800 text-sm">Preencha o estudante na aba <strong>Estudante</strong> para visualizar o dashboard.</p>
+        <p className="text-blue-800 text-sm">Preencha os dados do estudante em Estudo de caso → Dados do estudante para ver o acompanhamento.</p>
       </div>
     );
   }
@@ -248,606 +248,98 @@ export function DashboardTab({
     return total > 0 ? Math.round((done / total) * 100) : 0;
   }
 
+  // Teste no ar (out/2026): o Acompanhamento repetia o que já está nas etapas (progresso em %, situação do PEI,
+  // hiperfoco, rede de apoio, "DNA de suporte", lista de remédios, checklist LBI duas vezes). Ficou só o que
+  // serve para revisar o PEI: alertas, metas, evolução, conferência com a LBI e o resumo para a família.
+  const trintaDiasAtras = new Date(Date.now() - 30 * 86400000);
+  const alertasDiario = (dailyLogs || []).filter((log) => log?.alerta_regente && log?.data_sessao && new Date(log.data_sessao) >= trintaDiasAtras);
+  const titulo = { margin: 0, font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" } as const;
+  const bloco = { padding: "var(--space-5)", border: "1px solid var(--borda)", borderRadius: "var(--o-radius-md)", background: "var(--superficie)" } as const;
+
   return (
-    <div className="space-y-6">
-      {/* Sistema de Aviso Automático G2 */}
-      {(() => {
-        if (!dailyLogs || dailyLogs.length === 0) return null;
-
-        const trintaDiasAtras = new Date();
-        trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
-
-        const alertasRecentes = dailyLogs.filter(log => {
-          if (!log.alerta_regente) return false;
-          if (!log.data_sessao) return false;
-          const dataLog = new Date(log.data_sessao);
-          return dataLog >= trintaDiasAtras;
-        });
-
-        if (alertasRecentes.length === 0) return null;
-
-        return (
-          <div className="bg-red-50 border border-red-200 p-4 rounded-xl flex items-start gap-3 w-full shadow-sm animate-in fade-in slide-in-from-top-4">
-            <div className="p-2 bg-red-100/80 rounded-full shrink-0">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-red-900 leading-tight">
-                Atenção: Evolução Crítica no AEE
-              </h3>
-              <p className="text-sm text-red-800 mt-1">
-                O Especialista AEE sinalizou <strong>{alertasRecentes.length} registro(s)</strong> no Diário de Bordo como crítico(s) nos últimos 30 dias. Recomendamos consultar as notas do Diário de Bordo para alinhamento pedagógico imediato.
-              </p>
-            </div>
+    <div className="space-y-5">
+      {alertasDiario.length > 0 && (
+        <div className="omni-aviso omni-aviso--atencao" role="status" style={{ maxWidth: "none" }}>
+          <AlertTriangle className="omni-aviso__icone" aria-hidden />
+          <div>
+            <div className="omni-aviso__titulo">O AEE sinalizou {alertasDiario.length === 1 ? "um atendimento" : `${alertasDiario.length} atendimentos`} nos últimos 30 dias</div>
+            <div className="omni-aviso__texto">Leia o diário antes de revisar o PEI.</div>
           </div>
-        );
-      })()}
-
-      <div className="flex items-center gap-2 mb-4">
-        <FileDown className="w-5 h-5 text-sky-600" />
-        <h3 className="text-lg font-semibold text-slate-800">Acompanhamento</h3>
-      </div>
-
-      {/* CSS Customizado (Modernizado para Violeta do PEI) */}
-      <style jsx>{`
-        .dash-hero {
-          background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
-          border-radius: var(--omni-radius-lg, 16px);
-          padding: 24px 28px;
-          color: white;
-          margin-bottom: 24px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          box-shadow: var(--omni-shadow-md);
-          position: relative;
-          overflow: hidden;
-        }
-        .dash-hero::after {
-          content: "";
-          position: absolute;
-          top: 0; right: 0; bottom: 0; left: 0;
-          background: radial-gradient(circle at top right, rgba(255,255,255,0.1) 0%, transparent 60%);
-          pointer-events: none;
-        }
-        .apple-avatar {
-          width: 52px;
-          height: 52px;
-          border-radius: 50%;
-          background: rgba(255,255,255,0.15);
-          border: 2px solid rgba(255,255,255,0.35);
-          color: white;
-          font-weight: 800;
-          font-size: 1.4rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          backdrop-filter: blur(8px);
-        }
-        .metric-card {
-          background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-          border-radius: 12px;
-          padding: 10px 14px;
-          border: 1px solid #e2e8f0;
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          gap: 10px;
-          height: 72px;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .metric-card:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 3px 10px rgba(0,0,0,0.07);
-        }
-        .css-donut {
-          width: 40px;
-          height: 40px;
-          min-width: 40px;
-          border-radius: 50%;
-          position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 0;
-          box-shadow: inset 0 0 2px rgba(0,0,0,0.06);
-        }
-        .css-donut::after {
-          content: "";
-          position: absolute;
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          background: white;
-        }
-        .d-val {
-          position: relative;
-          z-index: 10;
-          font-weight: 800;
-          font-size: 1rem;
-          color: #1e293b;
-        }
-        .d-lbl {
-          font-size: 0.65rem;
-          font-weight: 700;
-          color: #64748b;
-          text-transform: uppercase;
-          letter-spacing: 0.6px;
-          text-align: center;
-        }
-        .soft-card {
-          border-radius: 12px;
-          padding: 12px 14px;
-          display: flex;
-          flex-direction: column;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.03);
-          border: 1px solid rgba(0,0,0,0.06);
-          border-left: 4px solid;
-          position: relative;
-          overflow: hidden;
-          z-index: 0;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .soft-card:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 14px rgba(0,0,0,0.06);
-        }
-        .sc-orange { background: linear-gradient(135deg, #FFF5F5 0%, #FFF0F0 100%); border-left-color: #DD6B20; }
-        .sc-blue { background: linear-gradient(135deg, #EBF8FF 0%, #E0F2FE 100%); border-left-color: #3182CE; }
-        .sc-yellow { background: linear-gradient(135deg, #FFFFF0 0%, #FEFCE8 100%); border-left-color: #D69E2E; }
-        .sc-cyan { background: linear-gradient(135deg, #E6FFFA 0%, #ECFDF5 100%); border-left-color: #0BC5EA; }
-        .sc-green { background: linear-gradient(135deg, #F0FFF4 0%, #ECFDF5 100%); border-left-color: #38A169; }
-        .sc-head {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-weight: 800;
-          font-size: 0.78rem;
-          margin-bottom: 6px;
-          color: #1e293b;
-        }
-        .sc-body {
-          font-size: 0.75rem;
-          color: #475569;
-          line-height: 1.45;
-        }
-        .bg-icon {
-          position: absolute;
-          bottom: -10px;
-          right: -10px;
-          font-size: 4.5rem;
-          opacity: 0.06;
-          pointer-events: none;
-        }
-        .meta-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 6px;
-          font-size: 0.8rem;
-          border-bottom: 1px solid rgba(0,0,0,0.04);
-          padding-bottom: 5px;
-        }
-        .dna-bar-container {
-          margin-bottom: 12px;
-        }
-        .dna-bar-flex {
-          display: flex;
-          justify-content: space-between;
-          font-size: 0.75rem;
-          margin-bottom: 4px;
-          font-weight: 600;
-          color: #475569;
-        }
-        .dna-bar-bg {
-          width: 100%;
-          height: 8px;
-          background-color: #f1f5f9;
-          border-radius: 4px;
-          overflow: hidden;
-          box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
-        }
-        .dna-bar-fill {
-          height: 100%;
-          border-radius: 3px;
-          transition: width 1s ease;
-        }
-        .rede-chip {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          background: white;
-          padding: 3px 10px;
-          border-radius: 20px;
-          font-size: 0.78rem;
-          font-weight: 600;
-          color: #334155;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-          border: 1px solid #e2e8f0;
-          margin: 0 4px 4px 0;
-        }
-        .pulse-alert {
-          animation: pulse 2s infinite;
-          color: #E53E3E;
-          font-weight: bold;
-        }
-        @keyframes pulse {
-          0% { opacity: 1; }
-          50% { opacity: 0.5; }
-          100% { opacity: 1; }
-        }
-      `}</style>
-
-      {/* Compliance LBI - Checklist retrátil */}
-      <Card variant="default" className="mb-6 overflow-hidden">
-        <details className="group">
-          <summary className="px-5 py-4 cursor-pointer select-none flex items-center justify-between text-sm font-semibold text-slate-800 hover:bg-slate-50 border-b border-transparent group-open:border-slate-100 transition-colors">
-            <span className="flex items-center gap-2">
-              <ClipboardList className="w-5 h-5 text-violet-600" />
-              Checklist Compliance LBI (Lei 13.146/2015)
-            </span>
-            <span className="text-xs text-slate-400 font-normal">clique para expandir</span>
-          </summary>
-          <CardContent className="pt-3 pb-5 bg-slate-50/30">
-            <LBIComplianceChecklist peiData={peiData} />
-          </CardContent>
-        </details>
-      </Card>
-
-      {/* KPIs — 4 Cards Compactos */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {/* 1. Progresso do PEI */}
-        <div className="metric-card">
-          <div className="css-donut" style={{ background: `conic-gradient(${progrColor} ${progresso}%, #F3F4F6 0)` }}>
-            <div className="d-val text-[0.65rem]">{progresso}%</div>
-          </div>
-          <div className="min-w-0">
-            <div className="d-lbl mt-0">Progresso do PEI</div>
-            <div className="text-[10px]" style={{ color: progrColor }}>
-              {progresso >= 100 ? "Completo ✅" : `${Math.round(progresso / 12.5)}/8 abas`}
-            </div>
+          <div className="omni-aviso__acoes">
+            {currentStudentId && <Link href={`/diario?student=${currentStudentId}`} className="omni-btn omni-btn--secundario omni-btn--pequeno">Abrir o diário</Link>}
           </div>
         </div>
-
-        {/* 2. Situação do PEI (onda 5: antes era um indicador de diagnóstico, que não deve ficar em destaque) */}
-        <div className="metric-card cursor-default">
-          <div className="min-w-0 overflow-hidden">
-            <div className="font-bold text-sm text-slate-800 leading-snug">
-              {(() => {
-                const v = peiData.vigencia as { status?: string; versao?: number; proxima_revisao?: string } | undefined;
-                if (!v) return "Rascunho";
-                if (v.status === "vigente") return `Vigente · versão ${v.versao ?? 1}`;
-                if (v.status === "em_revisao") return "Em revisão";
-                return "Rascunho";
-              })()}
-            </div>
-            <div className="d-lbl mt-px">Situação do PEI</div>
-          </div>
-        </div>
-
-        {/* 3. Habilidades BNCC */}
-        <div className="metric-card">
-          <div className="css-donut" style={{ background: `conic-gradient(${bnccColor} ${Math.min(nHabBncc * 8, 100)}%, #F3F4F6 0)` }}>
-            <div className="d-val text-[0.65rem]">{nHabBncc}</div>
-          </div>
-          <div className="min-w-0">
-            <div className="d-lbl mt-0">Habilidades BNCC</div>
-            {nHabBncc === 0 && <div className="text-[10px] text-amber-600">Selecione na aba BNCC</div>}
-            {nHabBncc > 0 && <div className="text-[10px] text-emerald-600">{nHabBncc} selecionada{nHabBncc > 1 ? "s" : ""}</div>}
-          </div>
-        </div>
-
-        {/* 4. Compliance LBI */}
-        <div className="metric-card cursor-pointer" onClick={() => setShowLbiChecklist((v) => !v)}>
-          <div className="css-donut" style={{ background: `conic-gradient(${lbiColor} ${lbiPct}%, #F3F4F6 0)` }}>
-            <div className="d-val text-[0.6rem]">{lbiOk}/{lbiChecks.length}</div>
-          </div>
-          <div className="min-w-0">
-            <div className="d-lbl mt-0">Compliance LBI</div>
-            <div className="text-[10px] flex items-center gap-1" style={{ color: lbiColor }}>
-              {lbiPct >= 75 ? "Conforme ✅" : lbiPct >= 50 ? "Parcial ⚠️" : "Pendente ❌"}
-              <span className="text-slate-400 text-[9px]">{showLbiChecklist ? "▲" : "▼"}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Checklist LBI expandido (abaixo dos KPIs) */}
-      {showLbiChecklist && (
-        <Card variant="glass" className="mt-2 animate-in fade-in slide-in-from-top-2">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-bold flex items-center gap-2">📋 Checklist Compliance LBI (Lei 13.146/2015)</CardTitle>
-            <button onClick={() => setShowLbiChecklist(false)} className="text-xs text-slate-400 hover:text-[var(--omni-text-primary)] transition-colors">Fechar ✕</button>
-          </CardHeader>
-          <CardContent className="pt-2">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {lbiChecks.map((c) => (
-                <div key={c.label} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium ${c.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
-                  <span>{c.ok ? "✅" : "❌"}</span>
-                  {c.label}
-                </div>
-              ))}
-            </div>
-            <div className="mt-2 text-[10px] text-slate-400 text-right">
-              {lbiPct}% de conformidade • Clique no card para fechar
-            </div>
-          </CardContent>
-        </Card>
       )}
 
-      {/* Evolução na escala Omnisfera (Avaliação Processual) */}
-      <Card className="border-emerald-200/60 bg-linear-to-br from-emerald-50/50 to-white/50" variant="glass">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2 text-emerald-800">
-            <TrendingUp className="w-5 h-5 text-emerald-600" />
-            Evolução na escala Omnisfera
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-xs text-slate-600 mb-3">
-            Registros bimestrais por disciplina (escala 0–4). Para registrar ou editar, use o módulo Avaliação Processual.
-          </p>
-          {!currentStudentId ? (
-            <p className="text-sm text-slate-500">Selecione um estudante para ver a evolução.</p>
-          ) : evolucaoProcessualLoading ? (
-            <div className="flex items-center gap-2 text-slate-500 text-sm">
-              <OmniLoader size={16} />
-              Carregando evolução...
-            </div>
-          ) : evolucaoProcessual && evolucaoProcessual.resumo.total_registros > 0 ? (
-            <div className="space-y-3">
-              <div className="flex flex-wrap gap-2">
-                {evolucaoProcessual.evolucao.map((e) => (
-                  <div
-                    key={e.disciplina}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm shadow-sm"
-                  >
-                    <span className="font-medium text-slate-800">{e.disciplina}</span>
-                    <span className="text-slate-500">
-                      {e.periodos.length} bim.{e.media_mais_recente != null ? ` · Média: ${e.media_mais_recente}` : ""}
-                    </span>
-                    {e.tendencia === "melhora" && <span title="Tendência: melhora"><TrendingUp className="w-4 h-4 text-emerald-600" /></span>}
-                    {e.tendencia === "regressao" && <span title="Tendência: atenção"><TrendingUp className="w-4 h-4 text-red-500 rotate-180" /></span>}
-                  </div>
-                ))}
-              </div>
-              <Link
-                href={`/avaliacao-processual?student=${currentStudentId}`}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Abrir Avaliação Processual
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <p className="text-sm text-slate-600">Nenhum registro de Avaliação Processual para este estudante.</p>
-              <Link
-                href={currentStudentId ? `/avaliacao-processual?student=${currentStudentId}` : "/avaliacao-processual"}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Abrir Avaliação Processual
-              </Link>
-            </div>
+      {alertaEscola && (
+        <div className="omni-aviso omni-aviso--info" style={{ maxWidth: "none" }}>
+          <Pill className="omni-aviso__icone" aria-hidden />
+          <div>
+            <div className="omni-aviso__titulo">Há medicação administrada na escola</div>
+            <div className="omni-aviso__texto">Os detalhes estão em Estudo de caso → Dados do estudante.</div>
+          </div>
+          <span />
+        </div>
+      )}
+
+      {/* Metas */}
+      <section style={bloco} aria-labelledby="acomp-metas" className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 id="acomp-metas" style={titulo}>Metas do PEI</h3>
+          {peiData.status_meta && (
+            <span className={`omni-estado omni-estado--${peiData.status_meta === "Concluído" ? "sucesso" : peiData.status_meta === "Em Progresso" ? "info" : "neutro"}`}>{peiData.status_meta}</span>
           )}
-        </CardContent>
-      </Card>
+        </div>
+        <dl style={{ margin: 0, display: "grid", gridTemplateColumns: "auto 1fr", gap: "8px 16px", font: "400 15px/23px var(--font-sans)" }}>
+          <dt style={{ fontWeight: 700, color: "var(--tinta)" }}>Curto prazo</dt><dd style={{ margin: 0, color: "var(--tinta-2)" }}>{metas.Curto}</dd>
+          <dt style={{ fontWeight: 700, color: "var(--tinta)" }}>Médio prazo</dt><dd style={{ margin: 0, color: "var(--tinta-2)" }}>{metas.Medio}</dd>
+          <dt style={{ fontWeight: 700, color: "var(--tinta)" }}>Longo prazo</dt><dd style={{ margin: 0, color: "var(--tinta-2)" }}>{metas.Longo}</dd>
+        </dl>
+        {peiData.parecer_geral && <p className="omni-apoio" style={{ margin: 0 }}><strong>Parecer:</strong> {peiData.parecer_geral}</p>}
+      </section>
 
-      {/* Cards Principais — 2x2 Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-4">
-          {/* Medicação */}
-          {listaMeds.length > 0 ? (
-            <div className="soft-card sc-orange">
-              <div className="sc-head">
-                <Pill className="w-5 h-5 text-orange-600" />
-                Atenção Farmacológica
-                {alertaEscola && <span className="pulse-alert">⚠️</span>}
-              </div>
-              <div className="sc-body flex flex-col gap-2">
-                {listaMeds.map((m, i) => (
-                  <div key={i} style={{ padding: "8px 10px", background: "rgba(255,255,255,0.7)", borderRadius: "8px", borderLeft: m.escola ? "3px solid #E53E3E" : "3px solid #DD6B20" }}>
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-[0.82rem] text-slate-800">💊 {m.nome}</span>
-                      {m.escola && <span className="text-[0.65rem] bg-red-100 text-red-700 px-1.5 py-px rounded-full font-bold">Escola</span>}
-                    </div>
-                    {m.posologia && <div className="text-xs text-slate-500 mt-0.5">Posologia: {m.posologia}</div>}
-                    {m.escola && <div className="text-[0.72rem] text-red-600 font-semibold mt-[3px]">🚨 Administração na escola necessária</div>}
-                  </div>
-                ))}
-
-                {/* Pontos de Atenção */}
-                <div className="mt-1 px-2.5 py-2 bg-orange-50/60 rounded-lg">
-                  <div className="font-bold text-[0.78rem] text-orange-800 mb-1">⚠️ Pontos de Atenção:</div>
-                  <ul className="text-[0.72rem] text-amber-900 m-0 pl-4 leading-relaxed">
-                    <li>Observar sinais de <strong>sonolência</strong> ou <strong>agitação incomum</strong> em sala</li>
-                    <li>Monitorar mudanças de <strong>apetite</strong> e <strong>humor</strong> ao longo do dia</li>
-                    {alertaEscola && <li><strong>Garantir horário correto</strong> de administração na escola</li>}
-                    <li>Comunicar à família qualquer <strong>alteração comportamental</strong></li>
-                    <li>Registrar observações no <strong>Diário de Bordo</strong></li>
-                  </ul>
-                </div>
-              </div>
-              <div className="bg-icon">💊</div>
-            </div>
-          ) : (
-            <div className="soft-card sc-green">
-              <div className="sc-head">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
-                Medicação
-              </div>
-              <div className="sc-body">Nenhuma medicação informada.</div>
-              <div className="bg-icon">✅</div>
-            </div>
+      {/* Evolução na escala 0–4 (avaliação processual) */}
+      <section style={bloco} aria-labelledby="acomp-evolucao" className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 id="acomp-evolucao" style={titulo}>Evolução na escala de 0 a 4</h3>
+          {currentStudentId && (
+            <Link href={`/avaliacao-processual?student=${currentStudentId}`} className="omni-btn omni-btn--discreto omni-btn--pequeno">Abrir avaliação processual</Link>
           )}
-
-          {/* DNA do Estudante — Hiperfoco + Potencialidades + Nível Alfabetização */}
-          <div className="soft-card sc-blue">
-            <div className="sc-head">
-              <Sparkles className="w-5 h-5 text-blue-600" />
-              DNA do Estudante
-            </div>
-            <div className="sc-body">
-              {hf !== "-" && (
-                <div className="mb-2">
-                  <span className="text-lg mr-1">{hfEmoji}</span>
-                  <strong>Hiperfoco:</strong> {hf}
-                </div>
-              )}
-              {nivelAlfab && nivelAlfab !== "Nao se aplica (Educacao Infantil)" && (
-                <div className="mb-2">
-                  <strong>Alfabetização:</strong> {nivelAlfab}
-                </div>
-              )}
-              {nPot > 0 ? (
-                <div>
-                  <strong>Potencialidades ({nPot}):</strong>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {(peiData.potencias as string[] || []).slice(0, 5).map((p: string) => (
-                      <span key={p} className="rede-chip" style={{ fontSize: "0.75rem", padding: "2px 8px", borderColor: "#3182CE", color: "#2B6CB0" }}>
-                        {p}
-                      </span>
-                    ))}
-                    {nPot > 5 && <span className="text-xs text-blue-500">+{nPot - 5} mais</span>}
-                  </div>
-                </div>
-              ) : (
-                <div className="opacity-60">Preencha potencialidades na aba Mapeamento</div>
-              )}
-            </div>
-            <div className="bg-icon">🧬</div>
-          </div>
         </div>
+        {evolucaoProcessualLoading ? (
+          <p className="omni-apoio" style={{ margin: 0 }}>Carregando a evolução…</p>
+        ) : evolucaoProcessual && evolucaoProcessual.resumo.total_registros > 0 ? (
+          <ul className="flex flex-wrap gap-2" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+            {evolucaoProcessual.evolucao.map((e) => (
+              <li key={e.disciplina} className={`omni-estado omni-estado--${e.tendencia === "melhora" ? "sucesso" : e.tendencia === "regressao" ? "atencao" : "neutro"}`}>
+                {e.disciplina}{e.media_mais_recente != null ? ` · nível ${e.media_mais_recente}` : ""}
+                {e.tendencia === "melhora" ? " · melhorando" : e.tendencia === "regressao" ? " · pede atenção" : ""}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="omni-apoio" style={{ margin: 0 }}>Ainda não há avaliação processual deste estudante. Os professores registram a cada bimestre.</p>
+        )}
+      </section>
 
-        <div className="space-y-4">
-          {/* Cronograma de Metas + Status */}
-          <div className="soft-card sc-yellow">
-            <div className="sc-head">
-              <FileText className="w-5 h-5 text-yellow-600" />
-              Cronograma de Metas
-              {peiData.status_meta && (
-                <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full" style={{
-                  background: peiData.status_meta === "Concluído" ? "#C6F6D5" : peiData.status_meta === "Em Progresso" ? "#FEFCBF" : "#FED7D7",
-                  color: peiData.status_meta === "Concluído" ? "#276749" : peiData.status_meta === "Em Progresso" ? "#975A16" : "#9B2C2C",
-                }}>{peiData.status_meta}</span>
-              )}
-            </div>
-            <div className="sc-body">
-              <div className="meta-row">
-                <span className="text-xl">🏁</span>
-                <strong>Curto:</strong> {metas.Curto}
-              </div>
-              <div className="meta-row">
-                <span className="text-xl">🧗</span>
-                <strong>Médio:</strong> {metas.Medio}
-              </div>
-              <div className="meta-row">
-                <span className="text-xl">🏔️</span>
-                <strong>Longo:</strong> {metas.Longo}
-              </div>
-              {peiData.parecer_geral && (
-                <div className="mt-2 text-xs p-2 rounded bg-yellow-50 border border-yellow-200">
-                  <strong>Parecer:</strong> {peiData.parecer_geral}
-                </div>
-              )}
-            </div>
-            <div className="bg-icon">🏁</div>
-          </div>
-
-          {/* Rede de Apoio + Estratégias */}
-          <div className="soft-card sc-cyan">
-            <div className="sc-head">
-              <Users className="w-5 h-5 text-cyan-400" />
-              Rede de Apoio & Estratégias
-            </div>
-            <div className="sc-body">
-              {rede.length > 0 ? (
-                <div className="mb-2">
-                  {rede.map((p) => (
-                    <span key={p} className="rede-chip">
-                      {getProIcon(p)} {p}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <div className="mb-2 opacity-60">Sem rede cadastrada.</div>
-              )}
-              {nEstratTotal > 0 && (
-                <div className="mt-2 pt-2 border-t border-cyan-200">
-                  <strong className="text-xs">Estratégias selecionadas:</strong>
-                  <div className="flex gap-3 mt-1">
-                    {(peiData.estrategias_acesso || []).length > 0 && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
-                        🔓 Acesso: {(peiData.estrategias_acesso || []).length}
-                      </span>
-                    )}
-                    {(peiData.estrategias_ensino || []).length > 0 && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">
-                        📚 Ensino: {(peiData.estrategias_ensino || []).length}
-                      </span>
-                    )}
-                    {(peiData.estrategias_avaliacao || []).length > 0 && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
-                        📝 Avaliação: {(peiData.estrategias_avaliacao || []).length}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-              {compsInferidos.length > 0 && (
-                <div className="mt-2 pt-2 border-t border-cyan-200">
-                  <strong className="text-xs text-red-600">Componentes críticos:</strong>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {compsInferidos.map((c) => (
-                      <span key={c} className="rede-chip" style={{ borderColor: "#FC8181", color: "#C53030", fontSize: "0.75rem", padding: "2px 8px" }}>
-                        {c}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="bg-icon">🤝</div>
-          </div>
+      {/* Conferência com a LBI */}
+      <details style={bloco}>
+        <summary style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <span style={titulo}>Conferência com a LBI</span>
+          <span className={`omni-estado omni-estado--${lbiPct >= 80 ? "sucesso" : "atencao"}`}>{lbiChecks.filter((c) => c.ok).length} de {lbiChecks.length} itens</span>
+          <span className="omni-apoio" style={{ fontSize: 14 }}>Lei Brasileira de Inclusão (Lei 13.146/2015)</span>
+        </summary>
+        <div style={{ marginTop: 12 }}>
+          <LBIComplianceChecklist peiData={peiData} />
         </div>
-      </div>
+      </details>
 
-      {/* DNA de Suporte */}
-      <div>
-        <h4 className="text-base font-semibold text-slate-800 mb-4">🧬 DNA de Suporte</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Object.keys(LISTAS_BARREIRAS).map((area) => {
-            const qtd = (Array.isArray(barreiras[area]) ? barreiras[area] : []).length;
-            const val = Math.min(qtd * 20, 100);
-            let color = "#3182CE";
-            if (val > 40) color = "#DD6B20";
-            if (val > 70) color = "#E53E3E";
-            return (
-              <div key={area} className="dna-bar-container">
-                <div className="dna-bar-flex">
-                  <span>{area}</span>
-                  <span>{qtd} barreiras</span>
-                </div>
-                <div className="dna-bar-bg">
-                  <div className="dna-bar-fill" style={{ width: `${val}%`, background: color }} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ============================================================ */}
-      {/* 🤖 INTELIGÊNCIA DO CASO                                      */}
-      {/* ============================================================ */}
       <InteligenciaDoCaso
         peiData={peiData}
         studentId={currentStudentId}
         onResumoLiberado={(r) => updateField("resumo_familia" as keyof PEIData, (r ?? undefined) as never)}
       />
-    </div >
+    </div>
   );
 }
 

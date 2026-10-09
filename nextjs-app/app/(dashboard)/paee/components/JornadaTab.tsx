@@ -135,7 +135,7 @@ export function JornadaTab({
 
       if (origemSelecionada === "ciclo") {
         if (!cicloExecucao) {
-          setErro("Selecione ou gere um ciclo na aba **Execução e Metas SMART** primeiro.");
+          setErro("Antes, gere ou escolha um ciclo em Atender → Execução e metas.");
           return;
         }
         body.ciclo = cicloExecucao;
@@ -159,7 +159,7 @@ export function JornadaTab({
             conteudoBarreiras: conteudoBarreiras ? `${conteudoBarreiras.length} chars` : "vazio",
             conteudoTec: conteudoTec ? `${conteudoTec.length} chars` : "vazio",
           });
-          setErro(`Gere o conteúdo na aba **${nomeFonte}** primeiro. O conteúdo precisa estar salvo e aprovado.`);
+          setErro(`Antes, gere e aprove o conteúdo em ${nomeFonte}.`);
           return;
         }
 

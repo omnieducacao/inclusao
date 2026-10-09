@@ -304,7 +304,7 @@ export function PEITabEstudoCaso({ peiData, updateField, toggleChecklist, hiperf
           Próximo passo <ChevronRight className="w-4 h-4" />
         </button>
       </div>
-      <p className="text-xs text-slate-500">Tudo o que você preenche aqui é salvo junto com o PEI (botão Salvar na aba Início).</p>
+      <p className="text-xs text-slate-500">O que você preenche aqui é salvo sozinho, junto com o PEI.</p>
     </div>
   );
 }

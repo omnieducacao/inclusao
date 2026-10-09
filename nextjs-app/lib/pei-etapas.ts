@@ -32,7 +32,7 @@ const NOMES: Record<SecaoId, string> = {
   consultoria: "Texto do PEI",
   bncc: "Habilidades da BNCC",
   plano: "Plano de ação",
-  monitoramento: "Metas e monitoramento",
+  monitoramento: "Situação das metas",
   vigencia: "Tornar vigente e ciência",
   regentes: "Professores regentes",
   consolidacao: "Consolidação",
@@ -44,9 +44,9 @@ export function secoesDaEtapa(etapa: Etapa, modo: "completo" | "simplificado"): 
   const completo = modo === "completo";
   const ids: SecaoId[] =
     etapa === 1 ? ["estudo_caso", "estudante", ...(completo ? (["evidencias", "rede", "mapeamento"] as SecaoId[]) : [])]
-    : etapa === 2 ? ["consultoria", "bncc", ...(completo ? (["plano", "monitoramento"] as SecaoId[]) : [])]
+    : etapa === 2 ? ["consultoria", "bncc", ...(completo ? (["plano"] as SecaoId[]) : [])]
     : etapa === 3 ? ["vigencia", ...(completo ? (["regentes", "consolidacao"] as SecaoId[]) : [])]
-    : ["revisao", "acompanhamento"];
+    : ["revisao", ...(completo ? (["monitoramento"] as SecaoId[]) : []), "acompanhamento"];
   return ids.map((id) => ({ id, nome: NOMES[id] }));
 }
 
@@ -56,7 +56,8 @@ export function etapaDaAbaAntiga(tab: string | null | undefined): { etapa: Etapa
     case "inicio": case "estudo_caso": return { etapa: 1, secao: "estudo_caso" };
     case "estudante": return { etapa: 1, secao: "estudante" };
     case "evidencias": case "rede": case "mapeamento": return { etapa: 1, secao: tab };
-    case "consultoria": case "bncc": case "plano": case "monitoramento": return { etapa: 2, secao: tab };
+    case "consultoria": case "bncc": case "plano": return { etapa: 2, secao: tab };
+    case "monitoramento": return { etapa: 4, secao: "monitoramento" };
     case "vigencia": case "regentes": case "consolidacao": return { etapa: 3, secao: tab };
     case "revisao": return { etapa: 4, secao: "revisao" };
     case "dashboard": case "acompanhamento": return { etapa: 4, secao: "acompanhamento" };

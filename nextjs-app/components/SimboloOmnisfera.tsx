@@ -17,6 +17,7 @@
  *  - "carregando" gira rápido
  *  - "hover"      abre quando o link/botão em volta recebe mouse ou foco (logo do topo)
  *  - "ciclo"      encontro → respira → vez → se desfaz (vitrine)
+ *  - "gerando"    os círculos giram no anel, se juntam no símbolo e se soltam de novo, sem parar (IA trabalhando)
  * Fora da tela, pausa. Com "reduzir movimento" (sistema ou classe no <html>), fica parado.
  */
 import { useEffect, useId, useRef } from "react";
@@ -26,7 +27,7 @@ const D = 24;
 const R = 21;
 
 export type AnimacaoSimbolo =
-  | "encontro" | "abertura" | "respira" | "vez" | "destaque" | "carregando" | "hover" | "ciclo";
+  | "encontro" | "abertura" | "respira" | "vez" | "destaque" | "carregando" | "hover" | "ciclo" | "gerando";
 
 type Ponto = { x: number; y: number; s: number; op: number };
 
@@ -95,6 +96,18 @@ export function estadoSimbolo(animacao: AnimacaoSimbolo, t: number, destaque = 0
       return base(D + 4 * Math.sin(t * 4), t * 120);
     case "hover":
       return base(D + 5 * h, 30 * h);
+    case "gerando": {
+      // 3,6 s: chegam girando pelo anel (2 s), ficam juntos girando (0,8 s), se soltam girando (0,8 s).
+      // O giro termina em 160° e recomeça em -200° (a mesma posição), então o laço não pula.
+      const w = t % 3.6;
+      if (w < 2) {
+        const p = sm(w / 2);
+        return base(D + 30 * (1 - p), -200 + 240 * p).map((c) => ({ ...c, s: 0.7 + 0.3 * p, op: 0.35 + 0.65 * p }));
+      }
+      if (w < 2.8) return base(D, 40 + (w - 2) * 25);
+      const q = sm((w - 2.8) / 0.8);
+      return base(D + 30 * q, 60 + 100 * q).map((c) => ({ ...c, s: 1 - 0.3 * q, op: 1 - 0.65 * q }));
+    }
     case "ciclo": {
       const w = t % 14;
       if (w < 3) return estadoSimbolo("encontro", w);

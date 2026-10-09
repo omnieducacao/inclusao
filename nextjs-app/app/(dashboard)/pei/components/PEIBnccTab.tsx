@@ -122,7 +122,7 @@ export function BNCCTab({
     return (
       <div className="space-y-4">
         <p className="text-sm text-slate-600">
-          Educação Infantil: selecione faixa de idade, campo de experiência e objetivos. A Consultoria IA usará estes dados.
+          Educação Infantil: selecione faixa de idade, campo de experiência e objetivos. A IA usa estes dados ao escrever o PEI.
         </p>
         {eiLoading ? (
           <p className="text-slate-500">Carregando BNCC EI...</p>
@@ -174,7 +174,7 @@ export function BNCCTab({
           <p className="text-xs text-slate-500 mt-1">Segure Ctrl/Cmd para selecionar vários.</p>
         </div>
         <div className="text-sky-700 bg-sky-50 p-3 rounded-lg text-sm">
-          Com os campos e objetivos selecionados, siga para a aba <strong>Consultoria IA</strong> para gerar o relatório.
+          Com os campos e objetivos escolhidos, siga para <strong>Texto do PEI</strong> para gerar o texto.
         </div>
       </div>
     );
@@ -308,7 +308,7 @@ export function BNCCTab({
   return (
     <div className="space-y-4">
       <p className="text-sm text-slate-600">
-        Selecione as habilidades do ano/série do estudante. A Consultoria IA usará apenas estas para o relatório.
+        Selecione as habilidades do ano/série do estudante. A IA usa só estas ao escrever o texto do PEI.
       </p>
 
       <details className="border-2 border-blue-200 rounded-lg bg-blue-50/30" open={habilidadesAtuais.length > 0}>
@@ -545,7 +545,7 @@ export function BNCCTab({
         </button>
         {peiData.habilidades_bncc_validadas && (
           <span className="text-sm text-green-700">
-            {peiData.habilidades_bncc_validadas.length} habilidade(s) validadas. A Consultoria IA usará estas no relatório.
+            {peiData.habilidades_bncc_validadas.length} habilidade(s) validadas. A IA usa estas ao escrever o texto do PEI.
           </span>
         )}
       </div>
@@ -557,7 +557,7 @@ export function BNCCTab({
       )}
 
       <p className="text-xs text-slate-500">
-        Na aba <strong>Consultoria IA</strong>, o relatório será gerado com base nas habilidades validadas.
+        Em <strong>Texto do PEI</strong>, a IA escreve a partir das habilidades confirmadas.
       </p>
     </div>
   );

@@ -27,7 +27,7 @@ const DIFF_LABELS: Record<string, string> = {
     familia: "Família",
     hiperfoco: "Hiperfoco",
     nivel_alfabetizacao: "Nível de Alfabetização",
-    ia_sugestao: "Consultoria IA",
+    ia_sugestao: "Texto do PEI",
     consultoria_engine: "Engine Utilizado",
     ia_mapa_texto: "Mapa Mental IA",
     outros_acesso: "Outros (acesso)",

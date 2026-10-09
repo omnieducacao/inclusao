@@ -133,7 +133,7 @@ export function PEITabPlano(props: TabPlanoProps) {
 
             <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
               <p className="text-sm text-blue-800">
-                ✅ O plano de ação alimenta a Consultoria IA com contexto prático (o que você já pretende fazer).
+                O plano de ação dá à IA o contexto prático: o que você já pretende fazer.
               </p>
             </div>
           </div>

@@ -306,7 +306,7 @@ export function ConsultoriaTab({
             <>
               <details className="p-4 rounded-lg border border-slate-200/60 bg-white">
                 <summary className="cursor-pointer font-semibold text-slate-700 mb-3">
-                  🧠 Como a IA construiu este relatório (transparência)
+                  Como a IA chegou a este texto
                 </summary>
                 <div className="space-y-2 text-sm text-slate-600">
                   <p>
@@ -326,7 +326,7 @@ export function ConsultoriaTab({
 
               <details className="p-4 rounded-lg border border-slate-200/60 bg-white">
                 <summary className="cursor-pointer font-semibold text-slate-700 mb-3">
-                  🛡️ Calibragem e segurança pedagógica
+                  Cuidados que a IA segue
                 </summary>
                 <div className="space-y-1 text-sm text-slate-600">
                   <p>- <strong>Farmacologia:</strong> não sugere dose/medicação; apenas sinaliza pontos de atenção.</p>

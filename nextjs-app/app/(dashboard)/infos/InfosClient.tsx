@@ -630,7 +630,7 @@ export default function InfosClient() {
                 </p>
                 <p className="text-sm font-semibold text-slate-800 mb-2">Ação na Plataforma:</p>
                 <ul className="list-disc list-inside space-y-1 text-sm text-slate-700 ml-2">
-                  <li>Registre o histórico e o contexto clínico na aba Estudante (uso interno da equipe).</li>
+                  <li>Registre o histórico e o contexto clínico no PEI, em Estudo de caso → Dados do estudante (uso interno da equipe).</li>
                   <li>Mapeie as barreiras de aprendizagem (cognitivas, sensoriais ou físicas).</li>
                   <li>Use a IA para estruturar metas de curto, médio e longo prazo.</li>
                 </ul>

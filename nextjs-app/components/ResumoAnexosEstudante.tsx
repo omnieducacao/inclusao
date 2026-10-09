@@ -23,7 +23,7 @@ export function ResumoAnexosEstudante({
 
   const itens: string[] = [];
   if (temRelatorioPei) {
-    itens.push("📄 Relatório PEI (Consultoria IA)");
+    itens.push("Texto do PEI");
   }
   if (temJornada) {
     itens.push("🎮 Jornada gamificada");

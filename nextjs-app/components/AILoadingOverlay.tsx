@@ -79,12 +79,12 @@ export function AILoadingOverlay() {
         width: recolhido ? "auto" : "min(400px, calc(100vw - 32px))",
         padding: recolhido ? "10px 14px" : "var(--space-5)",
         gap: recolhido ? 10 : "var(--space-4)",
-        alignItems: "center",
+        alignItems: "start",
         boxShadow: "var(--sombra-2, 0 12px 32px rgb(0 0 0 / .14))",
       }}
     >
       <span className="omni-geracao__marca" aria-hidden style={recolhido ? { width: 28, height: 28 } : { width: 48, height: 48 }}>
-        <SimboloOmnisfera tamanho={recolhido ? 28 : 48} animacao="vez" />
+        <SimboloOmnisfera tamanho={recolhido ? 28 : 48} animacao="gerando" />
       </span>
       <div style={{ minWidth: 0 }}>
         <div className="flex items-start justify-between gap-2">
