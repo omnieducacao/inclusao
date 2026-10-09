@@ -351,6 +351,33 @@ svg[data-omni-simbolo]{display:block;overflow:visible}
 html.high-contrast :is(.omni-aviso,.omni-estado,.omni-cartao--plano,.omni-cartao--elevado,.omni-segmentado,.omni-toast,.omni-endosso),[data-theme="alto-contraste"] :is(.omni-aviso,.omni-estado,.omni-cartao--plano,.omni-cartao--elevado,.omni-segmentado,.omni-toast,.omni-endosso){border:1.5px solid var(--borda)}
 [data-theme="alto-contraste"] .omni-lateral__item[aria-current="page"]{outline:2px solid var(--tinta);outline-offset:-2px}
 
+/* CabecalhoEstudante (onda 6) */
+.omni-estudante{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-3) var(--space-5);padding:var(--space-4) var(--space-5);border:1px solid var(--borda);border-radius:var(--o-radius-md);background:var(--superficie)}
+.omni-estudante__quem{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;min-width:0}
+.omni-estudante__avatar{width:44px;height:44px;font-size:15px;background:var(--encontro-azul-suave);color:var(--encontro-azul-forte);flex:none}
+.omni-estudante__nome{margin:0;font:800 18px/24px var(--font-sans);color:var(--tinta);overflow-wrap:anywhere}
+.omni-estudante__turma{margin:0;font:400 14px/20px var(--font-sans);color:var(--tinta-2)}
+.omni-estudante__acoes{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2)}
+.omni-estudante--vazio{border-style:dashed;border-width:1.5px;border-color:var(--borda-forte);align-items:flex-end}
+.omni-estudante--vazio .omni-campo{min-width:220px}
+
+/* ResultadoIA (onda 8) */
+.omni-resultado{display:flex;flex-direction:column;gap:var(--space-4);padding:var(--space-5);border:1px solid var(--borda);border-radius:var(--o-radius-lg);background:var(--superficie-2)}
+.omni-resultado__topo{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-3)}
+.omni-resultado__titulo{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-3)}
+.omni-resultado__titulo h3{margin:0;font:800 18px/24px var(--font-sans);color:var(--tinta)}
+.omni-resultado__acoes{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+.omni-resultado__para{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-2)}
+.omni-resultado__para .omni-rotulo{margin:0}
+.omni-resultado__texto{padding:var(--space-5);border:1px solid var(--borda);border-radius:var(--o-radius-md);background:var(--superficie);font:400 16px/26px var(--font-sans);color:var(--tinta)}
+.omni-resultado__texto p{margin:0 0 var(--space-3)}
+.omni-resultado__notas{border-top:1px solid var(--borda);padding-top:var(--space-3)}
+.omni-resultado__notas summary{cursor:pointer;font:700 15px/22px var(--font-sans);color:var(--tinta)}
+.omni-resultado__notas p{margin:var(--space-3) 0 0;padding:var(--space-4);border-radius:var(--o-radius-md);background:var(--superficie);font:400 15px/23px var(--font-sans);color:var(--tinta-2)}
+
+/* GeracaoIA flutuante (onda 8) */
+.omni-geracao--flutuante{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:60;width:min(400px,calc(100vw - 32px));padding:var(--space-5);gap:var(--space-4);align-items:center;box-shadow:var(--sombra-2,0 12px 32px rgb(0 0 0 / .14))}
+
 
 /* Tela de carregamento do Next (app/loading.tsx): só aparece depois de 300 ms, para não piscar em navegação rápida */
 .omni-carregando--atrasado{animation:omni-aparece var(--duracao-base) var(--curva-padrao) .3s both}

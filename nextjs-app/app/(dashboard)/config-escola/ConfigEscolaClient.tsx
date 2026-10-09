@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Card } from "@omni/ds";
+import { useConfirmar } from "@/components/Confirmar";
 import { DataCleanupPanel } from "@/components/DataCleanupPanel";
 
 type SchoolYear = { id: string; year: number; name: string; active?: boolean };
@@ -26,7 +26,6 @@ export function ConfigEscolaClient() {
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
-  const [confirmDelClass, setConfirmDelClass] = useState<string | null>(null);
   const [familyModuleEnabled, setFamilyModuleEnabled] = useState(false);
   const [familyModuleSaving, setFamilyModuleSaving] = useState(false);
   const [allowAvaliacaoFase1, setAllowAvaliacaoFase1] = useState(false);
@@ -72,7 +71,7 @@ export function ConfigEscolaClient() {
         await loadGrades();
         await loadWorkspaceConfig();
       } catch { /* expected fallback */
-        setMessage({ type: "err", text: "Erro ao carregar dados." });
+        setMessage({ type: "err", text: "Não conseguimos carregar a configuração. Recarregue a página." });
       } finally {
         setLoading(false);
       }
@@ -89,53 +88,115 @@ export function ConfigEscolaClient() {
     return segGrades.map((g) => ({
       ...g,
       _seg: seg.label,
-      _label: `${seg.label}: ${g.label || g.code}`,
+      _label: g.label || g.code,
     }));
   });
 
   const activeYear = years.find((y) => y.active) ?? years[0];
+  const { confirmar, dialogo } = useConfirmar();
+
+  // Onda 11: a mesma ordem dos Primeiros passos, com o estado de cada passo
+  const passos = [
+    { n: 1, titulo: "Ano letivo", feito: years.length > 0, ancora: "cfg-ano" },
+    { n: 2, titulo: "Séries", feito: selectedGradeIds.length > 0, ancora: "cfg-series" },
+    { n: 3, titulo: "Turmas", feito: classes.length > 0, ancora: "cfg-turmas" },
+    { n: 4, titulo: "Equipe", feito: false, ancora: "", href: "/gestao" },
+  ];
+
+  // Turmas agrupadas por série ("4º Ano: A, B, C")
+  const porSerie = classes.reduce<Record<string, ClassRow[]>>((acc, c) => {
+    const k = c.grades?.label || c.grades?.code || "Sem série";
+    (acc[k] = acc[k] || []).push(c);
+    return acc;
+  }, {});
+
+  async function salvarConfig(campo: Record<string, unknown>, ok: string, setSalvando: (v: boolean) => void, aplicar: () => void) {
+    setSalvando(true);
+    try {
+      const res = await fetch("/api/workspace/config", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(campo) });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setMessage({ type: "err", text: d.error || "Não foi possível salvar." });
+        return;
+      }
+      aplicar();
+      setMessage({ type: "ok", text: ok });
+    } catch {
+      setMessage({ type: "err", text: "Sem conexão. Tente de novo." });
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  async function removerTurma(c: ClassRow) {
+    const nome = `${c.grades?.label ?? ""} ${c.class_group ?? ""}`.trim();
+    const ok = await confirmar({
+      titulo: `Remover a turma ${nome}?`,
+      texto: "Os estudantes continuam cadastrados, mas deixam de estar ligados a esta turma, e os professores dela perdem o vínculo com eles.",
+      acao: "Remover turma",
+      cancelar: "Manter",
+      perigo: true,
+    });
+    if (!ok) return;
+    const res = await fetch(`/api/school/classes/${c.id}`, { method: "DELETE" });
+    if (!res.ok) { setMessage({ type: "err", text: "Não foi possível remover a turma." }); return; }
+    loadClasses();
+    setMessage({ type: "ok", text: `Turma ${nome} removida.` });
+  }
+
+  const secao = "omni-cartao omni-cartao--plano space-y-4";
+  const titulo = { margin: 0, font: "800 19px/26px var(--font-sans)", color: "var(--tinta)" } as const;
 
   return (
-    <div className="space-y-8">
-      <p className="text-sm text-slate-600">
-        Ordem sugerida: 1) Ano letivo → 2) Séries da escola → 3) Turmas → 4) Depois cadastre usuários em Gestão.
-      </p>
+    <div className="space-y-6">
+      {dialogo}
+      <nav aria-label="Passos da configuração">
+        <ol className="omni-passos">
+          {passos.map((p) => (
+            <li key={p.n} className={`omni-passo ${p.feito ? "omni-passo--feito" : ""}`}>
+              <span className="omni-passo__num" aria-hidden>{p.feito ? "✓" : p.n}</span>
+              <span>
+                <a href={p.href || `#${p.ancora}`} className="omni-passo__titulo" style={{ display: "block", color: "var(--tinta)", textDecoration: "none" }}>{p.titulo}</a>
+                <span className="omni-passo__estado" style={{ display: "block" }}>{p.href ? "Em Equipe e papéis" : p.feito ? "Feito" : "A fazer"}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </nav>
 
       {message && (
-        <div
-          className={`p-3 rounded-lg text-sm ${message.type === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
-            }`}
-        >
-          {message.text}
+        <div className={`omni-aviso omni-aviso--${message.type === "ok" ? "sucesso" : "erro"}`} role={message.type === "ok" ? "status" : "alert"} style={{ maxWidth: "none" }}>
+          <div><div className="omni-aviso__texto">{message.text}</div></div>
+          <span />
         </div>
       )}
 
-      {/* 1. Ano Letivo */}
-      <section>
-        <h3 className="text-lg font-semibold text-slate-800 mb-3">1. Ano Letivo</h3>
+      {/* 1. Ano letivo */}
+      <section id="cfg-ano" className={secao} aria-labelledby="cfg-ano-t">
+        <div>
+          <h2 id="cfg-ano-t" style={titulo}>1. Ano letivo</h2>
+          <p className="omni-apoio" style={{ margin: 0 }}>As turmas são de um ano letivo. O mais recente é o que vale.</p>
+        </div>
+        {loading ? (
+          <p className="omni-apoio">Carregando…</p>
+        ) : years.length > 0 && (
+          <ul className="flex flex-wrap gap-2" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+            {years.map((y) => (
+              <li key={y.id} className={`omni-estado ${y.id === activeYear?.id ? "omni-estado--sucesso" : "omni-estado--neutro"}`}>
+                {y.year}{y.name && y.name !== String(y.year) ? ` · ${y.name}` : ""}{y.id === activeYear?.id ? " · em uso" : ""}
+              </li>
+            ))}
+          </ul>
+        )}
         <AddYearForm onSuccess={() => { loadYears(); setMessage({ type: "ok", text: "Ano letivo adicionado." }); }} onError={(e) => setMessage({ type: "err", text: e })} />
-        <Card className="mt-4">
-          <p className="text-sm font-medium text-slate-600 mb-2">Anos cadastrados</p>
-          {loading ? (
-            <p className="text-slate-500">Carregando…</p>
-          ) : years.length === 0 ? (
-            <p className="text-slate-500">Nenhum ano letivo. Adicione acima.</p>
-          ) : (
-            <ul className="space-y-1">
-              {years.map((y) => (
-                <li key={y.id} className="text-sm text-slate-700">
-                  • {y.year} — {y.name}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
       </section>
 
       {/* 2. Séries */}
-      <section>
-        <h3 className="text-lg font-semibold text-slate-800 mb-3">2. Séries que a escola oferece</h3>
-        <p className="text-sm text-slate-500 mb-2">Selecione as séries que sua escola tem.</p>
+      <section id="cfg-series" className={secao} aria-labelledby="cfg-series-t">
+        <div>
+          <h2 id="cfg-series-t" style={titulo}>2. Séries que a escola oferece</h2>
+          <p className="omni-apoio" style={{ margin: 0 }}>Marque as séries. Só elas aparecem na hora de criar turmas.</p>
+        </div>
         <GradesSelector
           gradeOptions={gradeOptions}
           selectedIds={selectedGradeIds}
@@ -147,8 +208,8 @@ export function ConfigEscolaClient() {
               body: JSON.stringify({ grade_ids: ids }),
             });
             if (!res.ok) {
-              const d = await res.json();
-              setMessage({ type: "err", text: d.error || "Erro ao salvar." });
+              const d = await res.json().catch(() => ({}));
+              setMessage({ type: "err", text: d.error || "Não foi possível salvar as séries." });
               return;
             }
             setMessage({ type: "ok", text: "Séries salvas." });
@@ -158,12 +219,31 @@ export function ConfigEscolaClient() {
       </section>
 
       {/* 3. Turmas */}
-      <section>
-        <h3 className="text-lg font-semibold text-slate-800 mb-3">3. Turmas (série + turma)</h3>
+      <section id="cfg-turmas" className={secao} aria-labelledby="cfg-turmas-t">
+        <div>
+          <h2 id="cfg-turmas-t" style={titulo}>3. Turmas{activeYear ? ` de ${activeYear.year}` : ""}</h2>
+          <p className="omni-apoio" style={{ margin: 0 }}>Série + letra da turma. É por elas que professores ficam ligados aos estudantes.</p>
+        </div>
         {!activeYear ? (
-          <p className="text-slate-500">Crie um ano letivo antes de cadastrar turmas.</p>
+          <p className="omni-apoio">Crie o ano letivo (passo 1) antes das turmas.</p>
         ) : (
           <>
+            {classes.length > 0 && (
+              <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8 }}>
+                {Object.entries(porSerie).map(([serie, lista]) => (
+                  <li key={serie} className="flex flex-wrap items-center gap-2" style={{ paddingBottom: 8, borderBottom: "1px solid var(--borda)" }}>
+                    <strong style={{ minWidth: 140, font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>{serie}</strong>
+                    {lista.sort((a, b) => (a.class_group || "").localeCompare(b.class_group || "", "pt-BR", { numeric: true })).map((c) => (
+                      <span key={c.id} className="omni-chip" style={{ cursor: "default", paddingRight: 6 }}>
+                        {c.class_group}
+                        <button type="button" onClick={() => removerTurma(c)} aria-label={`Remover a turma ${serie} ${c.class_group}`}
+                          style={{ border: 0, background: "none", cursor: "pointer", color: "var(--tinta-3)", padding: "0 4px", font: "700 16px/1 var(--font-sans)" }}>×</button>
+                      </span>
+                    ))}
+                  </li>
+                ))}
+              </ul>
+            )}
             <AddClassForm
               years={years}
               activeYearId={activeYear.id}
@@ -174,206 +254,61 @@ export function ConfigEscolaClient() {
               }}
               onError={(e) => setMessage({ type: "err", text: e })}
             />
-            <Card className="mt-4">
-              <p className="text-sm font-medium text-slate-600 mb-2">Turmas criadas ({activeYear.year})</p>
-              {classes.length === 0 ? (
-                <p className="text-slate-500">
-                  Nenhuma turma. Selecione as séries acima e adicione turmas no formulário.
-                </p>
-              ) : (
-                <ul className="space-y-2">
-                  {classes.map((c) => {
-                    const gr = c.grades ?? {};
-                    const lbl = `${gr?.label ?? ""} ${c.class_group ?? ""}`.trim();
-                    const isConfirm = confirmDelClass === c.id;
-                    return (
-                      <li key={c.id} className="flex items-center justify-between text-sm">
-                        <span className="text-slate-700">• {lbl || c.class_group}</span>
-                        {isConfirm ? (
-                          <span className="flex gap-2">
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                const res = await fetch(`/api/school/classes/${c.id}`, {
-                                  method: "DELETE",
-                                });
-                                if (!res.ok) {
-                                  setMessage({ type: "err", text: "Erro ao remover." });
-                                  return;
-                                }
-                                setConfirmDelClass(null);
-                                loadClasses();
-                                setMessage({ type: "ok", text: "Turma removida." });
-                              }}
-                              className="px-2 py-1 bg-red-600 text-white rounded text-xs"
-                            >
-                              Sim, remover
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setConfirmDelClass(null)}
-                              className="px-2 py-1 border border-slate-200 rounded text-xs"
-                            >
-                              Cancelar
-                            </button>
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setConfirmDelClass(c.id)}
-                            className="text-red-600 text-xs hover:underline"
-                          >
-                            Remover
-                          </button>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </Card>
           </>
         )}
       </section>
 
-      {/* 4. Módulos */}
-      <section>
-        <h3 className="text-lg font-semibold text-slate-800 mb-3">4. Módulos opcionais</h3>
-        <Card>
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={familyModuleEnabled}
-              disabled={familyModuleSaving}
-              onChange={async (e) => {
-                const val = e.target.checked;
-                setFamilyModuleSaving(true);
-                try {
-                  const res = await fetch("/api/workspace/config", {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ family_module_enabled: val }),
-                  });
-                  if (!res.ok) {
-                    const d = await res.json();
-                    setMessage({ type: "err", text: d.error || "Erro ao salvar." });
-                    return;
-                  }
-                  setFamilyModuleEnabled(val);
-                  setMessage({ type: "ok", text: val ? "Módulo Família habilitado." : "Módulo Família desabilitado." });
-                } catch { /* expected fallback */
-                  setMessage({ type: "err", text: "Erro ao salvar." });
-                } finally {
-                  setFamilyModuleSaving(false);
-                }
-              }}
-              className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
-            />
-            <div>
-              <span className="font-medium text-slate-800">Módulo Família</span>
-              <p className="text-sm text-slate-500 mt-0.5">
-                Permite que responsáveis façam login e acompanhem PEI, evolução e PAEE dos estudantes vinculados.
-              </p>
+      {/* 4. Como a escola trabalha */}
+      <section className={secao} aria-labelledby="cfg-modo-t">
+        <div>
+          <h2 id="cfg-modo-t" style={titulo}>Como a escola trabalha</h2>
+          <p className="omni-apoio" style={{ margin: 0 }}>Dá para trocar depois sem perder nada.</p>
+        </div>
+        <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+          <legend className="omni-campo__rotulo" style={{ marginBottom: 8 }}>Tamanho do fluxo de inclusão</legend>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {([
+              { id: "completo", titulo: "Completo", texto: "Estudo de caso, PEI em camadas (coordenação e cada professor), AEE e acompanhamento." },
+              { id: "simplificado", titulo: "Simplificado", texto: "O essencial do PEI e do acompanhamento, pensado para a escola particular." },
+            ] as const).map((op) => (
+              <label key={op.id} className="omni-tema" style={{ flexDirection: "row", gap: 12, padding: "var(--space-4)" }}>
+                <input type="radio" name="modo-escola" value={op.id} checked={modo === op.id} disabled={modoSaving}
+                  onChange={() => salvarConfig({ modo: op.id }, `Modo ${op.titulo.toLowerCase()} ativado.`, setModoSaving, () => setModo(op.id))} />
+                <span>
+                  <span style={{ display: "block", font: "700 16px/22px var(--font-sans)" }}>{op.titulo}</span>
+                  <span className="omni-apoio" style={{ fontWeight: 400 }}>{op.texto}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <div>
+          <div className="omni-preferencia">
+            <div className="omni-preferencia__texto">
+              <div className="omni-preferencia__nome" id="cfg-familia">Área da família</div>
+              <div className="omni-preferencia__ajuda">Responsáveis entram com login próprio e acompanham o PEI, a evolução e o PAEE do estudante.</div>
             </div>
-          </label>
-          <label className="flex items-center gap-3 cursor-pointer mt-4 pt-4 border-t border-slate-200">
-            <input
-              type="checkbox"
-              checked={allowAvaliacaoFase1}
-              disabled={allowAvaliacaoFase1Saving}
-              onChange={async (e) => {
-                const val = e.target.checked;
-                setAllowAvaliacaoFase1Saving(true);
-                try {
-                  const res = await fetch("/api/workspace/config", {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ allow_avaliacao_fase_1: val }),
-                  });
-                  if (!res.ok) {
-                    const d = await res.json();
-                    setMessage({ type: "err", text: d.error || "Erro ao salvar." });
-                    return;
-                  }
-                  setAllowAvaliacaoFase1(val);
-                  setMessage({ type: "ok", text: val ? "Avaliação em Fase 1 habilitada." : "Avaliação em Fase 1 desabilitada." });
-                } catch { /* expected fallback */
-                  setMessage({ type: "err", text: "Erro ao salvar." });
-                } finally {
-                  setAllowAvaliacaoFase1Saving(false);
-                }
-              }}
-              className="rounded border-slate-300 text-sky-600 focus:ring-sky-500"
-            />
-            <div>
-              <span className="font-medium text-slate-800">Avaliação antes do envio aos regentes</span>
-              <p className="text-sm text-slate-500 mt-0.5">
-                Permite que professores vejam e avaliem estudantes em PEI Fase 1 (antes do envio aos regentes).
-              </p>
+            <input type="checkbox" role="switch" className="omni-interruptor" aria-labelledby="cfg-familia" checked={familyModuleEnabled} disabled={familyModuleSaving}
+              onChange={(e) => { const v = e.target.checked; salvarConfig({ family_module_enabled: v }, v ? "Área da família ligada." : "Área da família desligada.", setFamilyModuleSaving, () => setFamilyModuleEnabled(v)); }} />
+          </div>
+          <div className="omni-preferencia" style={{ borderBottom: 0 }}>
+            <div className="omni-preferencia__texto">
+              <div className="omni-preferencia__nome" id="cfg-fase1">Avaliar antes de o PEI ir aos professores</div>
+              <div className="omni-preferencia__ajuda">Professores já podem ver e avaliar o estudante enquanto o PEI ainda está com a coordenação.</div>
             </div>
-          </label>
-          <fieldset className="mt-4 pt-4 border-t border-slate-200">
-            <legend className="font-medium text-slate-800">Modo da escola</legend>
-            <p className="text-sm text-slate-500 mt-0.5 mb-3">
-              Define o tamanho do fluxo de inclusão. Dá para trocar depois sem perder nada.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {([
-                { id: "completo", titulo: "Completo", texto: "Estudo de caso, PEI em camadas (coordenação e cada professor), AEE e acompanhamento." },
-                { id: "simplificado", titulo: "Simplificado", texto: "O essencial do PEI e do acompanhamento, pensado para a escola particular." },
-              ] as const).map((op) => (
-                <label
-                  key={op.id}
-                  className={`flex gap-3 p-3 rounded-lg border cursor-pointer ${modo === op.id ? "border-sky-500 bg-sky-50" : "border-slate-200"}`}
-                >
-                  <input
-                    type="radio"
-                    name="modo-escola"
-                    value={op.id}
-                    checked={modo === op.id}
-                    disabled={modoSaving}
-                    onChange={async () => {
-                      setModoSaving(true);
-                      try {
-                        const res = await fetch("/api/workspace/config", {
-                          method: "PATCH",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ modo: op.id }),
-                        });
-                        if (!res.ok) {
-                          const d = await res.json().catch(() => ({}));
-                          setMessage({ type: "err", text: d.error || "Erro ao salvar." });
-                          return;
-                        }
-                        setModo(op.id);
-                        setMessage({ type: "ok", text: `Modo ${op.titulo.toLowerCase()} ativado.` });
-                      } catch { /* expected fallback */
-                        setMessage({ type: "err", text: "Erro ao salvar." });
-                      } finally {
-                        setModoSaving(false);
-                      }
-                    }}
-                    className="mt-1 text-sky-600 focus:ring-sky-500"
-                  />
-                  <span>
-                    <span className="font-medium text-slate-800">{op.titulo}</span>
-                    <span className="block text-sm text-slate-500 mt-0.5">{op.texto}</span>
-                  </span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        </Card>
+            <input type="checkbox" role="switch" className="omni-interruptor" aria-labelledby="cfg-fase1" checked={allowAvaliacaoFase1} disabled={allowAvaliacaoFase1Saving}
+              onChange={(e) => { const v = e.target.checked; salvarConfig({ allow_avaliacao_fase_1: v }, v ? "Avaliação antes do envio ligada." : "Avaliação antes do envio desligada.", setAllowAvaliacaoFase1Saving, () => setAllowAvaliacaoFase1(v)); }} />
+          </div>
+        </div>
       </section>
 
-      {/* 5. Limpeza de Dados */}
-      <section>
-        <h3 className="text-lg font-semibold text-slate-800 mb-3">5. Limpeza de Dados</h3>
-        <p className="text-sm text-slate-500 mb-3">
-          Verifique e remova dados órfãos (registros sem estudante ou referências inválidas).
-        </p>
-        <DataCleanupPanel />
-      </section>
+      {/* 5. Manutenção */}
+      <details className="omni-cartao omni-cartao--plano">
+        <summary style={{ cursor: "pointer", font: "700 16px/22px var(--font-sans)", color: "var(--tinta)" }}>
+          Manutenção dos dados <span className="omni-apoio" style={{ fontWeight: 400 }}>· registros sem estudante ou com referências quebradas</span>
+        </summary>
+        <div style={{ marginTop: 12 }}><DataCleanupPanel /></div>
+      </details>
     </div>
   );
 }
@@ -415,33 +350,37 @@ function AddYearForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-wrap gap-3 items-end">
-      <div>
-        <label className="block text-xs text-slate-600 mb-1">Ano</label>
+      <div className="omni-campo">
+        <label className="omni-campo__rotulo" htmlFor="cfg-ano-num">Ano</label>
         <input
           type="number"
           min={2020}
           max={2030}
           value={year}
           onChange={(e) => setYear(Number(e.target.value))}
-          className="w-24 px-3 py-2 border border-slate-200 rounded-lg text-sm"
+          id="cfg-ano-num"
+          className="omni-entrada"
+          style={{ width: 110 }}
         />
       </div>
-      <div>
-        <label className="block text-xs text-slate-600 mb-1">Nome (opcional)</label>
+      <div className="omni-campo">
+        <label className="omni-campo__rotulo" htmlFor="cfg-ano-nome">Nome <span className="omni-campo__opcional">(opcional)</span></label>
         <input
           type="text"
           placeholder="Ex: 2025"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-32 px-3 py-2 border border-slate-200 rounded-lg text-sm"
+          id="cfg-ano-nome"
+          className="omni-entrada"
+          style={{ width: 160 }}
         />
       </div>
       <button
         type="submit"
         disabled={saving}
-        className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700 disabled:opacity-60"
+        className="omni-btn omni-btn--secundario"
       >
-        {saving ? "..." : "Adicionar ano letivo"}
+        {saving ? "Adicionando…" : "Adicionar ano letivo"}
       </button>
     </form>
   );
@@ -454,7 +393,7 @@ function GradesSelector({
   onSave,
   onError,
 }: {
-  gradeOptions: { id: string; _label: string }[];
+  gradeOptions: { id: string; _label: string; _seg: string }[];
   selectedIds: string[];
   onChange: (ids: string[]) => void;
   onSave: (ids: string[]) => Promise<void>;
@@ -472,22 +411,17 @@ function GradesSelector({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-2 border border-slate-200 rounded-lg bg-white">
-        {gradeOptions.map((g) => (
-          <label
-            key={g.id}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 cursor-pointer text-sm"
-          >
-            <input
-              type="checkbox"
-              checked={selectedIds.includes(g.id)}
-              onChange={() => toggle(g.id)}
-              className="rounded border-slate-300"
-            />
-            {g._label}
-          </label>
-        ))}
-      </div>
+      {Array.from(new Set(gradeOptions.map((g) => g._seg))).map((seg) => (
+        <fieldset key={seg} className="omni-escolhas">
+          <legend>{seg}</legend>
+          {gradeOptions.filter((g) => g._seg === seg).map((g) => (
+            <label key={g.id} className="omni-chip">
+              <input type="checkbox" checked={selectedIds.includes(g.id)} onChange={() => toggle(g.id)} />
+              {g._label}
+            </label>
+          ))}
+        </fieldset>
+      ))}
       <button
         type="button"
         onClick={async () => {
@@ -501,7 +435,7 @@ function GradesSelector({
           }
         }}
         disabled={saving}
-        className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700 disabled:opacity-60"
+        className="omni-btn omni-btn--primario"
       >
         {saving ? "Salvando…" : "Salvar séries"}
       </button>
@@ -577,66 +511,38 @@ function AddClassForm({
   }
 
   return (
-    <Card padding="none" className="p-6">
-      <form onSubmit={handleSubmit} className="flex flex-wrap gap-4 items-end">
-        <div>
-          <label className="block text-xs text-slate-600 mb-1">Segmento</label>
-          <select
-            value={segmentId}
-            onChange={(e) => setSegmentId(e.target.value)}
-            className="px-3 py-2 border border-slate-200 rounded-lg text-sm"
-          >
-            {SEGMENTS.map((s) => (
-              <option key={s.id} value={s.id}>{s.label}</option>
-            ))}
+    <form onSubmit={handleSubmit} className="flex flex-wrap gap-3 items-end" style={{ paddingTop: 4 }}>
+      <div className="omni-campo">
+        <label className="omni-campo__rotulo" htmlFor="cfg-seg">Etapa</label>
+        <select id="cfg-seg" className="omni-entrada" value={segmentId} onChange={(e) => setSegmentId(e.target.value)}>
+          {SEGMENTS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+        </select>
+      </div>
+      {years.length > 1 && (
+        <div className="omni-campo">
+          <label className="omni-campo__rotulo" htmlFor="cfg-ano-turma">Ano letivo</label>
+          <select id="cfg-ano-turma" className="omni-entrada" value={yearId} onChange={(e) => setYearId(e.target.value)}>
+            {years.map((y) => <option key={y.id} value={y.id}>{y.year}</option>)}
           </select>
         </div>
-        <div>
-          <label className="block text-xs text-slate-600 mb-1">Ano letivo</label>
-          <select
-            value={yearId}
-            onChange={(e) => setYearId(e.target.value)}
-            className="px-3 py-2 border border-slate-200 rounded-lg text-sm"
-          >
-            {years.map((y) => (
-              <option key={y.id} value={y.id}>{y.year} — {y.name}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs text-slate-600 mb-1">Série</label>
-          <select
-            value={gradeId}
-            onChange={(e) => setGradeId(e.target.value)}
-            className="px-3 py-2 border border-slate-200 rounded-lg text-sm"
-          >
-            {gradesForWorkspace.length === 0 ? (
-              <option value="">Selecione séries acima primeiro</option>
-            ) : (
-              gradesForWorkspace.map((g) => (
-                <option key={g.id} value={g.id}>{g.label || g.code}</option>
-              ))
-            )}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs text-slate-600 mb-1">Turma</label>
-          <input
-            type="text"
-            placeholder="A, B, 1..."
-            value={classGroup}
-            onChange={(e) => setClassGroup(e.target.value)}
-            className="w-20 px-3 py-2 border border-slate-200 rounded-lg text-sm"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={saving || !gradeId}
-          className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700 disabled:opacity-60"
-        >
-          {saving ? "..." : "Adicionar turma"}
-        </button>
-      </form>
-    </Card>
+      )}
+      <div className="omni-campo">
+        <label className="omni-campo__rotulo" htmlFor="cfg-serie">Série</label>
+        <select id="cfg-serie" className="omni-entrada" value={gradeId} onChange={(e) => setGradeId(e.target.value)}>
+          {gradesForWorkspace.length === 0 ? (
+            <option value="">Marque as séries no passo 2</option>
+          ) : (
+            gradesForWorkspace.map((g) => <option key={g.id} value={g.id}>{g.label || g.code}</option>)
+          )}
+        </select>
+      </div>
+      <div className="omni-campo">
+        <label className="omni-campo__rotulo" htmlFor="cfg-turma">Turma</label>
+        <input id="cfg-turma" type="text" className="omni-entrada" style={{ width: 90 }} placeholder="A" value={classGroup} onChange={(e) => setClassGroup(e.target.value)} />
+      </div>
+      <button type="submit" disabled={saving || !gradeId} className="omni-btn omni-btn--primario">
+        {saving ? "Adicionando…" : "Adicionar turma"}
+      </button>
+    </form>
   );
 }

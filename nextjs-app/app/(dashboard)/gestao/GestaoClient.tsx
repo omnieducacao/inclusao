@@ -35,6 +35,8 @@ export function GestaoClient({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmDelId, setConfirmDelId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  // Onda 11: equipe, famílias e desativados em abas (antes era uma página longa com as três listas)
+  const [aba, setAba] = useState<"equipe" | "familias" | "desativados">("equipe");
 
   // === VIRTUALIZATION SETUP ===
   const membersParentRef = useRef<HTMLDivElement>(null);
@@ -94,70 +96,71 @@ export function GestaoClient({
         />
       )}
 
-      {!loading && master && (
-        <p className="text-sm text-slate-600 flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          A conta da coordenação (master) já está criada. Ela entra com e-mail e senha.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {!loading && master ? (
+          <span className="omni-estado omni-estado--sucesso"><CheckCircle2 aria-hidden /> Conta da coordenação criada · entra com e-mail e senha</span>
+        ) : <span />}
+        {!showForm && (
+          <button type="button" className="omni-btn omni-btn--primario" onClick={() => setShowForm(true)}>
+            <Plus aria-hidden /> Convidar pessoa
+          </button>
+        )}
+      </div>
+
+      {showForm && (
+        <section className="omni-cartao omni-cartao--plano space-y-3" aria-labelledby="novo-usuario-t">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 id="novo-usuario-t" className="omni-cartao__titulo" style={{ margin: 0 }}>Convidar pessoa</h2>
+              <p className="omni-apoio" style={{ margin: 0 }}>Professor, AEE, coordenação ou responsável da família. As permissões definem o que ela vê no menu.</p>
+            </div>
+            <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" onClick={() => setShowForm(false)}>Fechar</button>
+          </div>
+          <NovoUsuarioUnificado
+            onSuccess={() => {
+              loadData();
+              setShowForm(false);
+              setMessage({ type: "ok", text: "Pessoa cadastrada. Ela já pode entrar." });
+            }}
+            onError={(err) => setMessage({ type: "err", text: err })}
+          />
+        </section>
       )}
 
-      {/* Novo usuário */}
-      <Card padding="none" className="overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setShowForm(!showForm)}
-          className="w-full px-4 py-3 text-left font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-between"
-        >
-          <Plus className="w-4 h-4 inline mr-1" />
-          Novo usuário
-          <span className="text-slate-400">{showForm ? "▲" : "▼"}</span>
-        </button>
-        {showForm && (
-          <div className="border-t border-slate-100 p-4 bg-slate-50">
-            <NovoUsuarioUnificado
-              onSuccess={() => {
-                loadData();
-                setShowForm(false);
-                setMessage({ type: "ok", text: "Usuário cadastrado!" });
-              }}
-              onError={(err) => setMessage({ type: "err", text: err })}
-            />
-          </div>
-        )}
-      </Card>
+      {message && (
+        <div className={`omni-aviso omni-aviso--${message.type === "ok" ? "sucesso" : "erro"}`} role={message.type === "ok" ? "status" : "alert"} style={{ maxWidth: "none" }}>
+          <div><div className="omni-aviso__texto">{message.text}</div></div>
+          <span />
+        </div>
+      )}
 
-      {
-        message && (
-          <div
-            className={`p-3 rounded-lg text-sm ${message.type === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
-              }`}
-          >
-            {message.text}
-          </div>
-        )
-      }
+      <div className="omni-abas" role="tablist" aria-label="Pessoas da escola">
+        {([
+          { id: "equipe", nome: `Equipe (${activeMembers.length})` },
+          { id: "familias", nome: `Famílias (${activeFamily.length})` },
+          ...(inactiveMembers.length + inactiveFamily.length > 0 ? [{ id: "desativados", nome: `Desativados (${inactiveMembers.length + inactiveFamily.length})` }] : []),
+        ] as Array<{ id: typeof aba; nome: string }>).map((t) => (
+          <button key={t.id} type="button" role="tab" aria-selected={aba === t.id} className="omni-aba" onClick={() => setAba(t.id)}>{t.nome}</button>
+        ))}
+      </div>
 
       {/* Onda 5: saiu o gráfico "Demografia de Estudantes", que mostrava números fixos (340 e 45) e não os da escola */}
 
       {/* Lista de membros ativos */}
-      <div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
-          <Users className="w-5 h-5" />
-          Usuários cadastrados
-        </h3>
+      <div hidden={aba !== "equipe"}>
         {loading ? (
           <p className="text-slate-500">Carregando…</p>
         ) : activeMembers.length === 0 ? (
           <div className="p-4 bg-slate-50 rounded-lg space-y-2">
             <p className="text-slate-600">
-              Nenhum usuário cadastrado. Configure o master acima (se necessário) e use o formulário para adicionar membros.
+              Ninguém da equipe ainda. Use “Convidar pessoa” para cadastrar professores e AEE. As turmas vêm antes, em Configuração da escola.
             </p>
             <Link
               href="/config-escola"
               className="inline-flex items-center gap-1 text-sm text-sky-600 hover:underline"
             >
               <Settings className="w-4 h-4 mr-2" />
-              Ir para Configuração Escola
+              Ir para Configuração da escola
             </Link>
           </div>
         ) : (
@@ -211,16 +214,12 @@ export function GestaoClient({
       </div>
 
       {/* Responsáveis / Família */}
-      <div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
-          <Heart className="w-5 h-5 text-amber-600" />
-          Responsáveis / Família
-        </h3>
+      <div hidden={aba !== "familias"}>
         {loading ? (
           <p className="text-slate-500">Carregando…</p>
         ) : activeFamily.length === 0 ? (
           <p className="text-sm text-slate-500 italic p-4 bg-slate-50 rounded-lg">
-            Nenhum responsável cadastrado. Use o formulário acima e selecione &quot;Família&quot; para criar.
+            Nenhum responsável cadastrado. Use “Convidar pessoa” e escolha Família. A área da família precisa estar ligada em Configuração da escola.
           </p>
         ) : (
           <div ref={familyParentRef} className="max-h-[500px] overflow-auto rounded-xl border border-(--omni-border-default) bg-white">
@@ -271,12 +270,8 @@ export function GestaoClient({
       {/* Usuários desativados */}
       {
         (inactiveMembers.length > 0 || inactiveFamily.length > 0) && (
-          <div>
-            <h3 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
-              <Trash2 className="w-5 h-5" />
-              Usuários desativados
-            </h3>
-            <p className="text-xs text-slate-500 mb-2">Excluir libera o email para novo cadastro.</p>
+          <div hidden={aba !== "desativados"}>
+            <p className="omni-apoio" style={{ marginTop: 0 }}>Quem foi desativado não entra mais. Excluir de vez libera o e-mail para um novo cadastro.</p>
             <div className="rounded-xl border border-(--omni-border-default) overflow-hidden bg-white">
               <Table>
                 <TableHeader>
