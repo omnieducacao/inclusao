@@ -1,227 +1,93 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useHubGenerate } from "@/hooks/useHubGenerate";
-import { EngineSelector } from "@/components/EngineSelector";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import { SalvarNoPlanoButton } from "@/components/SalvarNoPlanoButton";
-import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { ResultadoIA } from "@/components/ia/ResultadoIA";
-import { BookOpen } from "lucide-react";
-import { COMPONENTES, type HubToolProps, type EstruturaBncc } from "../hub-types";
+import { MesaFerramenta, Etapas, Etapa, Continuar, LinhaEscolha, Pilula } from "@/components/ferramenta/Mesa";
+import { useBnccDaSerie, EscolhaComponente, EscolhaHabilidades, EscolhaMotor } from "./escolhas";
+import type { StudentFull, EngineId, MesaDaFerramenta } from "../hub-types";
 
+const TAMANHOS = [15, 20, 25, 30, 35, 40];
 
-export function DinamicaInclusiva({
-  student,
-  engine,
-  onEngineChange,
-  onClose,
-}: HubToolProps) {
-  const [materia, setMateria] = useState("Língua Portuguesa");
+export function DinamicaInclusiva({ student, engine, onEngineChange, mesa }: {
+  student: StudentFull | null;
+  engine: EngineId;
+  onEngineChange: (e: EngineId) => void;
+  mesa: MesaDaFerramenta;
+}) {
+  const [materia, setMateria] = useState("");
   const [assunto, setAssunto] = useState("");
   const [qtdAlunos, setQtdAlunos] = useState(25);
   const [caracteristicas, setCaracteristicas] = useState("");
-  const [serie, setSerie] = useState("");
-  const [componentes, setComponentes] = useState<Record<string, { codigo: string; descricao: string }[]>>({});
-  const [estruturaBncc, setEstruturaBncc] = useState<EstruturaBncc>(null);
-  const [componenteSel, setComponenteSel] = useState("");
-  const [unidadeSel, setUnidadeSel] = useState("");
-  const [objetoSel, setObjetoSel] = useState("");
   const [habilidadesSel, setHabilidadesSel] = useState<string[]>([]);
-
   const serieAluno = student?.grade || "";
-  const temBnccPreenchida = habilidadesSel.length > 0;
+  const { linhas, disciplinas, carregando } = useBnccDaSerie(serieAluno);
+  const temBncc = habilidadesSel.length > 0;
 
   const hub = useHubGenerate({
-
-      studentId: student?.id,
+    studentId: student?.id,
     endpoint: "/api/hub/dinamica",
     engine,
-    validate: () => (!assunto.trim() && !temBnccPreenchida) ? "Informe o assunto ou selecione habilidades BNCC." : null,
+    validate: () => (!assunto.trim() && !temBncc) ? "Escreva o assunto ou escolha uma habilidade da BNCC." : null,
   });
-  const { loading, resultado, erro, validado, setValidado, setResultado } = hub;
-
-  useEffect(() => {
-    if (serieAluno) setSerie(serieAluno);
-  }, [serieAluno]);
-
-  useEffect(() => {
-    if (!serie) return;
-    Promise.all([
-      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}`).then((r) => r.json()),
-      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serie)}&estrutura=1`).then((r) => r.json()),
-    ])
-      .then(([d, e]) => {
-        setComponentes(d.ano_atual || d || {});
-        setEstruturaBncc(e.disciplinas ? e : null);
-      })
-      .catch(() => { setComponentes({}); setEstruturaBncc(null); });
-  }, [serie]);
-
-  const discDataD = estruturaBncc?.porDisciplina?.[componenteSel];
-  const unidadeDataDRaw = componenteSel && discDataD?.porUnidade?.[unidadeSel];
-  const unidadeDataD = unidadeDataDRaw && typeof unidadeDataDRaw === "object" && "objetos" in unidadeDataDRaw ? unidadeDataDRaw : null;
-  const habsDoObjetoD = objetoSel && unidadeDataD && "porObjeto" in unidadeDataD ? unidadeDataD.porObjeto?.[objetoSel] : undefined;
-  const todasHabilidades = habsDoObjetoD
-    ? habsDoObjetoD.map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
-    : unidadeDataD
-      ? Object.entries(unidadeDataD.porObjeto || {}).flatMap(([, habs]) =>
-        (habs || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
-      )
-      : discDataD
-        ? Object.values(discDataD.porUnidade || {}).flatMap((v) =>
-          Object.values(v.porObjeto || {}).flatMap((habList) =>
-            (habList || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
-          )
-        )
-        : Object.entries(componentes).flatMap(([disc, habs]) =>
-          (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
-        );
+  const { loading, resultado, erro, setValidado, setResultado } = hub;
 
   const gerar = () => {
     const peiData = student?.pei_data || {};
-    const materiaFinal = componenteSel || materia;
     hub.gerar({
       aluno: { nome: student?.name, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 800) || undefined, hiperfoco: (peiData.hiperfoco as string) || "Geral" },
-      materia: materiaFinal,
+      materia: materia || "Geral",
       assunto: assunto.trim() || undefined,
       qtd_alunos: qtdAlunos,
       caracteristicas_turma: caracteristicas || undefined,
-      ano: serieAluno || serie || undefined,
-      habilidades_bncc: habilidadesSel.length > 0 ? habilidadesSel : undefined,
-      unidade_tematica: unidadeSel || undefined,
-      objeto_conhecimento: objetoSel || undefined,
+      ano: serieAluno || undefined,
+      habilidades_bncc: temBncc ? habilidadesSel : undefined,
       engine,
     });
   };
+  const hoje = new Date().toISOString().slice(0, 10);
+  const nomeArquivo = (assunto || "Dinamica").replace(/\s+/g, "_").slice(0, 40);
+  const pronto = Boolean(assunto.trim() || temBncc);
+
+  const painel = (
+    <Etapas inicial={1}>
+      <Etapa n={1} titulo="Conteúdo" feita={pronto} resumo={[materia, temBncc ? `${habilidadesSel.length} habilidade${habilidadesSel.length > 1 ? "s" : ""}` : "", assunto].filter(Boolean).join(" · ")}>
+        {serieAluno && <p className="omni-apoio" style={{ margin: 0 }}>Ano: <strong>{serieAluno}</strong>, pela ficha do estudante.</p>}
+        <EscolhaComponente disciplinas={disciplinas} valor={materia} onChange={setMateria} />
+        <EscolhaHabilidades linhas={linhas} componente={materia} selecionadas={habilidadesSel} onChange={setHabilidadesSel} carregando={carregando} />
+        <label className="omni-campo">
+          <span className="omni-campo__rotulo">Assunto {temBncc && <span className="omni-campo__opcional">(opcional)</span>}</span>
+          <input className="omni-entrada" value={assunto} onChange={(e) => setAssunto(e.target.value)} placeholder="Ex.: cadeia alimentar" />
+        </label>
+        <Continuar para={2} />
+      </Etapa>
+      <Etapa n={2} titulo="Turma" feita resumo={`${qtdAlunos} estudantes`}>
+        <LinhaEscolha rotulo="Estudantes" valor={String(qtdAlunos)}>
+          {TAMANHOS.map((n) => <Pilula key={n} on={qtdAlunos === n} onClick={() => setQtdAlunos(n)}>{n}</Pilula>)}
+        </LinhaEscolha>
+        <label className="omni-campo">
+          <span className="omni-campo__rotulo">Como é a turma <span className="omni-campo__opcional">(opcional)</span></span>
+          <textarea className="omni-entrada" rows={3} value={caracteristicas} onChange={(e) => setCaracteristicas(e.target.value)} placeholder="Ex.: agitada depois do recreio, gosta de competir" />
+        </label>
+        <Continuar para={3} />
+      </Etapa>
+      <Etapa n={3} titulo="Ajustes" opcional>
+        <EscolhaMotor valor={engine} onChange={onEngineChange} />
+      </Etapa>
+    </Etapas>
+  );
 
   return (
-    <div className="p-6 rounded-2xl bg-linear-to-br from-cyan-50 to-white space-y-4 min-h-[200px] shadow-sm border border-slate-200/60">
-      <div className="flex justify-between items-center">
-        <h3 className="font-bold text-slate-800">Dinâmica Inclusiva</h3>
-        <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
-      </div>
-      <p className="text-sm text-slate-600">Atividades em grupo onde todos participam, respeitando as singularidades.</p>
-      <EngineSelector value={engine} onChange={onEngineChange} />
-
-      {/* Módulo BNCC - PRIMEIRO */}
-      {estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
-        <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
-          <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-            <BookOpen className="w-4 h-4" />
-            BNCC: Componente Curricular, Unidade e Objeto
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Série (ano BNCC)</label>
-              <input
-                type="text"
-                value={serieAluno || ""}
-                readOnly
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-600 cursor-not-allowed"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Componente Curricular</label>
-              <select
-                value={componenteSel || materia}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setComponenteSel(val);
-                  setMateria(val);
-                  setUnidadeSel("");
-                  setObjetoSel("");
-                }}
-                className="w-full px-3 py-2 border rounded-lg text-sm"
-              >
-                <option value="">Selecione...</option>
-                {estruturaBncc?.disciplinas?.map((d) => <option key={d} value={d}>{d}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Unidade Temática</label>
-              <select value={unidadeSel} onChange={(e) => { setUnidadeSel(e.target.value); setObjetoSel(""); }} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!componenteSel}>
-                <option value="">Todas</option>
-                {(discDataD?.unidades || []).map((u) => <option key={u} value={u}>{u}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Objeto do Conhecimento</label>
-              <select value={objetoSel} onChange={(e) => setObjetoSel(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm" disabled={!unidadeSel}>
-                <option value="">Todos</option>
-                {(unidadeDataD && typeof unidadeDataD === "object" && "objetos" in unidadeDataD ? unidadeDataD.objetos : []).map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs text-slate-600 mb-1">Habilidades BNCC (opcional)</label>
-            <select multiple value={habilidadesSel} onChange={(e) => setHabilidadesSel(Array.from(e.target.selectedOptions, (o) => o.value))} className="w-full px-3 py-2 border rounded-lg text-sm min-h-[60px]">
-              {todasHabilidades.slice(0, 60).map((h, i) => <option key={i} value={h}>{h}</option>)}
-            </select>
-          </div>
-        </div>
-      )}
-
-      {/* Componente Curricular (fallback se BNCC não disponível) */}
-      {(!estruturaBncc || estruturaBncc.disciplinas.length === 0) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Série (ano BNCC)</label>
-            <input
-              type="text"
-              value={serieAluno || ""}
-              readOnly
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Componente Curricular</label>
-            <select value={materia} onChange={(e) => setMateria(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
-              {Object.keys(componentes).length ? Object.keys(componentes).map((c) => <option key={c} value={c}>{c}</option>) : COMPONENTES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Nº de estudantes</label>
-          <input type="number" min={5} max={50} value={qtdAlunos} onChange={(e) => setQtdAlunos(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-        </div>
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-slate-700 mb-1">Características da turma (opcional)</label>
-          <input type="text" value={caracteristicas} onChange={(e) => setCaracteristicas(e.target.value)} placeholder="Ex: Turma agitada, gostam de competição" className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
-          Assunto
-          {temBnccPreenchida ? (
-            <span className="text-xs text-emerald-600 ml-2 font-normal">(opcional - BNCC já preenchida)</span>
-          ) : (
-            <span className="text-xs text-red-600 ml-2 font-normal">*</span>
-          )}
-        </label>
-        <input
-          type="text"
-          value={assunto}
-          onChange={(e) => setAssunto(e.target.value)}
-          placeholder={temBnccPreenchida ? "Opcional quando BNCC está preenchida" : "Ex: Trabalho em equipe"}
-          className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-        />
-        {temBnccPreenchida && habilidadesSel.length > 0 && (
-          <p className="text-xs text-emerald-600 mt-1">
-            ✓ {habilidadesSel.length} habilidade(s) BNCC selecionada(s)
-          </p>
-        )}
-      </div>
-      <button type="button" onClick={gerar} disabled={loading} className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50">
-        {loading ? "Gerando…" : "Criar Dinâmica"}
-      </button>
-      {erro && <p className="text-red-600 text-sm">{erro}</p>}
-      {resultado && (
+    <MesaFerramenta
+      {...mesa}
+      painel={painel}
+      erro={erro}
+      gerar={{ rotulo: "Criar dinâmica", onClick: gerar, desabilitado: !pronto, carregando: loading, dica: "Uma atividade em grupo em que todos participam, inclusive o estudante." }}
+      vazio={{ titulo: "A dinâmica aparece aqui", texto: "Diga o conteúdo e o tamanho da turma. Você revisa antes de levar para a sala." }}
+      resultado={resultado && (
         <ResultadoIA
           titulo="Dinâmica inclusiva"
           publico="professor"
@@ -232,16 +98,13 @@ export function DinamicaInclusiva({
           onRevisado={setValidado}
           acoes={(texto) => (
             <>
-              <DocxDownloadButton texto={texto} titulo="Dinâmica Inclusiva" filename={`Dinamica_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`} />
-              <PdfDownloadButton text={texto} filename={`Dinamica_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Dinâmica Inclusiva" />
-              <SalvarNoPlanoButton conteudo={texto} tipo="Dinâmica Inclusiva" className="omni-btn omni-btn--secundario omni-btn--pequeno" />
+              <DocxDownloadButton texto={texto} titulo="Dinâmica Inclusiva" filename={`Dinamica_${nomeArquivo}_${hoje}.docx`} />
+              <PdfDownloadButton text={texto} filename={`Dinamica_${nomeArquivo}_${hoje}.pdf`} title="Dinâmica Inclusiva" />
+              <SalvarNoPlanoButton conteudo={texto} tipo="Dinâmica" className="omni-btn omni-btn--secundario omni-btn--pequeno" />
             </>
           )}
         />
       )}
-    </div>
+    />
   );
 }
-
-// EstudioVisual + IlustracaoSection + PictogramaCaaSection — extracted to ./components/HubEstudioVisual.tsx
-

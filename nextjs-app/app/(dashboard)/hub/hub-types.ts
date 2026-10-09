@@ -111,3 +111,15 @@ export const RECURSOS_DISPONIVEIS = [
     "Recursos de CAA",
     "Vídeos Educativos",
 ];
+
+/** Onda 14: o que o Hub passa para cada ferramenta montar a sua mesa (cabeçalho, irmãs, voltar). */
+export type MesaDaFerramenta = {
+    trilha: string;
+    titulo: string;
+    descricao: string;
+    icone: LucideIcon;
+    atual: string;
+    irmas: { id: string; titulo: string }[];
+    onIrma: (id: string) => void;
+    onVoltar: () => void;
+};

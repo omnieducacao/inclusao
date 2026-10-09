@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { PageHero } from "@/components/PageHero";
@@ -18,10 +19,12 @@ export default async function InfosPage() {
       <div className="space-y-6">
         <PageHero moduleKey="gestao" adminKey="infos" serverConfig={adminConfig}
           title="Central de inteligência"
-          desc="Fundamentos Pedagógicos, Marcos Legais e Ferramentas Práticas."
+          desc="A lei, os termos e o caminho do estudante na Omnisfera, em linguagem de sala de aula."
         />
 
-        <InfosClient />
+        <Suspense fallback={null}>
+          <InfosClient />
+        </Suspense>
       </div>
     </PageAccentProvider>
   );

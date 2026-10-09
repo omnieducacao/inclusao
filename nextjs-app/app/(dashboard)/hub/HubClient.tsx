@@ -20,9 +20,9 @@ import {
   RefreshCw,
   ToyBrick,
   GraduationCap,
-  ArrowLeft,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import type { MesaDaFerramenta } from "./hub-types";
 
 // Imports Dinâmicos (Lazy Loading para Code Splitting do Hub e redução de TTI)
 const PapoDeMestre = dynamic(() => import("./components/HubPapoDeMestre").then(mod => mod.PapoDeMestre));
@@ -90,6 +90,7 @@ function ToolCard({ tool, onClick }: { tool: { id: string; icon: LucideIcon; tit
   );
 }
 
+
 const TODAS_IDS = ["criar-zero", "criar-itens", "criar-experiencia", "papo-mestre", "plano-aula", "adaptar-prova", "adaptar-atividade", "estudio-visual", "roteiro", "dinamica", "rotina-avd", "inclusao-brincar"];
 
 export function HubClient({ students, studentId, student }: Props) {
@@ -123,6 +124,20 @@ export function HubClient({ students, studentId, student }: Props) {
   const ferramenta = TOOLS.find((t) => t.id === activeTool);
   const mostra = (id: ToolId) => abertas.includes(id);
   const oculto = (id: ToolId) => activeTool !== id;
+  // Onda 14: cada ferramenta monta a sua mesa (cabeçalho, ferramentas irmãs, painel e resultado).
+  const mesa = (id: ToolId): MesaDaFerramenta => {
+    const t = TOOLS.find((x) => x.id === id) || TOOLS[0];
+    return {
+      trilha: t.publico === "estudante" ? "Material para o estudante" : "Apoio para você planejar",
+      titulo: t.title,
+      descricao: t.desc,
+      icone: t.icon,
+      atual: t.id,
+      irmas: TOOLS.filter((x) => x.publico === t.publico).map((x) => ({ id: x.id, titulo: x.title })),
+      onIrma: (novo) => abrir(novo as ToolId),
+      onVoltar: voltar,
+    };
+  };
 
   return (
     <div className="space-y-6">
@@ -132,17 +147,7 @@ export function HubClient({ students, studentId, student }: Props) {
         <EscolherEstudante students={students} texto="Os materiais que você criar ficam guardados no histórico dele. Dá para usar as ferramentas sem estudante, só que sem o perfil dele." naoEncontrado={Boolean(currentId)} />
       )}
 
-      {ferramenta ? (
-        <div className="flex flex-wrap items-center gap-3">
-          <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" onClick={voltar}>
-            <ArrowLeft aria-hidden /> Todas as ferramentas
-          </button>
-          <div>
-            <h2 style={{ margin: 0, font: "800 22px/28px var(--font-sans)", color: "var(--tinta)" }}>{ferramenta.title}</h2>
-            <p className="omni-apoio" style={{ margin: 0 }}>{ferramenta.desc}</p>
-          </div>
-        </div>
-      ) : (
+      {ferramenta ? null : (
         <>
           {currentId && student && <PEISummaryPanel peiData={peiData} studentName={student.name} />}
           {isEI && (
@@ -175,18 +180,18 @@ export function HubClient({ students, studentId, student }: Props) {
         </>
       )}
 
-      {mostra("criar-zero") && <div key={`criar-zero-${currentId}`} hidden={oculto("criar-zero")}><CriarDoZero student={student} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
-      {mostra("criar-itens") && <div key={`criar-itens-${currentId}`} hidden={oculto("criar-itens")}><CriarItens student={student} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
-      {mostra("papo-mestre") && <div key={`papo-mestre-${currentId}`} hidden={oculto("papo-mestre")}><PapoDeMestre student={student} hiperfoco={hiperfoco} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
-      {mostra("plano-aula") && <div key={`plano-aula-${currentId}`} hidden={oculto("plano-aula")}><PlanoAulaDua student={student} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
-      {mostra("adaptar-prova") && <div key={`adaptar-prova-${currentId}`} hidden={oculto("adaptar-prova")}><AdaptarProva student={student} hiperfoco={hiperfoco} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
-      {mostra("adaptar-atividade") && <div key={`adaptar-atividade-${currentId}`} hidden={oculto("adaptar-atividade")}><AdaptarAtividade student={student} hiperfoco={hiperfoco} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
-      {mostra("estudio-visual") && <div key={`estudio-visual-${currentId}`} hidden={oculto("estudio-visual")}><EstudioVisual student={student} hiperfoco={hiperfoco} onClose={voltar} /></div>}
-      {mostra("criar-experiencia") && <div key={`criar-experiencia-${currentId}`} hidden={oculto("criar-experiencia")}><CriarDoZero student={student} engine={engine} onEngineChange={setEngine} onClose={voltar} eiMode /></div>}
-      {mostra("rotina-avd") && <div key={`rotina-avd-${currentId}`} hidden={oculto("rotina-avd")}><RotinaAvdTool student={student} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
-      {mostra("inclusao-brincar") && <div key={`inclusao-brincar-${currentId}`} hidden={oculto("inclusao-brincar")}><InclusaoBrincarTool student={student} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
-      {mostra("roteiro") && <div key={`roteiro-${currentId}`} hidden={oculto("roteiro")}><RoteiroIndividual student={student} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
-      {mostra("dinamica") && <div key={`dinamica-${currentId}`} hidden={oculto("dinamica")}><DinamicaInclusiva student={student} engine={engine} onEngineChange={setEngine} onClose={voltar} /></div>}
+      {mostra("criar-zero") && <div key={`criar-zero-${currentId}`} hidden={oculto("criar-zero")}><CriarDoZero student={student} engine={engine} onEngineChange={setEngine} mesa={mesa("criar-zero")} /></div>}
+      {mostra("criar-itens") && <div key={`criar-itens-${currentId}`} hidden={oculto("criar-itens")}><CriarItens student={student} engine={engine} onEngineChange={setEngine} mesa={mesa("criar-itens")} /></div>}
+      {mostra("papo-mestre") && <div key={`papo-mestre-${currentId}`} hidden={oculto("papo-mestre")}><PapoDeMestre student={student} hiperfoco={hiperfoco} engine={engine} onEngineChange={setEngine} mesa={mesa("papo-mestre")} /></div>}
+      {mostra("plano-aula") && <div key={`plano-aula-${currentId}`} hidden={oculto("plano-aula")}><PlanoAulaDua student={student} engine={engine} onEngineChange={setEngine} mesa={mesa("plano-aula")} /></div>}
+      {mostra("adaptar-prova") && <div key={`adaptar-prova-${currentId}`} hidden={oculto("adaptar-prova")}><AdaptarProva student={student} hiperfoco={hiperfoco} engine={engine} onEngineChange={setEngine} mesa={mesa("adaptar-prova")} /></div>}
+      {mostra("adaptar-atividade") && <div key={`adaptar-atividade-${currentId}`} hidden={oculto("adaptar-atividade")}><AdaptarAtividade student={student} hiperfoco={hiperfoco} engine={engine} onEngineChange={setEngine} mesa={mesa("adaptar-atividade")} /></div>}
+      {mostra("estudio-visual") && <div key={`estudio-visual-${currentId}`} hidden={oculto("estudio-visual")}><EstudioVisual student={student} hiperfoco={hiperfoco} mesa={mesa("estudio-visual")} /></div>}
+      {mostra("criar-experiencia") && <div key={`criar-experiencia-${currentId}`} hidden={oculto("criar-experiencia")}><CriarDoZero student={student} engine={engine} onEngineChange={setEngine} mesa={mesa("criar-experiencia")} eiMode /></div>}
+      {mostra("rotina-avd") && <div key={`rotina-avd-${currentId}`} hidden={oculto("rotina-avd")}><RotinaAvdTool student={student} engine={engine} onEngineChange={setEngine} mesa={mesa("rotina-avd")} /></div>}
+      {mostra("inclusao-brincar") && <div key={`inclusao-brincar-${currentId}`} hidden={oculto("inclusao-brincar")}><InclusaoBrincarTool student={student} engine={engine} onEngineChange={setEngine} mesa={mesa("inclusao-brincar")} /></div>}
+      {mostra("roteiro") && <div key={`roteiro-${currentId}`} hidden={oculto("roteiro")}><RoteiroIndividual student={student} engine={engine} onEngineChange={setEngine} mesa={mesa("roteiro")} /></div>}
+      {mostra("dinamica") && <div key={`dinamica-${currentId}`} hidden={oculto("dinamica")}><DinamicaInclusiva student={student} engine={engine} onEngineChange={setEngine} mesa={mesa("dinamica")} /></div>}
 
       {activeTool && !TODAS_IDS.includes(activeTool) && (
         <p className="omni-apoio">Esta ferramenta ainda não está disponível.</p>

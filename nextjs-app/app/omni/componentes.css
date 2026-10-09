@@ -389,6 +389,94 @@ html.high-contrast :is(.omni-aviso,.omni-estado,.omni-cartao--plano,.omni-cartao
 /* Dialogo: o reset do Tailwind zera a margem e o diálogo ia para o canto; volta ao centro, com texto à esquerda */
 .omni-dialogo:modal{position:fixed;inset:0;margin:auto;height:fit-content;max-height:calc(100dvh - 32px);overflow:auto;text-align:left}
 
+/* MesaFerramenta (onda 14): a ferramenta do Hub em duas colunas, como no OmniProf.
+   Esquerda: painel em etapas numeradas (uma aberta por vez; as fechadas mostram o resumo) e o Gerar sempre à vista.
+   Direita: o resultado, ou o estado vazio. Cabeçalho com trilha, título, o que a ferramenta faz e as ferramentas irmãs. */
+.omni-mesa{display:flex;flex-direction:column;gap:var(--space-5);min-width:0}
+.omni-mesa__cabeca{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:var(--space-4)}
+.omni-mesa__titulo{display:flex;align-items:flex-start;gap:var(--space-3);min-width:0;flex:1 1 420px}
+.omni-mesa__selo{width:44px;height:44px;flex:none;display:grid;place-items:center;border-radius:22px 22px 22px 6px;background:var(--modulo-hub);color:#fff}
+.omni-mesa__selo svg{width:22px;height:22px}
+.omni-mesa__trilha{margin:0;display:flex;flex-wrap:wrap;gap:6px;font:700 12px/16px var(--font-sans);letter-spacing:.08em;text-transform:uppercase;color:var(--tinta-3)}
+.omni-mesa__trilha button{all:unset;cursor:pointer}
+.omni-mesa__trilha button:hover{color:var(--tinta);text-decoration:underline}
+.omni-mesa__trilha button:focus-visible{outline:3px solid var(--foco);outline-offset:2px;border-radius:4px}
+.omni-mesa__titulo h2{margin:2px 0 0;font:800 26px/32px var(--font-sans);letter-spacing:-.02em;color:var(--tinta);text-wrap:balance}
+.omni-mesa__desc{margin:4px 0 0;max-width:70ch;font:400 14px/21px var(--font-sans);color:var(--tinta-2)}
+.omni-mesa__irmas{display:flex;flex-wrap:wrap;gap:6px}
+.omni-mesa__irma{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:var(--o-radius-pill);border:1px solid var(--borda);background:var(--superficie);color:var(--tinta);font:600 13px/18px var(--font-sans);cursor:pointer}
+.omni-mesa__irma:hover{border-color:var(--acao)}
+.omni-mesa__irma[aria-current="page"]{background:var(--tinta);border-color:var(--tinta);color:var(--superficie);font-weight:700}
+.omni-mesa__irma:focus-visible{outline:3px solid var(--foco);outline-offset:2px}
+.omni-mesa__grade{display:grid;grid-template-columns:minmax(320px,400px) minmax(0,1fr);gap:var(--space-6);align-items:start}
+.omni-mesa__painel{position:sticky;top:calc(64px + var(--space-4));max-height:max(420px,calc(100dvh - 120px));display:flex;flex-direction:column;background:var(--superficie);border:1px solid var(--borda);border-radius:22px 22px 22px 6px;overflow:hidden;box-shadow:var(--sombra-1)}
+.omni-mesa__corpo{flex:1 1 auto;overflow-y:auto;padding:var(--space-4) var(--space-5) var(--space-2);overscroll-behavior:contain}
+.omni-mesa__acao{flex:none;display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-4) var(--space-5) var(--space-5);border-top:1px solid var(--borda);background:var(--superficie)}
+.omni-mesa__acao .omni-btn{width:100%}
+.omni-mesa__acao-dica{margin:0;font:500 12.5px/18px var(--font-sans);color:var(--tinta-3);text-align:center}
+.omni-mesa__resultado{min-width:0;display:flex;flex-direction:column;gap:var(--space-4);scroll-margin-top:calc(64px + var(--space-3))}
+.omni-mesa__vazio{min-height:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-2);padding:var(--space-10) var(--space-6);text-align:center;border:1.5px dashed var(--borda-forte);border-radius:22px 22px 6px 22px;background:var(--superficie)}
+.omni-mesa__vazio-titulo{margin:var(--space-2) 0 0;font:800 18px/24px var(--font-sans);color:var(--tinta)}
+.omni-mesa__vazio-texto{margin:0;max-width:44ch;font:400 15px/22px var(--font-sans);color:var(--tinta-2)}
+@media (max-width:1023px){.omni-mesa__grade{grid-template-columns:minmax(0,1fr)}.omni-mesa__painel{position:static;max-height:none}.omni-mesa__vazio{min-height:200px}}
+
+/* Etapas do painel (acordeão) */
+.omni-etapas{display:flex;flex-direction:column}
+.omni-etapa{border-top:1px solid var(--borda)}
+.omni-etapa:first-child{border-top:0}
+.omni-etapa__cabeca{width:100%;min-height:52px;padding:12px 0;display:flex;align-items:center;gap:10px;border:0;background:none;font:inherit;color:var(--tinta);text-align:left;cursor:pointer}
+.omni-etapa__cabeca:focus-visible{outline:3px solid var(--foco);outline-offset:2px;border-radius:8px}
+.omni-etapa__num{width:26px;height:26px;flex:none;display:grid;place-items:center;border-radius:13px 13px 13px 4px;background:var(--superficie-2);border:1px solid var(--borda);color:var(--tinta-2);font:800 12px/1 var(--font-sans)}
+.omni-etapa--feita .omni-etapa__num{background:var(--acao);border-color:var(--acao);color:var(--sobre-acao)}
+.omni-etapa__nome{flex:none;font:800 15px/20px var(--font-sans)}
+.omni-etapa__resumo{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 12.5px/18px var(--font-sans);color:var(--tinta-3);text-align:right}
+.omni-etapa__seta{flex:none;width:8px;height:8px;margin-left:auto;margin-right:4px;border-right:2px solid var(--tinta-3);border-bottom:2px solid var(--tinta-3);transform:rotate(45deg);transition:transform var(--duracao-rapida) var(--curva-padrao)}
+.omni-etapa__resumo + .omni-etapa__seta{margin-left:0}
+.omni-etapa--aberta .omni-etapa__seta{transform:rotate(-135deg)}
+.omni-etapa:not(.omni-etapa--aberta) .omni-etapa__cabeca:hover .omni-etapa__nome{color:var(--acao)}
+.omni-etapa__corpo{display:flex;flex-direction:column;gap:var(--space-4);padding:2px 0 var(--space-5) 36px}
+.omni-etapa__corpo .omni-campo{max-width:none}
+.omni-etapa__continuar{align-self:flex-start}
+
+/* Linha de escolha: com algo escolhido, mostra só a escolha; hover, foco ou toque abrem as outras, que deslizam */
+.omni-linha{display:flex;flex-direction:column;gap:8px;min-width:0}
+.omni-linha__rotulo{margin:0;font:700 13px/18px var(--font-sans);color:var(--tinta)}
+.omni-linha__opcoes{display:flex;flex-wrap:wrap;gap:6px}
+.omni-pilula{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:var(--o-radius-pill);border:1.5px solid var(--borda);background:var(--superficie);color:var(--tinta);font:600 13.5px/18px var(--font-sans);cursor:pointer;white-space:nowrap}
+.omni-pilula:hover{border-color:var(--acao)}
+.omni-pilula[aria-pressed="true"]{background:var(--acao);border-color:var(--acao);color:var(--sobre-acao);font-weight:700}
+.omni-pilula:focus-visible{outline:3px solid var(--foco);outline-offset:2px}
+.omni-linha--compacta{flex-direction:row;align-items:center;gap:12px}
+.omni-linha--compacta .omni-linha__rotulo{flex:none;width:80px}
+.omni-linha--compacta .omni-linha__opcoes{column-gap:0}
+.omni-linha--compacta .omni-pilula{max-width:260px;margin-right:6px;overflow:hidden;transition:max-width .32s ease .12s,padding .32s ease .12s,margin .32s ease .12s,border-width .32s ease .12s,opacity .2s ease .12s}
+.omni-linha--compacta .omni-pilula:not([aria-pressed="true"]){max-width:0;padding-inline:0;margin-right:0;border-width:0;opacity:0;pointer-events:none}
+.omni-linha--compacta .omni-pilula[aria-pressed="true"]::after{content:"";display:inline-block;width:6px;height:6px;margin-left:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg);opacity:.8;transition:opacity .2s ease .12s}
+@media (hover:hover){
+  .omni-linha--compacta:hover .omni-pilula:not([aria-pressed="true"]){max-width:260px;padding-inline:14px;margin-right:6px;border-width:1.5px;opacity:1;pointer-events:auto;transition-delay:0s}
+  .omni-linha--compacta:hover .omni-pilula[aria-pressed="true"]::after{opacity:0;transition-delay:0s}
+}
+.omni-linha--quieta .omni-pilula,.omni-linha--quieta .omni-pilula::after{transition:none!important}
+@media (prefers-reduced-motion:reduce){.omni-linha--compacta .omni-pilula,.omni-linha--compacta .omni-pilula::after,.omni-etapa__seta{transition:none}}
+
+/* Envio de arquivo (soltar ou clicar) */
+.omni-soltar{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:120px;padding:var(--space-5);border:1.5px dashed var(--borda-forte);border-radius:16px 16px 16px 4px;background:var(--fundo);color:var(--tinta-2);text-align:center;font:500 14px/20px var(--font-sans);cursor:pointer;transition:border-color var(--duracao-rapida),background-color var(--duracao-rapida)}
+.omni-soltar:hover,.omni-soltar--sobre{border-color:var(--acao);background:var(--acao-suave)}
+.omni-soltar:has(input:focus-visible){outline:3px solid var(--foco);outline-offset:2px}
+.omni-soltar input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.omni-soltar svg{width:22px;height:22px;color:var(--tinta-3)}
+.omni-soltar__dica{font-size:12.5px;color:var(--tinta-3)}
+.omni-soltar--feito{border-style:solid;border-color:var(--encontro-verde-forte);background:var(--encontro-verde-suave);color:var(--tinta)}
+
+/* Habilidade da BNCC escolhida numa lista */
+.omni-habilidades{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;padding-right:2px}
+.omni-habilidade{display:flex;flex-direction:column;gap:3px;text-align:left;padding:10px 12px;border:1.5px solid var(--borda);border-radius:14px 14px 14px 4px;background:var(--superficie);color:var(--tinta);font:inherit;cursor:pointer}
+.omni-habilidade:hover{border-color:var(--acao)}
+.omni-habilidade[aria-selected="true"]{background:var(--acao-suave);border-color:var(--acao)}
+.omni-habilidade:focus-visible{outline:3px solid var(--foco);outline-offset:2px}
+.omni-habilidade__cod{font:600 12px/16px var(--font-mono);color:var(--acao)}
+.omni-habilidade__txt{font:400 13px/19px var(--font-sans);color:var(--tinta-2)}
+
 
 /* Tela de carregamento do Next (app/loading.tsx): só aparece depois de 300 ms, para não piscar em navegação rápida */
 .omni-carregando--atrasado{animation:omni-aparece var(--duracao-base) var(--curva-padrao) .3s both}

@@ -2,88 +2,85 @@
 
 import { useState } from "react";
 import { useHubGenerate } from "@/hooks/useHubGenerate";
-import { EngineSelector } from "@/components/EngineSelector";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import { SalvarNoPlanoButton } from "@/components/SalvarNoPlanoButton";
-import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { ResultadoIA } from "@/components/ia/ResultadoIA";
-import { ToyBrick } from "lucide-react";
-import type { HubToolProps } from "../hub-types";
+import { MesaFerramenta, Etapas, Etapa, Continuar } from "@/components/ferramenta/Mesa";
+import { EscolhaMotor } from "./escolhas";
+import type { StudentFull, EngineId, MesaDaFerramenta } from "../hub-types";
 
-export function InclusaoBrincarTool({
-    student,
+export function InclusaoBrincarTool({ student, engine, onEngineChange, mesa }: {
+  student: StudentFull | null;
+  engine: EngineId;
+  onEngineChange: (e: EngineId) => void;
+  mesa: MesaDaFerramenta;
+}) {
+  const peiData = student?.pei_data || {};
+  const hiperfoco = (peiData.hiperfoco as string) || "";
+  const [tema, setTema] = useState("");
+  const [feedback, setFeedback] = useState("");
+
+  const hub = useHubGenerate({
+    studentId: student?.id,
+    endpoint: "/api/hub/inclusao-brincar",
     engine,
-    onEngineChange,
-    onClose,
-}: HubToolProps) {
-    const peiData = student?.pei_data || {};
-    const hiperfoco = (peiData.hiperfoco as string) || "";
-    const [tema, setTema] = useState("");
-    const [feedback, setFeedback] = useState("");
+    validate: () => !tema.trim() ? "Diga o momento ou a brincadeira." : null,
+  });
+  const { loading, resultado, erro, setValidado } = hub;
 
-    const hub = useHubGenerate({
+  const gerar = (refazer = false) => {
+    hub.gerar({
+      tema,
+      feedback: refazer ? feedback : undefined,
+      engine,
+      estudante: student ? { nome: student.name, hiperfoco, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 500) || undefined } : undefined,
+    }).then(() => { if (refazer) setFeedback(""); });
+  };
+  const hoje = new Date().toISOString().slice(0, 10);
 
-        studentId: student?.id,
-        endpoint: "/api/hub/inclusao-brincar",
-        engine,
-        validate: () => !tema.trim() ? "Informe o tema/momento." : null,
-    });
-    const { loading, resultado, erro, validado, setValidado } = hub;
+  const painel = (
+    <Etapas inicial={1}>
+      <Etapa n={1} titulo="Momento" feita={Boolean(tema.trim())} resumo={tema}>
+        <label className="omni-campo">
+          <span className="omni-campo__rotulo">Momento ou brincadeira</span>
+          <input className="omni-entrada" value={tema} onChange={(e) => setTema(e.target.value)} placeholder="Ex.: brincadeira de massinha" />
+        </label>
+        {hiperfoco && <p className="omni-apoio" style={{ margin: 0 }}>A IA parte do que a criança gosta: <strong>{hiperfoco}</strong>.</p>}
+        <Continuar para={2} />
+      </Etapa>
+      <Etapa n={2} titulo="Ajustes" opcional>
+        <EscolhaMotor valor={engine} onChange={onEngineChange} />
+      </Etapa>
+    </Etapas>
+  );
 
-    const gerar = (refazer = false) => {
-        hub.gerar({
-            tema,
-            feedback: refazer ? feedback : undefined,
-            engine,
-            estudante: student ? { nome: student.name, hiperfoco, ia_sugestao: (peiData.ia_sugestao as string)?.slice(0, 500) || undefined } : undefined,
-        }).then(() => { if (refazer) setFeedback(""); });
-    };
-
-    return (
-        <div className="p-6 rounded-2xl bg-linear-to-br from-cyan-50 to-white space-y-4 min-h-[200px] shadow-sm border border-slate-200/60">
-            <div className="flex justify-between items-center">
-                <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                    <ToyBrick className="w-5 h-5" />
-                    Mediação Social
-                </h3>
-                <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">Fechar</button>
-            </div>
-            <p className="text-sm text-slate-600">Se a criança brinca isolada, o objetivo não é forçar a interação, mas criar pontes através do interesse dela. A IA criará uma brincadeira onde ela é protagonista.</p>
-            <EngineSelector value={engine} onChange={onEngineChange} />
-            <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Tema/Momento *</label>
-                <input
-                    type="text"
-                    value={tema}
-                    onChange={(e) => setTema(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    placeholder="Ex: Brincadeira de massinha"
-                />
-            </div>
-            <button type="button" onClick={() => gerar(false)} disabled={loading} className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50">
-                {loading ? "Criando ponte social…" : "🤝 GERAR DINÂMICA"}
-            </button>
-            {erro && <p className="text-red-600 text-sm">{erro}</p>}
-            {resultado && (
-              <ResultadoIA
-                titulo="Inclusão no brincar"
-                publico="professor"
-                material={resultado}
-                onRefazer={() => gerar(true)}
-                refazendo={loading}
-                ajuste={{ valor: feedback, onChange: setFeedback }}
-                onDescartar={() => { hub.setResultado(null); setValidado(false); }}
-                onRevisado={setValidado}
-                acoes={(texto) => (
-                  <>
-                    <DocxDownloadButton texto={texto} titulo="Inclusão no Brincar" filename={`Inclusao_Brincar_${new Date().toISOString().slice(0, 10)}.docx`} />
-                    <PdfDownloadButton text={texto} filename={`Inclusao_Brincar_${new Date().toISOString().slice(0, 10)}.pdf`} title="Inclusão no Brincar" />
-                    <SalvarNoPlanoButton conteudo={texto} tipo="Inclusão no Brincar" className="omni-btn omni-btn--secundario omni-btn--pequeno" />
-                  </>
-                )}
-              />
-            )}
-        </div>
-    );
+  return (
+    <MesaFerramenta
+      {...mesa}
+      painel={painel}
+      erro={erro}
+      gerar={{ rotulo: "Criar a brincadeira", onClick: () => gerar(false), desabilitado: !tema.trim(), carregando: loading, dica: "Sem forçar a interação: a criança entra pelo que gosta." }}
+      vazio={{ titulo: "A brincadeira aparece aqui", texto: "Diga o momento. A IA cria uma brincadeira em que a criança é protagonista e a turma participa junto." }}
+      resultado={resultado && (
+        <ResultadoIA
+          titulo="Inclusão no brincar"
+          publico="professor"
+          material={resultado}
+          onRefazer={() => gerar(true)}
+          refazendo={loading}
+          ajuste={{ valor: feedback, onChange: setFeedback }}
+          onDescartar={() => { hub.setResultado(null); setValidado(false); }}
+          onRevisado={setValidado}
+          acoes={(texto) => (
+            <>
+              <DocxDownloadButton texto={texto} titulo="Inclusão no Brincar" filename={`Inclusao_Brincar_${hoje}.docx`} />
+              <PdfDownloadButton text={texto} filename={`Inclusao_Brincar_${hoje}.pdf`} title="Inclusão no Brincar" />
+              <SalvarNoPlanoButton conteudo={texto} tipo="Inclusão no Brincar" className="omni-btn omni-btn--secundario omni-btn--pequeno" />
+            </>
+          )}
+        />
+      )}
+    />
+  );
 }

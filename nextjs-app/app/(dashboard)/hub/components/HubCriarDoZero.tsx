@@ -1,57 +1,49 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Check } from "lucide-react";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
-import { EngineSelector } from "@/components/EngineSelector";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import { SalvarNoPlanoButton } from "@/components/SalvarNoPlanoButton";
 import { ResultadoIA } from "@/components/ia/ResultadoIA";
-import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
-import { OmniLoader } from "@/components/OmniLoader";
-import { BookOpen, GraduationCap } from "lucide-react";
+import { MesaFerramenta, Etapas, Etapa, Continuar, LinhaEscolha, Pilula } from "@/components/ferramenta/Mesa";
 import {
-  COMPONENTES, TAXONOMIA_BLOOM,
-  type StudentFull, type EngineId, type EstruturaBncc, type ChecklistAdaptacao,
-} from "../hub-types";
+  useBnccDaSerie, EscolhaComponente, EscolhaHabilidades, EscolhaChecklist, resumoChecklist, EscolhaMotor, contextoDoEstudante,
+} from "./escolhas";
+import { TAXONOMIA_BLOOM, type StudentFull, type EngineId, type ChecklistAdaptacao, type MesaDaFerramenta } from "../hub-types";
+
+const QUANTIDADES = [3, 5, 8, 10];
 
 export function CriarDoZero({
   student,
   engine,
   onEngineChange,
-  onClose,
+  mesa,
   eiMode = false,
   apiEndpoint = "/api/hub/criar-atividade",
-  label,
-  infoBanner,
+  rotuloGerar,
+  dicaGerar,
 }: {
   student: StudentFull | null;
   engine: EngineId;
   onEngineChange: (e: EngineId) => void;
-  onClose: () => void;
+  mesa: MesaDaFerramenta;
   eiMode?: boolean;
   apiEndpoint?: string;
-  label?: string;
-  infoBanner?: React.ReactNode;
+  rotuloGerar?: string;
+  dicaGerar?: string;
 }) {
-  const [serie, setSerie] = useState("");
-  const [componentes, setComponentes] = useState<Record<string, { codigo: string; descricao: string }[]>>({});
-  const [estruturaBncc, setEstruturaBncc] = useState<EstruturaBncc>(null);
-  const [componenteSel, setComponenteSel] = useState("");
-  const [unidadeSel, setUnidadeSel] = useState("");
-  const [objetoSel, setObjetoSel] = useState("");
   const [eiFaixas, setEiFaixas] = useState<string[]>([]);
   const [eiCampos, setEiCampos] = useState<string[]>([]);
   const [eiObjetivos, setEiObjetivos] = useState<string[]>([]);
   const [eiIdade, setEiIdade] = useState("");
   const [eiCampo, setEiCampo] = useState("");
+  const [componente, setComponente] = useState("");
   const [assunto, setAssunto] = useState("");
   const [habilidadesSel, setHabilidadesSel] = useState<string[]>([]);
-  // Taxonomia de Bloom - estrutura completa
-  const [usarBloom, setUsarBloom] = useState(false);
   const [dominioBloomSel, setDominioBloomSel] = useState<string>("");
   const [verbosBloomSel, setVerbosBloomSel] = useState<Record<string, string[]>>({});
-  // Configuração de questões
   const [qtdQuestoes, setQtdQuestoes] = useState(5);
   const [tipoQuestao, setTipoQuestao] = useState<"Objetiva" | "Discursiva">("Objetiva");
   const [usarImagens, setUsarImagens] = useState(true);
@@ -62,11 +54,9 @@ export function CriarDoZero({
   const [notasResultado, setNotasResultado] = useState("");
   const [mapaImagensResultado, setMapaImagensResultado] = useState<Record<number, string>>({});
   const [erro, setErro] = useState<string | null>(null);
-  const [validado, setValidado] = useState(false);
   const [formatoInclusivo, setFormatoInclusivo] = useState(false);
 
   const serieAluno = student?.grade || "";
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const peiData = student?.pei_data || {};
 
   // Carregar BNCC do PEI quando disponível
@@ -92,7 +82,9 @@ export function CriarDoZero({
       if (campoPei) setEiCampo(campoPei);
       if (objetivosPei.length > 0) setEiObjetivos(objetivosPei);
     }
-  }, [peiData, student, eiMode]);
+  // uma vez por estudante: depois a escolha é do professor
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [student?.id, eiMode]);
 
   useEffect(() => {
     if (eiMode) {
@@ -105,20 +97,6 @@ export function CriarDoZero({
         .catch(() => { });
       return;
     }
-    if (!serieAluno) return;
-    setSerie(serieAluno);
-    Promise.all([
-      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serieAluno)}`).then((r) => r.json()),
-      fetch(`/api/bncc/ef?serie=${encodeURIComponent(serieAluno)}&estrutura=1`).then((r) => r.json()),
-    ])
-      .then(([d, e]) => {
-        setComponentes(d.ano_atual || {});
-        setEstruturaBncc(e.disciplinas ? e : null);
-      })
-      .catch(() => {
-        setComponentes({});
-        setEstruturaBncc(null);
-      });
   }, [serieAluno, eiMode]);
 
   useEffect(() => {
@@ -132,38 +110,14 @@ export function CriarDoZero({
       .catch(() => setEiObjetivos([]));
   }, [eiMode, eiIdade, eiCampo]);
 
-  const discData = estruturaBncc?.porDisciplina?.[componenteSel];
-  const unidadeDataRaw = componenteSel && discData?.porUnidade?.[unidadeSel];
-  const unidadeData = unidadeDataRaw && typeof unidadeDataRaw === "object" && "objetos" in unidadeDataRaw ? unidadeDataRaw : null;
-  const habsDoObjeto = objetoSel && unidadeData && "porObjeto" in unidadeData ? unidadeData.porObjeto?.[objetoSel] : undefined;
-
-  const todasHabilidades = eiMode
-    ? eiObjetivos
-    : habsDoObjeto
-      ? habsDoObjeto.map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
-      : unidadeData
-        ? Object.entries(unidadeData.porObjeto || {}).flatMap(([, habs]) =>
-          (habs || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
-        )
-        : discData
-          ? Object.values(discData.porUnidade || {}).flatMap((v) =>
-            Object.values(v.porObjeto || {}).flatMap((habList) =>
-              (habList || []).map((h) => `${componenteSel}: ${h.codigo} — ${h.descricao}`)
-            )
-          )
-          : Object.entries(componentes).flatMap(([disc, habs]) =>
-            (habs || []).map((h) => `${disc}: ${h.codigo} — ${h.descricao}`)
-          );
-
   // Verificar se BNCC está preenchida corretamente
   const temBnccPreenchida = eiMode
     ? (eiIdade && eiCampo && eiObjetivos.length > 0)
     : habilidadesSel.length > 0;
 
   // Combinar todos os verbos Bloom selecionados
-  const verbosBloomFinais = usarBloom
-    ? Object.values(verbosBloomSel).flat()
-    : [];
+  const verbosBloomFinais = Object.values(verbosBloomSel).flat();
+  const usarBloom = verbosBloomFinais.length > 0;
 
   // Atualizar qtdImagens quando qtdQuestoes mudar
   useEffect(() => {
@@ -178,20 +132,19 @@ export function CriarDoZero({
   const gerar = async () => {
     // Validação: Assunto só é obrigatório se não tiver BNCC preenchida
     if (!assunto.trim() && !temBnccPreenchida) {
-      setErro("Informe o assunto ou selecione habilidades BNCC.");
+      setErro("Escreva o assunto ou escolha uma habilidade da BNCC.");
       return;
     }
 
     // Validação adicional para modo EI
     if (eiMode && (!eiIdade || !eiCampo || eiObjetivos.length === 0)) {
-      setErro("No modo Educação Infantil, preencha idade, campo e objetivos BNCC.");
+      setErro("Escolha a faixa de idade e o campo de experiência.");
       return;
     }
     setLoading(true);
     setErro(null);
     setResultado(null);
     setMapaImagensResultado({});
-    setValidado(false);
     aiLoadingStart(engine || "green", "hub");
     try {
       const res = await fetch(apiEndpoint, {
@@ -211,32 +164,7 @@ export function CriarDoZero({
           qtd_imagens: usarImagens ? qtdImagens : 0,
           checklist_adaptacao: Object.keys(checklist).length > 0 ? checklist : undefined,
           student_id: student?.id || undefined,
-          estudante: student ? (() => {
-            const pd = (student.pei_data || {}) as Record<string, unknown>;
-            // Build structured PEI context for AI
-            const barreiras = pd.barreiras_selecionadas as Record<string, Record<string, boolean>> | undefined;
-            const barreirasTexto = barreiras ? Object.entries(barreiras)
-              .flatMap(([cat, items]) => Object.entries(items).filter(([, v]) => v).map(([item]) => `${cat}: ${item}`))
-              .slice(0, 10).join("; ") : "";
-
-            // Ponte Pedagógica (discipline-specific adaptations if available)
-            const pontePedagogica = pd.ponte_pedagogica as Record<string, unknown> | undefined;
-
-            return {
-              nome: student.name,
-              serie: student.grade,
-              hiperfoco: pd.hiperfoco || pd.interesses || undefined,
-              perfil: (pd.ia_sugestao as string)?.slice(0, 800) || undefined,
-              // Structured PEI data for richer AI context
-              nivel_suporte: pd.nivel_suporte || undefined,
-              barreiras: barreirasTexto || undefined,
-              estrategias_acesso: pd.estrategias_acesso || undefined,
-              estrategias_ensino: pd.estrategias_ensino || undefined,
-              estrategias_avaliacao: pd.estrategias_avaliacao || undefined,
-              potencialidades: pd.potencialidades || undefined,
-              ponte_pedagogica: pontePedagogica || undefined,
-            };
-          })() : undefined,
+          estudante: contextoDoEstudante(student),
         }),
       });
       const data = await res.json();
@@ -363,355 +291,161 @@ export function CriarDoZero({
       setMapaImagensResultado(mapa);
       setResultado(textoFinal);
     } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro ao gerar atividade.");
+      setErro(e instanceof Error ? e.message : "Não deu para gerar agora. Tente de novo.");
     } finally {
       setLoading(false);
       aiLoadingStop();
     }
   };
 
-  return (
-    <div className="p-6 rounded-2xl bg-linear-to-br from-cyan-50 to-white space-y-4 min-h-[200px] shadow-sm border border-slate-200/60">
-      <div className="flex justify-between items-center">
-        <h3 className="font-bold text-slate-800">{label || (eiMode ? "Criar Experiência (EI)" : "Criar Questões")}</h3>
-        <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-700">
-          Fechar
-        </button>
-      </div>
-      {infoBanner && infoBanner}
-      <EngineSelector value={engine} onChange={onEngineChange} />
-      {!eiMode && estruturaBncc && estruturaBncc.disciplinas.length > 0 && (
-        <details className="border border-slate-200 rounded-lg" open>
-          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700 flex items-center gap-2">
-            <BookOpen className="w-4 h-4" />
-            BNCC: Unidade e Objeto
-          </summary>
-          <div className="p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Série (ano BNCC)</label>
-              <input
-                type="text"
-                value={serieAluno || ""}
-                readOnly
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 cursor-not-allowed"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Componente</label>
-              <select
-                value={componenteSel}
-                onChange={(e) => {
-                  setComponenteSel(e.target.value);
-                  setUnidadeSel("");
-                  setObjetoSel("");
-                }}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-              >
-                <option value="">Todos</option>
-                {estruturaBncc?.disciplinas?.map((d) => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Unidade Temática</label>
-              <select
-                value={unidadeSel}
-                onChange={(e) => {
-                  setUnidadeSel(e.target.value);
-                  setObjetoSel("");
-                }}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                disabled={!componenteSel}
-              >
-                <option value="">Todas</option>
-                {(discData?.unidades || []).map((u) => (
-                  <option key={u} value={u}>{u}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Objeto do Conhecimento</label>
-              <select
-                value={objetoSel}
-                onChange={(e) => setObjetoSel(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                disabled={!unidadeSel}
-              >
-                <option value="">Todos</option>
-                {(unidadeData && typeof unidadeData === "object" && "objetos" in unidadeData ? unidadeData.objetos : []).map((o) => (
-                  <option key={o} value={o}>{o}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </details>
-      )}
-      {eiMode && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Faixa de Idade</label>
-            <select value={eiIdade} onChange={(e) => setEiIdade(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
-              <option value="">Selecione</option>
-              {eiFaixas.map((f) => (
-                <option key={f} value={f}>{f}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Campo de Experiência</label>
-            <select value={eiCampo} onChange={(e) => setEiCampo(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg">
-              <option value="">Selecione</option>
-              {eiCampos.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      )}
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
-          {eiMode ? "Objetivos de Aprendizagem" : "Habilidades BNCC"}
-          {temBnccPreenchida && (
-            <span className="text-xs text-emerald-600 ml-2">(carregadas do PEI)</span>
-          )}
-        </label>
-        <select
-          multiple
-          value={habilidadesSel}
-          onChange={(e) => setHabilidadesSel(Array.from(e.target.selectedOptions, (o) => o.value))}
-          className="w-full px-3 py-2 border border-slate-200 rounded-lg min-h-[100px]"
-        >
-          {todasHabilidades.slice(0, 120).map((h, i) => (
-            <option key={i} value={h}>{h}</option>
-          ))}
-        </select>
-        <p className="text-xs text-slate-500 mt-1">Segure Ctrl/Cmd para múltipla seleção.</p>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
-          {eiMode ? "Assunto / tema da experiência" : "Assunto / tema"}
-          {temBnccPreenchida && (
-            <span className="text-xs text-emerald-600 ml-2">(opcional - BNCC já preenchida)</span>
-          )}
-        </label>
-        <input
-          type="text"
-          value={assunto}
-          onChange={(e) => setAssunto(e.target.value)}
-          placeholder={temBnccPreenchida ? "Opcional quando BNCC está preenchida" : "Ex: Frações, Sistema Solar..."}
-          className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-        />
-        {temBnccPreenchida && habilidadesSel.length > 0 && (
-          <p className="text-xs text-emerald-600 mt-1">
-            ✓ {habilidadesSel.length} habilidade(s) BNCC do PEI carregada(s)
-          </p>
-        )}
-      </div>
+  const { linhas, disciplinas, carregando: carregandoBncc } = useBnccDaSerie(eiMode ? "" : serieAluno);
+  const temImagens = Object.keys(mapaImagensResultado).length > 0;
+  const hoje = new Date().toISOString().slice(0, 10);
+  const nomeArquivo = (assunto || "Atividade").replace(/\s+/g, "_").slice(0, 40);
+  const verbosDoDominio = dominioBloomSel ? verbosBloomSel[dominioBloomSel] || [] : [];
+  const conteudoOk = eiMode ? Boolean(eiIdade && eiCampo) : Boolean(assunto.trim() || habilidadesSel.length);
 
-      {/* Configuração de Questões */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Quantidade de Questões</label>
-          <input
-            type="range"
-            min={1}
-            max={10}
-            value={qtdQuestoes}
-            onChange={(e) => setQtdQuestoes(Number(e.target.value))}
-            className="w-full"
-          />
-          <div className="text-center text-sm text-slate-600 mt-1">{qtdQuestoes} questão(ões)</div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Questão</label>
-          <select
-            value={tipoQuestao}
-            onChange={(e) => setTipoQuestao(e.target.value as "Objetiva" | "Discursiva")}
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-          >
-            <option value="Objetiva">Objetiva</option>
-            <option value="Discursiva">Discursiva</option>
-          </select>
-        </div>
-        <div>
-          <label className="flex items-center gap-2 mb-1">
-            <input
-              type="checkbox"
-              checked={usarImagens}
-              onChange={(e) => {
-                setUsarImagens(e.target.checked);
-                if (!e.target.checked) {
-                  setQtdImagens(0);
-                } else if (qtdImagens === 0 && qtdQuestoes > 1) {
-                  // Inicializar com metade das questões (como no Streamlit)
-                  setQtdImagens(Math.floor(qtdQuestoes / 2));
-                }
-              }}
-            />
-            <span className="text-sm font-medium text-slate-700">Incluir Imagens?</span>
-          </label>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Qtd. Imagens</label>
-          <input
-            type="range"
-            min={0}
-            max={qtdQuestoes}
-            value={qtdImagens}
-            onChange={(e) => setQtdImagens(Number(e.target.value))}
-            disabled={!usarImagens}
-            className="w-full"
-          />
-          <div className="text-center text-sm text-slate-600 mt-1">{qtdImagens} imagem(ns)</div>
-          {usarImagens && qtdImagens > 0 && (
-            <p className="text-xs text-slate-500 mt-1">Primeiro usa o banco de imagens (Unsplash); se não houver resultado, a IA gera.</p>
-          )}
-        </div>
-      </div>
+  function alternarVerbo(v: string) {
+    setVerbosBloomSel((prev) => {
+      const atual = prev[dominioBloomSel] || [];
+      return { ...prev, [dominioBloomSel]: atual.includes(v) ? atual.filter((x) => x !== v) : [...atual, v] };
+    });
+  }
 
-      {/* Taxonomia de Bloom e Checklist lado a lado */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Taxonomia de Bloom */}
-        <details className="border border-slate-200 rounded-lg">
-          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">
-            🧠 Taxonomia de Bloom (opcional)
-          </summary>
-          <div className="p-4 space-y-3">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={usarBloom}
-                onChange={(e) => {
-                  setUsarBloom(e.target.checked);
-                  if (!e.target.checked) {
-                    setDominioBloomSel("");
-                    setVerbosBloomSel({});
-                  } else if (!dominioBloomSel && Object.keys(TAXONOMIA_BLOOM).length > 0) {
-                    setDominioBloomSel(Object.keys(TAXONOMIA_BLOOM)[0]);
-                  }
-                }}
-              />
-              <span className="text-sm">Usar Taxonomia de Bloom (Revisada)</span>
-            </label>
-            {usarBloom && (
-              <>
-                <div>
-                  <label className="block text-xs text-slate-600 mb-1">Categoria Cognitiva:</label>
-                  <select
-                    value={dominioBloomSel}
-                    onChange={(e) => {
-                      setDominioBloomSel(e.target.value);
-                      if (!verbosBloomSel[e.target.value]) {
-                        setVerbosBloomSel((prev) => ({ ...prev, [e.target.value]: [] }));
-                      }
-                    }}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                  >
-                    <option value="">Selecione uma categoria</option>
-                    {Object.keys(TAXONOMIA_BLOOM).map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-                {dominioBloomSel && TAXONOMIA_BLOOM[dominioBloomSel] && (
-                  <div>
-                    <label className="block text-xs text-slate-600 mb-1">Verbos de &apos;{dominioBloomSel}&apos;:</label>
-                    <select
-                      multiple
-                      value={verbosBloomSel[dominioBloomSel] || []}
-                      onChange={(e) => {
-                        const selecionados = Array.from(e.target.selectedOptions, (o) => o.value);
-                        setVerbosBloomSel((prev) => ({ ...prev, [dominioBloomSel]: selecionados }));
-                      }}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm min-h-[120px]"
-                    >
-                      {TAXONOMIA_BLOOM[dominioBloomSel].map((verbo) => (
-                        <option key={verbo} value={verbo}>{verbo}</option>
-                      ))}
-                    </select>
-                    <p className="text-xs text-slate-500 mt-1">Segure Ctrl/Cmd para múltipla seleção.</p>
-                  </div>
-                )}
-                {verbosBloomFinais.length > 0 && (
-                  <div className="p-2 bg-emerald-50 border border-emerald-200 rounded text-sm">
-                    <strong>Verbos selecionados:</strong> {verbosBloomFinais.join(", ")}
-                  </div>
-                )}
-              </>
+  const resumoConteudo = eiMode
+    ? [eiIdade, eiCampo].filter(Boolean).join(" · ")
+    : [componente, habilidadesSel.length ? `${habilidadesSel.length} habilidade${habilidadesSel.length > 1 ? "s" : ""}` : "", assunto].filter(Boolean).join(" · ");
+
+  const painel = (
+    <Etapas inicial={1}>
+      <Etapa n={1} titulo={eiMode ? "Experiência" : "Conteúdo"} feita={conteudoOk} resumo={resumoConteudo}>
+        {eiMode ? (
+          <>
+            {eiFaixas.length > 0 && (
+              <LinhaEscolha rotulo="Idade" valor={eiIdade}>
+                {eiFaixas.map((f) => <Pilula key={f} on={eiIdade === f} onClick={() => setEiIdade(f)}>{f}</Pilula>)}
+              </LinhaEscolha>
             )}
-          </div>
-        </details>
+            {eiCampos.length > 0 && (
+              <LinhaEscolha rotulo="Campo de experiência" valor={eiCampo}>
+                {eiCampos.map((c) => <Pilula key={c} on={eiCampo === c} onClick={() => setEiCampo(c)}>{c}</Pilula>)}
+              </LinhaEscolha>
+            )}
+            {eiObjetivos.length > 0 && (
+              <details>
+                <summary className="omni-apoio" style={{ cursor: "pointer" }}>A IA usa {eiObjetivos.length} objetivos de aprendizagem deste campo</summary>
+                <ul style={{ margin: "8px 0 0", paddingLeft: 18, font: "400 13px/19px var(--font-sans)", color: "var(--tinta-2)" }}>
+                  {eiObjetivos.map((o) => <li key={o}>{o}</li>)}
+                </ul>
+              </details>
+            )}
+          </>
+        ) : (
+          <>
+            {serieAluno && <p className="omni-apoio" style={{ margin: 0 }}>Ano: <strong>{serieAluno}</strong>, pela ficha do estudante.</p>}
+            <EscolhaComponente disciplinas={disciplinas} valor={componente} onChange={setComponente} />
+            <EscolhaHabilidades linhas={linhas} componente={componente} selecionadas={habilidadesSel} onChange={setHabilidadesSel} carregando={carregandoBncc} />
+          </>
+        )}
+        <label className="omni-campo">
+          <span className="omni-campo__rotulo">{eiMode ? "Tema da experiência" : "Assunto"} {(!eiMode && habilidadesSel.length > 0) || eiMode ? <span className="omni-campo__opcional">(opcional)</span> : null}</span>
+          <input className="omni-entrada" value={assunto} onChange={(e) => setAssunto(e.target.value)} placeholder={eiMode ? "Ex.: os bichos do jardim" : "Ex.: frações, sistema solar"} />
+        </label>
+        <Continuar para={2} />
+      </Etapa>
 
-        {/* Checklist de Adaptação */}
-        <details className="border border-slate-200 rounded-lg">
-          <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-slate-700">
-            Checklist de Adaptação (PEI)
-          </summary>
-          <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-            {[
-              { k: "questoes_desafiadoras", l: "Questões mais desafiadoras" },
-              { k: "compreende_instrucoes_complexas", l: "Compreende instruções complexas" },
-              { k: "instrucoes_passo_a_passo", l: "Instruções passo a passo" },
-              { k: "dividir_em_etapas", l: "Dividir em etapas" },
-              { k: "paragrafos_curtos", l: "Parágrafos curtos" },
-              { k: "dicas_apoio", l: "Dicas de apoio" },
-              { k: "compreende_figuras_linguagem", l: "Compreende figuras de linguagem" },
-              { k: "descricao_imagens", l: "Descrição de imagens" },
-            ].map(({ k, l }) => (
-              <label key={k} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={!!checklist[k as keyof ChecklistAdaptacao]}
-                  onChange={(e) => setChecklist((c) => ({ ...c, [k]: e.target.checked }))}
-                />
-                {l}
-              </label>
+      {!eiMode && (
+        <Etapa n={2} titulo="Questões" feita resumo={`${qtdQuestoes} · ${tipoQuestao.toLowerCase()}${usarImagens && qtdImagens ? ` · ${qtdImagens} com imagem` : ""}`}>
+          <LinhaEscolha rotulo="Quantas" valor={String(qtdQuestoes)}>
+            {QUANTIDADES.map((q) => <Pilula key={q} on={qtdQuestoes === q} onClick={() => setQtdQuestoes(q)}>{q}</Pilula>)}
+          </LinhaEscolha>
+          <LinhaEscolha rotulo="Tipo" valor={tipoQuestao}>
+            {(["Objetiva", "Discursiva"] as const).map((t) => <Pilula key={t} on={tipoQuestao === t} onClick={() => setTipoQuestao(t)}>{t}</Pilula>)}
+          </LinhaEscolha>
+          <LinhaEscolha rotulo="Com imagem" valor={String(usarImagens ? qtdImagens : 0)}>
+            {Array.from({ length: Math.min(qtdQuestoes, 5) + 1 }, (_, n) => (
+              <Pilula key={n} on={(usarImagens ? qtdImagens : 0) === n} onClick={() => { setUsarImagens(n > 0); setQtdImagens(n); }}>
+                {n === 0 ? "Nenhuma" : n}
+              </Pilula>
             ))}
-          </div>
-        </details>
-      </div>
+          </LinhaEscolha>
+          <p className="omni-apoio" style={{ margin: 0, fontSize: 13 }}>As imagens vêm primeiro de um banco de fotos; quando não há, a IA gera, sempre sem texto escrito nelas.</p>
+          <Continuar para={3} />
+        </Etapa>
+      )}
 
-      <button
-        type="button"
-        onClick={gerar}
-        disabled={loading}
-        className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50"
-      >
-        {loading ? <><OmniLoader engine={engine} size={16} /> Gerando…</> : "Gerar atividade"}
-      </button>
-      {erro && <div className="text-red-600 text-sm">{erro}</div>}
-      {resultado && (
+      <Etapa n={eiMode ? 2 : 3} titulo="Ajustes" resumo={[usarBloom ? `${verbosBloomFinais.length} verbo${verbosBloomFinais.length > 1 ? "s" : ""}` : "", resumoChecklist(checklist)].filter(Boolean).join(" · ")} opcional>
+        {!eiMode && (
+          <>
+            <LinhaEscolha rotulo="Bloom" valor={dominioBloomSel}>
+              {Object.keys(TAXONOMIA_BLOOM).map((d) => (
+                <Pilula key={d} on={dominioBloomSel === d} onClick={() => setDominioBloomSel(dominioBloomSel === d ? "" : d)}>{d.replace(/^\d\.\s*/, "").replace(/\s*\(.*\)$/, "")}</Pilula>
+              ))}
+            </LinhaEscolha>
+            {dominioBloomSel && (
+              <fieldset className="omni-escolhas" style={{ gap: 6 }}>
+                <legend className="omni-linha__rotulo" style={{ marginBottom: 8 }}>Verbos para as questões <span className="omni-campo__opcional">(um ou mais)</span></legend>
+                {TAXONOMIA_BLOOM[dominioBloomSel].map((v) => (
+                  <label key={v} className="omni-chip" style={{ fontSize: 13.5 }}>
+                    <input type="checkbox" checked={verbosDoDominio.includes(v)} onChange={() => alternarVerbo(v)} />
+                    <Check className="omni-chip__marca" aria-hidden />
+                    {v}
+                  </label>
+                ))}
+              </fieldset>
+            )}
+            {usarBloom && (
+              <p className="omni-apoio" style={{ margin: 0, fontSize: 13 }}>
+                Verbos escolhidos: {verbosBloomFinais.join(", ")}.{" "}
+                <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" onClick={() => setVerbosBloomSel({})}>Limpar</button>
+              </p>
+            )}
+          </>
+        )}
+        <EscolhaChecklist valor={checklist} onChange={setChecklist} />
+        <EscolhaMotor valor={engine} onChange={onEngineChange} />
+      </Etapa>
+    </Etapas>
+  );
+
+  return (
+    <MesaFerramenta
+      {...mesa}
+      painel={painel}
+      erro={erro}
+      gerar={{
+        rotulo: rotuloGerar || (eiMode ? "Criar experiência" : "Criar questões"),
+        onClick: gerar,
+        desabilitado: !conteudoOk,
+        carregando: loading,
+        dica: dicaGerar || (eiMode ? "A experiência sai pelos objetivos do campo escolhido." : "As questões saem no ano do estudante, com o perfil dele."),
+      }}
+      vazio={{
+        titulo: eiMode ? "A experiência aparece aqui" : "As questões aparecem aqui",
+        texto: eiMode ? "Escolha a idade e o campo de experiência. Você revisa antes de usar." : "Escolha o componente e a habilidade (ou escreva o assunto). Você revisa antes de imprimir.",
+      }}
+      resultado={resultado && (
         <ResultadoIA
-          titulo="Atividade criada"
+          titulo={eiMode ? "Experiência criada" : "Questões criadas"}
           material={resultado}
           notas={notasResultado}
-          mapaImagens={Object.keys(mapaImagensResultado).length > 0 ? mapaImagensResultado : undefined}
-          onDescartar={() => { setResultado(null); setValidado(false); }}
-          onRevisado={setValidado}
+          mapaImagens={temImagens ? mapaImagensResultado : undefined}
+          onRefazer={gerar}
+          refazendo={loading}
+          onDescartar={() => setResultado(null)}
           acoes={(texto) => (
             <>
               <label className="omni-apoio flex items-center gap-1.5 cursor-pointer" title="Fonte OpenDyslexic, 14 pt, espaçamento 1,5 e fundo creme">
                 <input type="checkbox" checked={formatoInclusivo} onChange={(e) => setFormatoInclusivo(e.target.checked)} />
                 Formato para leitura facilitada
               </label>
-              <DocxDownloadButton
-                texto={texto}
-                titulo="Atividade"
-                filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.docx`}
-                mapaImagens={Object.keys(mapaImagensResultado).length > 0 ? mapaImagensResultado : undefined}
-                formatoInclusivo={formatoInclusivo}
-              />
-              <PdfDownloadButton text={texto} filename={`Atividade_${assunto.replace(/\s/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`} title="Atividade" formatoInclusivo={formatoInclusivo} />
+              <DocxDownloadButton texto={texto} titulo="Atividade" filename={`${nomeArquivo}_${hoje}.docx`} mapaImagens={temImagens ? mapaImagensResultado : undefined} formatoInclusivo={formatoInclusivo} />
+              <PdfDownloadButton text={texto} filename={`${nomeArquivo}_${hoje}.pdf`} title="Atividade" formatoInclusivo={formatoInclusivo} />
               <SalvarNoPlanoButton conteudo={texto} tipo="Atividade" className="omni-btn omni-btn--secundario omni-btn--pequeno" />
             </>
           )}
         />
       )}
-    </div>
+    />
   );
 }
-
-// ==============================================================================
-// CRIAR ITENS (Padrão INEP/BNI) — reutiliza a UI do CriarDoZero com prompt avançado
-// ==============================================================================
