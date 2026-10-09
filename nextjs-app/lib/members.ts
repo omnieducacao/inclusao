@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { getSupabase } from "./supabase";
 import { logger } from "@/lib/logger";
+import type { Papel } from "./papeis";
 
 export type WorkspaceMember = {
   id: string;
@@ -9,6 +10,7 @@ export type WorkspaceMember = {
   email: string;
   telefone?: string | null;
   cargo?: string | null;
+  papel?: Papel;
   can_estudantes: boolean;
   can_pei: boolean;
   can_pei_professor: boolean;
@@ -37,6 +39,7 @@ export type CreateMemberInput = {
   password: string;
   telefone?: string;
   cargo?: string;
+  papel?: Papel;
   can_estudantes?: boolean;
   can_pei?: boolean;
   can_pei_professor?: boolean;
@@ -70,7 +73,7 @@ export async function listMembers(workspaceId: string): Promise<WorkspaceMember[
   const { data, error } = await sb
     .from("workspace_members")
     .select(
-      "id,workspace_id,nome,email,telefone,cargo,can_estudantes,can_pei,can_pei_professor,can_paee,can_hub,can_diario,can_avaliacao,can_gestao,link_type,active,created_at,updated_at"
+      "id,workspace_id,nome,email,telefone,cargo,papel,can_estudantes,can_pei,can_pei_professor,can_paee,can_hub,can_diario,can_avaliacao,can_gestao,link_type,active,created_at,updated_at"
     )
     .eq("workspace_id", workspaceId)
     .order("nome", { ascending: true });
@@ -146,6 +149,7 @@ export async function createMember(
     email: email.trim().toLowerCase(),
     telefone: (input.telefone || "").trim() || null,
     cargo: (input.cargo || "").trim() || null,
+    papel: input.papel ?? "professor",
     password_hash: ph,
     active: true,
     can_estudantes: input.can_estudantes ?? false,
@@ -162,7 +166,7 @@ export async function createMember(
   const { data, error } = await sb
     .from("workspace_members")
     .insert(row)
-    .select("id,workspace_id,nome,email,telefone,cargo,can_estudantes,can_pei,can_pei_professor,can_paee,can_hub,can_diario,can_avaliacao,can_gestao,link_type,active,created_at,updated_at")
+    .select("id,workspace_id,nome,email,telefone,cargo,papel,can_estudantes,can_pei,can_pei_professor,can_paee,can_hub,can_diario,can_avaliacao,can_gestao,link_type,active,created_at,updated_at")
     .single();
 
   if (error) {
@@ -210,6 +214,7 @@ export async function updateMember(
   if (input.email != null) updates.email = input.email.trim().toLowerCase();
   if (input.telefone != null) updates.telefone = (input.telefone || "").trim() || null;
   if (input.cargo != null) updates.cargo = (input.cargo || "").trim() || null;
+  if (input.papel != null) updates.papel = input.papel;
   if (input.can_estudantes != null) updates.can_estudantes = input.can_estudantes;
   if (input.can_pei != null) updates.can_pei = input.can_pei;
   if (input.can_pei_professor != null) updates.can_pei_professor = input.can_pei_professor;
@@ -407,4 +412,20 @@ export async function getStudentLinks(memberId: string): Promise<string[]> {
   return (data as { student_id?: string }[])
     .map((x) => x.student_id)
     .filter((id): id is string => typeof id === "string" && id.length > 0);
+}
+
+/**
+ * Onda 1: confere se o membro é da escola da sessão antes de ler ou mexer nele.
+ * (Antes, quem tinha Gestão numa escola conseguia editar, trocar a senha ou excluir
+ * membros de outra escola só com o id.)
+ */
+export async function membroDaEscola(workspaceId: string | null | undefined, memberId: string): Promise<boolean> {
+  if (!workspaceId || !memberId) return false;
+  const { data } = await getSupabase()
+    .from("workspace_members")
+    .select("id")
+    .eq("id", memberId)
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  return Boolean(data);
 }

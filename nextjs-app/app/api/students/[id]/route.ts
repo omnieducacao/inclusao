@@ -1,4 +1,5 @@
 import { parseBody, studentPatchDataSchema } from "@/lib/validation";
+import { negadoForaDoVinculo, resolverTurma } from "@/lib/turmas";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getStudent, deleteStudent, updateStudent } from "@/lib/students";
@@ -14,6 +15,8 @@ export async function GET(
   }
 
   const { id } = await params;
+  const foraDoVinculo = await negadoForaDoVinculo(session, id);
+  if (foraDoVinculo) return foraDoVinculo;
   const student = await getStudent(session.workspace_id, id);
   if (!student) {
     return NextResponse.json({ error: "Estudante não encontrado." }, { status: 404 });
@@ -41,16 +44,32 @@ export async function PATCH(
   if (denied) return denied;
 
   const { id } = await params;
+  const foraDoVinculo = await negadoForaDoVinculo(session, id);
+  if (foraDoVinculo) return foraDoVinculo;
   const parsed = await parseBody(req, studentPatchDataSchema);
 
   if (parsed.error) return parsed.error;
 
   const body = parsed.data;
+  const grade = body.grade as string | null | undefined;
+  const classGroup = body.class_group as string | null | undefined;
+
+  // Onda 1: se mudou série ou turma, religa o estudante à turma cadastrada
+  let class_id: string | null | undefined;
+  if (grade !== undefined || classGroup !== undefined) {
+    const atual = await getStudent(session.workspace_id, id);
+    class_id = await resolverTurma(
+      session.workspace_id,
+      grade !== undefined ? grade : atual?.grade,
+      classGroup !== undefined ? classGroup : atual?.class_group
+    );
+  }
 
   const result = await updateStudent(session.workspace_id, id, {
     name: body.name as string | undefined,
-    grade: body.grade as string | null | undefined,
-    class_group: body.class_group as string | null | undefined,
+    grade,
+    class_group: classGroup,
+    class_id,
     diagnosis: body.diagnosis as string | null | undefined,
   });
 
@@ -77,6 +96,8 @@ export async function DELETE(
   if (denied) return denied;
 
   const { id } = await params;
+  const foraDoVinculo = await negadoForaDoVinculo(session, id);
+  if (foraDoVinculo) return foraDoVinculo;
   const result = await deleteStudent(session.workspace_id, id);
 
   if (!result.success) {

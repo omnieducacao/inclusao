@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         // Get all workspace members
         let query = sb
             .from("workspace_members")
-            .select("id, workspace_id, nome, email, role, active, can_pei, can_paee, can_hub, can_diario, can_avaliacao, can_gestao, link_type, created_at");
+            .select("id, workspace_id, nome, email, papel, active, can_pei, can_paee, can_hub, can_diario, can_avaliacao, can_gestao, link_type, created_at");
 
         if (wsFilter) {
             query = query.eq("workspace_id", wsFilter);
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
             id: m.id,
             nome: m.nome || "",
             email: m.email || "",
-            role: m.role || "member",
+            role: m.papel || "professor",
             workspace_id: m.workspace_id,
             workspace_name: wsMap[String(m.workspace_id)] || "—",
             active: m.active !== false,

@@ -8,6 +8,7 @@ export type WorkspaceMember = {
     email: string;
     telefone?: string | null;
     cargo?: string | null;
+    papel?: "direcao" | "coordenacao" | "professor" | "aee" | "apoio";
     can_estudantes: boolean;
     can_pei: boolean;
     can_pei_professor: boolean;
@@ -44,7 +45,7 @@ export const PERM_LABELS: Record<string, string> = {
 };
 
 export const LINK_OPTIONS: { value: "todos" | "turma" | "tutor"; label: string }[] = [
-    { value: "todos", label: "Todos (coordenação/AEE)" },
-    { value: "turma", label: "Por turma" },
-    { value: "tutor", label: "Por tutor (estudantes específicos)" },
+    { value: "todos", label: "Toda a escola" },
+    { value: "turma", label: "As turmas em que dá aula" },
+    { value: "tutor", label: "Estudantes escolhidos um a um" },
 ];

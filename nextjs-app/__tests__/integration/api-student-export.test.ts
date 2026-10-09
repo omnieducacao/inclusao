@@ -70,10 +70,17 @@ vi.mock("@/lib/supabase", () => ({
                 if (table === "audit_log") {
                     return { insert: () => Promise.resolve({ data: null, error: null }) };
                 }
-                return createChainMock();
+                return {
+                    select: () => ({ eq: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }) }),
+                };
             },
         };
     },
+}));
+
+// onda 1: o export busca o estudante pela escola da sessão (getStudent já descriptografa)
+vi.mock("@/lib/students", () => ({
+    getStudent: vi.fn(() => Promise.resolve({ ...mockStudent, pei_data: {}, paee_ciclos: [], daily_logs: [] })),
 }));
 
 vi.mock("@/lib/encryption", () => ({

@@ -5,7 +5,7 @@ import { getSecret } from "@/lib/jwt-secret";
 import { checkRateLimit } from "@/lib/upstash-rate-limit"; // V5 Rate Limiter
 
 
-const PUBLIC_PATHS = ["/login", "/landing", "/privacidade", "/seguranca", "/site/", "/api/auth/login", "/api/auth/admin-login", "/api/vitals"];
+const PUBLIC_PATHS = ["/login", "/landing", "/privacidade", "/seguranca", "/site/", "/api/auth/login", "/api/auth/admin-login", "/api/vitals", "/api/health"];
 
 // Família (responsáveis): só enxerga a área /familia e as APIs feitas para ela.
 // Tudo o mais é negado aqui, antes de chegar às rotas, para que um esquecimento numa rota

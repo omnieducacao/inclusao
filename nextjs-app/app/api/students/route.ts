@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
-import { listStudents } from "@/lib/students";
+import { listStudentsDaSessao } from "@/lib/students";
 import { getSupabase } from "@/lib/supabase";
 import { requirePermission } from "@/lib/permissions";
 import { parseBody, createStudentSchema } from "@/lib/validation";
 import { logger } from "@/lib/logger";
+import { resolverTurma } from "@/lib/turmas";
 import { encryptField, encryptSensitivePeiFields } from "@/lib/encryption";
 
 export async function GET() {
@@ -17,7 +18,7 @@ export async function GET() {
   }
 
   try {
-    const students = await listStudents(session.workspace_id);
+    const students = await listStudentsDaSessao(session);
     return NextResponse.json(students);
   } catch (err) {
     logger.error({ err: err }, "GET /api/students:");
@@ -47,9 +48,12 @@ export async function POST(req: Request) {
     const { name, grade, class_group, diagnosis, pei_data } = parsed.data;
 
     const sb = getSupabase();
+    // Onda 1: liga o estudante à turma cadastrada quando série + turma batem com uma só turma
+    const class_id = await resolverTurma(session.workspace_id, grade, class_group);
     const { data, error } = await sb
       .from("students")
       .insert({
+        class_id,
         workspace_id: session.workspace_id,
         name: name.trim(),
         grade: grade || null,
@@ -59,7 +63,7 @@ export async function POST(req: Request) {
         pei_data: pei_data ? encryptSensitivePeiFields(pei_data as Record<string, unknown>) : null,
         privacy_consent_at: new Date().toISOString(),
       })
-      .select("id, workspace_id, name, grade, class_group, created_at")
+      .select("id, workspace_id, name, grade, class_group, class_id, created_at")
       .single();
 
     if (error) {

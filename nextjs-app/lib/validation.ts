@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { PAPEL_IDS } from "./papeis";
 import { z, ZodError, ZodSchema } from "zod";
 
 /**
@@ -110,6 +111,7 @@ export const createMemberSchema = z.object({
     password: password,
     telefone: optStr,
     cargo: optStr,
+    papel: z.enum(PAPEL_IDS).optional().default("professor"),
     can_estudantes: z.boolean().optional().default(false),
     can_pei: z.boolean().optional().default(false),
     can_pei_professor: z.boolean().optional().default(false),
@@ -497,6 +499,7 @@ export const updateMemberSchema = z.object({
     password: z.string().optional(),
     telefone: z.string().optional(),
     cargo: z.string().optional(),
+    papel: z.enum(PAPEL_IDS).optional(),
     can_estudantes: z.boolean().optional(),
     can_pei: z.boolean().optional(),
     can_pei_professor: z.boolean().optional(),

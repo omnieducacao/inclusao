@@ -36,12 +36,12 @@ export async function GET(request: NextRequest) {
 
             const { data: members } = await sb
                 .from("workspace_members")
-                .select("nome, email, role, workspace_id, active, link_type, created_at")
+                .select("nome, email, papel, workspace_id, active, link_type, created_at")
                 .order("nome");
 
             csv = "Nome,Email,Escola,Papel,Ativo,Tipo Vínculo,Criado em\n";
             (members || []).forEach((m: Record<string, unknown>) => {
-                csv += `"${m.nome || ""}","${m.email || ""}","${wsMap[String(m.workspace_id)] || "—"}","${m.role || "member"}",${m.active !== false ? "Sim" : "Não"},"${m.link_type || "todos"}","${m.created_at || ""}"\n`;
+                csv += `"${m.nome || ""}","${m.email || ""}","${wsMap[String(m.workspace_id)] || "—"}","${m.papel || "professor"}",${m.active !== false ? "Sim" : "Não"},"${m.link_type || "todos"}","${m.created_at || ""}"\n`;
             });
             filename = "usuarios_omnisfera.csv";
 
@@ -52,13 +52,13 @@ export async function GET(request: NextRequest) {
 
             const { data: usage } = await sb
                 .from("ia_usage")
-                .select("workspace_id, engine, tokens_used, event_type, created_at")
+                .select("workspace_id, engine, credits_consumed, source, created_at")
                 .order("created_at", { ascending: false })
                 .limit(5000);
 
-            csv = "Data,Escola,Motor IA,Tokens,Tipo Evento\n";
+            csv = "Data,Escola,Motor IA,Créditos,Origem\n";
             (usage || []).forEach((u: Record<string, unknown>) => {
-                csv += `"${u.created_at || ""}","${wsMap[String(u.workspace_id)] || "—"}","${u.engine || ""}",${u.tokens_used || 0},"${u.event_type || ""}"\n`;
+                csv += `"${u.created_at || ""}","${wsMap[String(u.workspace_id)] || "—"}","${u.engine || ""}",${u.credits_consumed || 0},"${u.source || ""}"\n`;
             });
             filename = "uso_ia_omnisfera.csv";
 

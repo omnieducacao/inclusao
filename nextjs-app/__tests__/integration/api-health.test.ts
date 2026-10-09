@@ -18,48 +18,22 @@ import { GET, HEAD } from "@/app/api/health/route";
 
 describe("API /api/health", () => {
     describe("GET", () => {
-        it("retorna status 200 com estrutura correta", async () => {
+        // onda 1: rota pública com resposta mínima (sem detalhes do servidor)
+        it("retorna 200 com status, banco e tempo", async () => {
             const response = await GET();
             const data = await response.json();
 
             expect(response.status).toBe(200);
-            expect(data).toHaveProperty("status");
-            expect(data).toHaveProperty("timestamp");
-            expect(data).toHaveProperty("uptime");
-            expect(data).toHaveProperty("responseTime");
-            expect(data).toHaveProperty("checks");
-            expect(data).toHaveProperty("environment");
+            expect(data.status).toBe("healthy");
+            expect(data.banco).toBe("ok");
+            expect(typeof data.ms).toBe("number");
         });
 
-        it("contém check de memory", async () => {
-            const response = await GET();
-            const data = await response.json();
-
-            expect(data.checks).toHaveProperty("memory");
-            expect(data.checks.memory.status).toBeTruthy();
-        });
-
-        it("contém check de database", async () => {
-            const response = await GET();
-            const data = await response.json();
-
-            expect(data.checks).toHaveProperty("database");
-        });
-
-        it("timestamp é ISO válido", async () => {
-            const response = await GET();
-            const data = await response.json();
-
-            const d = new Date(data.timestamp);
-            expect(isNaN(d.getTime())).toBe(false);
-        });
-
-        it("responseTime é número positivo", async () => {
-            const response = await GET();
-            const data = await response.json();
-
-            expect(typeof data.responseTime).toBe("number");
-            expect(data.responseTime).toBeGreaterThanOrEqual(0);
+        it("não expõe detalhes internos", async () => {
+            const data = await (await GET()).json();
+            expect(data).not.toHaveProperty("checks");
+            expect(data).not.toHaveProperty("environment");
+            expect(data).not.toHaveProperty("uptime");
         });
     });
 

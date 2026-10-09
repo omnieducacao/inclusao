@@ -21,7 +21,7 @@ export async function GET() {
   const sb = getSupabase();
   const { data, error } = await sb
     .from("workspaces")
-    .select("family_module_enabled, allow_avaliacao_fase_1")
+    .select("family_module_enabled, allow_avaliacao_fase_1, modo")
     .eq("id", session.workspace_id)
     .single();
 
@@ -29,17 +29,18 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const d = data as { family_module_enabled?: boolean; allow_avaliacao_fase_1?: boolean } | null;
+  const d = data as { family_module_enabled?: boolean; allow_avaliacao_fase_1?: boolean; modo?: string } | null;
   return NextResponse.json({
     family_module_enabled: Boolean(d?.family_module_enabled),
     allow_avaliacao_fase_1: Boolean(d?.allow_avaliacao_fase_1),
+    modo: d?.modo === "simplificado" ? "simplificado" : "completo",
   });
 }
 
 /**
  * PATCH /api/workspace/config
  * Atualiza configurações do workspace.
- * Body: { family_module_enabled?: boolean }
+ * Body: { family_module_enabled?: boolean; allow_avaliacao_fase_1?: boolean; modo?: "completo" | "simplificado" }
  */
 export async function PATCH(req: Request) {
   const session = await getSession();
@@ -53,7 +54,7 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Sem permissão" }, { status: 403 });
   }
 
-  let body: { family_module_enabled?: boolean; allow_avaliacao_fase_1?: boolean };
+  let body: { family_module_enabled?: boolean; allow_avaliacao_fase_1?: boolean; modo?: string };
   try {
     body = await req.json();
   } catch { /* expected fallback */
@@ -66,6 +67,11 @@ export async function PATCH(req: Request) {
   }
   if (typeof body.allow_avaliacao_fase_1 === "boolean") {
     updates.allow_avaliacao_fase_1 = body.allow_avaliacao_fase_1;
+  }
+
+  // Onda 1: modo da escola (completo | simplificado)
+  if (body.modo === "completo" || body.modo === "simplificado") {
+    updates.modo = body.modo;
   }
 
   if (Object.keys(updates).length === 0) {

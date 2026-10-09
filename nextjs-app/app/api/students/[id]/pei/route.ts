@@ -1,4 +1,5 @@
 import { parseBody, studentPatchDataSchema } from "@/lib/validation";
+import { negadoForaDoVinculo } from "@/lib/turmas";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import {
@@ -17,6 +18,8 @@ export async function GET(
   }
 
   const { id } = await params;
+  const foraDoVinculo = await negadoForaDoVinculo(session, id);
+  if (foraDoVinculo) return foraDoVinculo;
   const student = await getStudent(session.workspace_id, id);
   if (!student) {
     return NextResponse.json({ error: "Estudante não encontrado." }, { status: 404 });
@@ -41,6 +44,8 @@ export async function PATCH(
   if (denied) return denied;
 
   const { id } = await params;
+  const foraDoVinculo = await negadoForaDoVinculo(session, id);
+  if (foraDoVinculo) return foraDoVinculo;
   const parsed = await parseBody(req, studentPatchDataSchema);
 
   if (parsed.error) return parsed.error;

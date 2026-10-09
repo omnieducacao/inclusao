@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
-import { getStudentLinks } from "@/lib/members";
+import { getStudentLinks, membroDaEscola } from "@/lib/members";
 
 export async function GET(
   _request: NextRequest,
@@ -12,6 +12,9 @@ export async function GET(
   }
 
   const { id } = await params;
+  if (!(await membroDaEscola(session.workspace_id, id))) {
+    return NextResponse.json({ error: "Membro não encontrado." }, { status: 404 });
+  }
   const studentIds = await getStudentLinks(id);
   return NextResponse.json({ student_ids: studentIds });
 }

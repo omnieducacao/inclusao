@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     // Verify member belongs to same workspace
     const { data: member } = await sb
         .from("workspace_members")
-        .select("id, workspace_id, nome, email, can_estudantes, can_pei, can_pei_professor, can_paee, can_hub, can_diario, can_avaliacao, can_gestao, link_type")
+        .select("id, workspace_id, nome, email, can_estudantes, can_pei, can_pei_professor, can_paee, can_hub, can_diario, can_avaliacao, can_gestao, link_type, papel")
         .eq("id", member_id)
         .eq("workspace_id", session.workspace_id)
         .eq("active", true)
@@ -71,6 +71,7 @@ export async function POST(req: Request) {
             can_avaliacao: member.can_avaliacao,
             can_gestao: member.can_gestao,
             link_type: member.link_type,
+            papel: member.papel,
         },
         simulating_member_id: member.id,
         simulating_member_name: member.nome,

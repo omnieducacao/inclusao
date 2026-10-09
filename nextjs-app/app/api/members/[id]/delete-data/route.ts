@@ -1,12 +1,15 @@
 /**
  * POST /api/members/[id]/delete-data
  * LGPD Art. 18, VI — Direito à eliminação de dados
- * Anonimiza os dados pessoais do membro (soft-delete).
+ * Anonimiza os dados pessoais do membro (soft-delete) e desativa o acesso.
  * Preserva integridade referencial e logs de auditoria.
+ *
+ * Onda 1: usava a tabela "members", que não existe, e não conferia a escola.
  */
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
+import { getSession, memberIdDaSessao } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { logAction } from "@/lib/audit";
 import { logger } from "@/lib/logger";
 
 export async function POST(
@@ -21,50 +24,50 @@ export async function POST(
 
         const { id } = await params;
 
-        // Apenas o próprio membro ou admin pode solicitar exclusão
-        const memberId = (session.member as Record<string, unknown>)?.id as string;
-        if (memberId !== id && session.user_role !== "master") {
+        if (memberIdDaSessao(session) !== id && session.user_role !== "master" && !session.is_platform_admin) {
             return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
         }
 
         const sb = getSupabase();
-
-        // Buscar membro
-        const { data: member, error: memberError } = await sb
-            .from("members")
-            .select("id, user_id, name, email")
+        const { data: member } = await sb
+            .from("workspace_members")
+            .select("id, nome")
             .eq("id", id)
-            .single();
+            .eq("workspace_id", session.workspace_id)
+            .maybeSingle();
 
-        if (memberError || !member) {
+        if (!member) {
             return NextResponse.json({ error: "Membro não encontrado." }, { status: 404 });
         }
 
-        // Soft-delete: anonimizar dados pessoais em vez de deletar
         const anonSuffix = `_ANON_${Date.now()}`;
         const { error: updateError } = await sb
-            .from("members")
+            .from("workspace_members")
             .update({
-                name: `Usuário Removido${anonSuffix}`,
+                nome: "Usuário removido",
                 email: `removed${anonSuffix}@anon.local`,
-                // Preservar workspace_id e role para integridade referencial
+                telefone: null,
+                password_hash: null,
+                active: false,
+                updated_at: new Date().toISOString(),
             })
-            .eq("id", id);
+            .eq("id", id)
+            .eq("workspace_id", session.workspace_id);
 
         if (updateError) {
             logger.error({ err: updateError }, "Erro ao anonimizar membro:");
             return NextResponse.json({ error: "Erro ao processar exclusão." }, { status: 500 });
         }
 
-        // Registrar no audit log
-        await sb.from("audit_logs").insert({
-            user_id: member.user_id,
-            action: "DATA_DELETION_REQUEST",
-            table_name: "members",
-            record_id: id,
-            old_data: { nome_original: member.name, email_original: member.email },
-            new_data: { status: "anonimizado" },
-        }).then(() => {/* ignore errors on audit */ });
+        await logAction({
+            workspaceId: session.workspace_id,
+            actorName: session.usuario_nome,
+            actorRole: session.user_role,
+            action: "delete",
+            resourceType: "member",
+            resourceId: id,
+            metadata: { motivo: "LGPD Art. 18, VI", anonimizado: true },
+        });
 
         return NextResponse.json({
             sucesso: true,
@@ -72,10 +75,7 @@ export async function POST(
             nota: "Registros de auditoria foram preservados conforme exigido por lei.",
         });
     } catch (err) {
-        logger.error({ err: err }, "Delete data error:");
-        return NextResponse.json(
-            { error: err instanceof Error ? err.message : "Erro ao processar exclusão." },
-            { status: 500 }
-        );
+        logger.error({ err }, "Delete data error:");
+        return NextResponse.json({ error: "Erro ao processar exclusão." }, { status: 500 });
     }
 }

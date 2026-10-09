@@ -19,6 +19,11 @@ vi.mock("@/lib/ai-engines", () => ({
     getEngineError: vi.fn((engine: string) => engineErrors[engine] || null),
 }));
 
+// A rota passou a exigir sessão; o teste usa uma sessão de escola
+vi.mock("@/lib/session", () => ({
+    getSession: vi.fn(() => Promise.resolve({ workspace_id: "ws-test", user_role: "master" })),
+}));
+
 // ─── Import after mocks ──────────────────────────────────────────────────────────
 
 import { GET } from "@/app/api/ai-engines/available/route";

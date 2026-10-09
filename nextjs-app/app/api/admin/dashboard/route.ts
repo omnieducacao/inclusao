@@ -19,7 +19,7 @@ export async function GET() {
         const inactiveSchools = wsList.length - activeSchools;
 
         // 2. Members (users)
-        const { data: members } = await sb.from("workspace_members").select("id, workspace_id, nome, role, active");
+        const { data: members } = await sb.from("workspace_members").select("id, workspace_id, nome, papel, active");
         const membersList = members || [];
         const totalUsers = membersList.length;
         const activeUsers = membersList.filter((m: Record<string, unknown>) => m.active !== false).length;

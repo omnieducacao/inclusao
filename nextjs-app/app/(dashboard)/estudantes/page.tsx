@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
-import { listStudents } from "@/lib/students";
+import { listStudentsDaSessao } from "@/lib/students";
 import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { SafeModuleWrapper } from "@/components/SafeModuleWrapper";
@@ -16,7 +16,7 @@ const EstudantesClient = dynamic(
 export default async function EstudantesPage() {
   const session = await getSession();
   const workspaceId = session?.workspace_id;
-  const students = workspaceId ? await listStudents(workspaceId) : [];
+  const students = await listStudentsDaSessao(session);
 
   let familyModuleEnabled = false;
   if (workspaceId) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { nomeDoPapel } from "@/lib/papeis";
 import { Trash2, Edit, Pause, Play, User } from "lucide-react";
 import { TableRow, TableCell, Avatar, Badge, Button } from "@omni/ds";
 import type { WorkspaceMember, FamilyResponsavel } from "../types";
@@ -195,7 +196,7 @@ export function MemberCard({
                     <div>
                         <p className="font-medium text-(--omni-text-primary)">
                             {member.nome}
-                            {member.cargo && <span className="font-normal text-(--omni-text-muted)"> · {member.cargo}</span>}
+                            <span className="font-normal text-(--omni-text-muted)"> · {nomeDoPapel(member.papel)}{member.cargo ? ` (${member.cargo})` : ""}</span>
                         </p>
                         <p className="text-xs text-(--omni-text-muted) mt-0.5">
                             {member.email} · {member.telefone || "—"}

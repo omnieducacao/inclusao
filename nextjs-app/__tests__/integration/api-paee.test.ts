@@ -66,7 +66,13 @@ vi.mock("@/lib/validation", () => ({
 // ─── Mock Supabase & Services ─────────────────────────────────────────────────────
 vi.mock("@/lib/students", () => ({
     updateStudentPaeeCiclos: vi.fn(() => Promise.resolve({ success: true })),
+    // onda 1: o relatório lê o estudante (da escola da sessão) e o diário em daily_logs
+    getStudent: vi.fn(() => Promise.resolve({
+        id: "s1", name: "João", pei_data: { diagnostico: "TEA" },
+        daily_logs: [{ data_sessao: "2026-03-01", duracao_minutos: 45, engajamento_aluno: 4 }],
+    })),
 }));
+vi.mock("@/lib/turmas", () => ({ negadoForaDoVinculo: vi.fn(() => Promise.resolve(null)) }));
 
 function createChainMock(data: unknown) {
     const terminal = {

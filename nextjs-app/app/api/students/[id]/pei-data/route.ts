@@ -1,4 +1,5 @@
 import { parseBody, studentPatchDataSchema } from "@/lib/validation";
+import { negadoForaDoVinculo } from "@/lib/turmas";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
@@ -21,6 +22,8 @@ export async function GET(
   }
 
   const { id } = await params;
+  const foraDoVinculo = await negadoForaDoVinculo(session, id);
+  if (foraDoVinculo) return foraDoVinculo;
   const sb = getSupabase();
   
   // Buscar apenas o pei_data diretamente
@@ -64,6 +67,8 @@ export async function PATCH(
   }
 
   const { id } = await params;
+  const foraDoVinculo = await negadoForaDoVinculo(session, id);
+  if (foraDoVinculo) return foraDoVinculo;
   const parsed = await parseBody(req, studentPatchDataSchema);
 
   if (parsed.error) return parsed.error;

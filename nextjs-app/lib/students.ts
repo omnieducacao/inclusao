@@ -1,5 +1,6 @@
 import { getSupabase } from "./supabase";
 import { logger } from "./logger";
+import { vinculoDaSessao, filtrarPorVinculo } from "./turmas";
 import {
   encryptField,
   decryptField,
@@ -16,6 +17,7 @@ export type Student = {
   grade: string | null;
   class_group: string | null;
   diagnosis: string | null;
+  class_id?: string | null;
   pei_data?: Record<string, unknown>;
   paee_ciclos?: unknown[];
   planejamento_ativo?: string | null;
@@ -35,7 +37,7 @@ export async function listStudents(workspaceId: string): Promise<Student[]> {
 
   const { data, error } = await sb
     .from("students")
-    .select("id, workspace_id, name, grade, class_group, diagnosis, pei_data, paee_ciclos, planejamento_ativo, created_at")
+    .select("id, workspace_id, name, grade, class_group, class_id, diagnosis, pei_data, paee_ciclos, planejamento_ativo, created_at")
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false });
 
@@ -84,7 +86,7 @@ export async function getStudent(
 
     const { data, error } = await sb
       .from("students")
-      .select("id, workspace_id, name, grade, class_group, diagnosis, pei_data, paee_ciclos, planejamento_ativo, paee_data, daily_logs, created_at")
+      .select("id, workspace_id, name, grade, class_group, class_id, diagnosis, pei_data, paee_ciclos, planejamento_ativo, paee_data, daily_logs, created_at")
       .eq("workspace_id", normalizedWorkspaceId)
       .eq("id", normalizedStudentId)
       .maybeSingle();
@@ -182,6 +184,7 @@ export async function updateStudent(
     name?: string;
     grade?: string | null;
     class_group?: string | null;
+    class_id?: string | null;
     diagnosis?: string | null;
   }
 ): Promise<{ success: boolean; error?: string }> {
@@ -192,6 +195,7 @@ export async function updateStudent(
   if (updates.name !== undefined) payload.name = updates.name;
   if (updates.grade !== undefined) payload.grade = updates.grade;
   if (updates.class_group !== undefined) payload.class_group = updates.class_group;
+  if (updates.class_id !== undefined) payload.class_id = updates.class_id || null;
   // LGPD: criptografar diagnóstico
   if (updates.diagnosis !== undefined) {
     payload.diagnosis = updates.diagnosis ? encryptField(updates.diagnosis) : updates.diagnosis;
@@ -320,4 +324,13 @@ export async function estudanteDaEscola(workspaceId: string | null | undefined, 
     .eq("workspace_id", workspaceId)
     .maybeSingle();
   return Boolean(data);
+}
+
+/**
+ * Onda 1: estudantes que esta sessão pode ver (coordenação: todos; professor: o seu vínculo).
+ */
+export async function listStudentsDaSessao(session: Parameters<typeof vinculoDaSessao>[0]): Promise<Student[]> {
+  if (!session?.workspace_id) return [];
+  const [lista, vinculo] = await Promise.all([listStudents(session.workspace_id), vinculoDaSessao(session)]);
+  return filtrarPorVinculo(vinculo, lista);
 }

@@ -4,6 +4,34 @@ import { useState, useEffect } from "react";
 import { Edit, User, Heart, AlertTriangle } from "lucide-react";
 import type { WorkspaceMember } from "../types";
 import { PERM_LABELS, LINK_OPTIONS } from "../types";
+import { PAPEIS, papelPadrao, type Papel } from "@/lib/papeis";
+
+/** Papel na escola: ao trocar, sugere as permissões e o vínculo daquele papel (onda 1). */
+function SeletorPapel({ valor, onEscolher }: { valor: Papel; onEscolher: (p: Papel) => void }) {
+    const atual = papelPadrao(valor);
+    return (
+        <div className="space-y-1">
+            <label className="text-sm font-medium text-slate-700" htmlFor="papel-membro">Papel na escola</label>
+            <select
+                id="papel-membro"
+                value={valor}
+                onChange={(e) => onEscolher(e.target.value as Papel)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+            >
+                {PAPEIS.map((p) => (
+                    <option key={p.id} value={p.id}>{p.nome}</option>
+                ))}
+            </select>
+            <p className="text-xs text-slate-500">{atual.descricao} As permissões abaixo foram sugeridas para o papel e podem ser ajustadas.</p>
+        </div>
+    );
+}
+
+/** A lista de /api/students vem como array (ou {students} em versões antigas). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function listaDeEstudantes(d: any): any[] {
+    return Array.isArray(d) ? d : d?.students || [];
+}
 
 export function NovoUsuarioForm({
     onSuccess,
@@ -17,17 +45,15 @@ export function NovoUsuarioForm({
     const [password, setPassword] = useState("");
     const [telefone, setTelefone] = useState("");
     const [cargo, setCargo] = useState("");
-    const [perms, setPerms] = useState<Record<string, boolean>>({
-        can_estudantes: false,
-        can_pei: false,
-        can_pei_professor: false,
-        can_paee: false,
-        can_hub: false,
-        can_diario: false,
-        can_avaliacao: false,
-        can_gestao: false,
-    });
-    const [linkType, setLinkType] = useState<"todos" | "turma" | "tutor">("todos");
+    const [papel, setPapel] = useState<Papel>("professor");
+    const [perms, setPerms] = useState<Record<string, boolean>>({ ...papelPadrao("professor").permissoes });
+    const [linkType, setLinkType] = useState<"todos" | "turma" | "tutor">(papelPadrao("professor").vinculo);
+    function escolherPapel(p: Papel) {
+        const preset = papelPadrao(p);
+        setPapel(p);
+        setPerms({ ...preset.permissoes });
+        setLinkType(preset.vinculo);
+    }
     const [teacherAssignments, setTeacherAssignments] = useState<{ class_id: string; component_id: string }[]>([]);
     const [studentIds, setStudentIds] = useState<string[]>([]);
     const [classes, setClasses] = useState<Array<{ id: string; label: string }>>([]);
@@ -60,7 +86,7 @@ export function NovoUsuarioForm({
                 .then((r) => r.json())
                 .then((d) => {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    setStudents((d.students || []).map((s: any) => ({
+                    setStudents(listaDeEstudantes(d).map((s: any) => ({
                         id: s.id,
                         name: s.name,
                         grade: s.grade,
@@ -92,6 +118,7 @@ export function NovoUsuarioForm({
                     password,
                     telefone: telefone.trim() || undefined,
                     cargo: cargo.trim() || undefined,
+                    papel,
                     link_type: linkType,
                     teacher_assignments: linkType === "turma" && teacherAssignments.length > 0 ? teacherAssignments : undefined,
                     student_ids: linkType === "tutor" && studentIds.length > 0 ? studentIds : undefined,
@@ -119,7 +146,8 @@ export function NovoUsuarioForm({
                     <input type="email" placeholder="Email *" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
                     <input type="password" placeholder="Senha * (mín. 4 caracteres)" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
                     <input type="text" placeholder="Telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-                    <input type="text" placeholder="Cargo" value={cargo} onChange={(e) => setCargo(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+                    <input type="text" placeholder="Cargo (como a escola chama, ex.: Professora de Matemática)" value={cargo} onChange={(e) => setCargo(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+                    <SeletorPapel valor={papel} onEscolher={escolherPapel} />
                 </div>
                 <div>
                     <p className="text-sm font-medium text-slate-700 mb-2">Páginas que pode acessar</p>
@@ -203,6 +231,13 @@ export function EditarUsuarioForm({
     const [password, setPassword] = useState("");
     const [telefone, setTelefone] = useState(member.telefone ?? "");
     const [cargo, setCargo] = useState(member.cargo ?? "");
+    const [papel, setPapel] = useState<Papel>((member.papel as Papel) ?? "professor");
+    function escolherPapel(p: Papel) {
+        const preset = papelPadrao(p);
+        setPapel(p);
+        setPerms({ ...preset.permissoes });
+        setLinkType(preset.vinculo);
+    }
     const [perms, setPerms] = useState({
         can_estudantes: member.can_estudantes,
         can_pei: member.can_pei,
@@ -253,7 +288,7 @@ export function EditarUsuarioForm({
             Promise.all([
                 fetch("/api/students").then((r) => r.json()).then((d) => {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    setStudents((d.students || []).map((s: any) => ({
+                    setStudents(listaDeEstudantes(d).map((s: any) => ({
                         id: s.id,
                         name: s.name,
                         grade: s.grade,
@@ -282,6 +317,7 @@ export function EditarUsuarioForm({
                 email: email.trim().toLowerCase(),
                 telefone: telefone.trim() || undefined,
                 cargo: cargo.trim() || undefined,
+                papel,
                 link_type: linkType,
                 teacher_assignments: linkType === "turma" ? teacherAssignments.filter((a) => a.class_id && a.component_id) : undefined,
                 student_ids: linkType === "tutor" ? studentIds : undefined,
@@ -320,7 +356,8 @@ export function EditarUsuarioForm({
                         <input type="email" placeholder="Email *" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
                         <input type="password" placeholder="Nova senha (deixe em branco para manter)" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
                         <input type="text" placeholder="Telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-                        <input type="text" placeholder="Cargo" value={cargo} onChange={(e) => setCargo(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+                        <input type="text" placeholder="Cargo (como a escola chama)" value={cargo} onChange={(e) => setCargo(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+                        <SeletorPapel valor={papel} onEscolher={escolherPapel} />
                     </div>
                     <div>
                         <p className="text-sm font-medium text-slate-700 mb-2">Páginas que pode acessar</p>

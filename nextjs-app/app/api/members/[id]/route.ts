@@ -9,6 +9,7 @@ import {
   getMemberPedagogicalImpact,
   getClassAssignments,
   getStudentLinks,
+  membroDaEscola,
 } from "@/lib/members";
 import { requirePermission } from "@/lib/permissions";
 
@@ -27,6 +28,10 @@ export async function PATCH(
   const { id } = await params;
   if (!id) {
     return NextResponse.json({ error: "ID obrigatório" }, { status: 400 });
+  }
+
+  if (!(await membroDaEscola(session.workspace_id, id))) {
+    return NextResponse.json({ error: "Membro não encontrado." }, { status: 404 });
   }
 
   const parsed = await parseBody(request, updateMemberSchema);
@@ -68,6 +73,7 @@ export async function PATCH(
     password: body.password,
     telefone: body.telefone,
     cargo: body.cargo,
+    papel: body.papel,
     can_estudantes: body.can_estudantes,
     can_pei: body.can_pei,
     can_pei_professor: body.can_pei_professor,
@@ -102,6 +108,10 @@ export async function DELETE(
   const { id } = await params;
   if (!id) {
     return NextResponse.json({ error: "ID obrigatório" }, { status: 400 });
+  }
+
+  if (!(await membroDaEscola(session.workspace_id, id))) {
+    return NextResponse.json({ error: "Membro não encontrado." }, { status: 404 });
   }
 
   const result = await deleteMember(id);

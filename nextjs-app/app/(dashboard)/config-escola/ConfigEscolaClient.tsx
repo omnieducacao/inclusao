@@ -31,6 +31,8 @@ export function ConfigEscolaClient() {
   const [familyModuleSaving, setFamilyModuleSaving] = useState(false);
   const [allowAvaliacaoFase1, setAllowAvaliacaoFase1] = useState(false);
   const [allowAvaliacaoFase1Saving, setAllowAvaliacaoFase1Saving] = useState(false);
+  const [modo, setModo] = useState<"completo" | "simplificado">("completo");
+  const [modoSaving, setModoSaving] = useState(false);
 
   const loadYears = useCallback(async () => {
     const res = await fetch("/api/school/years");
@@ -59,6 +61,7 @@ export function ConfigEscolaClient() {
     const data = await res.json();
     setFamilyModuleEnabled(Boolean(data.family_module_enabled));
     setAllowAvaliacaoFase1(Boolean(data.allow_avaliacao_fase_1));
+    setModo(data.modo === "simplificado" ? "simplificado" : "completo");
   }, []);
 
   useEffect(() => {
@@ -309,6 +312,57 @@ export function ConfigEscolaClient() {
               </p>
             </div>
           </label>
+          <fieldset className="mt-4 pt-4 border-t border-slate-200">
+            <legend className="font-medium text-slate-800">Modo da escola</legend>
+            <p className="text-sm text-slate-500 mt-0.5 mb-3">
+              Define o tamanho do fluxo de inclusão. Dá para trocar depois sem perder nada.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {([
+                { id: "completo", titulo: "Completo", texto: "Estudo de caso, PEI em camadas (coordenação e cada professor), AEE e acompanhamento." },
+                { id: "simplificado", titulo: "Simplificado", texto: "O essencial do PEI e do acompanhamento, pensado para a escola particular." },
+              ] as const).map((op) => (
+                <label
+                  key={op.id}
+                  className={`flex gap-3 p-3 rounded-lg border cursor-pointer ${modo === op.id ? "border-sky-500 bg-sky-50" : "border-slate-200"}`}
+                >
+                  <input
+                    type="radio"
+                    name="modo-escola"
+                    value={op.id}
+                    checked={modo === op.id}
+                    disabled={modoSaving}
+                    onChange={async () => {
+                      setModoSaving(true);
+                      try {
+                        const res = await fetch("/api/workspace/config", {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ modo: op.id }),
+                        });
+                        if (!res.ok) {
+                          const d = await res.json().catch(() => ({}));
+                          setMessage({ type: "err", text: d.error || "Erro ao salvar." });
+                          return;
+                        }
+                        setModo(op.id);
+                        setMessage({ type: "ok", text: `Modo ${op.titulo.toLowerCase()} ativado.` });
+                      } catch { /* expected fallback */
+                        setMessage({ type: "err", text: "Erro ao salvar." });
+                      } finally {
+                        setModoSaving(false);
+                      }
+                    }}
+                    className="mt-1 text-sky-600 focus:ring-sky-500"
+                  />
+                  <span>
+                    <span className="font-medium text-slate-800">{op.titulo}</span>
+                    <span className="block text-sm text-slate-500 mt-0.5">{op.texto}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
         </Card>
       </section>
 

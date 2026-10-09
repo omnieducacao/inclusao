@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logExport } from "@/lib/audit";
-import { decryptField } from "@/lib/encryption";
+import { getStudent } from "@/lib/students";
 import { logger } from "@/lib/logger";
 
 /**
@@ -28,77 +28,36 @@ export async function GET(
     }
 
     const { id: studentId } = await params;
+    const workspaceId = session.workspace_id;
+    if (!workspaceId) {
+        return NextResponse.json({ error: "Sem escola na sessão" }, { status: 401 });
+    }
     const supabase = getSupabase();
 
     try {
-        // 1. Student core data
-        const { data: student, error: studentError } = await supabase
-            .from("students")
-            .select("*")
-            .eq("id", studentId)
-            .single();
-
-        if (studentError || !student) {
+        // Onda 1: sempre dentro da escola da sessão (antes exportava qualquer id) e com as
+        // tabelas que existem de fato (pei_data, PAEE e diário moram na própria linha do estudante).
+        const student = await getStudent(workspaceId, studentId);
+        if (!student) {
             return NextResponse.json({ error: "Estudante não encontrado" }, { status: 404 });
         }
+        const decryptedStudent = student;
+        const peiData = student.pei_data ? [student.pei_data] : [];
+        const paeeCiclos = student.paee_ciclos || [];
+        const diarioEntries = student.daily_logs || [];
 
-        // Decrypt sensitive fields (safe — decryptField handles non-encrypted data)
-        let decryptedName = student.name;
-        let decryptedGrade = student.grade;
-        try {
-            if (student.name) decryptedName = decryptField(student.name);
-        } catch { /* not encrypted */ }
-        try {
-            if (student.grade) decryptedGrade = decryptField(student.grade);
-        } catch { /* not encrypted */ }
-
-        const decryptedStudent = {
-            ...student,
-            name: decryptedName,
-            grade: decryptedGrade,
-        };
-
-        // 2. PEI data
-        const { data: peiData } = await supabase
-            .from("pei_data")
-            .select("*")
-            .eq("student_id", studentId);
-
-        // 3. PEI Disciplinas
-        const { data: peiDisciplinas } = await supabase
-            .from("pei_disciplina")
-            .select("*")
-            .eq("student_id", studentId);
-
-        // 4. PAEE Ciclos
-        const { data: paeeCiclos } = await supabase
-            .from("paee_ciclos")
-            .select("*")
-            .eq("student_id", studentId);
-
-        // 5. Diário entries
-        const { data: diarioEntries } = await supabase
-            .from("diario_registros")
-            .select("*")
-            .eq("student_id", studentId);
-
-        // 6. Diagnóstica results
-        const { data: diagnosticaResults } = await supabase
-            .from("avaliacao_diagnostica")
-            .select("*")
-            .eq("student_id", studentId);
-
-        // 7. Processual results
-        const { data: processualResults } = await supabase
-            .from("avaliacao_processual")
-            .select("*")
-            .eq("student_id", studentId);
-
-        // 8. Monitoramento
-        const { data: monitoramento } = await supabase
-            .from("monitoramento_rubricas")
-            .select("*")
-            .eq("student_id", studentId);
+        const doEstudante = (tabela: string) =>
+            supabase.from(tabela).select("*").eq("student_id", studentId).eq("workspace_id", workspaceId);
+        const [peiDisc, diag, proc, mon] = await Promise.all([
+            doEstudante("pei_disciplinas"),
+            doEstudante("avaliacoes_diagnosticas"),
+            doEstudante("avaliacao_processual"),
+            doEstudante("monitoring_assessments"),
+        ]);
+        const peiDisciplinas = peiDisc.data;
+        const diagnosticaResults = diag.data;
+        const processualResults = proc.data;
+        const monitoramento = mon.data;
 
         // Compose export
         const exportData = {

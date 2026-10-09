@@ -1,67 +1,38 @@
 /**
- * Health Check Endpoint
- * Verifica se o sistema está funcionando corretamente
- * Usado por monitors e load balancers
+ * Health Check — GET /api/health (público)
+ *
+ * Usado pelo Render e por monitores. Onda 1: passou a ser público (antes redirecionava para o
+ * login) e mostra só o essencial — sem mensagens de erro do banco nem detalhes do servidor.
+ * Como faz uma consulta leve ao banco, chamá-lo de tempos em tempos também evita que o
+ * Supabase do plano gratuito pause por falta de uso.
  */
-
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const checks: Record<string, { status: string; responseTime?: number; error?: string }> = {};
-  const startTime = Date.now();
-
-  // Check 1: Database connection
+  const inicio = Date.now();
+  let banco: "ok" | "erro" = "ok";
   try {
-    const dbStart = Date.now();
-    const sb = getSupabase();
-    const { error } = await sb.from("workspaces").select("id").limit(1);
-    
+    const { error } = await getSupabase().from("workspaces").select("id").limit(1);
     if (error) {
-      checks.database = { status: "error", error: error.message };
-    } else {
-      checks.database = { 
-        status: "healthy", 
-        responseTime: Date.now() - dbStart 
-      };
+      banco = "erro";
+      logger.error({ err: error.message }, "health: banco respondeu com erro");
     }
   } catch (err) {
-    checks.database = { 
-      status: "error", 
-      error: err instanceof Error ? err.message : "Unknown error" 
-    };
+    banco = "erro";
+    logger.error({ err }, "health: banco inacessível");
   }
 
-  // Check 2: Memory usage
-  const memUsage = process.memoryUsage();
-  const memMB = Math.round(memUsage.heapUsed / 1024 / 1024);
-  checks.memory = { 
-    status: memMB > 512 ? "warning" : "healthy",
-    responseTime: memMB
-  };
-
-  // Overall status
-  const hasErrors = Object.values(checks).some(c => c.status === "error");
-  const hasWarnings = Object.values(checks).some(c => c.status === "warning");
-  
-  const overallStatus = hasErrors ? "unhealthy" : hasWarnings ? "degraded" : "healthy";
-  const statusCode = hasErrors ? 503 : hasWarnings ? 200 : 200;
-
   return NextResponse.json(
-    {
-      status: overallStatus,
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      responseTime: Date.now() - startTime,
-      version: process.env.npm_package_version || "1.0.0",
-      environment: process.env.NODE_ENV || "development",
-      checks,
-    },
-    { status: statusCode }
+    { status: banco === "ok" ? "healthy" : "unhealthy", banco, ms: Date.now() - inicio },
+    { status: banco === "ok" ? 200 : 503, headers: { "Cache-Control": "no-store" } }
   );
 }
 
-// HEAD endpoint para health checks leves
+// HEAD para checagens leves (sem tocar no banco)
 export async function HEAD() {
   return new NextResponse(null, { status: 200 });
 }

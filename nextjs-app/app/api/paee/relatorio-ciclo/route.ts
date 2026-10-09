@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { getSession } from "@/lib/session";
-import { getSupabase } from "@/lib/supabase";
+import { getStudent } from "@/lib/students";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
 import { logger } from "@/lib/logger";
 
@@ -35,23 +35,18 @@ export async function POST(req: Request) {
         if (engineErr) return NextResponse.json({ error: engineErr }, { status: 500 });
 
         // Fetch diário entries for this student within the cycle period
-        const sb = getSupabase();
-        const { data: student } = await sb
-            .from("students")
-            .select("name, pei_data")
-            .eq("id", studentId)
-            .single();
-
-        const { data: diarioEntries } = await sb
-            .from("diario_registros")
-            .select("*")
-            .eq("student_id", studentId)
-            .order("data_sessao", { ascending: true })
-            .limit(30);
-
-        const nomeEstudante = student?.name || "Estudante";
-        const diagnostico = (student?.pei_data as Record<string, unknown>)?.diagnostico as string || "";
-        const registros = diarioEntries || [];
+        // Onda 1: estudante sempre da escola da sessão; o diário mora em students.daily_logs
+        // (a tabela "diario_registros" nunca existiu).
+        const student = await getStudent(session.workspace_id, studentId);
+        if (!student) {
+            return NextResponse.json({ error: "Estudante não encontrado." }, { status: 404 });
+        }
+        const nomeEstudante = student.name || "Estudante";
+        const diagnostico = String((student.pei_data as Record<string, unknown> | undefined)?.diagnostico || student.diagnosis || "");
+        const registros = ((student.daily_logs || []) as Array<Record<string, unknown>>)
+            .slice()
+            .sort((x, y) => String(x.data_sessao || "").localeCompare(String(y.data_sessao || "")))
+            .slice(-30);
 
         // Build context from cycle data
         const cicloInfo = `

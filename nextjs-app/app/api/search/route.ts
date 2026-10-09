@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { listStudentsDaSessao } from "@/lib/students";
 import { logger } from "@/lib/logger";
 
 /**
- * GET /api/search?q=query
- * Searches students + members within the user's workspace scope.
+ * GET /api/search?q=texto
+ * Busca estudantes (só os do vínculo de quem busca) e, para coordenação, membros da escola.
+ *
+ * Onda 1: a busca usava a tabela "members", que não existe, e procurava o diagnóstico no texto
+ * criptografado. Agora filtra em memória sobre a lista já descriptografada e limitada ao vínculo.
  */
+function normalizar(t: string): string {
+    return t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+
 export async function GET(req: NextRequest) {
     try {
         const session = await getSession();
@@ -18,78 +26,44 @@ export async function GET(req: NextRequest) {
         if (!q || q.length < 2) {
             return NextResponse.json({ students: [], members: [] });
         }
+        const termo = normalizar(q);
 
-        const sb = getSupabase();
-        const workspaceId = session.workspace_id;
-        const searchPattern = `%${q}%`;
-
-        // Search students by name
-        const { data: students } = await sb
-            .from("students")
-            .select("id, name, grade, class_group, pei_data")
-            .eq("workspace_id", workspaceId)
-            .ilike("name", searchPattern)
-            .limit(10);
-
-        // Format student results
-        type StudentRow = { id: string; name: string; grade: string | null; class_group: string | null; pei_data: Record<string, unknown> | null };
-        const studentResults = (students as StudentRow[] || []).map((s) => ({
+        const estudantes = await listStudentsDaSessao(session);
+        const porNome = estudantes.filter((s) => normalizar(s.name || "").includes(termo));
+        const idsNome = new Set(porNome.map((s) => s.id));
+        const porDiagnostico = estudantes.filter((s) => {
+            if (idsNome.has(s.id)) return false;
+            const diag = String((s.pei_data as Record<string, unknown> | undefined)?.diagnostico || s.diagnosis || "");
+            return normalizar(diag).includes(termo);
+        });
+        const students = [...porNome.slice(0, 10), ...porDiagnostico.slice(0, 5)].slice(0, 10).map((s) => ({
             id: s.id,
             name: s.name,
             subtitle: [s.grade, s.class_group].filter(Boolean).join(" — "),
-            diagnosis: (s.pei_data?.diagnostico as string) || "",
+            diagnosis: String((s.pei_data as Record<string, unknown> | undefined)?.diagnostico || ""),
             type: "student" as const,
         }));
 
-        // Also search by diagnosis text within pei_data
-        const { data: allStudents } = await sb
-            .from("students")
-            .select("id, name, grade, class_group, pei_data")
-            .eq("workspace_id", workspaceId)
-            .limit(50);
-
-        const existingIds = new Set(studentResults.map((sr) => sr.id));
-        const diagResults = (allStudents as StudentRow[] || [])
-            .filter((s) => {
-                const diag = (s.pei_data?.diagnostico as string) || "";
-                return diag.toLowerCase().includes(q.toLowerCase()) && !existingIds.has(s.id);
-            })
-            .slice(0, 5)
-            .map((s) => ({
-                id: s.id,
-                name: s.name,
-                subtitle: [s.grade, s.class_group].filter(Boolean).join(" — "),
-                diagnosis: (s.pei_data?.diagnostico as string) || "",
-                type: "student" as const,
-            }));
-
-        // Search members — only for coordinators/admin/gestor
-        type MemberRow = { id: string; name: string; email: string; role: string };
-        let memberResults: { id: string; name: string; subtitle: string; role: string; type: "member" }[] = [];
-        const memberRole = (session.member as Record<string, unknown>)?.role as string || "";
-        if (session.user_role === "master" || session.user_role === "platform_admin" || ["admin", "coordenador", "gestor"].includes(memberRole)) {
-            const { data: members } = await sb
-                .from("members")
-                .select("id, name, email, role")
-                .eq("workspace_id", workspaceId)
-                .or(`name.ilike.${searchPattern},email.ilike.${searchPattern}`)
-                .limit(10);
-
-            memberResults = (members as MemberRow[] || []).map((m) => ({
-                id: m.id,
-                name: m.name,
-                subtitle: m.email,
-                role: m.role,
-                type: "member" as const,
-            }));
+        // Membros: só coordenação, direção e admin
+        let members: { id: string; name: string; subtitle: string; role: string; type: "member" }[] = [];
+        const papel = String((session.member as Record<string, unknown> | undefined)?.papel || "");
+        const podeVerEquipe =
+            session.user_role === "master" || session.is_platform_admin || papel === "coordenacao" || papel === "direcao";
+        if (podeVerEquipe) {
+            const { data } = await getSupabase()
+                .from("workspace_members")
+                .select("id, nome, email, papel")
+                .eq("workspace_id", session.workspace_id)
+                .limit(500);
+            members = ((data || []) as { id: string; nome: string; email: string; papel: string }[])
+                .filter((m) => normalizar(`${m.nome} ${m.email}`).includes(termo))
+                .slice(0, 10)
+                .map((m) => ({ id: m.id, name: m.nome, subtitle: m.email, role: m.papel, type: "member" as const }));
         }
 
-        return NextResponse.json({
-            students: [...studentResults, ...diagResults].slice(0, 10),
-            members: memberResults,
-        });
-    } catch (error) {
-        logger.error({ err: error }, "Search error:");
+        return NextResponse.json({ students, members });
+    } catch (err) {
+        logger.error({ err }, "GET /api/search");
         return NextResponse.json({ error: "Erro na busca" }, { status: 500 });
     }
 }

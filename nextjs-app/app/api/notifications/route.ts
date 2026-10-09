@@ -1,4 +1,5 @@
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { vinculoDaSessao, filtrarPorVinculo } from "@/lib/turmas";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
@@ -35,103 +36,75 @@ export async function GET() {
             return NextResponse.json({ notifications: [], total: 0 });
         }
 
-        // 1. Students without recent Diário entries (> 14 days)
-        const { data: students } = await sb
-            .from("students")
-            .select("id, name")
-            .eq("workspace_id", workspaceId);
+        // 1–3. Alertas por estudante. Onda 1: uma consulta só (antes eram dezenas), limitada ao
+        // vínculo de quem pede, e nunca para a família (ela via nomes de outros estudantes).
+        type Linha = {
+            id: string; name: string; grade: string | null; class_group: string | null; class_id: string | null;
+            planejamento_ativo: string | null; pei_data: Record<string, unknown> | null;
+            updated_at: string | null; daily_logs: Array<{ data_sessao?: string }> | null;
+        };
+        let students: Linha[] = [];
+        if (session.user_role !== "family") {
+            const { data } = await sb
+                .from("students")
+                .select("id, name, grade, class_group, class_id, planejamento_ativo, pei_data, updated_at, daily_logs")
+                .eq("workspace_id", workspaceId);
+            students = filtrarPorVinculo(await vinculoDaSessao(session), (data || []) as Linha[]);
+        }
 
-        if (students && students.length > 0) {
-            const twoWeeksAgo = new Date();
-            twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-            const cutoff = twoWeeksAgo.toISOString().split("T")[0];
+        const hoje = Date.now();
+        const dias = (iso: string) => Math.floor((hoje - new Date(iso).getTime()) / 86_400_000);
 
-            for (const student of students.slice(0, 20)) {
-                const { count } = await sb
-                    .from("diario_registros")
-                    .select("id", { count: "exact", head: true })
-                    .eq("student_id", student.id)
-                    .gte("data_sessao", cutoff);
-
-                if (count === 0) {
-                    // Check if student has any diário entries at all
-                    const { count: totalCount } = await sb
-                        .from("diario_registros")
-                        .select("id", { count: "exact", head: true })
-                        .eq("student_id", student.id);
-
-                    if ((totalCount || 0) > 0) {
-                        notifications.push({
-                            id: `diario-${student.id}`,
-                            type: "diario",
-                            title: "Diário sem registros recentes",
-                            description: `${student.name} não tem registros no Diário há mais de 14 dias.`,
-                            severity: "warning",
-                            studentId: student.id,
-                            studentName: student.name,
-                        });
-                    }
-                }
+        // 1. Diário sem registros há mais de 14 dias (só quem já tinha registros)
+        for (const st of students.slice(0, 40)) {
+            const datas = (st.daily_logs || []).map((r) => r?.data_sessao).filter(Boolean) as string[];
+            if (datas.length === 0) continue;
+            const ultima = datas.sort().at(-1)!;
+            if (dias(ultima) > 14) {
+                notifications.push({
+                    id: `diario-${st.id}`,
+                    type: "diario",
+                    title: "Diário sem registros recentes",
+                    description: `${st.name} não tem registros no Diário há mais de 14 dias.`,
+                    severity: "warning",
+                    studentId: st.id,
+                    studentName: st.name,
+                });
             }
         }
 
-        // 2. PAEE ativo sem PEI atualizado (planejamento_ativo preenchido mas PEI em rascunho ou desatualizado)
-        const { data: studentsWithPaee } = await sb
-            .from("students")
-            .select("id, name, planejamento_ativo, pei_data, updated_at")
-            .eq("workspace_id", workspaceId)
-            .not("planejamento_ativo", "is", null);
-
-        if (studentsWithPaee) {
-            const twoMonthsAgo = new Date();
-            twoMonthsAgo.setDate(twoMonthsAgo.getDate() - 60);
-            for (const s of studentsWithPaee.slice(0, 10)) {
-                const peiData = (s.pei_data || {}) as Record<string, unknown>;
-                const statusPei = peiData.status_validacao_pei as string | undefined;
-                const updatedAt = s.updated_at ? new Date(s.updated_at) : null;
-                const peiDesatualizado = updatedAt && updatedAt < twoMonthsAgo;
-                const peiRascunho = statusPei === "rascunho" || !statusPei;
-                if (peiRascunho || peiDesatualizado) {
-                    notifications.push({
-                        id: `paee-pei-${s.id}`,
-                        type: "paee",
-                        title: "PAEE ativo sem PEI atualizado",
-                        description: `${s.name} tem PAEE ativo. ${peiRascunho ? "PEI em rascunho." : "PEI não revisado há mais de 60 dias."}`,
-                        severity: "warning",
-                        studentId: s.id,
-                        studentName: s.name,
-                    });
-                }
+        // 2. PAEE ativo com PEI em rascunho ou sem revisão há 60 dias
+        for (const st of students.filter((x) => x.planejamento_ativo).slice(0, 10)) {
+            const statusPei = (st.pei_data || {}).status_validacao_pei as string | undefined;
+            const peiRascunho = statusPei === "rascunho" || !statusPei;
+            const peiDesatualizado = st.updated_at ? dias(st.updated_at) > 60 : false;
+            if (peiRascunho || peiDesatualizado) {
+                notifications.push({
+                    id: `paee-pei-${st.id}`,
+                    type: "paee",
+                    title: "PAEE ativo sem PEI atualizado",
+                    description: `${st.name} tem PAEE ativo. ${peiRascunho ? "PEI em rascunho." : "PEI não revisado há mais de 60 dias."}`,
+                    severity: "warning",
+                    studentId: st.id,
+                    studentName: st.name,
+                });
             }
         }
 
-        // 3. PEI not updated recently (> 60 days)
-        if (students) {
-            const twoMonthsAgo = new Date();
-            twoMonthsAgo.setDate(twoMonthsAgo.getDate() - 60);
-
-            for (const student of students.slice(0, 20)) {
-                const { data: peiRow } = await sb
-                    .from("students")
-                    .select("updated_at, pei_data")
-                    .eq("id", student.id)
-                    .single();
-
-                if (peiRow?.pei_data && peiRow.updated_at) {
-                    const updatedAt = new Date(peiRow.updated_at);
-                    if (updatedAt < twoMonthsAgo) {
-                        const daysSince = Math.floor((Date.now() - updatedAt.getTime()) / (1000 * 60 * 60 * 24));
-                        notifications.push({
-                            id: `pei-${student.id}`,
-                            type: "pei",
-                            title: "PEI sem revisão",
-                            description: `PEI de ${student.name} não é atualizado há ${daysSince} dias.`,
-                            severity: daysSince > 90 ? "alert" : "info",
-                            studentId: student.id,
-                            studentName: student.name,
-                        });
-                    }
-                }
+        // 3. PEI sem revisão há mais de 60 dias
+        for (const st of students.slice(0, 40)) {
+            if (!st.pei_data || !st.updated_at) continue;
+            const d = dias(st.updated_at);
+            if (d > 60) {
+                notifications.push({
+                    id: `pei-${st.id}`,
+                    type: "pei",
+                    title: "PEI sem revisão",
+                    description: `PEI de ${st.name} não é atualizado há ${d} dias.`,
+                    severity: d > 90 ? "alert" : "info",
+                    studentId: st.id,
+                    studentName: st.name,
+                });
             }
         }
 
