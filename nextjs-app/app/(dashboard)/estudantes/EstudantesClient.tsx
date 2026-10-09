@@ -40,6 +40,8 @@ function NovoEstudante({ turmas, onFechar }: { turmas: Turma[]; onFechar: () => 
   const [turmaId, setTurmaId] = useState("");
   const [serie, setSerie] = useState("");
   const [turmaTexto, setTurmaTexto] = useState("");
+  // A API exige o aceite da Política de Privacidade (LGPD); o campo tinha sumido no redesenho da onda 6
+  const [consentimento, setConsentimento] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const campoNome = useRef<HTMLInputElement | null>(null);
@@ -50,6 +52,7 @@ function NovoEstudante({ turmas, onFechar }: { turmas: Turma[]; onFechar: () => 
     if (!nome.trim()) { setErro("Escreva o nome do estudante."); campoNome.current?.focus(); return; }
     const t = turmas.find((x) => x.id === turmaId);
     if (turmas.length > 0 && !t) { setErro("Escolha a turma."); return; }
+    if (!consentimento) { setErro("Confirme que a escola tem a autorização da família para cadastrar o estudante."); return; }
     setSalvando(true); setErro(null);
     try {
       const res = await fetch("/api/students", {
@@ -59,6 +62,7 @@ function NovoEstudante({ turmas, onFechar }: { turmas: Turma[]; onFechar: () => 
           name: nome.trim(),
           grade: t ? t.grade : serie.trim() || null,
           class_group: t ? t.class_group : turmaTexto.trim() || null,
+          privacy_consent: true,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -108,6 +112,13 @@ function NovoEstudante({ turmas, onFechar }: { turmas: Turma[]; onFechar: () => 
           </div>
         )}
       </div>
+      <label className="omni-caixa" style={{ fontSize: 15 }}>
+        <input type="checkbox" checked={consentimento} onChange={(e) => setConsentimento(e.target.checked)} />
+        <span>
+          A família autorizou a escola a registrar os dados deste estudante na Omnisfera, conforme a{" "}
+          <a href="/privacidade" target="_blank" rel="noopener" style={{ color: "var(--acao)", fontWeight: 600 }}>Política de Privacidade</a>.
+        </span>
+      </label>
       <div className="flex flex-wrap gap-2">
         <button type="submit" className="omni-btn omni-btn--primario" disabled={salvando}>{salvando ? "Cadastrando…" : "Cadastrar e abrir a ficha"}</button>
         <button type="button" className="omni-btn omni-btn--discreto" onClick={onFechar}>Cancelar</button>
