@@ -13,6 +13,9 @@ describe("etapas do PEI (onda 7)", () => {
     expect(etapaDaAbaAntiga("consultoria")).toEqual({ etapa: 2, secao: "consultoria" });
     expect(etapaDaAbaAntiga("dashboard")).toEqual({ etapa: 4, secao: "acompanhamento" });
     expect(etapaDaAbaAntiga("qualquer")).toBeNull();
+    // onda 18: "Situação das metas" virou um bloco dentro de Revisões
+    expect(etapaDaAbaAntiga("monitoramento")).toEqual({ etapa: 4, secao: "revisao" });
+    expect(secoesDaEtapa(4, "completo").map((s) => s.id)).toEqual(["revisao", "acompanhamento"]);
   });
   it("PEI vazio começa na etapa 1", () => {
     const e = estadoDasEtapas({}, HOJE);

@@ -51,11 +51,11 @@ Formato EXATO do JSON:
 {
   "centro": "Nome do Estudante",
   "ramos": [
-    { "titulo": "Potencialidades", "cor": "#38A169", "icone": "⭐", "filhos": ["item1", "item2"] },
-    { "titulo": "Barreiras", "cor": "#E53E3E", "icone": "🧱", "filhos": ["item1", "item2"] },
-    { "titulo": "Estratégias", "cor": "#3182CE", "icone": "🎯", "filhos": ["item1", "item2"] },
-    { "titulo": "Rede de Apoio", "cor": "#805AD5", "icone": "🤝", "filhos": ["item1", "item2"] },
-    { "titulo": "Metas", "cor": "#DD6B20", "icone": "🏁", "filhos": ["Curto: ...", "Médio: ...", "Longo: ..."] }
+    { "titulo": "Potencialidades", "cor": "#38A169", "filhos": ["item1", "item2"] },
+    { "titulo": "Barreiras", "cor": "#E53E3E", "filhos": ["item1", "item2"] },
+    { "titulo": "Estratégias", "cor": "#3182CE", "filhos": ["item1", "item2"] },
+    { "titulo": "Rede de Apoio", "cor": "#805AD5", "filhos": ["item1", "item2"] },
+    { "titulo": "Metas", "cor": "#DD6B20", "filhos": ["Curto: ...", "Médio: ...", "Longo: ..."] }
   ]
 }
 

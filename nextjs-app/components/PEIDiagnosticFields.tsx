@@ -1,6 +1,7 @@
 "use client";
 
-import { AlertTriangle, CheckCircle2, XCircle, FileCheck } from "lucide-react";
+import type React from "react";
+import { AlertTriangle, Check, CheckCircle2, XCircle, FileCheck } from "lucide-react";
 import type { PEIData } from "@/lib/pei";
 
 /**
@@ -119,18 +120,19 @@ export function DiagnosticConditionalFields({
     const detalhes = (peiData.detalhes_diagnostico || {}) as Record<string, string | string[]>;
 
     return (
-        <div className="mt-4 space-y-4">
-            {profiles.map((profile) => (
-                <div
+        <div style={{ display: "grid", gap: 16, marginTop: 16 }}>
+            {profiles.map((profile, pi) => (
+                <section
                     key={profile.label}
-                    className="p-4 rounded-xl border-2 border-sky-200 bg-sky-50/50"
-                    style={{ borderLeftWidth: "4px", borderLeftColor: "#0ea5e9" }}
+                    className="omni-cartao omni-cartao--plano"
+                    style={{ display: "grid", gap: 14, borderLeft: "4px solid var(--acao)" }}
+                    aria-labelledby={`diag-perfil-${pi}`}
                 >
-                    <h5 className="text-sm font-bold text-sky-800 mb-3 flex items-center gap-2">
-                        <FileCheck className="w-4 h-4" />
-                        Detalhamento: {profile.label}
+                    <h5 id={`diag-perfil-${pi}`} style={{ margin: 0, display: "flex", alignItems: "center", gap: 8, font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>
+                        <FileCheck aria-hidden size={18} style={{ color: "var(--acao)", flex: "none" }} />
+                        Detalhes: {profile.label}
                     </h5>
-                    <div className="space-y-3">
+                    <div style={{ display: "grid", gap: 14 }}>
                         {profile.fields.map((field) => {
                             const value = detalhes[field.key];
                             const isMulti = field.key.includes("sensibilidades") || field.key.includes("estrategia_foco") || field.key.includes("recursos_preferenciais") || field.key.includes("interesses_restritos") || field.key.includes("desafios");
@@ -138,56 +140,53 @@ export function DiagnosticConditionalFields({
                             if (isMulti && field.options) {
                                 const selected = Array.isArray(value) ? value : [];
                                 return (
-                                    <div key={field.key}>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1.5">{field.label}</label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {field.options.map((opt) => {
-                                                const active = selected.includes(opt);
-                                                return (
-                                                    <button
-                                                        key={opt}
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const next = active ? selected.filter((s) => s !== opt) : [...selected, opt];
-                                                            onUpdate("detalhes_diagnostico", { ...detalhes, [field.key]: next });
-                                                        }}
-                                                        className={`px-2.5 py-1 text-xs rounded-full border transition-all ${active
-                                                            ? "bg-sky-100 border-sky-300 text-sky-800 font-semibold"
-                                                            : "bg-white border-slate-200 text-slate-600 hover:border-sky-200"
-                                                            }`}
-                                                    >
-                                                        {active ? "✓ " : ""}{opt}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
+                                    <fieldset key={field.key} className="omni-escolhas">
+                                        <legend>{field.label}</legend>
+                                        {field.options.map((opt) => {
+                                            const active = selected.includes(opt);
+                                            return (
+                                                <button
+                                                    key={opt}
+                                                    type="button"
+                                                    aria-pressed={active}
+                                                    onClick={() => {
+                                                        const next = active ? selected.filter((s) => s !== opt) : [...selected, opt];
+                                                        onUpdate("detalhes_diagnostico", { ...detalhes, [field.key]: next });
+                                                    }}
+                                                    className="omni-chip"
+                                                >
+                                                    <Check className="omni-chip__marca" aria-hidden />
+                                                    {opt}
+                                                </button>
+                                            );
+                                        })}
+                                    </fieldset>
                                 );
                             }
 
                             // Single select
                             if (field.options) {
                                 return (
-                                    <div key={field.key}>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1">{field.label}</label>
+                                    <label key={field.key} className="omni-campo">
+                                        <span className="omni-campo__rotulo">{field.label}</span>
                                         <select
                                             value={(typeof value === "string" ? value : "") || ""}
                                             onChange={(e) => onUpdate("detalhes_diagnostico", { ...detalhes, [field.key]: e.target.value })}
-                                            className="w-full max-w-sm px-3 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:border-sky-400 focus:ring-1 focus:ring-sky-100"
+                                            className="omni-entrada"
                                         >
-                                            <option value="">-- Selecione --</option>
+                                            <option value="">Escolha…</option>
                                             {field.options.map((opt) => (
                                                 <option key={opt} value={opt}>{opt}</option>
                                             ))}
                                         </select>
-                                    </div>
+                                    </label>
                                 );
                             }
 
                             return null;
                         })}
                     </div>
-                </div>
+                </section>
             ))}
         </div>
     );
@@ -209,7 +208,8 @@ type ComplianceItem = {
 const COMPLIANCE_ITEMS: ComplianceItem[] = [
     { label: "Identificação do estudante (nome)", check: (d) => Boolean(d.nome?.trim()), severity: "obrigatorio", ref: "Art. 28 LBI" },
     { label: "Série/Ano escolar", check: (d) => Boolean(d.serie), severity: "obrigatorio", ref: "Art. 28 LBI" },
-    { label: "Diagnóstico ou hipótese diagnóstica", check: (d) => Boolean(d.diagnostico?.trim()), severity: "obrigatorio", ref: "Art. 2º LBI" },
+    // Onda 18: o laudo e o diagnóstico entram quando existem, mas a lei não permite exigi-los
+    { label: "Diagnóstico, se houver laudo", check: (d) => Boolean(d.diagnostico?.trim()), severity: "recomendado", ref: "Art. 2º LBI · a avaliação é biopsicossocial" },
     {
         label: "Barreiras identificadas", check: (d) => {
             const b = d.barreiras_selecionadas || {};
@@ -240,73 +240,74 @@ export function LBIComplianceChecklist({ peiData }: { peiData: PEIData }) {
     const recomendadosPassed = recomendados.filter(r => r.passed).length;
     const allObrigatoriosPassed = obrigatoriosPassed === obrigatorios.length;
 
+    const linha: React.CSSProperties = { display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", borderRadius: "var(--o-radius-sm)", background: "var(--superficie-2)", font: "400 14px/20px var(--font-sans)", color: "var(--tinta)" };
+    const referencia: React.CSSProperties = { font: "500 12px/16px var(--font-mono)", color: "var(--tinta-3)" };
+
     return (
-        <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-3">
-            <div className="flex items-center justify-between">
-                <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                    <FileCheck className="w-4 h-4 text-blue-600" />
-                    Compliance LBI — Checklist de Validação
+        <section className="omni-cartao" style={{ display: "grid", gap: 14 }} aria-labelledby="lbi-titulo">
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                <h4 id="lbi-titulo" style={{ margin: 0, display: "flex", alignItems: "center", gap: 8, font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>
+                    <FileCheck aria-hidden size={18} style={{ color: "var(--acao)", flex: "none" }} />
+                    O que a LBI (Lei Brasileira de Inclusão) pede
                 </h4>
-                <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${allObrigatoriosPassed
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "bg-amber-100 text-amber-700"
-                    }`}>
-                    {allObrigatoriosPassed ? "✅ Pronto para exportar" : "⚠️ Campos pendentes"}
-                </span>
+                {allObrigatoriosPassed ? (
+                    <span className="omni-estado omni-estado--sucesso"><CheckCircle2 aria-hidden /> Pronto para exportar</span>
+                ) : (
+                    <span className="omni-estado omni-estado--atencao"><AlertTriangle aria-hidden /> Falta preencher</span>
+                )}
             </div>
 
             {/* Obrigatórios */}
             <div>
-                <p className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
+                <p className="omni-rotulo" style={{ margin: "0 0 8px" }}>
                     Obrigatórios ({obrigatoriosPassed}/{obrigatorios.length})
                 </p>
-                <div className="space-y-1">
+                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 4 }}>
                     {obrigatorios.map((item) => (
-                        <div key={item.label} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs ${item.passed ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
-                            }`}>
+                        <li key={item.label} style={linha}>
                             {item.passed ? (
-                                <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+                                <CheckCircle2 aria-label="feito" size={16} style={{ color: "var(--sucesso)", flex: "none" }} />
                             ) : (
-                                <XCircle className="w-3.5 h-3.5 shrink-0 text-red-500" />
+                                <XCircle aria-label="falta" size={16} style={{ color: "var(--erro)", flex: "none" }} />
                             )}
-                            <span className="flex-1">{item.label}</span>
-                            <span className="text-[10px] opacity-70">{item.ref}</span>
-                        </div>
+                            <span style={{ flex: 1 }}>{item.label}</span>
+                            <span style={referencia}>{item.ref}</span>
+                        </li>
                     ))}
-                </div>
+                </ul>
             </div>
 
             {/* Recomendados */}
             <div>
-                <p className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
+                <p className="omni-rotulo" style={{ margin: "0 0 8px" }}>
                     Recomendados ({recomendadosPassed}/{recomendados.length})
                 </p>
-                <div className="space-y-1">
+                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 4 }}>
                     {recomendados.map((item) => (
-                        <div key={item.label} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs ${item.passed ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-600"
-                            }`}>
+                        <li key={item.label} style={linha}>
                             {item.passed ? (
-                                <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+                                <CheckCircle2 aria-label="feito" size={16} style={{ color: "var(--sucesso)", flex: "none" }} />
                             ) : (
-                                <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+                                <AlertTriangle aria-label="falta" size={16} style={{ color: "var(--atencao)", flex: "none" }} />
                             )}
-                            <span className="flex-1">{item.label}</span>
-                            <span className="text-[10px] opacity-70">{item.ref}</span>
-                        </div>
+                            <span style={{ flex: 1 }}>{item.label}</span>
+                            <span style={referencia}>{item.ref}</span>
+                        </li>
                     ))}
-                </div>
+                </ul>
             </div>
 
             {/* Alerta */}
             {!allObrigatoriosPassed && (
-                <div className="px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                <div className="omni-aviso omni-aviso--atencao" role="status">
+                    <AlertTriangle className="omni-aviso__icone" aria-hidden />
                     <div>
-                        <strong>Atenção:</strong> Preencha todos os campos obrigatórios antes de exportar o PDF oficial.
-                        O documento pode ser considerado incompleto para fins legais (Lei 13.146/2015).
+                        <div className="omni-aviso__texto">
+                            Preencha os itens obrigatórios antes de exportar o PDF oficial. Sem eles, o documento pode ser considerado incompleto pela Lei 13.146/2015.
+                        </div>
                     </div>
                 </div>
             )}
-        </div>
+        </section>
     );
 }

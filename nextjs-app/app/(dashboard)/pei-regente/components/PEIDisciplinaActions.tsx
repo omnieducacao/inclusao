@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import {
-    Brain, CheckCircle2, ExternalLink,
+    AlertTriangle, Brain, CheckCircle2, ExternalLink, Send,
 } from "lucide-react";
 import { OmniLoader } from "@/components/OmniLoader";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
@@ -75,63 +75,77 @@ export function FinalizarPeiDisciplinaButton({
                 href={`/pei?student=${studentId}&tab=consolidacao`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all bg-linear-to-br from-violet-600 to-violet-500"
+                className="omni-btn omni-btn--primario"
             >
-                <ExternalLink className="w-4 h-4" />
-                Enviar para PEI geral e consolidar
+                <ExternalLink size={16} aria-hidden />
+                Abrir a consolidação no PEI geral
+                <span className="omni-so-leitor"> (abre em nova aba)</span>
             </a>
         );
     }
 
     return (
-        <div className="flex flex-col gap-2">
+        <div style={{ display: "grid", gap: 8 }}>
             {/* Toggle feedback area */}
             {!showFeedback ? (
-                <button
-                    type="button"
-                    onClick={() => setShowFeedback(true)}
-                    disabled={finalizando || !adaptacaoSugestao}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50 ${finalizando ? 'bg-slate-400' : 'bg-linear-to-br from-emerald-600 to-emerald-500'}`}
-                >
-                    <CheckCircle2 size={14} />
-                    Concluir e enviar à coordenação
-                </button>
+                <div>
+                    <button
+                        type="button"
+                        onClick={() => setShowFeedback(true)}
+                        disabled={finalizando || !adaptacaoSugestao}
+                        className="omni-btn omni-btn--primario"
+                    >
+                        <Send size={16} aria-hidden />
+                        Concluir e enviar à coordenação
+                    </button>
+                </div>
             ) : (
-                <div className="p-4 rounded-xl space-y-3 border-2 border-emerald-500/20 bg-emerald-500/5">
-                    <p className="text-xs font-bold text-emerald-600">
-                        Observação para a coordenação (opcional)
-                    </p>
-                    <textarea
-                        value={feedbackProfessor}
-                        onChange={(e) => setFeedbackProfessor(e.target.value)}
-                        placeholder="Observações sobre o estudante nesta disciplina, dificuldades percebidas, sugestões de adaptação, etc."
-                        rows={3}
-                        className="w-full p-3 rounded-lg text-sm resize-none bg-(--bg-primary) border border-(--border-default) text-(--text-primary)"
-                    />
-                    <div className="flex items-center gap-2">
+                <div className="omni-cartao omni-cartao--plano" style={{ padding: 16, gap: 12 }}>
+                    <label className="omni-campo" style={{ maxWidth: "none" }}>
+                        <span className="omni-campo__rotulo">
+                            Recado para a coordenação <span className="omni-campo__opcional">(opcional)</span>
+                        </span>
+                        <textarea
+                            value={feedbackProfessor}
+                            onChange={(e) => setFeedbackProfessor(e.target.value)}
+                            placeholder="Como o estudante está nesta disciplina, o que você percebeu, o que sugere adaptar."
+                            rows={3}
+                            className="omni-entrada"
+                            style={{ maxWidth: "none", resize: "vertical" }}
+                        />
+                    </label>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                         <button
                             type="button"
                             onClick={handleFinalizar}
                             disabled={finalizando}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50 ${finalizando ? "bg-slate-400" : "bg-linear-to-br from-emerald-600 to-emerald-500"
-                                }`}
+                            aria-busy={finalizando}
+                            className="omni-btn omni-btn--primario"
                         >
-                            {finalizando ? <OmniLoader engine="green" size={14} /> : <CheckCircle2 size={14} />}
-                            {finalizando ? "Finalizando..." : "Confirmar e enviar"}
+                            {finalizando ? <OmniLoader engine="green" size={16} /> : <CheckCircle2 size={16} aria-hidden />}
+                            {finalizando ? "Enviando…" : "Enviar à coordenação"}
                         </button>
                         <button
                             type="button"
                             onClick={() => setShowFeedback(false)}
-                            className="px-3 py-2 rounded-lg text-xs font-medium transition-colors text-(--omni-text-muted)"
+                            className="omni-btn omni-btn--discreto"
                         >
-                            Cancelar
+                            Voltar
                         </button>
                     </div>
                 </div>
             )}
-            {erro && <span className="text-xs text-red-400">{erro}</span>}
-            <span className="omni-label-xs text-slate-500">
-                A adaptação será enviada ao especialista AEE para consolidação no PEI oficial.
+            {erro && (
+                <div className="omni-aviso omni-aviso--erro" role="alert" style={{ maxWidth: "none" }}>
+                    <AlertTriangle className="omni-aviso__icone" aria-hidden />
+                    <div>
+                        <div className="omni-aviso__titulo">Não foi possível enviar</div>
+                        <div className="omni-aviso__texto">{erro}</div>
+                    </div>
+                </div>
+            )}
+            <span className="omni-apoio" style={{ fontSize: 13 }}>
+                A adaptação vai para o especialista do AEE juntar no PEI oficial.
             </span>
         </div>
     );
@@ -176,45 +190,51 @@ export function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina
 
     if (loading) {
         return (
-            <div className="py-10 text-center">
+            <div style={{ padding: "40px 0", display: "grid", placeItems: "center" }}>
                 <OmniLoader variant="card" />
             </div>
         );
     }
 
+    const linkDiagnostica = `/avaliacao-diagnostica?student=${studentId}&disciplina=${encodeURIComponent(disciplina)}`;
+    const aplicada = avaliacao?.status === "aplicada";
+
     return (
-        <div className="flex flex-col gap-4">
+        <div style={{ display: "grid", gap: 16 }}>
             {/* Header */}
-            <div className="rounded-2xl p-4 md:px-5 md:py-4.5 text-white bg-linear-to-br from-blue-600 to-blue-700">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                        <Brain size={22} />
-                        <div>
-                            <h4 className="m-0 text-lg font-bold">Avaliação Diagnóstica — {disciplina}</h4>
-                            <p className="m-0 text-xs opacity-85">
-                                {studentName} · Vincule uma avaliação aplicada no módulo Avaliação Diagnóstica
-                            </p>
-                        </div>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <Brain size={22} aria-hidden style={{ color: "var(--acao)", marginTop: 2 }} />
+                    <div>
+                        <h4 style={{ margin: 0, font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" }}>
+                            Avaliação diagnóstica — {disciplina}
+                        </h4>
+                        <p className="omni-apoio" style={{ margin: 0 }}>
+                            {studentName} · a avaliação é feita na página Avaliação diagnóstica e aparece aqui quando for aplicada
+                        </p>
                     </div>
-                    {avaliacao?.status === "aplicada" && (
-                        <span className="flex items-center gap-1 text-xs font-bold text-green-200">
-                            <CheckCircle2 size={14} /> Aplicada
-                        </span>
-                    )}
                 </div>
+                {aplicada && (
+                    <span className="omni-estado omni-estado--sucesso">
+                        <CheckCircle2 aria-hidden /> Aplicada
+                    </span>
+                )}
             </div>
 
             {/* Resultado vinculado */}
-            {avaliacao?.status === "aplicada" && avaliacao.nivel !== null && (
-                <div className="flex items-center gap-3.5 px-5 py-4 rounded-2xl bg-emerald-500/10 border-[1.5px] border-emerald-500/30">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-linear-to-br from-emerald-600 to-emerald-500 text-white text-xl font-extrabold">
+            {aplicada && avaliacao.nivel !== null && (
+                <div className="omni-cartao omni-cartao--plano" style={{ flexDirection: "row", alignItems: "center", gap: 14, padding: "16px 20px" }}>
+                    <span aria-hidden style={{
+                        width: 48, height: 48, borderRadius: "50%", display: "grid", placeItems: "center", flex: "none",
+                        background: "var(--sucesso-suave)", color: "var(--sucesso)", font: "800 20px/1 var(--font-sans)",
+                    }}>
                         {avaliacao.nivel}
-                    </div>
-                    <div className="flex-1">
-                        <div className="font-bold omni-body text-emerald-500">
+                    </span>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ font: "700 16px/22px var(--font-sans)", color: "var(--tinta)" }}>
                             Nível Omnisfera: {avaliacao.nivel} — {ESCALA_OMNISFERA[avaliacao.nivel as NivelOmnisfera]?.label}
                         </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        <div className="omni-apoio" style={{ fontSize: 14 }}>
                             {avaliacao.questoes} questões · {new Date(avaliacao.updated_at).toLocaleDateString("pt-BR")}
                         </div>
                     </div>
@@ -222,32 +242,33 @@ export function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina
             )}
 
             {/* Status: gerada mas não aplicada */}
-            {avaliacao && avaliacao.status !== "aplicada" && (
-                <div className="px-5 py-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {avaliacao && !aplicada && (
+                <div className="omni-aviso omni-aviso--atencao" role="status" style={{ maxWidth: "none" }}>
+                    <AlertTriangle className="omni-aviso__icone" aria-hidden />
                     <div>
-                        <div className="font-bold text-sm text-amber-500">Avaliação gerada, pendente de aplicação</div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            {avaliacao.questoes} questões · Aplique no módulo Avaliação Diagnóstica
+                        <div className="omni-aviso__titulo">A avaliação foi criada, mas ainda não foi aplicada</div>
+                        <div className="omni-aviso__texto">
+                            {avaliacao.questoes} questões. Aplique com o estudante na página Avaliação diagnóstica.
+                        </div>
+                        <div className="omni-aviso__acoes">
+                            <a href={linkDiagnostica} className="omni-btn omni-btn--primario omni-btn--pequeno">
+                                <ExternalLink size={16} aria-hidden /> Aplicar a avaliação
+                            </a>
                         </div>
                     </div>
-                    <a href={`/avaliacao-diagnostica?student=${studentId}&disciplina=${encodeURIComponent(disciplina)}`} className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl omni-body font-bold bg-linear-to-br from-amber-500 to-amber-600 text-white transition-opacity hover:opacity-90">
-                        <ExternalLink size={14} /> Aplicar
-                    </a>
                 </div>
             )}
 
             {/* Nenhuma avaliação */}
             {!avaliacao && (
-                <div className="text-center px-5 py-8 rounded-2xl border border-(--border-default) bg-(--bg-secondary)">
-                    <Brain size={40} className="mx-auto mb-3 text-slate-400 opacity-30" />
-                    <p className="text-sm font-semibold text-(--omni-text-primary) mb-1">
-                        Nenhuma avaliação diagnóstica encontrada
+                <div className="omni-vazio">
+                    <Brain size={36} aria-hidden style={{ color: "var(--tinta-3)" }} />
+                    <p className="omni-vazio__titulo">Ainda não há avaliação diagnóstica</p>
+                    <p className="omni-vazio__texto">
+                        Crie e aplique a avaliação de {studentName} em {disciplina} na página <strong>Avaliação diagnóstica</strong>.
                     </p>
-                    <p className="text-xs text-(--omni-text-muted) mb-4">
-                        Gere e aplique uma avaliação no módulo <strong>Avaliação Diagnóstica</strong> para {studentName} em {disciplina}.
-                    </p>
-                    <a href={`/avaliacao-diagnostica?student=${studentId}&disciplina=${encodeURIComponent(disciplina)}`} className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-linear-to-br from-blue-600 to-blue-500 text-white transition-opacity hover:opacity-90">
-                        <ExternalLink size={16} /> Ir para Avaliação Diagnóstica
+                    <a href={linkDiagnostica} className="omni-btn omni-btn--primario">
+                        <ExternalLink size={16} aria-hidden /> Ir para a avaliação diagnóstica
                     </a>
                 </div>
             )}

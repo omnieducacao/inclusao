@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
 import {
-    BookOpen, Users, AlertTriangle, ChevronRight,
+    BookOpen, AlertTriangle, ChevronRight,
     FileText, Brain, ClipboardCheck, CheckCircle2, ArrowLeft,
-    Sparkles, School, ExternalLink, Target, Trash2, RotateCcw,
+    Sparkles, School, ExternalLink, Target, RotateCcw,
+    BarChart3, Ruler, Accessibility, PencilLine, Save,
+    type LucideIcon,
 } from "lucide-react";
+import { useConfirmar } from "@/components/Confirmar";
 import { OmniLoader } from "@/components/OmniLoader";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { PEIPlanoEnsino } from "@/components/PEIPlanoEnsino";
@@ -51,41 +53,13 @@ interface DataResponse {
 }
 
 // ─── Constantes Visuais ───────────────────────────────────────────────────────
+// Onda 18: cada fase vira um selo omni-estado + um ícone (sem classes de cor)
 
-const STEP_COLORS: Record<FaseStatusPEIDisciplina, { bg: string; border: string; text: string; icon: React.ReactNode }> = {
-    plano_ensino: {
-        bg: "bg-amber-500/10", border: "border-amber-500/30",
-        text: "text-amber-500", icon: <FileText size={16} className="text-amber-500" />,
-    },
-    diagnostica: {
-        bg: "bg-blue-500/10", border: "border-blue-500/30",
-        text: "text-blue-500", icon: <Brain size={16} className="text-blue-500" />,
-    },
-    pei_disciplina: {
-        bg: "bg-violet-500/10", border: "border-violet-500/30",
-        text: "text-violet-500", icon: <ClipboardCheck size={16} className="text-violet-500" />,
-    },
-    concluido: {
-        bg: "bg-emerald-500/10", border: "border-emerald-500/30",
-        text: "text-emerald-500", icon: <CheckCircle2 size={16} className="text-emerald-500" />,
-    },
-};
-
-// ─── Variantes de Animação (Framer Motion) ───────────────────────────────────
-
-const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.05
-        }
-    }
-};
-
-const itemVariants = {
-    hidden: { opacity: 0, y: 15 },
-    show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
+const FASE_VISUAL: Record<FaseStatusPEIDisciplina, { estado: "neutro" | "info" | "sucesso"; Icone: LucideIcon }> = {
+    plano_ensino: { estado: "neutro", Icone: FileText },
+    diagnostica: { estado: "info", Icone: Brain },
+    pei_disciplina: { estado: "info", Icone: ClipboardCheck },
+    concluido: { estado: "sucesso", Icone: CheckCircle2 },
 };
 
 // ─── Componente Principal ─────────────────────────────────────────────────────
@@ -112,6 +86,7 @@ export function PEIRegenteClient() {
     const [versionSaveStatus, setVersionSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
     const [transitioning, setTransitioning] = useState(false);
     const [toast, setToast] = useState<string | null>(null);
+    const { confirmar, dialogo } = useConfirmar();
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -142,7 +117,7 @@ export function PEIRegenteClient() {
                 const rascunho = peiData?.adaptacao_rascunho as Record<string, unknown> | undefined;
                 if (rascunho && Object.keys(rascunho).length > 0) {
                     setAdaptacaoSugestao(rascunho);
-                    setToast("📋 Adaptação anterior carregada");
+                    setToast("Adaptação anterior carregada.");
                     setTimeout(() => setToast(null), 2500);
                 }
             })
@@ -154,7 +129,7 @@ export function PEIRegenteClient() {
 
     if (loading) {
         return (
-            <div className="rounded-2xl p-12 text-center bg-(--omni-bg-secondary) border border-(--omni-border-default)">
+            <div className="omni-cartao" style={{ alignItems: "center", padding: 48 }}>
                 <OmniLoader variant="card" />
             </div>
         );
@@ -162,32 +137,30 @@ export function PEIRegenteClient() {
 
     if (error) {
         return (
-            <div className="rounded-2xl p-8 bg-(--omni-bg-secondary) border border-(--omni-border-default)">
-                <div className="flex items-center gap-3 mb-4 text-red-400">
-                    <AlertTriangle size={24} />
-                    <span className="font-semibold">{error}</span>
+            <div className="omni-aviso omni-aviso--erro" role="alert" style={{ maxWidth: "none" }}>
+                <AlertTriangle className="omni-aviso__icone" aria-hidden />
+                <div>
+                    <div className="omni-aviso__titulo">Não foi possível carregar as disciplinas</div>
+                    <div className="omni-aviso__texto">{error}</div>
+                    <div className="omni-aviso__acoes">
+                        <button type="button" onClick={fetchData} className="omni-btn omni-btn--secundario omni-btn--pequeno">
+                            <RotateCcw size={16} aria-hidden /> Tentar de novo
+                        </button>
+                    </div>
                 </div>
-                <button
-                    onClick={fetchData}
-                    className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-(--omni-bg-tertiary) text-(--omni-text-primary) border border-(--omni-border-default)"
-                >
-                    Tentar novamente
-                </button>
             </div>
         );
     }
 
     if (!data?.alunos?.length) {
         return (
-            <div className="rounded-2xl p-12 text-center bg-(--omni-bg-secondary) border border-(--omni-border-default)">
-                <School size={48} className="mx-auto mb-4 text-(--omni-text-muted) opacity-40" />
-                <h3 className="text-lg font-semibold mb-2 text-(--omni-text-primary)">
-                    Nenhum estudante em Fase 2
-                </h3>
-                <p className="text-sm text-(--omni-text-muted)">
+            <div className="omni-vazio">
+                <School size={40} aria-hidden style={{ color: "var(--tinta-3)" }} />
+                <h3 className="omni-vazio__titulo">Nenhum estudante na Fase 2</h3>
+                <p className="omni-vazio__texto">
                     {data?.professor?.is_master
-                        ? "Nenhum PEI foi enviado para professores regentes ainda. Finalize um PEI no módulo PEI e clique em \"Enviar para Regentes\"."
-                        : "Aguarde o envio do PEI pelo profissional AEE ou coordenação."}
+                        ? "Nenhum PEI foi enviado aos professores ainda. Finalize um PEI no módulo PEI e use \"Enviar aos professores\"."
+                        : "Aguarde o envio do PEI pelo profissional do AEE ou pela coordenação."}
                 </p>
             </div>
         );
@@ -195,53 +168,66 @@ export function PEIRegenteClient() {
 
     // ─── Área de Trabalho (step ativo) ────────────────────────────────────────
 
+    const avisoToast = toast && (
+        <div className="omni-aviso omni-aviso--sucesso" role="status"
+            style={{ position: "absolute", top: 12, right: 12, zIndex: 50, maxWidth: 380, boxShadow: "var(--sombra-2)" }}>
+            <CheckCircle2 className="omni-aviso__icone" aria-hidden />
+            <div><div className="omni-aviso__texto" style={{ marginTop: 0, color: "var(--tinta)" }}>{toast}</div></div>
+        </div>
+    );
+
+    const resumoDetalhe: React.CSSProperties = {
+        cursor: "pointer", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+        font: "700 15px/22px var(--font-sans)", color: "var(--tinta)",
+    };
+
     if (selectedAluno && selectedDisc && activeStep) {
         return (
-            <div className="relative rounded-2xl overflow-hidden bg-(--omni-bg-secondary) border border-(--omni-border-default)">
-                {/* Toast notification */}
-                {toast && (
-                    <div className="absolute top-3 right-3 z-50 px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 omni-body font-bold animate-fade-in">
-                        {toast}
-                    </div>
-                )}
+            <div className="omni-cartao" style={{ position: "relative", padding: 0, gap: 0, overflow: "hidden" }}>
+                {avisoToast}
                 {/* Transitioning overlay */}
                 {transitioning && (
-                    <div className="absolute inset-0 z-40 bg-black/30 backdrop-blur-[2px] flex items-center justify-center rounded-2xl">
-                        <div className="text-center">
+                    <div role="status" aria-live="polite"
+                        style={{ position: "absolute", inset: 0, zIndex: 40, display: "grid", placeItems: "center", background: "color-mix(in srgb, var(--superficie) 80%, transparent)" }}>
+                        <div style={{ textAlign: "center" }}>
                             <OmniLoader variant="card" />
-                            <p className="text-white omni-body mt-2 font-bold">Avançando fase...</p>
+                            <p className="omni-apoio" style={{ marginTop: 8, fontWeight: 700 }}>Passando para a próxima etapa…</p>
                         </div>
                     </div>
                 )}
                 {/* Header com breadcrumb */}
-                <div className="px-6 py-4 flex items-center gap-3 border-b border-(--omni-border-default) bg-(--omni-bg-tertiary)">
+                <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 20px", borderBottom: "1px solid var(--borda)", background: "var(--superficie-2)" }}>
                     <button
+                        type="button"
                         onClick={() => { setActiveStep(null); setSelectedDisc(null); }}
-                        className="p-1.5 rounded-lg transition-colors text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                        className="omni-btn omni-btn--discreto omni-btn--icone omni-btn--pequeno"
+                        aria-label="Voltar para as disciplinas"
                     >
-                        <ArrowLeft size={18} />
+                        <ArrowLeft size={18} aria-hidden />
                     </button>
-                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                    <nav aria-label="Onde você está" className="omni-apoio" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, fontSize: 14 }}>
                         <span>{selectedAluno.name}</span>
-                        <span className="mx-2">›</span>
-                        <span className="text-slate-800 dark:text-slate-200 font-semibold">{selectedDisc.disciplina}</span>
-                        <span className="mx-2">›</span>
-                        <span className={STEP_COLORS[selectedDisc.fase_status]?.text || 'text-slate-400'}>
-                            {activeStep === "plano" ? "Plano de Ensino"
-                                : activeStep === "diagnostica" ? "Avaliação Diagnóstica"
-                                    : "PEI Disciplina"}
+                        <ChevronRight size={14} aria-hidden />
+                        <span style={{ color: "var(--tinta)", fontWeight: 700 }}>{selectedDisc.disciplina}</span>
+                        <ChevronRight size={14} aria-hidden />
+                        <span className={`omni-estado omni-estado--${FASE_VISUAL[selectedDisc.fase_status]?.estado || "neutro"}`} aria-current="page">
+                            {activeStep === "plano" ? "Plano de ensino"
+                                : activeStep === "diagnostica" ? "Avaliação diagnóstica"
+                                    : "PEI da disciplina"}
                         </span>
-                    </div>
+                    </nav>
                 </div>
 
-                <div className="p-6">
+                <div style={{ padding: 20 }}>
                     {activeStep === "plano" && !selectedAluno.grade && (
-                        <div className="mb-4 p-3 rounded-lg flex items-center gap-2 bg-amber-500/10 border border-amber-500/20">
-                            <AlertTriangle size={16} className="text-amber-500 shrink-0" />
-                            <p className="text-xs text-amber-500">
-                                <strong>Atenção:</strong> A série/ano do estudante não está cadastrada.
-                                O plano será buscado com valor padrão. Atualize o cadastro do estudante para resultados mais precisos.
-                            </p>
+                        <div className="omni-aviso omni-aviso--atencao" role="status" style={{ maxWidth: "none", marginBottom: 16 }}>
+                            <AlertTriangle className="omni-aviso__icone" aria-hidden />
+                            <div>
+                                <div className="omni-aviso__titulo">A série/ano do estudante não está cadastrada</div>
+                                <div className="omni-aviso__texto">
+                                    O plano será buscado com um valor padrão. Atualize o cadastro do estudante para um resultado mais preciso.
+                                </div>
+                            </div>
                         </div>
                     )}
                     {activeStep === "plano" && (
@@ -273,7 +259,7 @@ export function PEIRegenteClient() {
                                                 }),
                                             });
                                         }
-                                        setToast("✅ Plano vinculado! Avançando para Diagnóstica...");
+                                        setToast("Plano vinculado. Próxima etapa: avaliação diagnóstica.");
                                         setTimeout(() => setToast(null), 3000);
                                     } catch { /* silent */ }
                                 }
@@ -299,7 +285,7 @@ export function PEIRegenteClient() {
                                             fase_status: "pei_disciplina",
                                         }),
                                     }).catch(() => { });
-                                    setToast("✅ Diagnóstica aplicada! Avançando para PEI...");
+                                    setToast("Avaliação diagnóstica aplicada. Próxima etapa: PEI da disciplina.");
                                     setTimeout(() => setToast(null), 3000);
                                 }
                                 await fetchData();
@@ -309,28 +295,26 @@ export function PEIRegenteClient() {
                     )}
 
                     {activeStep === "pei" && (
-                        <div className="space-y-6">
+                        <div style={{ display: "grid", gap: 20 }}>
                             {/* Título */}
-                            <div className="flex items-center gap-2">
-                                <ClipboardCheck className="w-5 h-5 text-indigo-400" />
-                                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
-                                    PEI por Disciplina — {selectedDisc.disciplina}
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <ClipboardCheck size={20} aria-hidden style={{ color: "var(--acao)" }} />
+                                <h3 style={{ margin: 0, font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" }}>
+                                    PEI da disciplina — {selectedDisc.disciplina}
                                 </h3>
                             </div>
 
                             {/* ── PEI Geral (PEI 1) — expandível ── */}
                             {selectedAluno.pei_geral && Object.keys(selectedAluno.pei_geral).length > 1 && (
-                                <details className="rounded-xl overflow-hidden border-[1.5px] border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition-colors">
-                                    <summary className="px-5 py-3.5 cursor-pointer flex items-center gap-2 bg-indigo-500/10">
-                                        <FileText className="w-4 h-4 text-indigo-400" />
-                                        <span className="text-sm font-bold text-indigo-400">
-                                            PEI Geral do Estudante
-                                        </span>
-                                        <span className="omni-label-xs ml-auto px-2 py-0.5 rounded-full font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400">
+                                <details className="omni-cartao omni-cartao--plano" style={{ padding: "14px 18px" }}>
+                                    <summary style={resumoDetalhe}>
+                                        <FileText size={16} aria-hidden style={{ color: "var(--acao)" }} />
+                                        PEI geral do estudante
+                                        <span className="omni-estado omni-estado--info" style={{ marginLeft: "auto" }}>
                                             Informações gerais
                                         </span>
                                     </summary>
-                                    <div className="px-2 pb-4 pt-2">
+                                    <div style={{ paddingTop: 8 }}>
                                         <PEISummaryPanel
                                             peiData={selectedAluno.pei_geral}
                                             studentName={selectedAluno.name}
@@ -341,13 +325,11 @@ export function PEIRegenteClient() {
 
                             {/* ── BNCC do Especialista (read-only) ── */}
                             {selectedAluno.habilidades_bncc?.length > 0 && (
-                                <details className="rounded-xl overflow-hidden border border-green-600/20 bg-green-600/5 hover:bg-green-600/10 transition-colors">
-                                    <summary className="px-5 py-3 cursor-pointer flex items-center gap-2 bg-green-600/10">
-                                        <BookOpen className="w-4 h-4 text-green-600" />
-                                        <span className="text-sm font-bold text-green-600">
-                                            Habilidades BNCC (selecionadas pelo Especialista)
-                                        </span>
-                                        <span className="omni-label-xs ml-auto px-2 py-0.5 rounded-full font-bold bg-green-600/15 text-green-600">
+                                <details className="omni-cartao omni-cartao--plano" style={{ padding: "14px 18px" }}>
+                                    <summary style={resumoDetalhe}>
+                                        <BookOpen size={16} aria-hidden style={{ color: "var(--sucesso)" }} />
+                                        Habilidades da BNCC escolhidas pelo especialista
+                                        <span className="omni-estado omni-estado--sucesso" style={{ marginLeft: "auto" }}>
                                             {(() => {
                                                 const disc = selectedDisc.disciplina.toLowerCase();
                                                 const filtered = selectedAluno.habilidades_bncc.filter(h =>
@@ -355,175 +337,175 @@ export function PEIRegenteClient() {
                                                 );
                                                 return filtered.length > 0
                                                     ? `${filtered.length} da sua disciplina`
-                                                    : `${selectedAluno.habilidades_bncc.length} total`;
+                                                    : `${selectedAluno.habilidades_bncc.length} no total`;
                                             })()}
                                         </span>
                                     </summary>
-                                    <div className="px-5 pb-4 pt-2 space-y-1.5">
+                                    <ul style={{ listStyle: "none", margin: 0, padding: "8px 0 0", display: "grid", gap: 6 }}>
                                         {selectedAluno.habilidades_bncc.map((h, i) => {
                                             const disc = selectedDisc.disciplina.toLowerCase();
                                             const isMyDisc = !h.disciplina || h.disciplina.toLowerCase().includes(disc);
                                             return (
-                                                <div key={i} className={`flex items-start gap-2 p-2 rounded-lg text-xs ${isMyDisc ? 'bg-green-600/10 border border-green-600/15 opacity-100' : 'bg-transparent border-transparent opacity-50'}`}>
+                                                <li key={i} style={{
+                                                    display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 10px",
+                                                    borderRadius: "var(--o-radius-md)", font: "400 14px/20px var(--font-sans)",
+                                                    background: isMyDisc ? "var(--superficie)" : "transparent",
+                                                    border: `1px solid ${isMyDisc ? "var(--borda)" : "transparent"}`,
+                                                    color: isMyDisc ? "var(--tinta-2)" : "var(--tinta-3)",
+                                                }}>
                                                     {h.codigo && (
-                                                        <span className="font-bold shrink-0 px-1.5 py-0.5 rounded bg-green-600/10 text-green-600 omni-label-xs">{h.codigo}</span>
+                                                        <span className="omni-estado omni-estado--sucesso" style={{ flex: "none" }}>{h.codigo}</span>
                                                     )}
-                                                    <span className="text-slate-500 dark:text-slate-400">
+                                                    <span style={{ flex: 1 }}>
                                                         {h.habilidade || h.objeto_conhecimento || String(h.codigo || `Habilidade ${i + 1}`)}
                                                     </span>
                                                     {h.disciplina && (
-                                                        <span className="shrink-0 omni-label-xs text-slate-400">
+                                                        <span className="omni-rotulo" style={{ flex: "none" }}>
                                                             {h.disciplina}
                                                         </span>
                                                     )}
-                                                </div>
+                                                </li>
                                             );
                                         })}
-                                    </div>
+                                    </ul>
                                 </details>
                             )}
 
                             {/* EI Objetivos */}
                             {selectedAluno.bncc_ei_objetivos?.length > 0 && (
-                                <details className="rounded-xl overflow-hidden border border-sky-500/20 bg-sky-500/5 hover:bg-sky-500/10 transition-colors">
-                                    <summary className="px-5 py-3 cursor-pointer flex items-center gap-2 bg-sky-500/10">
-                                        <BookOpen className="w-4 h-4 text-sky-500" />
-                                        <span className="text-sm font-bold text-sky-500">
-                                            Objetivos EI (BNCC — Campos de Experiência)
-                                        </span>
-                                        <span className="omni-label-xs ml-auto px-2 py-0.5 rounded-full font-bold bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">
+                                <details className="omni-cartao omni-cartao--plano" style={{ padding: "14px 18px" }}>
+                                    <summary style={resumoDetalhe}>
+                                        <BookOpen size={16} aria-hidden style={{ color: "var(--info)" }} />
+                                        Objetivos da Educação Infantil (BNCC, campos de experiência)
+                                        <span className="omni-estado omni-estado--info" style={{ marginLeft: "auto" }}>
                                             {selectedAluno.bncc_ei_objetivos.length}
                                         </span>
                                     </summary>
-                                    <div className="px-5 pb-4 pt-2 space-y-1">
+                                    <ul style={{ margin: 0, padding: "8px 0 0 20px", display: "grid", gap: 4, font: "400 14px/20px var(--font-sans)", color: "var(--tinta-2)" }}>
                                         {selectedAluno.bncc_ei_objetivos.map((obj, i) => (
-                                            <p key={i} className="text-xs p-2 rounded-lg" style={{
-                                                color: 'var(--text-secondary)',
-                                                background: 'var(--color-primary-subtle)',
-                                            }}>• {obj}</p>
+                                            <li key={i}>{obj}</li>
                                         ))}
-                                    </div>
+                                    </ul>
                                 </details>
                             )}
 
                             {/* ── Ponte Pedagógica: Plano de ensino + Diagnóstica → PEI ── */}
-                            <div className="p-5 rounded-xl space-y-4 bg-sky-500/10 border border-sky-500/25">
-                                <div className="flex items-center gap-2">
-                                    <BookOpen className="w-4 h-4 text-sky-500" />
-                                    <h4 className="text-sm font-bold text-sky-500">
-                                        Metas do Bimestre para a Disciplina
+                            <section className="omni-cartao" aria-labelledby="metas-bimestre" style={{ gap: 16 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <Target size={18} aria-hidden style={{ color: "var(--acao)" }} />
+                                    <h4 id="metas-bimestre" className="omni-cartao__titulo" style={{ margin: 0 }}>
+                                        Metas do bimestre para a disciplina
                                     </h4>
                                 </div>
-                                <p className="text-xs text-(--omni-text-muted)">
-                                    A IA cruza o <strong>Plano de ensino da turma</strong> com o <strong>nível do estudante</strong> (Diagnóstica)
-                                    e suas barreiras/potencialidades para sugerir adaptações individualizadas.
+                                <p className="omni-cartao__texto" style={{ margin: 0 }}>
+                                    A Omnisfera cruza o <strong>plano de ensino da turma</strong> com o <strong>nível do estudante</strong> na avaliação diagnóstica,
+                                    e com as barreiras e potencialidades, para sugerir adaptações só para este estudante.
                                 </p>
 
                                 {/* IA Button */}
-                                <button
-                                    onClick={async () => {
-                                        if (!selectedAluno) return;
-                                        setGerandoAdaptacao(true);
-                                        aiLoadingStart("red", "pei_regente");
-                                        try {
-                                            const res = await fetch("/api/pei/adaptar-plano", {
-                                                method: "POST",
-                                                headers: { "Content-Type": "application/json" },
-                                                body: JSON.stringify({
-                                                    student_id: selectedAluno.id,
-                                                    disciplina: selectedDisc.disciplina,
-                                                    serie: selectedAluno.grade || "",
-                                                    barreiras: {},
-                                                    potencialidades: [],
-                                                    diagnostico: selectedAluno.diagnostico || "",
-                                                    nome_aluno: selectedAluno.name,
-                                                }),
-                                            });
-                                            const data = await res.json();
-                                            if (data.sugestao) {
-                                                setAdaptacaoSugestao(data.sugestao);
-                                                setAdaptacaoMeta({
-                                                    plano_encontrado: data.plano_curso_encontrado || false,
-                                                    nivel_diag: data.diagnostica_nivel ?? null,
+                                <div>
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            if (!selectedAluno) return;
+                                            setGerandoAdaptacao(true);
+                                            aiLoadingStart("red", "pei_regente");
+                                            try {
+                                                const res = await fetch("/api/pei/adaptar-plano", {
+                                                    method: "POST",
+                                                    headers: { "Content-Type": "application/json" },
+                                                    body: JSON.stringify({
+                                                        student_id: selectedAluno.id,
+                                                        disciplina: selectedDisc.disciplina,
+                                                        serie: selectedAluno.grade || "",
+                                                        barreiras: {},
+                                                        potencialidades: [],
+                                                        diagnostico: selectedAluno.diagnostico || "",
+                                                        nome_aluno: selectedAluno.name,
+                                                    }),
                                                 });
+                                                const data = await res.json();
+                                                if (data.sugestao) {
+                                                    setAdaptacaoSugestao(data.sugestao);
+                                                    setAdaptacaoMeta({
+                                                        plano_encontrado: data.plano_curso_encontrado || false,
+                                                        nivel_diag: data.diagnostica_nivel ?? null,
+                                                    });
 
-                                                // Auto-save adaptation to pei_disciplina_data
-                                                if (selectedDisc.id && !selectedDisc.is_virtual) {
-                                                    fetch("/api/pei/disciplina", {
-                                                        method: "POST",
-                                                        headers: { "Content-Type": "application/json" },
-                                                        body: JSON.stringify({
-                                                            studentId: selectedAluno.id,
-                                                            disciplina: selectedDisc.disciplina,
-                                                            pei_disciplina_data: { adaptacao_rascunho: data.sugestao },
-                                                        }),
-                                                    }).catch(() => { });
-
-                                                    // Advance to pei_disciplina step
-                                                    if (selectedDisc.fase_status === "diagnostica" || selectedDisc.fase_status === "plano_ensino") {
+                                                    // Auto-save adaptation to pei_disciplina_data
+                                                    if (selectedDisc.id && !selectedDisc.is_virtual) {
                                                         fetch("/api/pei/disciplina", {
-                                                            method: "PATCH",
+                                                            method: "POST",
                                                             headers: { "Content-Type": "application/json" },
                                                             body: JSON.stringify({
-                                                                id: selectedDisc.id,
-                                                                fase_status: "pei_disciplina",
+                                                                studentId: selectedAluno.id,
+                                                                disciplina: selectedDisc.disciplina,
+                                                                pei_disciplina_data: { adaptacao_rascunho: data.sugestao },
                                                             }),
                                                         }).catch(() => { });
+
+                                                        // Advance to pei_disciplina step
+                                                        if (selectedDisc.fase_status === "diagnostica" || selectedDisc.fase_status === "plano_ensino") {
+                                                            fetch("/api/pei/disciplina", {
+                                                                method: "PATCH",
+                                                                headers: { "Content-Type": "application/json" },
+                                                                body: JSON.stringify({
+                                                                    id: selectedDisc.id,
+                                                                    fase_status: "pei_disciplina",
+                                                                }),
+                                                            }).catch(() => { });
+                                                        }
                                                     }
                                                 }
-                                            }
-                                        } catch { /* silent */ }
-                                        setGerandoAdaptacao(false);
-                                        aiLoadingStop();
-                                    }}
-                                    disabled={gerandoAdaptacao}
-                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all disabled:opacity-50 ${gerandoAdaptacao ? 'bg-slate-400' : 'bg-linear-to-br from-sky-500 to-blue-500'}`}
-                                >
-                                    {gerandoAdaptacao ? <OmniLoader engine="red" size={14} /> : (
-                                        <>
-                                            <Sparkles size={14} />
-                                        </>
-                                    )}
-                                    {gerandoAdaptacao ? "Gerando adaptações..." : "Sugerir Adaptações com IA"}
-                                </button>
+                                            } catch { /* silent */ }
+                                            setGerandoAdaptacao(false);
+                                            aiLoadingStop();
+                                        }}
+                                        disabled={gerandoAdaptacao}
+                                        aria-busy={gerandoAdaptacao}
+                                        className="omni-btn omni-btn--primario"
+                                    >
+                                        {gerandoAdaptacao ? <OmniLoader engine="red" size={16} /> : <Sparkles size={16} aria-hidden />}
+                                        {gerandoAdaptacao ? "Preparando as adaptações…" : (adaptacaoSugestao ? "Sugerir de novo" : "Sugerir adaptações")}
+                                    </button>
+                                </div>
 
                                 {/* Result */}
                                 {adaptacaoSugestao && (
-                                    <div className="space-y-3 pt-2">
+                                    <div style={{ display: "grid", gap: 12 }}>
                                         {/* Meta badges */}
-                                        <div className="flex gap-2 flex-wrap">
+                                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                                             {adaptacaoMeta?.nivel_diag != null && (
-                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold bg-sky-500/10 text-sky-500">
-                                                    📊 Nível Diagnóstica: {adaptacaoMeta.nivel_diag}
+                                                <span className="omni-estado omni-estado--info">
+                                                    <BarChart3 aria-hidden /> Nível na diagnóstica: {adaptacaoMeta.nivel_diag}
                                                 </span>
                                             )}
-                                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold ${adaptacaoMeta?.plano_encontrado ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                                            <span className={`omni-estado omni-estado--${adaptacaoMeta?.plano_encontrado ? "sucesso" : "atencao"}`}>
                                                 Plano de ensino: {adaptacaoMeta?.plano_encontrado ? "encontrado" : "não encontrado"}
                                             </span>
                                         </div>
 
                                         {/* Resumo */}
                                         {adaptacaoSugestao.resumo_adaptacao && (
-                                            <div className="p-3 rounded-lg text-sm bg-(--bg-primary) border border-sky-500/15 text-(--text-secondary)">
+                                            <p className="omni-cartao__texto" style={{ margin: 0 }}>
                                                 {String(adaptacaoSugestao.resumo_adaptacao)}
-                                            </div>
+                                            </p>
                                         )}
 
                                         {/* Objetivos individualizados + Rubrica */}
                                         {adaptacaoSugestao.objetivos_individualizados && (
-                                            <div className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/15">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <p className="text-xs font-bold text-blue-500">
-                                                        <Target className="w-3 h-3 inline mr-1" />
-                                                        Objetivos Individualizados
+                                            <div className="omni-cartao omni-cartao--plano" style={{ padding: 14, gap: 6 }}>
+                                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                                                    <p className="omni-rotulo" style={{ margin: 0, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                                                        <Target size={14} aria-hidden /> Objetivos para este estudante
                                                     </p>
                                                     {adaptacaoMeta?.nivel_diag != null && (
-                                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full omni-label-xs font-bold ${adaptacaoMeta.nivel_diag >= 3 ? 'bg-emerald-500/10 text-emerald-500' : adaptacaoMeta.nivel_diag >= 2 ? 'bg-blue-500/10 text-blue-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                                                        <span className={`omni-estado omni-estado--${adaptacaoMeta.nivel_diag >= 3 ? "sucesso" : adaptacaoMeta.nivel_diag >= 2 ? "info" : "atencao"}`}>
                                                             N{adaptacaoMeta.nivel_diag} — {ESCALA_OMNISFERA[adaptacaoMeta.nivel_diag as NivelOmnisfera]?.label || ''}
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                                <p className="omni-cartao__texto" style={{ margin: 0 }}>
                                                     {String(adaptacaoSugestao.objetivos_individualizados)}
                                                 </p>
                                             </div>
@@ -531,9 +513,9 @@ export function PEIRegenteClient() {
 
                                         {/* Habilidades prioritárias */}
                                         {(adaptacaoSugestao.habilidades_prioritarias || []).length > 0 && (
-                                            <div className="flex flex-wrap gap-1.5">
+                                            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }} aria-label="Habilidades prioritárias">
                                                 {(adaptacaoSugestao.habilidades_prioritarias as string[]).map((h: string, i: number) => (
-                                                    <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-md omni-label-xs font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                                                    <span key={i} className="omni-estado omni-estado--neutro">
                                                         {h}
                                                     </span>
                                                 ))}
@@ -542,9 +524,11 @@ export function PEIRegenteClient() {
 
                                         {/* Metodologia */}
                                         {adaptacaoSugestao.metodologia_adaptada && (
-                                            <div className="p-3 rounded-lg bg-purple-500/5 border border-purple-500/15">
-                                                <p className="text-xs font-bold mb-1 text-purple-500">📐 Metodologia Adaptada</p>
-                                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                            <div className="omni-cartao omni-cartao--plano" style={{ padding: 14, gap: 6 }}>
+                                                <p className="omni-rotulo" style={{ margin: 0, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                                                    <Ruler size={14} aria-hidden /> Como ensinar
+                                                </p>
+                                                <p className="omni-cartao__texto" style={{ margin: 0 }}>
                                                     {String(adaptacaoSugestao.metodologia_adaptada)}
                                                 </p>
                                             </div>
@@ -554,41 +538,69 @@ export function PEIRegenteClient() {
                                         {(adaptacaoSugestao.estrategias_acesso?.length || adaptacaoSugestao.estrategias_ensino?.length || adaptacaoSugestao.estrategias_avaliacao?.length) && (
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                                 {adaptacaoSugestao.estrategias_acesso?.length > 0 && (
-                                                    <div className="p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/15">
-                                                        <p className="text-xs font-bold mb-1 text-emerald-500">♿ Acesso</p>
-                                                        {(adaptacaoSugestao.estrategias_acesso as string[]).map((e: string, i: number) => (
-                                                            <p key={i} className="text-xs text-slate-500 dark:text-slate-400">• {e}</p>
-                                                        ))}
+                                                    <div className="omni-cartao omni-cartao--plano" style={{ padding: 14, gap: 6 }}>
+                                                        <p className="omni-rotulo" style={{ margin: 0, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                                                            <Accessibility size={14} aria-hidden /> Acesso
+                                                        </p>
+                                                        <ul style={{ margin: 0, paddingLeft: 18, font: "400 14px/20px var(--font-sans)", color: "var(--tinta-2)" }}>
+                                                            {(adaptacaoSugestao.estrategias_acesso as string[]).map((e: string, i: number) => (
+                                                                <li key={i}>{e}</li>
+                                                            ))}
+                                                        </ul>
                                                     </div>
                                                 )}
                                                 {adaptacaoSugestao.estrategias_ensino?.length > 0 && (
-                                                    <div className="p-3 rounded-lg bg-indigo-500/5 border border-indigo-500/15">
-                                                        <p className="text-xs font-bold mb-1 text-indigo-500">Ensino</p>
-                                                        {(adaptacaoSugestao.estrategias_ensino as string[]).map((e: string, i: number) => (
-                                                            <p key={i} className="text-xs text-slate-500 dark:text-slate-400">• {e}</p>
-                                                        ))}
+                                                    <div className="omni-cartao omni-cartao--plano" style={{ padding: 14, gap: 6 }}>
+                                                        <p className="omni-rotulo" style={{ margin: 0, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                                                            <BookOpen size={14} aria-hidden /> Ensino
+                                                        </p>
+                                                        <ul style={{ margin: 0, paddingLeft: 18, font: "400 14px/20px var(--font-sans)", color: "var(--tinta-2)" }}>
+                                                            {(adaptacaoSugestao.estrategias_ensino as string[]).map((e: string, i: number) => (
+                                                                <li key={i}>{e}</li>
+                                                            ))}
+                                                        </ul>
                                                     </div>
                                                 )}
                                                 {adaptacaoSugestao.estrategias_avaliacao?.length > 0 && (
-                                                    <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/15">
-                                                        <p className="text-xs font-bold mb-1 text-amber-500">📝 Avaliação</p>
-                                                        {(adaptacaoSugestao.estrategias_avaliacao as string[]).map((e: string, i: number) => (
-                                                            <p key={i} className="text-xs text-slate-500 dark:text-slate-400">• {e}</p>
-                                                        ))}
+                                                    <div className="omni-cartao omni-cartao--plano" style={{ padding: 14, gap: 6 }}>
+                                                        <p className="omni-rotulo" style={{ margin: 0, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                                                            <PencilLine size={14} aria-hidden /> Avaliação
+                                                        </p>
+                                                        <ul style={{ margin: 0, paddingLeft: 18, font: "400 14px/20px var(--font-sans)", color: "var(--tinta-2)" }}>
+                                                            {(adaptacaoSugestao.estrategias_avaliacao as string[]).map((e: string, i: number) => (
+                                                                <li key={i}>{e}</li>
+                                                            ))}
+                                                        </ul>
                                                     </div>
                                                 )}
                                             </div>
                                         )}
 
-                                        <div className="flex items-center gap-2 flex-wrap">
+                                        {/* Alerts */}
+                                        {(adaptacaoSugestao.alertas || []).length > 0 && (
+                                            <div className="omni-aviso omni-aviso--atencao" style={{ maxWidth: "none" }}>
+                                                <AlertTriangle className="omni-aviso__icone" aria-hidden />
+                                                <div>
+                                                    <div className="omni-aviso__titulo">Pontos de atenção</div>
+                                                    <ul className="omni-aviso__texto" style={{ margin: "2px 0 0", paddingLeft: 18 }}>
+                                                        {(adaptacaoSugestao.alertas as string[]).map((a: string, i: number) => (
+                                                            <li key={i}>{a}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
                                             <a
                                                 href={`/pei?student=${selectedAluno.id}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all bg-linear-to-br from-emerald-600 to-emerald-500"
+                                                className="omni-btn omni-btn--secundario"
                                             >
-                                                <ExternalLink className="w-4 h-4" />
-                                                Abrir PEI completo e aplicar estratégias
+                                                <ExternalLink size={16} aria-hidden />
+                                                Abrir o PEI completo
+                                                <span className="omni-so-leitor"> (abre em nova aba)</span>
                                             </a>
 
                                             {/* Finalizar PEI desta disciplina e enviar para consolidar */}
@@ -604,6 +616,7 @@ export function PEIRegenteClient() {
 
                                             {/* Auto-save version */}
                                             <button
+                                                type="button"
                                                 onClick={async () => {
                                                     setVersionSaveStatus('saving');
                                                     try {
@@ -620,41 +633,39 @@ export function PEIRegenteClient() {
                                                     setTimeout(() => setVersionSaveStatus('idle'), 3000);
                                                 }}
                                                 disabled={versionSaveStatus === 'saving'}
-                                                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${versionSaveStatus === 'saved' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : versionSaveStatus === 'error' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/15'}`}
+                                                aria-busy={versionSaveStatus === 'saving'}
+                                                className="omni-btn omni-btn--discreto"
                                             >
-                                                {versionSaveStatus === 'saving' ? '⏳ Salvando...'
-                                                    : versionSaveStatus === 'saved' ? '✅ Versão salva!'
-                                                        : versionSaveStatus === 'error' ? '❌ Erro ao salvar'
-                                                            : '📸 Salvar Versão PEI'}
+                                                {versionSaveStatus === 'saved' ? <CheckCircle2 size={16} aria-hidden />
+                                                    : versionSaveStatus === 'error' ? <AlertTriangle size={16} aria-hidden />
+                                                        : <Save size={16} aria-hidden />}
+                                                {versionSaveStatus === 'saving' ? 'Guardando…'
+                                                    : versionSaveStatus === 'saved' ? 'Versão guardada'
+                                                        : versionSaveStatus === 'error' ? 'Não deu para guardar. Tente de novo'
+                                                            : 'Guardar uma versão do PEI'}
                                             </button>
+                                            <span className="omni-so-leitor" role="status">
+                                                {versionSaveStatus === 'saved' ? 'Versão do PEI guardada.' : versionSaveStatus === 'error' ? 'Não foi possível guardar a versão.' : ''}
+                                            </span>
                                         </div>
-
-                                        {/* Alerts */}
-                                        {(adaptacaoSugestao.alertas || []).length > 0 && (
-                                            <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/15">
-                                                <p className="text-xs font-bold mb-1 text-amber-500">⚠️ Alertas</p>
-                                                {(adaptacaoSugestao.alertas as string[]).map((a: string, i: number) => (
-                                                    <p key={i} className="text-xs text-slate-500 dark:text-slate-400">• {a}</p>
-                                                ))}
-                                            </div>
-                                        )}
                                     </div>
                                 )}
-                            </div>
+                            </section>
 
                             {/* Info about full PEI */}
-                            <div className="p-4 rounded-lg text-center bg-slate-50 border border-(--border-default) dark:bg-slate-800/50">
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                            <div className="omni-cartao omni-cartao--plano" style={{ padding: 16, gap: 6 }}>
+                                <p className="omni-apoio" style={{ margin: 0 }}>
                                     As adaptações sugeridas acima podem ser aplicadas no <strong>PEI completo do estudante</strong>,
-                                    acessível pelo módulo PEI principal.
+                                    no módulo PEI.
                                 </p>
                                 <a
                                     href={`/pei?student=${selectedAluno.id}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold transition-colors text-indigo-500 hover:text-indigo-600"
+                                    style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "700 14px/20px var(--font-sans)", color: "var(--acao)" }}
                                 >
-                                    <ExternalLink size={12} /> Ir para PEI completo
+                                    <ExternalLink size={14} aria-hidden /> Ir para o PEI completo
+                                    <span className="omni-so-leitor"> (abre em nova aba)</span>
                                 </a>
                             </div>
                         </div>
@@ -668,89 +679,97 @@ export function PEIRegenteClient() {
 
     if (selectedAluno) {
         return (
-            <div className="rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border border-(--border-default) relative">
-                {/* Toast notification */}
-                {toast && (
-                    <div className="absolute top-3 right-3 z-50 px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 omni-body font-bold">
-                        {toast}
-                    </div>
-                )}
+            <div className="omni-cartao" style={{ position: "relative", padding: 0, gap: 0, overflow: "hidden" }}>
+                {dialogo}
+                {avisoToast}
                 {/* Header do aluno */}
-                <div className="px-6 py-4 flex items-center justify-between border-b border-(--border-default) bg-slate-50 dark:bg-slate-800/50">
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => setSelectedAluno(null)}
-                            className="p-1.5 rounded-lg transition-colors text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-700"
-                        >
-                            <ArrowLeft size={18} />
-                        </button>
-                        <div>
-                            <h3 className="font-bold text-slate-800 dark:text-slate-200">{selectedAluno.name}</h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">
-                                {selectedAluno.grade} {selectedAluno.class_group && `— ${selectedAluno.class_group}`}
-                                {/* Onda 5: o diagnóstico não aparece ao lado do nome */}
-                            </p>
-                        </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 20px", borderBottom: "1px solid var(--borda)", background: "var(--superficie-2)" }}>
+                    <button
+                        type="button"
+                        onClick={() => setSelectedAluno(null)}
+                        className="omni-btn omni-btn--discreto omni-btn--icone omni-btn--pequeno"
+                        aria-label="Voltar para a lista de estudantes"
+                    >
+                        <ArrowLeft size={18} aria-hidden />
+                    </button>
+                    <div>
+                        <h3 style={{ margin: 0, font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" }}>{selectedAluno.name}</h3>
+                        <p className="omni-apoio" style={{ margin: 0, fontSize: 14 }}>
+                            {[selectedAluno.grade, selectedAluno.class_group].filter(Boolean).join(" · ")}
+                            {/* Onda 5: o diagnóstico não aparece ao lado do nome */}
+                        </p>
                     </div>
                 </div>
 
                 {/* Pipeline por disciplina */}
-                <div className="p-6 space-y-4">
-                    <h4 className="text-sm font-semibold mb-2 text-slate-500 dark:text-slate-400">
-                        Componentes Curriculares ({selectedAluno.disciplinas.length})
+                <div style={{ padding: 20, display: "grid", gap: 14 }}>
+                    <h4 className="omni-rotulo" style={{ margin: 0 }}>
+                        Disciplinas ({selectedAluno.disciplinas.length})
                     </h4>
 
                     {selectedAluno.disciplinas.map((disc) => {
-                        const step = STEP_COLORS[disc.fase_status] || STEP_COLORS.plano_ensino;
+                        const step = FASE_VISUAL[disc.fase_status] || FASE_VISUAL.plano_ensino;
                         const steps: Array<{ key: "plano" | "diagnostica" | "pei"; label: string; done: boolean; active: boolean }> = [
-                            { key: "plano", label: "Plano de Ensino", done: disc.has_plano, active: disc.fase_status === "plano_ensino" },
-                            { key: "diagnostica", label: "Diagnóstica", done: disc.has_avaliacao && disc.avaliacao_status === "aplicada", active: disc.fase_status === "diagnostica" },
-                            { key: "pei", label: "PEI Disciplina", done: disc.fase_status === "concluido", active: disc.fase_status === "pei_disciplina" },
+                            { key: "plano", label: "Plano de ensino", done: disc.has_plano, active: disc.fase_status === "plano_ensino" },
+                            { key: "diagnostica", label: "Avaliação diagnóstica", done: disc.has_avaliacao && disc.avaliacao_status === "aplicada", active: disc.fase_status === "diagnostica" },
+                            { key: "pei", label: "PEI da disciplina", done: disc.fase_status === "concluido", active: disc.fase_status === "pei_disciplina" },
                         ];
+                        const FaseIcone = step.Icone;
 
                         return (
-                            <div
+                            <section
                                 key={disc.id}
-                                className={`rounded-xl overflow-hidden transition-all border ${step.border} ${step.bg}`}
+                                className="omni-cartao omni-cartao--plano"
+                                aria-label={`${disc.disciplina}: ${FASE_STATUS_LABELS[disc.fase_status]}`}
+                                style={{ padding: 0, gap: 0 }}
                             >
                                 {/* Header da disciplina */}
-                                <div className="px-5 py-3.5 flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        {step.icon}
-                                        <div>
-                                            <span className="font-bold text-sm text-slate-800 dark:text-slate-200">
-                                                {disc.disciplina}
-                                            </span>
-                                            <span className="text-xs ml-2 text-slate-500 dark:text-slate-400">
-                                                {disc.professor_regente_nome}
-                                            </span>
-                                        </div>
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", padding: "14px 20px" }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                                        <FaseIcone size={18} aria-hidden style={{ color: "var(--tinta-3)" }} />
+                                        <span style={{ font: "700 16px/22px var(--font-sans)", color: "var(--tinta)" }}>
+                                            {disc.disciplina}
+                                        </span>
+                                        <span className="omni-apoio" style={{ fontSize: 14 }}>
+                                            {disc.professor_regente_nome}
+                                        </span>
+                                        <span className={`omni-estado omni-estado--${step.estado}`}>
+                                            {FASE_STATUS_LABELS[disc.fase_status]}
+                                        </span>
                                     </div>
 
                                     {/* Badge nível */}
-                                    <div className="flex items-center gap-2">
+                                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                         {disc.nivel_omnisfera !== null && (
-                                            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400">
+                                            <span className="omni-estado omni-estado--info">
                                                 N{disc.nivel_omnisfera} — {ESCALA_OMNISFERA[disc.nivel_omnisfera as NivelOmnisfera]?.label || ""}
                                             </span>
                                         )}
                                         {/* Reset discipline button */}
                                         {!disc.is_virtual && disc.fase_status !== 'concluido' && (
                                             <button
-                                                title="Resetar esta disciplina"
+                                                type="button"
+                                                title={`Recomeçar ${disc.disciplina}`}
+                                                aria-label={`Recomeçar o PEI de ${disc.disciplina}`}
                                                 onClick={async (e) => {
                                                     e.stopPropagation();
-                                                    if (!confirm(`Resetar o PEI de ${disc.disciplina}? Isso apagará o progresso (plano vinculado, adaptações). A avaliação diagnóstica NÃO será afetada.`)) return;
+                                                    if (!(await confirmar({
+                                                        titulo: `Recomeçar o PEI de ${disc.disciplina}?`,
+                                                        texto: "Isso apaga o progresso desta disciplina (plano vinculado e adaptações). A avaliação diagnóstica não é afetada.",
+                                                        acao: "Recomeçar",
+                                                        cancelar: "Manter",
+                                                        perigo: true,
+                                                    }))) return;
                                                     try {
                                                         await fetch(`/api/pei/disciplina?id=${disc.id}`, { method: 'DELETE' });
-                                                        setToast(`🗑️ PEI ${disc.disciplina} resetado`);
+                                                        setToast(`O PEI de ${disc.disciplina} foi recomeçado.`);
                                                         setTimeout(() => setToast(null), 3000);
                                                         fetchData();
                                                     } catch { /* silent */ }
                                                 }}
-                                                className="p-1.5 rounded-lg transition-all text-slate-400 hover:text-red-500 opacity-50 hover:opacity-100"
+                                                className="omni-btn omni-btn--discreto omni-btn--icone omni-btn--pequeno"
                                             >
-                                                <RotateCcw size={14} />
+                                                <RotateCcw size={16} aria-hidden />
                                             </button>
                                         )}
                                     </div>
@@ -781,23 +800,26 @@ export function PEIRegenteClient() {
                                 )}
 
                                 {/* Pipeline steps */}
-                                <div className="px-5 pb-4 flex items-center gap-2">
+                                <ol style={{ listStyle: "none", margin: 0, padding: "0 20px 16px", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                                     {steps.map((s, i) => (
-                                        <React.Fragment key={s.key}>
+                                        <li key={s.key} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                             <button
+                                                type="button"
                                                 onClick={() => { setSelectedDisc(disc); setActiveStep(s.key); }}
-                                                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-85 ${s.done ? 'bg-emerald-500/10 text-emerald-500 border border-transparent' : s.active ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/30' : 'bg-slate-50 dark:bg-slate-800/50 text-slate-400 border border-(--border-default)'}`}
+                                                className={`omni-btn omni-btn--pequeno ${s.active ? "omni-btn--primario" : "omni-btn--secundario"}`}
+                                                aria-current={s.active ? "step" : undefined}
                                             >
-                                                {s.done ? <CheckCircle2 size={13} /> : i === 0 ? <FileText size={13} /> : i === 1 ? <Brain size={13} /> : <ClipboardCheck size={13} />}
+                                                {s.done ? <CheckCircle2 size={16} aria-hidden style={{ color: s.active ? undefined : "var(--sucesso)" }} /> : i === 0 ? <FileText size={16} aria-hidden /> : i === 1 ? <Brain size={16} aria-hidden /> : <ClipboardCheck size={16} aria-hidden />}
                                                 {s.label}
+                                                {s.done && <span className="omni-so-leitor"> (feito)</span>}
                                             </button>
                                             {i < steps.length - 1 && (
-                                                <ChevronRight size={14} className="text-slate-400 opacity-40 ml-1 mr-1" />
+                                                <ChevronRight size={14} aria-hidden style={{ color: "var(--tinta-3)" }} />
                                             )}
-                                        </React.Fragment>
+                                        </li>
                                     ))}
-                                </div>
-                            </div>
+                                </ol>
+                            </section>
                         );
                     })}
                 </div>

@@ -11,6 +11,9 @@ import {
   BookOpen,
   Sparkles,
   CheckCircle2,
+  Check,
+  Info,
+  AlertTriangle,
 } from "lucide-react";
 
 type HabilidadeBncc = { codigo: string; descricao: string; habilidade_completa?: string; disciplina?: string; origem?: string };
@@ -59,6 +62,7 @@ export function BNCCTab({
   const [sugerindoAnteriores, setSugerindoAnteriores] = useState(false);
   const [motivoIAAtual, setMotivoIAAtual] = useState<string>("");
   const [motivoIAAnteriores, setMotivoIAAnteriores] = useState<string>("");
+  const [erroSugestao, setErroSugestao] = useState<string>("");
 
   useEffect(() => {
     if (!serie) return;
@@ -107,9 +111,14 @@ export function BNCCTab({
 
   if (!serie) {
     return (
-      <div className="text-amber-700 bg-amber-50 p-4 rounded-lg">
-        Selecione a <strong>Série/Ano</strong> (ou faixa de idade para EI) na aba{" "}
-        <strong>Estudante</strong>.
+      <div className="omni-aviso omni-aviso--atencao" role="status" style={{ maxWidth: "none" }}>
+        <AlertTriangle className="omni-aviso__icone" aria-hidden />
+        <div>
+          <div className="omni-aviso__texto" style={{ marginTop: 0 }}>
+            Escolha o <strong>ano ou série</strong> do estudante (ou a faixa de idade, na Educação Infantil) na aba{" "}
+            <strong>Estudante</strong>.
+          </div>
+        </div>
       </div>
     );
   }
@@ -120,32 +129,34 @@ export function BNCCTab({
     const objetivosAtuais = peiData.bncc_ei_objetivos || [];
 
     return (
-      <div className="space-y-4">
-        <p className="text-sm text-slate-600">
-          Educação Infantil: selecione faixa de idade, campo de experiência e objetivos. A IA usa estes dados ao escrever o PEI.
+      <div style={{ display: "grid", gap: 16 }}>
+        <p className="omni-apoio" style={{ margin: 0 }}>
+          Educação Infantil: escolha a faixa de idade, o campo de experiência e os objetivos. A IA usa essas escolhas ao escrever o PEI.
         </p>
         {eiLoading ? (
-          <p className="text-slate-500">Carregando BNCC EI...</p>
+          <p className="omni-apoio" role="status" style={{ margin: 0 }}>Carregando a BNCC da Educação Infantil...</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Faixa de Idade</label>
+            <div className="omni-campo" style={{ maxWidth: "none" }}>
+              <label className="omni-campo__rotulo" htmlFor="bncc-ei-idade">Faixa de idade</label>
               <select
+                id="bncc-ei-idade"
+                className="omni-entrada"
                 value={idade}
                 onChange={(e) => updateField("bncc_ei_idade", e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
               >
                 {eiFaixas.map((f) => (
                   <option key={f} value={f}>{f}</option>
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Campo de Experiência</label>
+            <div className="omni-campo" style={{ maxWidth: "none" }}>
+              <label className="omni-campo__rotulo" htmlFor="bncc-ei-campo">Campo de experiência</label>
               <select
+                id="bncc-ei-campo"
+                className="omni-entrada"
                 value={campo}
                 onChange={(e) => updateField("bncc_ei_campo", e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
               >
                 {eiCampos.map((c) => (
                   <option key={c} value={c}>{c}</option>
@@ -154,10 +165,13 @@ export function BNCCTab({
             </div>
           </div>
         )}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Objetivos de Aprendizagem</label>
+        <div className="omni-campo" style={{ maxWidth: "none" }}>
+          <label className="omni-campo__rotulo" htmlFor="bncc-ei-objetivos">Objetivos de aprendizagem</label>
           <select
+            id="bncc-ei-objetivos"
+            className="omni-entrada"
             multiple
+            aria-describedby="bncc-ei-objetivos-ajuda"
             value={objetivosAtuais}
             onChange={(e) =>
               updateField(
@@ -165,16 +179,21 @@ export function BNCCTab({
                 Array.from(e.target.selectedOptions, (o) => o.value)
               )
             }
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg min-h-[120px]"
+            style={{ minHeight: 120 }}
           >
             {eiObjetivos.map((o) => (
               <option key={o} value={o}>{o}</option>
             ))}
           </select>
-          <p className="text-xs text-slate-500 mt-1">Segure Ctrl/Cmd para selecionar vários.</p>
+          <span id="bncc-ei-objetivos-ajuda" className="omni-campo__ajuda">Para escolher vários, segure Ctrl (ou Cmd, no Mac) enquanto clica.</span>
         </div>
-        <div className="text-sky-700 bg-sky-50 p-3 rounded-lg text-sm">
-          Com os campos e objetivos escolhidos, siga para <strong>Texto do PEI</strong> para gerar o texto.
+        <div className="omni-aviso omni-aviso--info" role="note" style={{ maxWidth: "none" }}>
+          <Info className="omni-aviso__icone" aria-hidden />
+          <div>
+            <div className="omni-aviso__texto" style={{ marginTop: 0 }}>
+              Com os campos e objetivos escolhidos, siga para <strong>Texto do PEI</strong> para gerar o texto.
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -214,6 +233,7 @@ export function BNCCTab({
   }
 
   async function sugerirHabilidadesIA(tipo: "ano_atual" | "anos_anteriores") {
+    setErroSugestao("");
     if (tipo === "ano_atual") {
       setSugerindoAtual(true);
     } else {
@@ -283,7 +303,7 @@ export function BNCCTab({
       updateField("habilidades_bncc_selecionadas", [...outras, ...novas]);
     } catch (error) {
       /* client-side */ console.error("Erro ao sugerir habilidades:", error);
-      alert(`Erro ao sugerir habilidades: ${error}`);
+      setErroSugestao("Não deu para a IA sugerir habilidades agora. Tente de novo em instantes ou marque as habilidades na lista.");
     } finally {
       if (tipo === "ano_atual") {
         setSugerindoAtual(false);
@@ -294,273 +314,247 @@ export function BNCCTab({
   }
 
   if (blocosLoading) {
-    return <p className="text-slate-500">Carregando habilidades BNCC...</p>;
+    return <p className="omni-apoio" role="status">Carregando as habilidades da BNCC...</p>;
   }
 
   if (!componentesAtual.length && !componentesAnt.length) {
     return (
-      <div className="text-amber-700 bg-amber-50 p-4 rounded-lg">
-        Nenhuma habilidade BNCC encontrada para esta série. Verifique se os arquivos bncc.csv (EF) ou bncc_em.csv (EM) existem em <code>data/</code>.
+      <div className="omni-aviso omni-aviso--atencao" role="status" style={{ maxWidth: "none" }}>
+        <AlertTriangle className="omni-aviso__icone" aria-hidden />
+        <div>
+          <div className="omni-aviso__titulo">Nenhuma habilidade da BNCC para este ano ou série</div>
+          <div className="omni-aviso__texto">Confira o ano ou série na aba Estudante. Se estiver certo, avise o suporte da Omnisfera.</div>
+        </div>
       </div>
     );
   }
 
+  const estiloDetalhe = { padding: 0, gap: 0 } as const;
+  const estiloResumo = { cursor: "pointer", padding: "14px 16px", font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" } as const;
+  const estiloResumoInterno = { cursor: "pointer", padding: "10px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, font: "700 14px/20px var(--font-sans)", color: "var(--tinta)" } as const;
+  const estiloChipLongo = { borderRadius: "var(--o-radius-md)", alignItems: "flex-start", width: "100%", fontWeight: 400, padding: "8px 12px" } as const;
+
+  function botaoAuxilioIA(tipo: "ano_atual" | "anos_anteriores", sugerindo: boolean) {
+    return (
+      <button
+        type="button"
+        onClick={() => sugerirHabilidadesIA(tipo)}
+        disabled={sugerindo}
+        aria-busy={sugerindo}
+        className="omni-btn omni-btn--secundario omni-btn--pequeno"
+      >
+        {sugerindo ? (
+          <>
+            <OmniLoader size={12} />
+            Sugerindo...
+          </>
+        ) : (
+          <>
+            <Sparkles style={{ width: 14, height: 14 }} aria-hidden />
+            Sugestão da IA
+          </>
+        )}
+      </button>
+    );
+  }
+
+  function listaHabilidades(
+    componentes: string[],
+    fonte: Record<string, HabilidadeBncc[]>,
+    origem: "ano_atual" | "anos_anteriores",
+  ) {
+    return componentes.map((disc) => {
+      const habsDisciplina = fonte[disc] || [];
+      const habsSelecionadas = habilidadesAtuais.filter((h) => h.disciplina === disc && h.origem === origem);
+      const codigosSelecionados = new Set(habsSelecionadas.map(h => h.codigo));
+      const sufixo = origem === "ano_atual" ? "ano" : "ant";
+
+      return (
+        <details key={disc} className="omni-cartao" style={{ ...estiloDetalhe, borderRadius: "var(--o-radius-md)" }}>
+          <summary style={estiloResumoInterno}>
+            <span>{disc}</span>
+            <span className={`omni-estado ${habsSelecionadas.length > 0 ? "omni-estado--sucesso" : "omni-estado--neutro"}`}>
+              {habsSelecionadas.length} marcada{habsSelecionadas.length !== 1 ? "s" : ""}
+            </span>
+          </summary>
+          <fieldset style={{ border: 0, margin: 0, padding: 12, display: "grid", gap: 8, maxHeight: 300, overflowY: "auto" }}>
+            <legend className="sr-only">{`Habilidades de ${disc}`}</legend>
+            {habsDisciplina.map((h, i) => {
+              const estaSelecionada = codigosSelecionados.has(h.codigo);
+              return (
+                <label key={`${disc}-${sufixo}-${i}`} className="omni-chip" style={estiloChipLongo}>
+                  <input
+                    type="checkbox"
+                    checked={estaSelecionada}
+                    onChange={(e) => {
+                      const outras = habilidadesAtuais.filter((hab) => !(hab.disciplina === disc && hab.origem === origem && hab.codigo === h.codigo));
+                      if (e.target.checked) {
+                        const nova: HabilidadeBncc = {
+                          disciplina: disc,
+                          codigo: h.codigo,
+                          descricao: h.descricao,
+                          habilidade_completa: h.habilidade_completa || h.descricao,
+                          origem,
+                        };
+                        updateField("habilidades_bncc_selecionadas", [...outras, nova]);
+                      } else {
+                        updateField("habilidades_bncc_selecionadas", outras);
+                      }
+                      updateField("habilidades_bncc_validadas", null);
+                    }}
+                  />
+                  <Check className="omni-chip__marca" style={{ marginTop: 2 }} aria-hidden />
+                  <span style={{ font: "400 14px/20px var(--font-sans)" }}>
+                    <strong style={{ fontFamily: "var(--font-mono)", color: "var(--acao)", marginRight: 6 }}>{h.codigo}</strong>
+                    {h.habilidade_completa || h.descricao}
+                  </span>
+                </label>
+              );
+            })}
+          </fieldset>
+        </details>
+      );
+    });
+  }
+
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-slate-600">
-        Selecione as habilidades do ano/série do estudante. A IA usa só estas ao escrever o texto do PEI.
+    <div style={{ display: "grid", gap: 16 }}>
+      <p className="omni-apoio" style={{ margin: 0 }}>
+        Escolha as habilidades do ano ou série do estudante. A IA usa só estas ao escrever o texto do PEI.
       </p>
 
-      <details className="border-2 border-blue-200 rounded-lg bg-blue-50/30" open={habilidadesAtuais.length > 0}>
-        <summary className="px-4 py-3 font-medium cursor-pointer bg-blue-100 rounded-t-lg">
-          📋 Habilidades selecionadas ({habilidadesAtuais.length})
+      {erroSugestao && (
+        <div className="omni-aviso omni-aviso--erro" role="alert" style={{ maxWidth: "none" }}>
+          <AlertTriangle className="omni-aviso__icone" aria-hidden />
+          <div>
+            <div className="omni-aviso__texto" style={{ marginTop: 0 }}>{erroSugestao}</div>
+            <div className="omni-aviso__acoes">
+              <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" onClick={() => setErroSugestao("")}>
+                Fechar aviso
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <details className="omni-cartao" style={estiloDetalhe} open={habilidadesAtuais.length > 0}>
+        <summary style={estiloResumo}>
+          Habilidades escolhidas ({habilidadesAtuais.length})
         </summary>
-        <div className="p-4 space-y-3">
+        <div style={{ padding: "0 16px 16px", display: "grid", gap: 12 }}>
           {habilidadesAtuais.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              Nenhuma habilidade selecionada. Marque nas listas abaixo ou use o botão de auxílio da IA.
+            <p className="omni-apoio" style={{ margin: 0 }}>
+              Nenhuma habilidade escolhida. Marque nas listas abaixo ou peça uma sugestão da IA.
             </p>
           ) : (
             <>
               {(motivoIAAtual || motivoIAAnteriores) && (
-                <div className="p-3 rounded-lg bg-purple-50 border border-purple-200">
-                  <p className="text-xs font-medium text-purple-800 mb-1">Por que a IA escolheu estas habilidades:</p>
-                  {motivoIAAtual && <p className="text-xs text-purple-700 mb-1"><em>Ano atual:</em> {motivoIAAtual}</p>}
-                  {motivoIAAnteriores && <p className="text-xs text-purple-700"><em>Anos anteriores:</em> {motivoIAAnteriores}</p>}
+                <div className="omni-aviso omni-aviso--info" role="note" style={{ maxWidth: "none" }}>
+                  <Sparkles className="omni-aviso__icone" aria-hidden />
+                  <div>
+                    <div className="omni-aviso__titulo">Por que a IA escolheu estas habilidades</div>
+                    {motivoIAAtual && <div className="omni-aviso__texto"><em>Ano atual:</em> {motivoIAAtual}</div>}
+                    {motivoIAAnteriores && <div className="omni-aviso__texto"><em>Anos anteriores:</em> {motivoIAAnteriores}</div>}
+                  </div>
                 </div>
               )}
-              <p className="text-xs text-slate-600">Revise a lista. Use <strong>Remover</strong> para tirar uma habilidade ou <strong>Desmarcar todas</strong> para limpar.</p>
-              {habilidadesAtuais.map((h, i) => (
-                <div key={`${h.disciplina}-${h.codigo}-${i}`} className="flex justify-between items-start gap-2 py-2 px-3 rounded-lg bg-white border border-slate-200 hover:border-blue-300 hover:shadow-sm transition-all">
-                  <div className="text-sm">
-                    <strong className="text-slate-800">{h.disciplina}</strong> — <em className="text-sky-600">{h.codigo}</em> — <span className="text-slate-700">{h.habilidade_completa || h.descricao}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removerHabilidade(i)}
-                    className="text-red-600 hover:text-red-700 text-sm whitespace-nowrap px-2 py-1 rounded hover:bg-red-50 transition-colors"
-                  >
-                    Remover
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={desmarcarTodas}
-                className="text-slate-600 hover:text-slate-700 text-sm px-3 py-1.5 rounded border border-slate-300 hover:bg-slate-50 transition-colors"
-              >
-                Desmarcar todas
-              </button>
+              <p className="omni-campo__ajuda" style={{ margin: 0 }}>Revise a lista. Use <strong>Remover</strong> para tirar uma habilidade ou <strong>Desmarcar todas</strong> para limpar.</p>
+              <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8 }}>
+                {habilidadesAtuais.map((h, i) => (
+                  <li key={`${h.disciplina}-${h.codigo}-${i}`} className="omni-cartao omni-cartao--plano" style={{ padding: "8px 12px", flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 8, borderRadius: "var(--o-radius-md)" }}>
+                    <div style={{ font: "400 14px/20px var(--font-sans)", color: "var(--tinta-2)" }}>
+                      <strong style={{ color: "var(--tinta)" }}>{h.disciplina}</strong>
+                      {" · "}
+                      <strong style={{ fontFamily: "var(--font-mono)", color: "var(--acao)" }}>{h.codigo}</strong>
+                      {" · "}
+                      {h.habilidade_completa || h.descricao}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removerHabilidade(i)}
+                      className="omni-btn omni-btn--discreto omni-btn--pequeno"
+                      aria-label={`Remover ${h.codigo || "habilidade"}`}
+                      style={{ whiteSpace: "nowrap" }}
+                    >
+                      Remover
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <div>
+                <button
+                  type="button"
+                  onClick={desmarcarTodas}
+                  className="omni-btn omni-btn--secundario omni-btn--pequeno"
+                >
+                  Desmarcar todas
+                </button>
+              </div>
             </>
           )}
         </div>
       </details>
 
       {componentesAtual.length > 0 && (
-        <details className="border-2 border-emerald-200 rounded-lg bg-emerald-50/30" open>
-          <summary className="px-4 py-3 font-medium cursor-pointer bg-emerald-100 rounded-t-lg">
-            Habilidades do ano/série atual
+        <details className="omni-cartao" style={estiloDetalhe} open>
+          <summary style={estiloResumo}>
+            Habilidades do ano ou série atual
           </summary>
-          <div className="p-4 space-y-4">
-            <div className="flex items-center justify-between gap-3 mb-2">
-              <p className="text-xs text-slate-600">
+          <div style={{ padding: "0 16px 16px", display: "grid", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <p className="omni-campo__ajuda" style={{ margin: 0 }}>
                 Marque as habilidades por {rotulo} (ano atual).
               </p>
-              <button
-                type="button"
-                onClick={() => sugerirHabilidadesIA("ano_atual")}
-                disabled={sugerindoAtual}
-                className="px-3 py-1.5 text-xs font-medium bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1.5"
-              >
-                {sugerindoAtual ? (
-                  <>
-                    <OmniLoader size={12} />
-                    Sugerindo...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-3 h-3" />
-                    🤖 Auxílio IA
-                  </>
-                )}
-              </button>
+              {botaoAuxilioIA("ano_atual", sugerindoAtual)}
             </div>
-            {componentesAtual.map((disc) => {
-              const habsDisciplina = anoAtual[disc] || [];
-              const habsSelecionadas = habilidadesAtuais.filter((h) => h.disciplina === disc && h.origem === "ano_atual");
-              const codigosSelecionados = new Set(habsSelecionadas.map(h => h.codigo));
-
-              return (
-                <details key={disc} className="border border-slate-200 rounded-lg bg-white">
-                  <summary className="px-3 py-2 font-medium cursor-pointer hover:bg-slate-50 rounded-t-lg flex items-center justify-between">
-                    <span className="text-sm text-slate-800">{disc}</span>
-                    <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                      {habsSelecionadas.length} selecionada{habsSelecionadas.length !== 1 ? "s" : ""}
-                    </span>
-                  </summary>
-                  <div className="p-3 space-y-2 max-h-[300px] overflow-y-auto">
-                    {habsDisciplina.map((h, i) => {
-                      const estaSelecionada = codigosSelecionados.has(h.codigo);
-                      return (
-                        <label
-                          key={`${disc}-ano-${i}`}
-                          className={`flex items-start gap-2 p-2 rounded-lg cursor-pointer transition-all ${estaSelecionada
-                            ? "bg-emerald-50 border-2 border-emerald-300"
-                            : "hover:bg-slate-50 border-2 border-transparent"
-                            }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={estaSelecionada}
-                            onChange={(e) => {
-                              const outras = habilidadesAtuais.filter((hab) => !(hab.disciplina === disc && hab.origem === "ano_atual" && hab.codigo === h.codigo));
-                              if (e.target.checked) {
-                                const nova: HabilidadeBncc = {
-                                  disciplina: disc,
-                                  codigo: h.codigo,
-                                  descricao: h.descricao,
-                                  habilidade_completa: h.habilidade_completa || h.descricao,
-                                  origem: "ano_atual",
-                                };
-                                updateField("habilidades_bncc_selecionadas", [...outras, nova]);
-                              } else {
-                                updateField("habilidades_bncc_selecionadas", outras);
-                              }
-                              updateField("habilidades_bncc_validadas", null);
-                            }}
-                            className="mt-0.5 w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
-                          />
-                          <div className="flex-1 text-xs">
-                            <span className="font-semibold text-sky-600">{h.codigo}</span>
-                            <span className="text-slate-700 ml-1">{h.habilidade_completa || h.descricao}</span>
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </details>
-              );
-            })}
+            {listaHabilidades(componentesAtual, anoAtual, "ano_atual")}
           </div>
         </details>
       )}
 
       {componentesAnt.length > 0 && (
-        <details className="border-2 border-amber-200 rounded-lg bg-amber-50/30">
-          <summary className="px-4 py-3 font-medium cursor-pointer bg-amber-100 rounded-t-lg">
+        <details className="omni-cartao" style={estiloDetalhe}>
+          <summary style={estiloResumo}>
             Habilidades de anos anteriores
           </summary>
-          <div className="p-4 space-y-4">
-            <div className="flex items-center justify-between gap-3 mb-2">
-              <p className="text-xs text-slate-600">
+          <div style={{ padding: "0 16px 16px", display: "grid", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <p className="omni-campo__ajuda" style={{ margin: 0 }}>
                 Habilidades de anos anteriores que merecem atenção.
               </p>
-              <button
-                type="button"
-                onClick={() => sugerirHabilidadesIA("anos_anteriores")}
-                disabled={sugerindoAnteriores}
-                className="px-3 py-1.5 text-xs font-medium bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1.5"
-              >
-                {sugerindoAnteriores ? (
-                  <>
-                    <OmniLoader size={12} />
-                    Sugerindo...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-3 h-3" />
-                    🤖 Auxílio IA
-                  </>
-                )}
-              </button>
+              {botaoAuxilioIA("anos_anteriores", sugerindoAnteriores)}
             </div>
-            {componentesAnt.map((disc) => {
-              const habsDisciplina = anosAnteriores[disc] || [];
-              const habsSelecionadas = habilidadesAtuais.filter((h) => h.disciplina === disc && h.origem === "anos_anteriores");
-              const codigosSelecionados = new Set(habsSelecionadas.map(h => h.codigo));
-
-              return (
-                <details key={disc} className="border border-slate-200 rounded-lg bg-white">
-                  <summary className="px-3 py-2 font-medium cursor-pointer hover:bg-slate-50 rounded-t-lg flex items-center justify-between">
-                    <span className="text-sm text-slate-800">{disc}</span>
-                    <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                      {habsSelecionadas.length} selecionada{habsSelecionadas.length !== 1 ? "s" : ""}
-                    </span>
-                  </summary>
-                  <div className="p-3 space-y-2 max-h-[300px] overflow-y-auto">
-                    {habsDisciplina.map((h, i) => {
-                      const estaSelecionada = codigosSelecionados.has(h.codigo);
-                      return (
-                        <label
-                          key={`${disc}-ant-${i}`}
-                          className={`flex items-start gap-2 p-2 rounded-lg cursor-pointer transition-all ${estaSelecionada
-                            ? "bg-amber-50 border-2 border-amber-300"
-                            : "hover:bg-slate-50 border-2 border-transparent"
-                            }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={estaSelecionada}
-                            onChange={(e) => {
-                              const outras = habilidadesAtuais.filter((hab) => !(hab.disciplina === disc && hab.origem === "anos_anteriores" && hab.codigo === h.codigo));
-                              if (e.target.checked) {
-                                const nova: HabilidadeBncc = {
-                                  disciplina: disc,
-                                  codigo: h.codigo,
-                                  descricao: h.descricao,
-                                  habilidade_completa: h.habilidade_completa || h.descricao,
-                                  origem: "anos_anteriores",
-                                };
-                                updateField("habilidades_bncc_selecionadas", [...outras, nova]);
-                              } else {
-                                updateField("habilidades_bncc_selecionadas", outras);
-                              }
-                              updateField("habilidades_bncc_validadas", null);
-                            }}
-                            className="mt-0.5 w-4 h-4 text-amber-600 border-slate-300 rounded focus:ring-amber-500"
-                          />
-                          <div className="flex-1 text-xs">
-                            <span className="font-semibold text-amber-600">{h.codigo}</span>
-                            <span className="text-slate-700 ml-1">{h.habilidade_completa || h.descricao}</span>
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </details>
-              );
-            })}
+            {listaHabilidades(componentesAnt, anosAnteriores, "anos_anteriores")}
           </div>
         </details>
       )}
 
-      <div className="flex items-center gap-4">
+      <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
         <button
           type="button"
           onClick={validarSelecao}
           disabled={habilidadesAtuais.length === 0}
-          className="px-4 py-2 bg-sky-600 text-white rounded-lg disabled:opacity-50"
+          className="omni-btn omni-btn--primario"
         >
           Validar seleção
         </button>
         {peiData.habilidades_bncc_validadas && (
-          <span className="text-sm text-green-700">
-            {peiData.habilidades_bncc_validadas.length} habilidade(s) validadas. A IA usa estas ao escrever o texto do PEI.
+          <span className="omni-estado omni-estado--sucesso" role="status" style={{ whiteSpace: "normal" }}>
+            <CheckCircle2 aria-hidden />
+            {peiData.habilidades_bncc_validadas.length} habilidade(s) validada(s). A IA usa estas no texto do PEI.
           </span>
         )}
       </div>
 
       {habilidadesAtuais.length > 0 && !peiData.habilidades_bncc_validadas && (
-        <p className="text-sm text-slate-600">
-          {habilidadesAtuais.length} habilidade(s) selecionada(s). Clique em <strong>Validar seleção</strong> para o professor confirmar.
+        <p className="omni-apoio" style={{ margin: 0 }}>
+          {habilidadesAtuais.length} habilidade(s) escolhida(s). Clique em <strong>Validar seleção</strong> para o professor confirmar.
         </p>
       )}
 
-      <p className="text-xs text-slate-500">
+      <p className="omni-campo__ajuda" style={{ margin: 0 }}>
         Em <strong>Texto do PEI</strong>, a IA escreve a partir das habilidades confirmadas.
       </p>
     </div>
   );
 }
-
-

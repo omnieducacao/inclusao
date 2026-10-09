@@ -1,15 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
 import type { PEIData } from "@/lib/pei";
-import { HelpTooltip } from "@/components/HelpTooltip";
 import {
   LISTA_ALFABETIZACAO,
   EVIDENCIAS_PEDAGOGICO,
   EVIDENCIAS_COGNITIVO,
   EVIDENCIAS_COMPORTAMENTAL,
 } from "@/lib/pei";
-import { Search, Info } from "lucide-react";
+import { Search } from "lucide-react";
 
 type TabEvidenciasProps = {
   peiData: PEIData;
@@ -20,99 +18,71 @@ type TabEvidenciasProps = {
 export function PEITabEvidencias(props: TabEvidenciasProps) {
   const { peiData, updateField, toggleChecklist } = props;
 
+  const grupos: Array<{ titulo: string; itens: readonly string[] }> = [
+    { titulo: "Pedagógico", itens: EVIDENCIAS_PEDAGOGICO },
+    { titulo: "Cognitivo", itens: EVIDENCIAS_COGNITIVO },
+    { titulo: "Comportamental", itens: EVIDENCIAS_COMPORTAMENTAL },
+  ];
+
   return (
-          <div className="space-y-6">
-            {/* Título da aba com ícone */}
-            <div className="flex items-center gap-2 mb-4">
-              <Search className="w-5 h-5 text-sky-600" />
-              <h3 className="text-lg font-semibold text-slate-800">Coleta de Evidências</h3>
-            </div>
+    <div style={{ display: "grid", gap: 24 }}>
+      {/* Título da aba */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <Search aria-hidden size={20} style={{ color: "var(--acao)" }} />
+        <h3 style={{ margin: 0, font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" }}>Evidências do dia a dia</h3>
+      </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Hipótese de Escrita</label>
-              <select
-                value={peiData.nivel_alfabetizacao || ""}
-                onChange={(e) => updateField("nivel_alfabetizacao", e.target.value)}
-                className="w-full max-w-md px-3 py-2 border border-slate-200 rounded-lg"
-              >
-                {LISTA_ALFABETIZACAO.map((a) => (
-                  <option key={a} value={a}>{a}</option>
-                ))}
-              </select>
-              <p className="text-xs text-slate-500 mt-1">Nível de apropriação do sistema de escrita (Emília Ferreiro).</p>
-            </div>
+      <label className="omni-campo">
+        <span className="omni-campo__rotulo">Hipótese de escrita</span>
+        <select
+          value={peiData.nivel_alfabetizacao || ""}
+          onChange={(e) => updateField("nivel_alfabetizacao", e.target.value)}
+          className="omni-entrada"
+          aria-describedby="ajuda-hipotese-escrita"
+        >
+          {LISTA_ALFABETIZACAO.map((a) => (
+            <option key={a} value={a}>{a}</option>
+          ))}
+        </select>
+        <span id="ajuda-hipotese-escrita" className="omni-campo__ajuda">Em que ponto o estudante está na escrita (segundo Emilia Ferreiro).</span>
+      </label>
 
-            <hr />
+      <section className="omni-cartao omni-cartao--plano" style={{ display: "grid", gap: 16 }} aria-labelledby="titulo-evidencias">
+        <div>
+          <h4 id="titulo-evidencias" className="omni-cartao__titulo" style={{ margin: 0 }}>O que você observa na rotina</h4>
+          <p className="omni-apoio" style={{ margin: "4px 0 0" }}>
+            Marque o que aparece no dia a dia do estudante.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 24 }}>
+          {grupos.map((g) => (
+            <fieldset key={g.titulo} style={{ border: 0, padding: 0, margin: 0, minWidth: 0, display: "grid", gap: 10, alignContent: "start" }}>
+              <legend className="omni-rotulo" style={{ padding: 0, marginBottom: 10 }}>{g.titulo}</legend>
+              {g.itens.map((q) => (
+                <label key={q} className="omni-caixa" style={{ fontSize: 15, lineHeight: "22px" }}>
+                  <input
+                    type="checkbox"
+                    checked={!!(peiData.checklist_evidencias || {})[q]}
+                    onChange={() => toggleChecklist(q, q)}
+                  />
+                  <span>{q}</span>
+                </label>
+              ))}
+            </fieldset>
+          ))}
+        </div>
+      </section>
 
-            <div>
-              <p className="text-sm text-slate-600 mb-4">
-                Marque as evidências observadas na rotina do estudante (pedagógicas, cognitivas e comportamentais).
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <h4 className="font-medium text-slate-800 mb-3">Pedagógico</h4>
-                  <div className="space-y-2">
-                    {EVIDENCIAS_PEDAGOGICO.map((q) => (
-                      <label key={q} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={!!(peiData.checklist_evidencias || {})[q]}
-                          onChange={() => toggleChecklist(q, q)}
-                          className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
-                        />
-                        <span className="text-sm text-slate-700">{q}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium text-slate-800 mb-3">Cognitivo</h4>
-                  <div className="space-y-2">
-                    {EVIDENCIAS_COGNITIVO.map((q) => (
-                      <label key={q} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={!!(peiData.checklist_evidencias || {})[q]}
-                          onChange={() => toggleChecklist(q, q)}
-                          className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
-                        />
-                        <span className="text-sm text-slate-700">{q}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium text-slate-800 mb-3">Comportamental</h4>
-                  <div className="space-y-2">
-                    {EVIDENCIAS_COMPORTAMENTAL.map((q) => (
-                      <label key={q} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={!!(peiData.checklist_evidencias || {})[q]}
-                          onChange={() => toggleChecklist(q, q)}
-                          className="w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500"
-                        />
-                        <span className="text-sm text-slate-700">{q}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <hr />
-
-            <div>
-              <h4 className="text-base font-semibold text-slate-800 mb-2">Observações rápidas</h4>
-              <textarea
-                value={peiData.orientacoes_especialistas || ""}
-                onChange={(e) => updateField("orientacoes_especialistas", e.target.value)}
-                rows={5}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-                placeholder="Registre observações de professores e especialistas (se houver)"
-              />
-            </div>
-          </div>
-
+      <label className="omni-campo" style={{ maxWidth: "none" }}>
+        <span className="omni-campo__rotulo">Observações rápidas <span className="omni-campo__opcional">(opcional)</span></span>
+        <textarea
+          value={peiData.orientacoes_especialistas || ""}
+          onChange={(e) => updateField("orientacoes_especialistas", e.target.value)}
+          rows={5}
+          className="omni-entrada"
+          placeholder="O que professores e especialistas observaram"
+        />
+      </label>
+    </div>
   );
 }

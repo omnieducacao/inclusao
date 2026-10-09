@@ -220,6 +220,13 @@ export async function updateStudentPeiData(
   const encryptedPeiData = encryptSensitivePeiFields(peiData);
 
   const sb = getSupabase();
+  // Onda 18: o histórico de versões (_versions) só é escrito por /api/pei/versions. O salvamento
+  // automático da tela manda o pei_data inteiro e apagava as versões criadas depois que a tela abriu.
+  const { data: atual } = await sb.from("students").select("pei_data").eq("id", studentId).eq("workspace_id", workspaceId).maybeSingle();
+  const versoes = ((atual?.pei_data || {}) as Record<string, unknown>)._versions;
+  if (Array.isArray(versoes)) (encryptedPeiData as Record<string, unknown>)._versions = versoes;
+  else delete (encryptedPeiData as Record<string, unknown>)._versions;
+
   const { error } = await sb
     .from("students")
     .update({

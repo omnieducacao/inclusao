@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Download, FileText, Sparkles, CheckCircle2, XCircle, User, Users, Radar, Puzzle, RotateCw, ClipboardList, Bot, FileDown, Info, BookOpen, CheckCircle, AlertTriangle, TrendingUp, ExternalLink, Send, Pill } from "lucide-react";
+import { Brain, Copy, HelpCircle, Plus, Minus, Download, FileText, Sparkles, CheckCircle2, XCircle, User, Users, Radar, Puzzle, RotateCw, ClipboardList, Bot, FileDown, Info, BookOpen, CheckCircle, AlertTriangle, TrendingUp, ExternalLink, Send, Pill } from "lucide-react";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { EngineSelector } from "@/components/EngineSelector";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
@@ -41,7 +41,7 @@ export function InteligenciaDoCaso({
   const [engine, setEngine] = useState<EngineId>("red");
   // Mapa Mental
   const [mapaLoading, setMapaLoading] = useState(false);
-  const [mapaData, setMapaData] = useState<{ centro: string; ramos: { titulo: string; cor: string; icone: string; filhos: string[] }[] } | null>(null);
+  const [mapaData, setMapaData] = useState<{ centro: string; ramos: { titulo: string; cor: string; icone?: string; filhos: string[] }[] } | null>(null);
   const [mapaErr, setMapaErr] = useState<string | null>(null);
   // Resumo Família
   const [resumoLoading, setResumoLoading] = useState(false);
@@ -98,97 +98,137 @@ export function InteligenciaDoCaso({
     finally { setFaqLoading(false); aiLoadingStop(); }
   };
 
+  // Onda 18: PDFs e cópia ficam como antes; só saíram do JSX para o layout ficar legível
+  const [copiado, setCopiado] = useState<"resumo" | "faq" | null>(null);
+  const copiar = (txt: string, qual: "resumo" | "faq") => {
+    navigator.clipboard.writeText(txt).then(() => { setCopiado(qual); setTimeout(() => setCopiado(null), 2000); }).catch(() => {});
+  };
+  const baixarResumoPdf = async (resumo: string) => {
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const safeText = (s: string) => s.replace(/[^\x00-\xFF\n]/g, (ch) => { const n = ch.normalize("NFD").replace(/[̀-ͯ]/g, ""); return n || ""; });
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Resumo para Familia", 20, 20);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Estudante: ${safeText(String(peiData.nome || "Estudante"))}  |  ${new Date().toLocaleDateString("pt-BR")}`, 20, 28);
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(11);
+    const lines = doc.splitTextToSize(safeText(resumo), 170);
+    let y = 36;
+    for (const line of lines) {
+      if (y > 275) { doc.addPage(); y = 20; }
+      doc.text(line, 20, y);
+      y += 5.5;
+    }
+    doc.save(`Resumo_Familia_${String(peiData.nome || "Estudante").replace(/\s+/g, "_")}.pdf`);
+  };
+  const baixarFaqPdf = async (faqs: { pergunta: string; resposta: string }[]) => {
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const safeText = (s: string) => s.replace(/[^\x00-\xFF\n]/g, (ch) => { const n = ch.normalize("NFD").replace(/[̀-ͯ]/g, ""); return n || ""; });
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("FAQ do Caso", 20, 20);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Estudante: ${safeText(String(peiData.nome || "Estudante"))}  |  ${new Date().toLocaleDateString("pt-BR")}`, 20, 28);
+    doc.setTextColor(15, 23, 42);
+    let y = 38;
+    faqs.forEach((f, i) => {
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      const q = doc.splitTextToSize(safeText(`${i + 1}. ${f.pergunta}`), 170);
+      for (const ql of q) {
+        if (y > 275) { doc.addPage(); y = 20; }
+        doc.text(ql, 20, y); y += 5.5;
+      }
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      const a = doc.splitTextToSize(safeText(f.resposta), 165);
+      for (const al of a) {
+        if (y > 275) { doc.addPage(); y = 20; }
+        doc.text(al, 25, y); y += 5;
+      }
+      y += 4;
+    });
+    doc.save(`FAQ_${String(peiData.nome || "Estudante").replace(/\s+/g, "_")}.pdf`);
+  };
+
   if (!peiData.nome) return null;
 
+  const cartaoAcao: React.CSSProperties = { display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", textAlign: "left", cursor: "pointer", width: "100%", color: "var(--tinta)" };
+  const iconeAcao: React.CSSProperties = { width: 22, height: 22, color: "var(--acao)", flex: "none" };
+  const tituloResultado: React.CSSProperties = { margin: 0, display: "flex", alignItems: "center", gap: 8, font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" };
+  const erroAviso = (titulo: string, msg: string) => (
+    <div className="omni-aviso omni-aviso--erro" role="alert" style={{ maxWidth: "none" }}>
+      <AlertTriangle className="omni-aviso__icone" aria-hidden />
+      <div><div className="omni-aviso__titulo">{titulo}</div><div className="omni-aviso__texto">{msg}</div></div>
+    </div>
+  );
+
   return (
-    <div className="mt-8">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-violet-600" />
-          <h4 className="text-base font-semibold text-slate-800">Inteligência do Caso</h4>
-        </div>
-        <div className="w-48">
+    <section style={{ marginTop: 32, display: "grid", gap: 16 }} aria-labelledby="intel-caso-titulo">
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <h4 id="intel-caso-titulo" style={tituloResultado}>
+          <Sparkles aria-hidden style={iconeAcao} /> Inteligência do caso
+        </h4>
+        <div style={{ width: 192 }}>
           <EngineSelector value={engine} onChange={setEngine} />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        {/* Card: Mapa Mental */}
-        <button
-          type="button"
-          onClick={gerarMapa}
-          disabled={mapaLoading}
-          className="group rounded-xl border-2 border-dashed border-violet-200 hover:border-violet-400 bg-linear-to-r from-violet-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60 px-4 py-3 flex items-center gap-3 h-[70px]"
-        >
-          <div className="text-2xl">🧠</div>
-          <div>
-            <h5 className="font-semibold text-xs text-slate-800 group-hover:text-violet-700 transition-colors">Mapa Mental</h5>
-            <p className="text-[10px] text-slate-500 leading-snug mt-0.5">
-              {mapaLoading ? "Gerando..." : "Perfil completo como mapa interativo"}
-            </p>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <button type="button" onClick={gerarMapa} disabled={mapaLoading} className="omni-cartao" style={cartaoAcao} aria-busy={mapaLoading}>
+          <Brain aria-hidden style={iconeAcao} />
+          <span style={{ display: "grid", gap: 2, flex: 1 }}>
+            <strong style={{ font: "700 15px/20px var(--font-sans)" }}>Mapa mental</strong>
+            <span className="omni-apoio" style={{ fontSize: 13, lineHeight: "18px" }}>{mapaLoading ? "Gerando…" : "O perfil do estudante num mapa"}</span>
+          </span>
           {mapaLoading && <OmniLoader engine="yellow" size={16} />}
         </button>
 
-        {/* Card: Resumo Família */}
-        <button
-          type="button"
-          onClick={gerarResumo}
-          disabled={resumoLoading}
-          className="group rounded-xl border-2 border-dashed border-emerald-200 hover:border-emerald-400 bg-linear-to-r from-emerald-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60 px-4 py-3 flex items-center gap-3 h-[70px]"
-        >
-          <div className="text-2xl">👨‍👩‍👧</div>
-          <div>
-            <h5 className="font-semibold text-xs text-slate-800 group-hover:text-emerald-700 transition-colors">Resumo para Família</h5>
-            <p className="text-[10px] text-slate-500 leading-snug mt-0.5">
-              {resumoLoading ? "Preparando..." : "Linguagem sem jargão para reunião"}
-            </p>
-          </div>
+        <button type="button" onClick={gerarResumo} disabled={resumoLoading} className="omni-cartao" style={cartaoAcao} aria-busy={resumoLoading}>
+          <Users aria-hidden style={iconeAcao} />
+          <span style={{ display: "grid", gap: 2, flex: 1 }}>
+            <strong style={{ font: "700 15px/20px var(--font-sans)" }}>Resumo para a família</strong>
+            <span className="omni-apoio" style={{ fontSize: 13, lineHeight: "18px" }}>{resumoLoading ? "Preparando…" : "Palavras simples, para a reunião"}</span>
+          </span>
           {resumoLoading && <OmniLoader engine="green" size={16} />}
         </button>
 
-        {/* Card: FAQ */}
-        <button
-          type="button"
-          onClick={gerarFaq}
-          disabled={faqLoading}
-          className="group rounded-xl border-2 border-dashed border-amber-200 hover:border-amber-400 bg-linear-to-r from-amber-50 to-white transition-all hover:shadow-md text-left disabled:opacity-60 px-4 py-3 flex items-center gap-3 h-[70px]"
-        >
-          <div className="text-2xl">❓</div>
-          <div>
-            <h5 className="font-semibold text-xs text-slate-800 group-hover:text-amber-700 transition-colors">FAQ do Caso</h5>
-            <p className="text-[10px] text-slate-500 leading-snug mt-0.5">
-              {faqLoading ? "Gerando..." : "Perguntas frequentes com respostas práticas"}
-            </p>
-          </div>
+        <button type="button" onClick={gerarFaq} disabled={faqLoading} className="omni-cartao" style={cartaoAcao} aria-busy={faqLoading}>
+          <HelpCircle aria-hidden style={iconeAcao} />
+          <span style={{ display: "grid", gap: 2, flex: 1 }}>
+            <strong style={{ font: "700 15px/20px var(--font-sans)" }}>Perguntas sobre o caso</strong>
+            <span className="omni-apoio" style={{ fontSize: 13, lineHeight: "18px" }}>{faqLoading ? "Gerando…" : "Perguntas comuns com respostas práticas"}</span>
+          </span>
           {faqLoading && <OmniLoader engine="blue" size={16} />}
         </button>
       </div>
 
       {/* Erros */}
-      {mapaErr && <p className="text-red-600 text-sm mb-3">❌ Mapa Mental: {mapaErr}</p>}
-      {resumoErr && <p className="text-red-600 text-sm mb-3">❌ Resumo: {resumoErr}</p>}
-      {faqErr && <p className="text-red-600 text-sm mb-3">❌ FAQ: {faqErr}</p>}
+      {mapaErr && erroAviso("Não deu para gerar o mapa mental", mapaErr)}
+      {resumoErr && erroAviso("Não deu para gerar o resumo", resumoErr)}
+      {faqErr && erroAviso("Não deu para gerar as perguntas", faqErr)}
 
       {/* ====== RESULTADO: MAPA MENTAL ====== */}
       {mapaData && (
-        <div className="mb-6 p-6 rounded-2xl bg-linear-to-br from-violet-50 to-slate-50 border border-violet-200">
-          <h5 className="font-bold text-violet-800 text-lg mb-6 text-center">🧠 {mapaData.centro}</h5>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <section className="omni-cartao omni-cartao--plano" style={{ display: "grid", gap: 16 }} aria-labelledby="intel-mapa">
+          <h5 id="intel-mapa" style={{ ...tituloResultado, justifyContent: "center", textAlign: "center" }}>
+            <Brain aria-hidden style={iconeAcao} /> {mapaData.centro}
+          </h5>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {mapaData.ramos.map((ramo, i) => (
-              <div
-                key={i}
-                className="rounded-xl p-4 bg-white shadow-sm transition-all hover:shadow-md"
-                style={{ borderLeft: `4px solid ${ramo.cor}` }}
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xl">{ramo.icone}</span>
-                  <span className="font-semibold text-sm" style={{ color: ramo.cor }}>{ramo.titulo}</span>
-                </div>
-                <ul className="space-y-1.5">
+              <div key={i} className="omni-cartao" style={{ padding: 16, borderLeft: `4px solid ${ramo.cor || "var(--acao)"}`, display: "grid", gap: 8, alignContent: "start" }}>
+                <strong style={{ font: "700 15px/20px var(--font-sans)", color: "var(--tinta)" }}>{ramo.titulo}</strong>
+                <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 6 }}>
                   {ramo.filhos.map((filho, j) => (
-                    <li key={j} className="text-xs text-slate-700 flex items-start gap-1.5">
-                      <span className="mt-1 w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: ramo.cor }} />
+                    <li key={j} style={{ display: "flex", alignItems: "flex-start", gap: 8, font: "400 14px/20px var(--font-sans)", color: "var(--tinta-2)" }}>
+                      <span aria-hidden style={{ marginTop: 7, width: 6, height: 6, borderRadius: "50%", flex: "none", backgroundColor: ramo.cor || "var(--acao)" }} />
                       {filho}
                     </li>
                   ))}
@@ -196,71 +236,44 @@ export function InteligenciaDoCaso({
               </div>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
       {/* ====== RESULTADO: RESUMO FAMÍLIA ====== */}
       {resumoTexto && (
-        <div className="mb-6 p-6 rounded-2xl bg-linear-to-br from-emerald-50 to-slate-50 border border-emerald-200">
-          <div className="flex justify-between items-center mb-4">
-            <h5 className="font-bold text-emerald-800 text-lg">👨‍👩‍👧 Resumo para Família</h5>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => navigator.clipboard.writeText(resumoTexto)}
-                className="px-3 py-1.5 text-xs bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors"
-              >
-                📋 Copiar
+        <section className="omni-cartao omni-cartao--plano" style={{ display: "grid", gap: 12 }} aria-labelledby="intel-resumo">
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+            <h5 id="intel-resumo" style={tituloResultado}><Users aria-hidden style={iconeAcao} /> Resumo para a família</h5>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button type="button" onClick={() => copiar(resumoTexto, "resumo")} className="omni-btn omni-btn--secundario omni-btn--pequeno">
+                <Copy aria-hidden /> {copiado === "resumo" ? "Copiado" : "Copiar"}
               </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  const { jsPDF } = await import("jspdf");
-                  const doc = new jsPDF({ unit: "mm", format: "a4" });
-                  const safeText = (s: string) => s.replace(/[^\x00-\xFF\n]/g, (ch) => { const n = ch.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); return n || ""; });
-                  doc.setFontSize(14);
-                  doc.setFont("helvetica", "bold");
-                  doc.text("Resumo para Familia", 20, 20);
-                  doc.setFontSize(10);
-                  doc.setFont("helvetica", "normal");
-                  doc.setTextColor(100, 116, 139);
-                  doc.text(`Estudante: ${safeText(String(peiData.nome || "Estudante"))}  |  ${new Date().toLocaleDateString("pt-BR")}`, 20, 28);
-                  doc.setTextColor(15, 23, 42);
-                  doc.setFontSize(11);
-                  const lines = doc.splitTextToSize(safeText(resumoTexto), 170);
-                  let y = 36;
-                  for (const line of lines) {
-                    if (y > 275) { doc.addPage(); y = 20; }
-                    doc.text(line, 20, y);
-                    y += 5.5;
-                  }
-                  doc.save(`Resumo_Familia_${String(peiData.nome || "Estudante").replace(/\s+/g, "_")}.pdf`);
-                }}
-                className="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-              >
-                📥 Baixar PDF
+              <button type="button" onClick={() => baixarResumoPdf(resumoTexto)} className="omni-btn omni-btn--secundario omni-btn--pequeno">
+                <Download aria-hidden /> Baixar PDF
               </button>
             </div>
           </div>
           {/* Onda 5: a coordenação revisa e libera; só então a família vê */}
-          <label htmlFor="resumo-familia-texto" className="omni-campo__rotulo">Revise o texto antes de liberar</label>
-          <textarea
-            id="resumo-familia-texto"
-            className="omni-entrada"
-            style={{ minHeight: 220, marginTop: 6 }}
-            value={resumoTexto}
-            onChange={(e) => setResumoTexto(e.target.value)}
-          />
-          <div className="flex flex-wrap items-center gap-2 mt-3">
+          <label className="omni-campo" style={{ maxWidth: "none" }}>
+            <span className="omni-campo__rotulo">Revise o texto antes de liberar</span>
+            <textarea
+              id="resumo-familia-texto"
+              className="omni-entrada"
+              style={{ maxWidth: "none", minHeight: 220 }}
+              value={resumoTexto}
+              onChange={(e) => setResumoTexto(e.target.value)}
+            />
+          </label>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
             <button type="button" className="omni-btn omni-btn--primario" disabled={liberando || !studentId} onClick={() => liberarResumo(resumoTexto)}>
               {liberando ? "Liberando…" : "Liberar para a família"}
             </button>
             {!studentId && <span className="omni-apoio">Salve o estudante antes de liberar.</span>}
           </div>
-        </div>
+        </section>
       )}
       {liberado?.texto && !resumoTexto && (
-        <div className="omni-aviso omni-aviso--sucesso mb-6" style={{ maxWidth: "none" }}>
+        <div className="omni-aviso omni-aviso--sucesso" style={{ maxWidth: "none" }}>
           <CheckCircle2 className="omni-aviso__icone" aria-hidden />
           <div>
             <div className="omni-aviso__titulo">A família vê o resumo liberado em {liberado.liberado_em ? new Date(liberado.liberado_em).toLocaleDateString("pt-BR") : "—"}</div>
@@ -273,7 +286,7 @@ export function InteligenciaDoCaso({
         </div>
       )}
       {liberarMsg && (
-        <div className={`omni-aviso ${liberarMsg.tipo === "ok" ? "omni-aviso--sucesso" : "omni-aviso--erro"} mb-6`} role={liberarMsg.tipo === "erro" ? "alert" : "status"} style={{ maxWidth: "none" }}>
+        <div className={`omni-aviso ${liberarMsg.tipo === "ok" ? "omni-aviso--sucesso" : "omni-aviso--erro"}`} role={liberarMsg.tipo === "erro" ? "alert" : "status"} style={{ maxWidth: "none" }}>
           {liberarMsg.tipo === "ok" ? <CheckCircle2 className="omni-aviso__icone" aria-hidden /> : <AlertTriangle className="omni-aviso__icone" aria-hidden />}
           <div><div className="omni-aviso__titulo">{liberarMsg.texto}</div></div>
           <span />
@@ -282,82 +295,48 @@ export function InteligenciaDoCaso({
 
       {/* ====== RESULTADO: FAQ ====== */}
       {faqData && (
-        <div className="mb-6 p-6 rounded-2xl bg-linear-to-br from-amber-50 to-slate-50 border border-amber-200">
-          <div className="flex justify-between items-center mb-4">
-            <h5 className="font-bold text-amber-800 text-lg">❓ FAQ do Caso — {peiData.nome}</h5>
-            <div className="flex gap-2">
+        <section className="omni-cartao omni-cartao--plano" style={{ display: "grid", gap: 12 }} aria-labelledby="intel-faq">
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+            <h5 id="intel-faq" style={tituloResultado}><HelpCircle aria-hidden style={iconeAcao} /> Perguntas sobre o caso de {peiData.nome}</h5>
+            <div style={{ display: "flex", gap: 8 }}>
               <button
                 type="button"
-                onClick={() => {
-                  const txt = faqData.map((f, i) => `${i + 1}. ${f.pergunta}\n${f.resposta}`).join("\n\n");
-                  navigator.clipboard.writeText(txt);
-                }}
-                className="px-3 py-1.5 text-xs bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition-colors"
+                onClick={() => copiar(faqData.map((f, i) => `${i + 1}. ${f.pergunta}\n${f.resposta}`).join("\n\n"), "faq")}
+                className="omni-btn omni-btn--secundario omni-btn--pequeno"
               >
-                📋 Copiar
+                <Copy aria-hidden /> {copiado === "faq" ? "Copiado" : "Copiar"}
               </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  const { jsPDF } = await import("jspdf");
-                  const doc = new jsPDF({ unit: "mm", format: "a4" });
-                  const safeText = (s: string) => s.replace(/[^\x00-\xFF\n]/g, (ch) => { const n = ch.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); return n || ""; });
-                  doc.setFontSize(14);
-                  doc.setFont("helvetica", "bold");
-                  doc.text("FAQ do Caso", 20, 20);
-                  doc.setFontSize(10);
-                  doc.setFont("helvetica", "normal");
-                  doc.setTextColor(100, 116, 139);
-                  doc.text(`Estudante: ${safeText(String(peiData.nome || "Estudante"))}  |  ${new Date().toLocaleDateString("pt-BR")}`, 20, 28);
-                  doc.setTextColor(15, 23, 42);
-                  let y = 38;
-                  faqData.forEach((f, i) => {
-                    doc.setFontSize(11);
-                    doc.setFont("helvetica", "bold");
-                    const q = doc.splitTextToSize(safeText(`${i + 1}. ${f.pergunta}`), 170);
-                    for (const ql of q) {
-                      if (y > 275) { doc.addPage(); y = 20; }
-                      doc.text(ql, 20, y); y += 5.5;
-                    }
-                    doc.setFont("helvetica", "normal");
-                    doc.setFontSize(10);
-                    const a = doc.splitTextToSize(safeText(f.resposta), 165);
-                    for (const al of a) {
-                      if (y > 275) { doc.addPage(); y = 20; }
-                      doc.text(al, 25, y); y += 5;
-                    }
-                    y += 4;
-                  });
-                  doc.save(`FAQ_${String(peiData.nome || "Estudante").replace(/\s+/g, "_")}.pdf`);
-                }}
-                className="px-3 py-1.5 text-xs bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
-              >
-                📥 Baixar PDF
+              <button type="button" onClick={() => baixarFaqPdf(faqData)} className="omni-btn omni-btn--secundario omni-btn--pequeno">
+                <Download aria-hidden /> Baixar PDF
               </button>
             </div>
           </div>
-          <div className="space-y-2">
+          <div style={{ display: "grid", gap: 8 }}>
             {faqData.map((item, i) => (
-              <div key={i} className="rounded-xl bg-white border border-amber-100 overflow-hidden">
+              <div key={i} className="omni-cartao" style={{ padding: 0, overflow: "hidden" }}>
                 <button
                   type="button"
                   onClick={() => setFaqOpen(faqOpen === i ? null : i)}
-                  className="w-full px-4 py-3 text-left flex justify-between items-center hover:bg-amber-50 transition-colors"
+                  aria-expanded={faqOpen === i}
+                  aria-controls={`intel-faq-${i}`}
+                  style={{ width: "100%", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, textAlign: "left", background: "transparent", border: 0, cursor: "pointer", font: "600 15px/22px var(--font-sans)", color: "var(--tinta)" }}
                 >
-                  <span className="text-sm font-medium text-slate-800">{item.pergunta}</span>
-                  <span className="text-slate-400 text-lg ml-2 shrink-0">{faqOpen === i ? "−" : "+"}</span>
+                  <span>{item.pergunta}</span>
+                  {faqOpen === i
+                    ? <Minus aria-hidden style={{ width: 18, height: 18, color: "var(--tinta-3)", flex: "none" }} />
+                    : <Plus aria-hidden style={{ width: 18, height: 18, color: "var(--tinta-3)", flex: "none" }} />}
                 </button>
                 {faqOpen === i && (
-                  <div className="px-4 pb-3 text-sm text-slate-600 leading-relaxed border-t border-amber-100 pt-3">
+                  <div id={`intel-faq-${i}`} style={{ padding: "12px 16px", borderTop: "1px solid var(--borda)", font: "400 15px/24px var(--font-sans)", color: "var(--tinta-2)" }}>
                     {item.resposta}
                   </div>
                 )}
               </div>
             ))}
           </div>
-        </div>
+        </section>
       )}
-    </div>
+    </section>
   );
 }
 

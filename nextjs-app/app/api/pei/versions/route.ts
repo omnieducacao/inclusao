@@ -167,8 +167,21 @@ export async function PATCH(req: Request) {
     }
 
     const target = versions[versionIndex];
+
+    // Antes de voltar, guarda o PEI atual como uma versão nova no histórico — assim nada se perde.
+    const { _versions: _atuais, ...snapshotAtual } = peiData;
+    const proximoNumero = versions.reduce((max, v) => Math.max(max, Number(v.version) || 0), 0) + 1;
+    const antesDeVoltar: VersionEntry = {
+        version: proximoNumero,
+        timestamp: new Date().toISOString(),
+        label: `Antes de voltar para a versão ${target.version}`,
+        snapshot: snapshotAtual,
+    };
+    // Máximo de 20 versões (igual ao POST)
+    const updatedVersions = [...versions, antesDeVoltar].slice(-20);
+
     // Restore the snapshot, keeping the version history
-    const restoredData = { ...target.snapshot, _versions: versions };
+    const restoredData = { ...target.snapshot, _versions: updatedVersions };
 
     const { error } = await sb
         .from("students")

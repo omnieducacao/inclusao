@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
     BookOpen, Loader2, CheckCircle2, Upload, Link2, FileText,
-    ExternalLink, ChevronDown, ChevronRight, Eye,
+    ExternalLink, Eye, AlertTriangle,
 } from "lucide-react";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -40,18 +40,20 @@ interface Props {
     onPlanoSaved?: (planoId: string) => void;
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+// ─── Estilos (Onda 18: variáveis do design system) ───────────────────────────
 
 const cardS: React.CSSProperties = {
-    borderRadius: 14, border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-    backgroundColor: "var(--bg-secondary, rgba(15,23,42,.4))", overflow: "hidden",
+    borderRadius: "var(--o-radius-md)", border: "1px solid var(--borda)",
+    backgroundColor: "var(--superficie)", overflow: "hidden",
 };
 const headerS: React.CSSProperties = {
-    display: "flex", alignItems: "center", gap: 8, padding: "12px 16px",
-    borderBottom: "1px solid var(--border-default, rgba(148,163,184,.1))",
-    backgroundColor: "var(--bg-tertiary, rgba(15,23,42,.3))",
+    display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", padding: "12px 16px",
+    borderBottom: "1px solid var(--borda)",
+    backgroundColor: "var(--superficie-2)",
 };
 const bodyS: React.CSSProperties = { padding: 16 };
+const tituloS: React.CSSProperties = { margin: 0, font: "700 16px/22px var(--font-sans)", color: "var(--tinta)" };
+const rotuloBlocoS: React.CSSProperties = { fontWeight: 700, color: "var(--tinta)" };
 
 // ─── Componente Principal ─────────────────────────────────────────────────────
 
@@ -135,9 +137,9 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
 
     if (loading) {
         return (
-            <div style={{ padding: 40, textAlign: "center" }}>
-                <Loader2 size={28} className="animate-spin" style={{ color: "#10b981", margin: "0 auto" }} />
-                <p style={{ color: "var(--text-muted)", marginTop: 12, fontSize: 13 }}>Carregando plano...</p>
+            <div role="status" style={{ padding: 40, textAlign: "center" }}>
+                <Loader2 size={28} className="animate-spin" aria-hidden style={{ color: "var(--acao)", margin: "0 auto" }} />
+                <p className="omni-apoio" style={{ marginTop: 12 }}>Carregando o plano…</p>
             </div>
         );
     }
@@ -145,229 +147,193 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
     // ─── Render ─────────────────────────────────────────────────────────
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "grid", gap: 16 }}>
             {/* Header */}
-            <div style={{
-                background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
-                borderRadius: 14, padding: "18px 22px", color: "#fff",
-            }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <BookOpen size={22} />
-                        <div>
-                            <h4 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Plano de Ensino — {disciplina}</h4>
-                            <p style={{ margin: 0, fontSize: 12, opacity: 0.85 }}>
-                                {anoSerie} · Vincule um plano criado no Plano de ensino
-                            </p>
-                        </div>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <BookOpen size={22} aria-hidden style={{ color: "var(--acao)", marginTop: 2 }} />
+                    <div>
+                        <h4 style={{ margin: 0, font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" }}>Plano de ensino — {disciplina}</h4>
+                        <p className="omni-apoio" style={{ margin: 0 }}>
+                            {anoSerie} · use um plano feito no módulo Plano de ensino ou envie o seu em PDF
+                        </p>
                     </div>
-                    {saved && (
-                        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: "#bbf7d0" }}>
-                            <CheckCircle2 size={14} /> Vinculado
-                        </span>
-                    )}
                 </div>
+                {saved && (
+                    <span className="omni-estado omni-estado--sucesso">
+                        <CheckCircle2 aria-hidden /> Vinculado
+                    </span>
+                )}
             </div>
 
             {/* Linked plan preview */}
             {planoVinculado && (
-                <div style={{ ...cardS, border: "1.5px solid rgba(16,185,129,.3)" }}>
+                <section style={cardS} aria-labelledby="plano-vinculado-titulo">
                     <div style={headerS}>
-                        <CheckCircle2 size={16} style={{ color: "#10b981" }} />
-                        <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary, #e2e8f0)" }}>
-                            Plano Vinculado
-                        </span>
-                        <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--text-muted, #94a3b8)" }}>
-                            {planoVinculado.bimestre} · {new Date(planoVinculado.updated_at).toLocaleDateString("pt-BR")}
+                        <CheckCircle2 size={16} aria-hidden style={{ color: "var(--sucesso)" }} />
+                        <h5 id="plano-vinculado-titulo" style={tituloS}>
+                            Plano vinculado
+                        </h5>
+                        <span className="omni-apoio" style={{ marginLeft: "auto", fontSize: 13 }}>
+                            {[planoVinculado.bimestre, new Date(planoVinculado.updated_at).toLocaleDateString("pt-BR")].filter(Boolean).join(" · ")}
                         </span>
                     </div>
                     <div style={bodyS}>
                         {(() => {
                             const blocos = parseBlocos(planoVinculado.conteudo);
                             if (blocos.length === 0) return (
-                                <p style={{ fontSize: 13, color: "var(--text-muted, #94a3b8)", margin: 0 }}>
-                                    Plano vinculado (formato legado)
+                                <p className="omni-apoio" style={{ margin: 0 }}>
+                                    Plano vinculado (enviado em PDF ou em formato antigo).
                                 </p>
                             );
                             return (
-                                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
+                                <div style={{ display: "grid", gap: 8 }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                        <span style={{ font: "600 14px/20px var(--font-sans)", color: "var(--tinta)" }}>
                                             {blocos.length} bloco{blocos.length !== 1 ? "s" : ""} de sequência didática
                                         </span>
-                                        <span style={{ fontSize: 11, fontWeight: 700, color: "#818cf8", background: "rgba(99,102,241,.1)", padding: "2px 6px", borderRadius: 4 }}>
-                                            {planoVinculado.habilidades_bncc?.length || 0} hab.
+                                        <span className="omni-estado omni-estado--info">
+                                            {planoVinculado.habilidades_bncc?.length || 0} habilidade{(planoVinculado.habilidades_bncc?.length || 0) !== 1 ? "s" : ""}
                                         </span>
-                                        <button onClick={() => setExpandedView(!expandedView)} type="button" aria-label={expandedView ? "Ocultar detalhes" : "Ver detalhes"} style={{
-                                            marginLeft: "auto", display: "flex", alignItems: "center", gap: 4,
-                                            padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600,
-                                            border: "1px solid var(--border-default)", background: "transparent",
-                                            color: "#818cf8", cursor: "pointer",
-                                        }}>
-                                            <Eye size={12} /> {expandedView ? "Ocultar" : "Ver detalhes"}
+                                        <button onClick={() => setExpandedView(!expandedView)} type="button" aria-expanded={expandedView}
+                                            className="omni-btn omni-btn--discreto omni-btn--pequeno" style={{ marginLeft: "auto" }}>
+                                            <Eye size={16} aria-hidden /> {expandedView ? "Esconder os blocos" : "Ver os blocos"}
                                         </button>
                                     </div>
 
                                     {expandedView && blocos.map((bloco, i) => (
-                                        <div key={bloco.id || i} style={{
-                                            padding: "10px 14px", borderRadius: 10, fontSize: 12,
-                                            background: "var(--bg-primary, rgba(2,6,23,.3))",
-                                            border: "1px solid var(--border-default, rgba(148,163,184,.08))",
-                                        }}>
-                                            <div style={{ fontWeight: 700, color: "var(--text-primary)", marginBottom: 6 }}>Bloco {i + 1}</div>
-                                            {bloco.habilidades_bncc.length > 0 && <div style={{ marginBottom: 4 }}><span style={{ fontWeight: 600, color: "#818cf8", fontSize: 11 }}>BNCC: </span>{bloco.habilidades_bncc.join(", ")}</div>}
-                                            {(bloco.objetivos.length > 0 || bloco.objetivos_livre) && <div style={{ marginBottom: 4 }}><span style={{ fontWeight: 600, color: "#a78bfa", fontSize: 11 }}>Objetivos: </span>{[...bloco.objetivos, bloco.objetivos_livre].filter(Boolean).join("; ")}</div>}
-                                            {bloco.metodologias.length > 0 && <div style={{ marginBottom: 4 }}><span style={{ fontWeight: 600, color: "#8b5cf6", fontSize: 11 }}>Metodologia: </span>{bloco.metodologias.join(", ")}</div>}
-                                            {bloco.recursos.length > 0 && <div style={{ marginBottom: 4 }}><span style={{ fontWeight: 600, color: "#f59e0b", fontSize: 11 }}>Recursos: </span>{bloco.recursos.join(", ")}</div>}
-                                            {(bloco.avaliacoes.length > 0 || bloco.avaliacao_livre) && <div><span style={{ fontWeight: 600, color: "#ec4899", fontSize: 11 }}>Avaliação: </span>{[...bloco.avaliacoes, bloco.avaliacao_livre].filter(Boolean).join("; ")}</div>}
+                                        <div key={bloco.id || i} className="omni-cartao omni-cartao--plano" style={{ padding: "12px 14px", gap: 4, font: "400 14px/20px var(--font-sans)", color: "var(--tinta-2)" }}>
+                                            <div style={{ ...rotuloBlocoS, marginBottom: 2 }}>Bloco {i + 1}</div>
+                                            {bloco.habilidades_bncc.length > 0 && <div><span style={rotuloBlocoS}>BNCC: </span>{bloco.habilidades_bncc.join(", ")}</div>}
+                                            {(bloco.objetivos.length > 0 || bloco.objetivos_livre) && <div><span style={rotuloBlocoS}>Objetivos: </span>{[...bloco.objetivos, bloco.objetivos_livre].filter(Boolean).join("; ")}</div>}
+                                            {bloco.metodologias.length > 0 && <div><span style={rotuloBlocoS}>Como ensinar: </span>{bloco.metodologias.join(", ")}</div>}
+                                            {bloco.recursos.length > 0 && <div><span style={rotuloBlocoS}>Recursos: </span>{bloco.recursos.join(", ")}</div>}
+                                            {(bloco.avaliacoes.length > 0 || bloco.avaliacao_livre) && <div><span style={rotuloBlocoS}>Avaliação: </span>{[...bloco.avaliacoes, bloco.avaliacao_livre].filter(Boolean).join("; ")}</div>}
                                         </div>
                                     ))}
                                 </div>
                             );
                         })()}
                     </div>
-                </div>
+                </section>
             )}
 
             {/* Options */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div role="group" aria-label="Como trazer o plano" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
                 {/* Link option */}
-                <button onClick={() => setUploadMode(false)} type="button" style={{
-                    ...cardS, padding: "20px 18px", cursor: "pointer", textAlign: "left",
-                    border: !uploadMode ? "1.5px solid rgba(14,165,233,.3)" : "1px solid var(--border-default, rgba(148,163,184,.15))",
-                    background: !uploadMode ? "rgba(14,165,233,.06)" : "var(--bg-secondary, rgba(15,23,42,.4))",
-                }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                        <Link2 size={18} style={{ color: "#0ea5e9" }} />
-                        <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary, #e2e8f0)" }}>
-                            Vincular Plano de ensino
-                        </span>
-                    </div>
-                    <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted, #94a3b8)", lineHeight: 1.4 }}>
-                        Use um plano já criado no módulo Plano de ensino.
-                    </p>
+                <button onClick={() => setUploadMode(false)} type="button" aria-pressed={!uploadMode}
+                    className="omni-cartao" style={{
+                        padding: "18px", gap: 6, cursor: "pointer", textAlign: "left",
+                        borderColor: !uploadMode ? "var(--acao)" : "var(--borda)",
+                        borderWidth: !uploadMode ? 2 : 1,
+                        background: !uploadMode ? "var(--acao-suave)" : "var(--superficie)",
+                    }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <Link2 size={18} aria-hidden style={{ color: "var(--acao)" }} />
+                        <span style={tituloS}>Usar um plano de ensino</span>
+                    </span>
+                    <span className="omni-apoio" style={{ fontSize: 14 }}>
+                        Escolha um plano já feito no módulo Plano de ensino.
+                    </span>
                 </button>
 
                 {/* Upload option */}
-                <button onClick={() => setUploadMode(true)} type="button" style={{
-                    ...cardS, padding: "20px 18px", cursor: "pointer", textAlign: "left",
-                    border: uploadMode ? "1.5px solid rgba(139,92,246,.3)" : "1px solid var(--border-default, rgba(148,163,184,.15))",
-                    background: uploadMode ? "rgba(139,92,246,.06)" : "var(--bg-secondary, rgba(15,23,42,.4))",
-                }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                        <Upload size={18} style={{ color: "#8b5cf6" }} />
-                        <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary, #e2e8f0)" }}>
-                            Upload de PDF
-                        </span>
-                    </div>
-                    <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted, #94a3b8)", lineHeight: 1.4 }}>
-                        Faça upload de um plano de ensino pronto em PDF.
-                    </p>
+                <button onClick={() => setUploadMode(true)} type="button" aria-pressed={uploadMode}
+                    className="omni-cartao" style={{
+                        padding: "18px", gap: 6, cursor: "pointer", textAlign: "left",
+                        borderColor: uploadMode ? "var(--acao)" : "var(--borda)",
+                        borderWidth: uploadMode ? 2 : 1,
+                        background: uploadMode ? "var(--acao-suave)" : "var(--superficie)",
+                    }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <Upload size={18} aria-hidden style={{ color: "var(--acao)" }} />
+                        <span style={tituloS}>Enviar o plano em PDF</span>
+                    </span>
+                    <span className="omni-apoio" style={{ fontSize: 14 }}>
+                        Envie um plano de ensino pronto, em PDF.
+                    </span>
                 </button>
             </div>
 
             {/* Link mode: show available plans */}
             {!uploadMode && (
-                <div style={cardS}>
+                <section style={cardS} aria-labelledby="planos-disponiveis-titulo">
                     <div style={headerS}>
-                        <FileText size={16} style={{ color: "#0ea5e9" }} />
-                        <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary, #e2e8f0)" }}>
-                            Planos Disponíveis
-                        </span>
-                        <a href="/plano-curso" style={{
-                            marginLeft: "auto", display: "flex", alignItems: "center", gap: 4,
-                            fontSize: 12, fontWeight: 600, color: "#0ea5e9", textDecoration: "none",
-                        }}>
-                            <ExternalLink size={12} /> Criar novo plano
+                        <FileText size={16} aria-hidden style={{ color: "var(--acao)" }} />
+                        <h5 id="planos-disponiveis-titulo" style={tituloS}>
+                            Planos disponíveis
+                        </h5>
+                        <a href="/plano-curso" className="omni-btn omni-btn--discreto omni-btn--pequeno" style={{ marginLeft: "auto" }}>
+                            <ExternalLink size={16} aria-hidden /> Criar um plano
                         </a>
                     </div>
                     <div style={bodyS}>
                         {planosDisponiveis.length === 0 ? (
-                            <div style={{ textAlign: "center", padding: "24px 16px", color: "var(--text-muted, #64748b)" }}>
-                                <FileText size={28} style={{ margin: "0 auto 10px", opacity: 0.3 }} />
-                                <p style={{ fontSize: 13, fontWeight: 600, margin: "0 0 4px" }}>
-                                    Nenhum plano encontrado
-                                </p>
-                                <p style={{ fontSize: 12, margin: "0 0 12px", opacity: 0.7 }}>
+                            <div className="omni-vazio">
+                                <FileText size={28} aria-hidden style={{ color: "var(--tinta-3)" }} />
+                                <p className="omni-vazio__titulo">Nenhum plano encontrado</p>
+                                <p className="omni-vazio__texto">
                                     Crie um plano no módulo <strong>Plano de ensino</strong> para {disciplina} — {anoSerie}.
                                 </p>
-                                <a href="/plano-curso" style={{
-                                    display: "inline-flex", alignItems: "center", gap: 6,
-                                    padding: "8px 18px", borderRadius: 10, fontSize: 13, fontWeight: 700,
-                                    background: "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
-                                    color: "#fff", textDecoration: "none",
-                                }}>
-                                    <ExternalLink size={14} /> Ir para Plano de ensino
+                                <a href="/plano-curso" className="omni-btn omni-btn--primario">
+                                    <ExternalLink size={16} aria-hidden /> Ir para o Plano de ensino
                                 </a>
                             </div>
                         ) : (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                            <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8 }}>
                                 {planosDisponiveis.map(p => {
                                     const blocos = parseBlocos(p.conteudo);
                                     const isLinked = planoVinculado?.conteudo === p.conteudo;
                                     return (
-                                        <div key={p.id} style={{
-                                            display: "flex", alignItems: "center", gap: 12,
-                                            padding: "12px 14px", borderRadius: 10,
-                                            background: isLinked ? "rgba(16,185,129,.06)" : "var(--bg-primary, rgba(2,6,23,.3))",
-                                            border: isLinked ? "1px solid rgba(16,185,129,.2)" : "1px solid var(--border-default, rgba(148,163,184,.08))",
+                                        <li key={p.id} style={{
+                                            display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
+                                            padding: "12px 14px", borderRadius: "var(--o-radius-md)",
+                                            background: isLinked ? "var(--sucesso-suave)" : "var(--superficie-2)",
+                                            border: `1px solid ${isLinked ? "transparent" : "var(--borda)"}`,
                                         }}>
-                                            <div style={{ flex: 1 }}>
-                                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
+                                            <div style={{ flex: 1, minWidth: 180 }}>
+                                                <div style={{ font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>
                                                     {p.disciplina} — {p.bimestre || "Sem período"}
                                                 </div>
-                                                <div style={{ fontSize: 12, color: "var(--text-muted, #94a3b8)" }}>
-                                                    {p.ano_serie} · {blocos.length} bloco{blocos.length !== 1 ? "s" : ""} · {p.habilidades_bncc?.length || 0} hab. · {new Date(p.updated_at).toLocaleDateString("pt-BR")}
+                                                <div className="omni-apoio" style={{ fontSize: 13 }}>
+                                                    {p.ano_serie} · {blocos.length} bloco{blocos.length !== 1 ? "s" : ""} · {p.habilidades_bncc?.length || 0} habilidade{(p.habilidades_bncc?.length || 0) !== 1 ? "s" : ""} · {new Date(p.updated_at).toLocaleDateString("pt-BR")}
                                                 </div>
                                             </div>
                                             {isLinked ? (
-                                                <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: "#10b981" }}>
-                                                    <CheckCircle2 size={14} /> Vinculado
+                                                <span className="omni-estado omni-estado--sucesso">
+                                                    <CheckCircle2 aria-hidden /> Vinculado
                                                 </span>
                                             ) : (
-                                                <button onClick={() => vincularPlano(p)} disabled={saving} type="button" style={{
-                                                    padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700,
-                                                    border: "none", background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                                                    color: "#fff", cursor: "pointer",
-                                                }}>
-                                                    {saving ? <Loader2 size={12} className="animate-spin" /> : "Usar este plano"}
+                                                <button onClick={() => vincularPlano(p)} disabled={saving} aria-busy={saving} type="button"
+                                                    className="omni-btn omni-btn--primario omni-btn--pequeno">
+                                                    {saving ? <Loader2 size={16} className="animate-spin" aria-hidden /> : null}
+                                                    {saving ? "Vinculando…" : "Usar este plano"}
                                                 </button>
                                             )}
-                                        </div>
+                                        </li>
                                     );
                                 })}
-                            </div>
+                            </ul>
                         )}
                     </div>
-                </div>
+                </section>
             )}
 
             {/* Upload mode: file upload */}
             {uploadMode && (
-                <div style={cardS}>
+                <section style={cardS} aria-labelledby="enviar-plano-titulo">
                     <div style={headerS}>
-                        <Upload size={16} style={{ color: "#8b5cf6" }} />
-                        <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary, #e2e8f0)" }}>Upload de Plano</span>
+                        <Upload size={16} aria-hidden style={{ color: "var(--acao)" }} />
+                        <h5 id="enviar-plano-titulo" style={tituloS}>Enviar o plano de ensino</h5>
                     </div>
-                    <div style={{ ...bodyS, textAlign: "center", padding: "32px 16px" }}>
-                        <Upload size={36} style={{ margin: "0 auto 12px", color: "var(--text-muted, #64748b)", opacity: 0.4 }} />
-                        <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", margin: "0 0 4px" }}>
-                            Arraste um PDF aqui ou clique para selecionar
-                        </p>
-                        <p style={{ fontSize: 12, color: "var(--text-muted, #94a3b8)", margin: "0 0 14px" }}>
-                            Formatos aceitos: PDF (máx. 10MB)
-                        </p>
-                        <label style={{
-                            display: "inline-flex", alignItems: "center", gap: 6,
-                            padding: "10px 20px", borderRadius: 10, fontSize: 13, fontWeight: 700,
-                            background: saving ? "rgba(139,92,246,.05)" : "rgba(139,92,246,.1)",
-                            border: "1.5px solid #8b5cf6",
-                            color: "#a78bfa", cursor: saving ? "wait" : "pointer",
-                            opacity: saving ? 0.6 : 1,
-                        }}>
-                            {saving ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                            {saving ? "Enviando..." : "Selecionar arquivo"}
-                            <input type="file" accept=".pdf" style={{ display: "none" }} disabled={saving} onChange={async (e) => {
+                    <div style={bodyS}>
+                        <label className="omni-soltar" aria-busy={saving} style={{ cursor: saving ? "wait" : "pointer", opacity: saving ? 0.6 : 1 }}>
+                            {saving ? <Loader2 className="animate-spin" aria-hidden /> : <Upload aria-hidden />}
+                            <span style={{ fontWeight: 700, color: "var(--tinta)" }}>
+                                {saving ? "Enviando…" : "Arraste o PDF aqui ou clique para escolher"}
+                            </span>
+                            <span className="omni-soltar__dica">Só PDF, até 10 MB</span>
+                            <input type="file" accept=".pdf" aria-label="Escolher o PDF do plano de ensino" disabled={saving} onChange={async (e) => {
                                 const file = e.target.files?.[0];
                                 if (!file) return;
                                 setSaving(true); setError("");
@@ -378,7 +344,7 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                                     fd.append("ano_serie", anoSerie);
                                     const res = await fetch("/api/pei/plano-ensino/upload", { method: "POST", body: fd });
                                     const data = await res.json();
-                                    if (!res.ok) throw new Error(data.error || "Erro no upload");
+                                    if (!res.ok) throw new Error(data.error || "Não foi possível enviar o arquivo");
                                     setPlanoVinculado({
                                         id: data.plano?.id || "",
                                         disciplina, ano_serie: anoSerie,
@@ -391,21 +357,22 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                                     setSaved(true);
                                     onPlanoSaved?.(data.plano?.id);
                                 } catch (err) {
-                                    setError(err instanceof Error ? err.message : "Erro no upload");
+                                    setError(err instanceof Error ? err.message : "Não foi possível enviar o arquivo");
                                 } finally { setSaving(false); }
                             }} />
                         </label>
                     </div>
-                </div>
+                </section>
             )}
 
             {/* Error */}
             {error && (
-                <div style={{
-                    padding: "10px 14px", borderRadius: 10, fontSize: 13,
-                    background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.2)", color: "#f87171",
-                }}>
-                    {error}
+                <div className="omni-aviso omni-aviso--erro" role="alert" style={{ maxWidth: "none" }}>
+                    <AlertTriangle className="omni-aviso__icone" aria-hidden />
+                    <div>
+                        <div className="omni-aviso__titulo">Algo deu errado com o plano</div>
+                        <div className="omni-aviso__texto">{error}</div>
+                    </div>
                 </div>
             )}
         </div>

@@ -8,6 +8,7 @@
  */
 import React, { useEffect, useState } from "react";
 import type { PEIData } from "@/lib/pei";
+import { STATUS_META, PARECER_GERAL, PROXIMOS_PASSOS } from "@/lib/pei";
 import {
   PERIODICIDADES,
   DECISOES_REVISAO,
@@ -20,7 +21,7 @@ import {
   type Vigencia,
   type EstudoCaso,
 } from "@/lib/estudo-caso";
-import { AlertTriangle, CheckCircle2, Clock, FileCheck2, History, Users } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Circle, Clock, FileCheck2, History, Target, Users } from "lucide-react";
 
 type Props = {
   peiData: PEIData;
@@ -39,7 +40,10 @@ type Ciencias = {
   pendentes: Array<{ member_id: string; nome: string }>;
 };
 
-const campo = "w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white";
+// Onda 18: no design system (omni-*). Títulos e ícones de seção com o mesmo estilo.
+const tituloSecao: React.CSSProperties = { margin: 0, display: "flex", alignItems: "center", gap: 8, font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" };
+const iconeSecao: React.CSSProperties = { width: 18, height: 18, color: "var(--acao)", flex: "none" };
+const largo: React.CSSProperties = { maxWidth: "none" };
 const dataBR = (iso?: string) => (iso ? new Date(`${iso.slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR") : "—");
 
 export function PEITabVigencia({ peiData, updateField, currentStudentId, usuarioNome, onSalvar, saving, parte }: Props) {
@@ -102,12 +106,21 @@ export function PEITabVigencia({ peiData, updateField, currentStudentId, usuario
     setSalvarDepois(true);
   }
 
+  const passos: Array<{ ok: boolean; texto: string }> = [
+    { ok: ecOk, texto: "Estudo de caso com os quatro passos" },
+    { ok: temPei, texto: "Texto do PEI gerado e revisado (etapa 2 · Texto do PEI)" },
+    { ok: Boolean(currentStudentId), texto: "Estudante cadastrado" },
+  ];
+  const tomSituacao = vig.status === "vigente" ? (vencida ? "omni-aviso--atencao" : "omni-aviso--sucesso") : "omni-aviso--info";
+  const IconeSituacao = vig.status === "vigente" ? (vencida ? AlertTriangle : CheckCircle2) : Clock;
+  const passosSelecionados = peiData.proximos_passos_select || [];
+
   return (
-    <div className="space-y-6">
+    <div style={{ display: "grid", gap: 20 }}>
       {!parte && (
-      <div>
-          <h3 className="text-lg font-semibold text-slate-800">{parte === "revisao" ? "Revisão do PEI" : parte === "vigencia" ? "Vigente e ciência" : "Vigência e revisões"}</h3>
-          <p className="text-sm text-slate-600 mt-1 max-w-[65ch]">
+        <div>
+          <h3 style={{ margin: 0, font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" }}>Vigência e revisões</h3>
+          <p className="omni-apoio" style={{ margin: "4px 0 0", maxWidth: "65ch" }}>
             Quando o PEI fica pronto, ele passa a valer: os professores do estudante leem e dão ciência, e a escola revisa no
             prazo combinado. A Portaria MEC 421/2026 pede ao menos uma revisão por ano.
           </p>
@@ -115,99 +128,85 @@ export function PEITabVigencia({ peiData, updateField, currentStudentId, usuario
       )}
 
       {/* Situação */}
-      <div
-        className={`p-4 rounded-xl border-2 flex flex-wrap items-center gap-4 ${
-          vig.status === "vigente" ? (vencida ? "border-amber-300 bg-amber-50/60" : "border-emerald-200 bg-emerald-50/50") : "border-slate-200 bg-slate-50/60"
-        }`}
-      >
-        {vig.status === "vigente" ? (
-          vencida ? <AlertTriangle className="w-6 h-6 text-amber-600" /> : <CheckCircle2 className="w-6 h-6 text-emerald-600" />
-        ) : (
-          <Clock className="w-6 h-6 text-slate-500" />
-        )}
-        <div className="min-w-0">
-          <p className="font-semibold text-slate-800">
+      <div className={`omni-aviso ${tomSituacao}`} role="status" style={{ maxWidth: "none" }}>
+        <IconeSituacao className="omni-aviso__icone" aria-hidden style={{ width: 22, height: 22 }} />
+        <div>
+          <div className="omni-aviso__titulo">
             {vig.status === "vigente" && `PEI vigente · versão ${vig.versao}`}
             {vig.status === "em_revisao" && `Em revisão · última versão vigente: ${vig.versao}`}
             {vig.status === "rascunho" && "Rascunho · o PEI ainda não está valendo"}
-          </p>
+          </div>
           {vig.status !== "rascunho" && (
-            <p className="text-sm text-slate-600">
+            <div className="omni-aviso__texto">
               Desde {dataBR(vig.vigente_desde)} · próxima revisão {dataBR(vig.proxima_revisao)}
-              {vencida && <strong className="text-amber-700"> · revisão atrasada</strong>}
-            </p>
+              {vencida && <strong> · revisão atrasada</strong>}
+            </div>
           )}
         </div>
       </div>
 
       {/* Fechar / publicar versão */}
       {mostraVigencia && vig.status !== "vigente" && (
-        <div className="p-4 rounded-xl border border-slate-200 space-y-4">
-          <h4 className="font-semibold text-slate-800 flex items-center gap-2">
-            <FileCheck2 className="w-4 h-4 text-sky-600" /> Tornar o PEI vigente
+        <section className="omni-cartao" style={{ display: "grid", gap: 14 }} aria-labelledby="vig-fechar">
+          <h4 id="vig-fechar" style={tituloSecao}>
+            <FileCheck2 aria-hidden style={iconeSecao} /> Tornar o PEI vigente
           </h4>
-          <ul className="text-sm space-y-1">
-            <li className={ecOk ? "text-emerald-700" : "text-slate-500"}>
-              {ecOk ? "✓" : "○"} Estudo de caso com os quatro passos
-            </li>
-            <li className={temPei ? "text-emerald-700" : "text-slate-500"}>
-              {temPei ? "✓" : "○"} Texto do PEI gerado e revisado (etapa 2 · Texto do PEI)
-            </li>
-            <li className={currentStudentId ? "text-emerald-700" : "text-slate-500"}>
-              {currentStudentId ? "✓" : "○"} Estudante cadastrado
-            </li>
+          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 6 }}>
+            {passos.map((p) => (
+              <li key={p.texto} style={{ display: "flex", alignItems: "center", gap: 8, font: "400 15px/22px var(--font-sans)", color: p.ok ? "var(--tinta)" : "var(--tinta-3)" }}>
+                {p.ok
+                  ? <CheckCircle2 aria-hidden style={{ width: 18, height: 18, color: "var(--sucesso)", flex: "none" }} />
+                  : <Circle aria-hidden style={{ width: 18, height: 18, color: "var(--tinta-3)", flex: "none" }} />}
+                <span>{p.texto}<span className="omni-so-leitor">{p.ok ? " (feito)" : " (falta)"}</span></span>
+              </li>
+            ))}
           </ul>
           <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-3 items-end">
-            <div>
-              <label htmlFor="vig-per" className="block text-sm font-medium text-slate-700 mb-1">Revisar</label>
-              <select id="vig-per" value={periodicidade} onChange={(e) => setPeriodicidade(e.target.value as Periodicidade)} className={campo}>
+            <label className="omni-campo" style={largo}>
+              <span className="omni-campo__rotulo">Revisar</span>
+              <select value={periodicidade} onChange={(e) => setPeriodicidade(e.target.value as Periodicidade)} className="omni-entrada" style={largo}>
                 {PERIODICIDADES.map((p) => (
                   <option key={p.id} value={p.id}>{p.nome}</option>
                 ))}
               </select>
-            </div>
-            <button
-              type="button"
-              disabled={!podeFechar || saving}
-              onClick={tornarVigente}
-              className="px-4 py-2 rounded-lg text-sm font-semibold bg-emerald-600 text-white disabled:opacity-40"
-            >
+            </label>
+            <button type="button" disabled={!podeFechar || saving} onClick={tornarVigente} className="omni-btn omni-btn--primario">
               Tornar vigente (versão {(vig.versao || 0) + 1})
             </button>
           </div>
-        </div>
+        </section>
       )}
 
       {/* Ciência dos professores */}
       {mostraVigencia && vig.status !== "rascunho" && (
-        <div className="p-4 rounded-xl border border-slate-200 space-y-3">
-          <h4 className="font-semibold text-slate-800 flex items-center gap-2">
-            <Users className="w-4 h-4 text-sky-600" /> Ciência dos professores · versão {vig.versao}
+        <section className="omni-cartao" style={{ display: "grid", gap: 12 }} aria-labelledby="vig-ciencia">
+          <h4 id="vig-ciencia" style={tituloSecao}>
+            <Users aria-hidden style={iconeSecao} /> Ciência dos professores · versão {vig.versao}
           </h4>
           {cienciasErro ? (
-            <p className="text-sm text-slate-600">Não conseguimos carregar quem já leu. Recarregue a página para tentar de novo.</p>
+            <div className="omni-aviso omni-aviso--erro" role="alert"><div><div className="omni-aviso__texto">Não conseguimos carregar quem já leu. Recarregue a página para tentar de novo.</div></div></div>
           ) : !ciencias ? (
-            <p className="text-sm text-slate-500">Carregando…</p>
+            <p className="omni-apoio" role="status" style={{ margin: 0 }}>Carregando…</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="font-medium text-emerald-700 mb-1">Deram ciência ({ciencias.ciencias.length})</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div style={{ display: "grid", gap: 6, alignContent: "start" }}>
+                <span className="omni-estado omni-estado--sucesso" style={{ justifySelf: "start" }}>Deram ciência ({ciencias.ciencias.length})</span>
                 {ciencias.ciencias.length === 0 ? (
-                  <p className="text-slate-500">Ninguém ainda.</p>
+                  <p className="omni-apoio" style={{ margin: 0 }}>Ninguém ainda.</p>
                 ) : (
-                  <ul className="space-y-1">
+                  <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 4, color: "var(--tinta)" }}>
                     {ciencias.ciencias.map((c) => (
-                      <li key={c.member_id}>{c.nome} <span className="text-slate-500">· {dataBR(c.created_at)}</span></li>
+                      <li key={c.member_id}>{c.nome} <span style={{ color: "var(--tinta-3)" }}>· {dataBR(c.created_at)}</span></li>
                     ))}
                   </ul>
                 )}
               </div>
-              <div>
-                <p className="font-medium text-amber-700 mb-1">Ainda não ({ciencias.pendentes.length})</p>
+              <div style={{ display: "grid", gap: 6, alignContent: "start" }}>
+                <span className="omni-estado omni-estado--atencao" style={{ justifySelf: "start" }}>Ainda não ({ciencias.pendentes.length})</span>
                 {ciencias.pendentes.length === 0 ? (
-                  <p className="text-slate-500">Todos os professores do estudante já leram.</p>
+                  <p className="omni-apoio" style={{ margin: 0 }}>Todos os professores do estudante já leram.</p>
                 ) : (
-                  <ul className="space-y-1">
+                  <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 4, color: "var(--tinta)" }}>
                     {ciencias.pendentes.map((c) => (
                       <li key={c.member_id}>{c.nome}</li>
                     ))}
@@ -216,73 +215,124 @@ export function PEITabVigencia({ peiData, updateField, currentStudentId, usuario
               </div>
             </div>
           )}
-          <p className="text-xs text-slate-500">
+          <p className="omni-campo__ajuda" style={{ margin: 0 }}>
             Os professores veem o PEI em “PEI do professor” e clicam em “Li e estou ciente”. A lista considera quem tem o
             estudante no seu vínculo (turma ou um a um).
           </p>
-        </div>
+        </section>
       )}
 
       {/* Revisões */}
       {mostraRevisao && vig.status !== "vigente" && parte === "revisao" && (
-        <p className="text-sm text-slate-600">A revisão começa quando o PEI estiver vigente (passo 3).</p>
+        <p className="omni-apoio" style={{ margin: 0 }}>A revisão começa quando o PEI estiver vigente (passo 3).</p>
       )}
       {mostraRevisao && vig.status === "vigente" && (
-        <div className="p-4 rounded-xl border border-slate-200 space-y-3">
-          <h4 className="font-semibold text-slate-800 flex items-center gap-2">
-            <History className="w-4 h-4 text-sky-600" /> Registrar revisão
+        <section className="omni-cartao" style={{ display: "grid", gap: 14 }} aria-labelledby="rev-registrar">
+          <h4 id="rev-registrar" style={tituloSecao}>
+            <History aria-hidden style={iconeSecao} /> Registrar revisão
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label htmlFor="rev-av" className="block text-sm font-medium text-slate-700 mb-1">O que avançou</label>
-              <textarea id="rev-av" rows={3} value={nova.avancos} onChange={(e) => setNova({ ...nova, avancos: e.target.value })} className={campo} />
-            </div>
-            <div>
-              <label htmlFor="rev-aj" className="block text-sm font-medium text-slate-700 mb-1">O que precisa mudar</label>
-              <textarea id="rev-aj" rows={3} value={nova.ajustes} onChange={(e) => setNova({ ...nova, ajustes: e.target.value })} className={campo} />
-            </div>
+            <label className="omni-campo" style={largo}>
+              <span className="omni-campo__rotulo">O que avançou</span>
+              <textarea rows={3} value={nova.avancos} onChange={(e) => setNova({ ...nova, avancos: e.target.value })} className="omni-entrada" style={largo} />
+            </label>
+            <label className="omni-campo" style={largo}>
+              <span className="omni-campo__rotulo">O que precisa mudar</span>
+              <textarea rows={3} value={nova.ajustes} onChange={(e) => setNova({ ...nova, ajustes: e.target.value })} className="omni-entrada" style={largo} />
+            </label>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-3 items-end">
-            <div>
-              <label htmlFor="rev-dec" className="block text-sm font-medium text-slate-700 mb-1">Decisão</label>
-              <select id="rev-dec" value={nova.decisao} onChange={(e) => setNova({ ...nova, decisao: e.target.value as Revisao["decisao"] })} className={campo}>
+            <label className="omni-campo" style={largo}>
+              <span className="omni-campo__rotulo">Decisão</span>
+              <select value={nova.decisao} onChange={(e) => setNova({ ...nova, decisao: e.target.value as Revisao["decisao"] })} className="omni-entrada" style={largo}>
                 {DECISOES_REVISAO.map((d) => (
                   <option key={d.id} value={d.id}>{d.nome}</option>
                 ))}
               </select>
-            </div>
-            <button
-              type="button"
-              disabled={saving || !(nova.avancos || nova.ajustes)}
-              onClick={registrarRevisao}
-              className="px-4 py-2 rounded-lg text-sm font-semibold bg-sky-600 text-white disabled:opacity-40"
-            >
+            </label>
+            <button type="button" disabled={saving || !(nova.avancos || nova.ajustes)} onClick={registrarRevisao} className="omni-btn omni-btn--primario">
               Registrar revisão
             </button>
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="omni-campo__ajuda" style={{ margin: 0 }}>
             “Manter” agenda a próxima revisão. “Ajustar” ou “Refazer o estudo de caso” deixam o PEI em revisão até ser
             tornado vigente de novo, numa nova versão.
           </p>
-        </div>
+        </section>
       )}
 
       {mostraRevisao && revisoes.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="font-semibold text-slate-800">Histórico de revisões</h4>
-          <ol className="space-y-2">
+        <section style={{ display: "grid", gap: 10 }} aria-labelledby="rev-historico">
+          <h4 id="rev-historico" style={tituloSecao}>Histórico de revisões</h4>
+          <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8 }}>
             {[...revisoes].reverse().map((r, i) => (
-              <li key={`${r.data}-${i}`} className="p-3 rounded-lg border border-slate-200 text-sm">
-                <p className="font-medium text-slate-800">
+              <li key={`${r.data}-${i}`} className="omni-cartao omni-cartao--plano" style={{ padding: "12px 14px", display: "grid", gap: 4 }}>
+                <p style={{ margin: 0, font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>
                   {dataBR(r.data)} · {DECISOES_REVISAO.find((d) => d.id === r.decisao)?.nome}
-                  {r.autor && <span className="text-slate-500 font-normal"> · {r.autor}</span>}
+                  {r.autor && <span style={{ fontWeight: 400, color: "var(--tinta-3)" }}> · {r.autor}</span>}
                 </p>
-                {r.avancos && <p className="text-slate-600 mt-1"><strong>Avançou:</strong> {r.avancos}</p>}
-                {r.ajustes && <p className="text-slate-600 mt-1"><strong>Muda:</strong> {r.ajustes}</p>}
+                {r.avancos && <p style={{ margin: 0, color: "var(--tinta-2)" }}><strong>Avançou:</strong> {r.avancos}</p>}
+                {r.ajustes && <p style={{ margin: 0, color: "var(--tinta-2)" }}><strong>Muda:</strong> {r.ajustes}</p>}
               </li>
             ))}
           </ol>
-        </div>
+        </section>
+      )}
+
+      {/* Onda 18: "Situação das metas" (antes uma seção à parte) — mesmos campos de antes no PEI */}
+      {mostraRevisao && (
+        <section className="omni-cartao" style={{ display: "grid", gap: 14 }} aria-labelledby="rev-metas">
+          <div>
+            <h4 id="rev-metas" style={tituloSecao}>
+              <Target aria-hidden style={iconeSecao} /> Situação das metas
+            </h4>
+            <p className="omni-apoio" style={{ margin: "4px 0 0", maxWidth: "65ch" }}>
+              Como estão as metas do PEI e o que fazer em seguida. Fica salvo com o PEI.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <label className="omni-campo" style={largo}>
+              <span className="omni-campo__rotulo">Data do acompanhamento</span>
+              <input type="date" value={String(peiData.monitoramento_data || "").slice(0, 10)} onChange={(e) => updateField("monitoramento_data", e.target.value)} className="omni-entrada" style={largo} />
+            </label>
+            <label className="omni-campo" style={largo}>
+              <span className="omni-campo__rotulo">Situação da meta</span>
+              <select value={peiData.status_meta || ""} onChange={(e) => updateField("status_meta", e.target.value)} className="omni-entrada" style={largo}>
+                <option value="">Escolha</option>
+                {STATUS_META.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </label>
+            <label className="omni-campo" style={largo}>
+              <span className="omni-campo__rotulo">Parecer geral</span>
+              <select value={peiData.parecer_geral || ""} onChange={(e) => updateField("parecer_geral", e.target.value)} className="omni-entrada" style={largo}>
+                <option value="">Escolha</option>
+                {PARECER_GERAL.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <fieldset style={{ border: 0, margin: 0, padding: 0, display: "grid", gap: 8 }}>
+            <legend className="omni-campo__rotulo" style={{ padding: 0, marginBottom: 8 }}>Próximos passos</legend>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {PROXIMOS_PASSOS.map((p) => (
+                <label key={p} className="omni-chip">
+                  <input
+                    type="checkbox"
+                    checked={passosSelecionados.includes(p)}
+                    onChange={(e) => {
+                      const novas = e.target.checked ? [...passosSelecionados, p] : passosSelecionados.filter((item) => item !== p);
+                      updateField("proximos_passos_select", novas);
+                    }}
+                  />
+                  <CheckCircle2 className="omni-chip__marca" aria-hidden /> {p}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </section>
       )}
     </div>
   );

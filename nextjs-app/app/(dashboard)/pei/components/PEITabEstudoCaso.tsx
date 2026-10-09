@@ -20,7 +20,7 @@ import { PEITabEvidencias } from "./PEITabEvidencias";
 import { PEITabMapeamento } from "./PEITabMapeamento";
 import { PEITabRede } from "./PEITabRede";
 import { PEITabPlano } from "./PEITabPlano";
-import { CheckCircle2, ChevronLeft, ChevronRight, Info } from "lucide-react";
+import { Check, CheckCircle2, ChevronLeft, ChevronRight, Info } from "lucide-react";
 
 type Props = {
   peiData: PEIData;
@@ -30,7 +30,8 @@ type Props = {
   onIrParaPei: () => void;
 };
 
-const campo = "w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white";
+const larga: React.CSSProperties = { maxWidth: "none" };
+const tituloSecao: React.CSSProperties = { margin: 0, font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" };
 
 function Escolha({
   rotulo,
@@ -47,21 +48,20 @@ function Escolha({
     { id: "avaliar", nome: "Ainda avaliando" },
   ];
   return (
-    <fieldset>
-      <legend className="text-sm font-medium text-slate-700 mb-1">{rotulo}</legend>
-      <div className="flex flex-wrap gap-2">
-        {ops.map((o) => (
-          <button
-            key={o.id}
-            type="button"
-            onClick={() => onChange(o.id)}
-            aria-pressed={valor === o.id}
-            className={`px-3 py-1.5 rounded-full text-sm border ${valor === o.id ? "bg-sky-600 text-white border-sky-600" : "bg-white text-slate-700 border-slate-200"}`}
-          >
-            {o.nome}
-          </button>
-        ))}
-      </div>
+    <fieldset className="omni-escolhas">
+      <legend>{rotulo}</legend>
+      {ops.map((o) => (
+        <button
+          key={o.id}
+          type="button"
+          onClick={() => onChange(o.id)}
+          aria-pressed={valor === o.id}
+          className="omni-chip"
+        >
+          <Check className="omni-chip__marca" aria-hidden />
+          {o.nome}
+        </button>
+      ))}
     </fieldset>
   );
 }
@@ -80,133 +80,136 @@ export function PEITabEstudoCaso({ peiData, updateField, toggleChecklist, hiperf
     set("participantes", participantes.includes(p) ? participantes.filter((x) => x !== p) : [...participantes, p]);
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: "grid", gap: 24 }}>
       <div>
-        <h3 className="text-lg font-semibold text-slate-800">Estudo de caso</h3>
-        <p className="text-sm text-slate-600 mt-1 max-w-[65ch]">
+        <h3 style={tituloSecao}>Estudo de caso</h3>
+        <p className="omni-apoio" style={{ margin: "4px 0 0", maxWidth: "65ch" }}>
           É a etapa que vem antes do PEI: a equipe conversa sobre o estudante e decide os apoios. O PEI sai das conclusões
           daqui. Se o estudante tem laudo, ele entra aqui e ajuda a equipe a entender o caso; só não pode ser condição para o apoio.
         </p>
       </div>
 
       {/* Quando e quem */}
-      <div className="grid grid-cols-1 md:grid-cols-[200px_minmax(0,1fr)] gap-4 p-4 rounded-xl border border-slate-200 bg-slate-50/60">
-        <div>
-          <label htmlFor="ec-data" className="block text-sm font-medium text-slate-700 mb-1">Data da conversa</label>
-          <input id="ec-data" type="date" value={ec.data || ""} onChange={(e) => set("data", e.target.value)} className={campo} />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-slate-700 mb-1">Quem participou</p>
-          <div className="flex flex-wrap gap-2">
-            {PARTICIPANTES.map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => alternarParticipante(p)}
-                aria-pressed={participantes.includes(p)}
-                className={`px-3 py-1 rounded-full text-xs border ${participantes.includes(p) ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200"}`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      <section className="omni-cartao omni-cartao--plano grid grid-cols-1 md:grid-cols-[200px_minmax(0,1fr)]" style={{ gap: 16 }} aria-label="Quando e quem">
+        <label className="omni-campo">
+          <span className="omni-campo__rotulo">Data da conversa</span>
+          <input id="ec-data" type="date" value={ec.data || ""} onChange={(e) => set("data", e.target.value)} className="omni-entrada" />
+        </label>
+        <fieldset className="omni-escolhas">
+          <legend>Quem participou</legend>
+          {PARTICIPANTES.map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => alternarParticipante(p)}
+              aria-pressed={participantes.includes(p)}
+              className="omni-chip"
+            >
+              <Check className="omni-chip__marca" aria-hidden />
+              {p}
+            </button>
+          ))}
+        </fieldset>
+      </section>
 
       {/* Passos */}
-      <ol className="grid grid-cols-2 md:grid-cols-4 gap-2" aria-label="Passos do estudo de caso">
+      <ol className="omni-passos" aria-label="Passos do estudo de caso">
         {PASSOS_ESTUDO_CASO.map((p) => (
-          <li key={p.id}>
+          <li key={p.id} style={{ display: "flex" }}>
             <button
               type="button"
               onClick={() => setPasso(p.id)}
               aria-current={passo === p.id ? "step" : undefined}
-              className={`w-full text-left p-3 rounded-xl border transition ${passo === p.id ? "border-sky-500 bg-sky-50" : "border-slate-200 bg-white"}`}
+              className={`omni-passo ${feitos[p.id] ? "omni-passo--feito" : ""} ${passo === p.id ? "omni-passo--atual" : ""}`}
+              style={{ width: "100%", textAlign: "left", cursor: "pointer", font: "inherit" }}
             >
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
-                Passo {p.id}
-                {feitos[p.id] && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" aria-label="concluído" />}
+              <span className="omni-passo__num" aria-hidden>
+                {feitos[p.id] ? <Check size={14} /> : p.id}
               </span>
-              <span className="block text-sm font-semibold text-slate-800 mt-0.5">{p.titulo}</span>
+              <span style={{ display: "grid", minWidth: 0 }}>
+                <span className="omni-passo__titulo">{p.titulo}</span>
+                <span className="omni-passo__estado">
+                  Passo {p.id}
+                  {feitos[p.id] ? " · feito" : ""}
+                </span>
+              </span>
             </button>
           </li>
         ))}
       </ol>
 
-      <p className="text-sm text-slate-600 flex items-start gap-2">
-        <Info className="w-4 h-4 mt-0.5 shrink-0 text-sky-600" />
-        {PASSOS_ESTUDO_CASO[passo - 1].pergunta}
-      </p>
+      <div className="omni-aviso omni-aviso--info">
+        <Info className="omni-aviso__icone" aria-hidden />
+        <div>
+          <div className="omni-aviso__texto">{PASSOS_ESTUDO_CASO[passo - 1].pergunta}</div>
+        </div>
+      </div>
 
       {passo === 1 && (
-        <div className="space-y-6">
-          <div>
-            <label htmlFor="ec-demandas" className="block text-sm font-medium text-slate-700 mb-1">
-              Demandas observadas
-            </label>
+        <div style={{ display: "grid", gap: 24 }}>
+          <label className="omni-campo" style={larga}>
+            <span className="omni-campo__rotulo">Demandas observadas</span>
             <textarea
               id="ec-demandas"
               rows={4}
               value={ec.demandas || ""}
               onChange={(e) => set("demandas", e.target.value)}
               placeholder="Ex.: não consegue concluir atividades escritas sem mediação; evita trabalhos em grupo; perde o foco depois de 10 minutos."
-              className={campo}
+              className="omni-entrada"
             />
-          </div>
+          </label>
           <PEITabEvidencias peiData={peiData} updateField={updateField} toggleChecklist={toggleChecklist} />
           <PEITabMapeamento peiData={peiData} updateField={updateField} hiperfoco={hiperfoco} secao="barreiras" />
         </div>
       )}
 
       {passo === 2 && (
-        <div className="space-y-6">
-          <div>
-            <label htmlFor="ec-contexto" className="block text-sm font-medium text-slate-700 mb-1">
-              Contexto escolar
-            </label>
+        <div style={{ display: "grid", gap: 24 }}>
+          <label className="omni-campo" style={larga}>
+            <span className="omni-campo__rotulo">Contexto escolar</span>
             <textarea
               id="ec-contexto"
               rows={4}
               value={ec.contexto_escolar || ""}
               onChange={(e) => set("contexto_escolar", e.target.value)}
               placeholder="Turma, rotina, relação com colegas e professores, o que já foi tentado e como funcionou."
-              className={campo}
+              className="omni-entrada"
             />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="ec-historico" className="block text-sm font-medium text-slate-700 mb-1">Histórico</label>
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 16 }}>
+            <label className="omni-campo" style={larga}>
+              <span className="omni-campo__rotulo">Histórico</span>
               <textarea
                 id="ec-historico"
                 rows={4}
                 value={(peiData.historico as string) || ""}
                 onChange={(e) => updateField("historico", e.target.value)}
                 placeholder="Trajetória escolar, mudanças, acompanhamentos anteriores."
-                className={campo}
+                className="omni-entrada"
               />
-            </div>
-            <div>
-              <label htmlFor="ec-familia" className="block text-sm font-medium text-slate-700 mb-1">Contexto familiar</label>
+            </label>
+            <label className="omni-campo" style={larga}>
+              <span className="omni-campo__rotulo">Contexto familiar</span>
               <textarea
                 id="ec-familia"
                 rows={4}
                 value={(peiData.familia as string) || ""}
                 onChange={(e) => updateField("familia", e.target.value)}
                 placeholder="Com quem mora, como a família acompanha a vida escolar."
-                className={campo}
+                className="omni-entrada"
               />
-            </div>
+            </label>
           </div>
           <PEITabRede peiData={peiData} updateField={updateField} />
         </div>
       )}
 
       {passo === 3 && (
-        <div className="space-y-6">
+        <div style={{ display: "grid", gap: 24 }}>
           <PEITabMapeamento peiData={peiData} updateField={updateField} hiperfoco={hiperfoco} secao="potencias" />
-          <div className="p-4 rounded-xl border-2 border-amber-200 bg-amber-50/40 space-y-4">
-            <h4 className="text-base font-semibold text-slate-800">Apoios definidos no estudo de caso</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <section className="omni-cartao" style={{ display: "grid", gap: 16, borderColor: "var(--acao)" }} aria-labelledby="ec-apoios-titulo">
+            <h4 id="ec-apoios-titulo" className="omni-cartao__titulo" style={{ margin: 0 }}>Apoios definidos no estudo de caso</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 16 }}>
               <Escolha
                 rotulo="Precisa de Atendimento Educacional Especializado (AEE)?"
                 valor={ec.necessita_aee}
@@ -218,93 +221,99 @@ export function PEITabEstudoCaso({ peiData, updateField, toggleChecklist, hiperf
                 onChange={(v) => set("necessita_profissional_apoio", v)}
               />
             </div>
-            <div>
-              <label htmlFor="ec-just" className="block text-sm font-medium text-slate-700 mb-1">Por quê?</label>
+            <label className="omni-campo" style={larga}>
+              <span className="omni-campo__rotulo">Por quê?</span>
               <textarea
                 id="ec-just"
                 rows={3}
                 value={ec.justificativa_apoio || ""}
                 onChange={(e) => set("justificativa_apoio", e.target.value)}
-                placeholder="O que no estudo de caso mostra a necessidade (ou não) desses apoios. Pelo Decreto 12.773/2025, é aqui que isso se decide, não no laudo."
-                className={campo}
+                placeholder="O que o estudo de caso mostra sobre a necessidade (ou não) desses apoios."
+                className="omni-entrada"
+                aria-describedby="ec-just-ajuda"
               />
-            </div>
-          </div>
+              <span id="ec-just-ajuda" className="omni-campo__ajuda">
+                Pelo Decreto 12.773/2025, é aqui que isso se decide, não no laudo.
+              </span>
+            </label>
+          </section>
         </div>
       )}
 
       {passo === 4 && (
-        <div className="space-y-6">
+        <div style={{ display: "grid", gap: 24 }}>
           <PEITabPlano peiData={peiData} updateField={updateField} />
-          <div>
-            <label htmlFor="ec-recursos" className="block text-sm font-medium text-slate-700 mb-1">Recursos</label>
+          <label className="omni-campo" style={larga}>
+            <span className="omni-campo__rotulo">Recursos</span>
             <textarea
               id="ec-recursos"
               rows={3}
               value={ec.recursos || ""}
               onChange={(e) => set("recursos", e.target.value)}
               placeholder="Materiais, tecnologia assistiva, espaços e pessoas que a escola vai mobilizar."
-              className={campo}
+              className="omni-entrada"
             />
-          </div>
-          <div>
-            <label htmlFor="ec-conclusao" className="block text-sm font-medium text-slate-700 mb-1">Conclusão da equipe</label>
+          </label>
+          <label className="omni-campo" style={larga}>
+            <span className="omni-campo__rotulo">Conclusão da equipe</span>
             <textarea
               id="ec-conclusao"
               rows={4}
               value={ec.conclusao || ""}
               onChange={(e) => set("conclusao", e.target.value)}
               placeholder="Em poucas linhas: o que a equipe entendeu e o que o PEI precisa garantir."
-              className={campo}
+              className="omni-entrada"
             />
-          </div>
-          <div className="flex flex-wrap items-center gap-3 p-4 rounded-xl border border-emerald-200 bg-emerald-50/50">
-            {ec.concluido_em ? (
-              <p className="text-sm text-emerald-800 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4" /> Estudo de caso concluído em{" "}
-                {new Date(`${ec.concluido_em}T12:00:00`).toLocaleDateString("pt-BR")}.
-              </p>
-            ) : (
-              <p className="text-sm text-slate-700">
-                {todos ? "Os quatro passos têm o mínimo preenchido." : "Complete os quatro passos para concluir."}
-              </p>
-            )}
-            <button
-              type="button"
-              disabled={!todos}
-              onClick={() => set("concluido_em", ec.concluido_em ? null : hojeIso())}
-              className="px-4 py-2 rounded-lg text-sm font-semibold bg-emerald-600 text-white disabled:opacity-40"
-            >
-              {ec.concluido_em ? "Reabrir estudo de caso" : "Concluir estudo de caso"}
-            </button>
-            {ec.concluido_em && (
-              <button type="button" onClick={onIrParaPei} className="px-4 py-2 rounded-lg text-sm font-semibold bg-sky-600 text-white">
-                Gerar o PEI a partir dele
-              </button>
-            )}
+          </label>
+          <div className={`omni-aviso ${ec.concluido_em ? "omni-aviso--sucesso" : todos ? "omni-aviso--info" : "omni-aviso--atencao"}`} role="status">
+            {ec.concluido_em ? <CheckCircle2 className="omni-aviso__icone" aria-hidden /> : <Info className="omni-aviso__icone" aria-hidden />}
+            <div>
+              <div className="omni-aviso__texto">
+                {ec.concluido_em
+                  ? `Estudo de caso concluído em ${new Date(`${ec.concluido_em}T12:00:00`).toLocaleDateString("pt-BR")}.`
+                  : todos
+                    ? "Os quatro passos têm o mínimo preenchido."
+                    : "Complete os quatro passos para concluir."}
+              </div>
+              <div className="omni-aviso__acoes">
+                <button
+                  type="button"
+                  disabled={!todos}
+                  onClick={() => set("concluido_em", ec.concluido_em ? null : hojeIso())}
+                  className={`omni-btn omni-btn--pequeno ${ec.concluido_em ? "omni-btn--secundario" : "omni-btn--primario"}`}
+                >
+                  {ec.concluido_em ? "Reabrir estudo de caso" : "Concluir estudo de caso"}
+                </button>
+                {ec.concluido_em && (
+                  <button type="button" onClick={onIrParaPei} className="omni-btn omni-btn--primario omni-btn--pequeno">
+                    Gerar o PEI a partir dele
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      <div className="flex justify-between">
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
         <button
           type="button"
           disabled={passo === 1}
           onClick={() => setPasso((p) => (p > 1 ? ((p - 1) as 1 | 2 | 3 | 4) : p))}
-          className="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-sm border border-slate-200 disabled:opacity-40"
+          className="omni-btn omni-btn--secundario"
         >
-          <ChevronLeft className="w-4 h-4" /> Passo anterior
+          <ChevronLeft aria-hidden size={18} /> Passo anterior
         </button>
         <button
           type="button"
           disabled={passo === 4}
           onClick={() => setPasso((p) => (p < 4 ? ((p + 1) as 1 | 2 | 3 | 4) : p))}
-          className="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-sm border border-slate-200 disabled:opacity-40"
+          className="omni-btn omni-btn--secundario"
         >
-          Próximo passo <ChevronRight className="w-4 h-4" />
+          Próximo passo <ChevronRight aria-hidden size={18} />
         </button>
       </div>
-      <p className="text-xs text-slate-500">O que você preenche aqui é salvo sozinho, junto com o PEI.</p>
+      <p className="omni-apoio" style={{ margin: 0, fontSize: 13 }}>O que você preenche aqui é salvo sozinho, junto com o PEI.</p>
     </div>
   );
 }

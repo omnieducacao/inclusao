@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { OmniLoader } from "@/components/OmniLoader";
-import { RotateCw, Sparkles, CheckCircle2, XCircle, Pill } from "lucide-react";
+import { RotateCw, Sparkles, CheckCircle2, XCircle, Pill, AlertCircle, UploadCloud, FileCheck, Plus } from "lucide-react";
 import type { PEIData } from "@/lib/pei";
 import type { EngineId } from "@/lib/ai-engines";
 
@@ -28,14 +28,16 @@ async function parseJsonResponse(res: Response, url?: string) {
 
 export function TransicaoAnoButton({ studentId, studentName }: { studentId: string; studentName?: string }) {
     const [loading, setLoading] = useState(false);
+    const [erro, setErro] = useState<string | null>(null);
     const ano = new Date().getFullYear();
     async function handleClick() {
         setLoading(true);
+        setErro(null);
         try {
             const res = await fetch(`/api/pei/relatorio-transicao?studentId=${encodeURIComponent(studentId)}&ano=${ano}`);
             if (!res.ok) {
                 const d = await res.json();
-                alert(d.error || "Erro ao gerar relatório.");
+                setErro(d.error || "Não deu para gerar o relatório.");
                 return;
             }
             const data = await res.json();
@@ -47,21 +49,31 @@ export function TransicaoAnoButton({ studentId, studentName }: { studentId: stri
             a.click();
             URL.revokeObjectURL(url);
         } catch { /* expected fallback */
-            alert("Erro ao gerar relatório. Tente novamente.");
+            setErro("Não deu para gerar o relatório. Tente de novo.");
         } finally {
             setLoading(false);
         }
     }
     return (
-        <button
-            type="button"
-            onClick={handleClick}
-            disabled={loading}
-            className="flex items-center gap-2 text-sm font-medium text-amber-600 hover:text-amber-700 disabled:opacity-60"
-        >
-            {loading ? <OmniLoader size={16} /> : <RotateCw className="w-4 h-4" />}
-            Relatório Transição {ano}
-        </button>
+        <span style={{ display: "inline-grid", gap: 8, justifyItems: "start" }}>
+            <button
+                type="button"
+                onClick={handleClick}
+                disabled={loading}
+                className="omni-btn omni-btn--secundario omni-btn--pequeno"
+            >
+                {loading ? <OmniLoader size={16} /> : <RotateCw aria-hidden size={16} />}
+                Relatório de transição {ano}
+            </button>
+            {erro && (
+                <span className="omni-aviso omni-aviso--erro" role="alert" style={{ display: "grid" }}>
+                    <AlertCircle className="omni-aviso__icone" aria-hidden />
+                    <span>
+                        <span className="omni-aviso__texto" style={{ display: "block" }}>{erro}</span>
+                    </span>
+                </span>
+            )}
+        </span>
     );
 }
 
@@ -86,7 +98,7 @@ export function LaudoPdfSection({
 
     async function extrair() {
         if (!file) {
-            setErro("Selecione um arquivo (PDF ou imagem).");
+            setErro("Escolha um arquivo (PDF ou imagem).");
             return;
         }
         setLoading(true);
@@ -110,7 +122,7 @@ export function LaudoPdfSection({
                 setModoRevisao(true);
             }
         } catch (e) {
-            setErro(e instanceof Error ? e.message : "Erro ao processar laudo.");
+            setErro(e instanceof Error ? e.message : "Não deu para ler o laudo.");
         } finally {
             setLoading(false);
             aiLoadingStop();
@@ -136,10 +148,15 @@ export function LaudoPdfSection({
         setMedsRevisao([]);
     }
 
+    const ehImagem = !!file && (file.type.includes("image") || /\.(jpg|jpeg|png|webp)$/i.test(file.name));
+
     return (
-        <div className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-                <div className="md:col-span-2">
+        <div style={{ display: "grid", gap: 12 }}>
+            <p className="omni-apoio" style={{ margin: 0, maxWidth: "70ch" }}>
+                Se o estudante tem laudo, envie aqui: a leitura automática traz o diagnóstico e as medicações para você conferir. O laudo informa o estudo de caso; a lei não permite exigir laudo.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 16, alignItems: "start" }}>
+                <label className={`omni-soltar md:col-span-2 ${file ? "omni-soltar--feito" : ""}`}>
                     <input
                         type="file"
                         accept=".pdf,application/pdf,.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
@@ -151,97 +168,108 @@ export function LaudoPdfSection({
                             setModoRevisao(false);
                             setMedsRevisao([]);
                         }}
-                        className="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-sky-100 file:text-sky-800 file:cursor-pointer hover:file:bg-sky-200"
+                        aria-describedby="laudo-arquivo-dica"
                     />
-                    {file && (
-                        <p className="text-xs text-emerald-600 mt-1">
-                            {file.type.includes("image") || file.name.match(/\.(jpg|jpeg|png|webp)$/i)
-                                ? "📷 Imagem selecionada — será feita leitura por IA (OCR)."
-                                : "📄 PDF selecionado."}{" "}Clique em &quot;Extrair Dados do Laudo&quot; para processar.
-                        </p>
+                    {file ? <FileCheck aria-hidden /> : <UploadCloud aria-hidden />}
+                    <span style={{ fontWeight: 700, color: "var(--tinta)" }}>
+                        {file ? file.name : "Escolha o laudo ou arraste para cá"}
+                    </span>
+                    <span id="laudo-arquivo-dica" className="omni-soltar__dica">
+                        {file
+                            ? ehImagem
+                                ? "Imagem escolhida: o texto será lido da foto. Depois, toque em Ler o laudo."
+                                : "PDF escolhido. Depois, toque em Ler o laudo."
+                            : "PDF, JPG, PNG ou WebP"}
+                    </span>
+                </label>
+                <button
+                    type="button"
+                    onClick={extrair}
+                    disabled={loading || !file}
+                    className="omni-btn omni-btn--primario"
+                    style={{ width: "100%" }}
+                >
+                    {loading ? (
+                        <>
+                            <OmniLoader size={16} />
+                            Lendo o laudo…
+                        </>
+                    ) : (
+                        <>
+                            <Sparkles aria-hidden size={18} />
+                            Ler o laudo
+                        </>
                     )}
-                </div>
-                <div className="flex items-start">
-                    <button
-                        type="button"
-                        onClick={extrair}
-                        disabled={loading || !file}
-                        className="w-full px-4 py-2 bg-sky-600 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-700 transition-colors flex items-center justify-center gap-2"
-                    >
-                        {loading ? (
-                            <>
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                Analisando…
-                            </>
-                        ) : (
-                            <>
-                                <Sparkles className="w-4 h-4" />
-                                ✨ Extrair Dados do Laudo
-                            </>
-                        )}
-                    </button>
-                </div>
+                </button>
             </div>
-            {erro && <div className="text-red-600 text-sm bg-red-50 p-2 rounded">{erro}</div>}
+            {erro && (
+                <div className="omni-aviso omni-aviso--erro" role="alert">
+                    <AlertCircle className="omni-aviso__icone" aria-hidden />
+                    <div>
+                        <div className="omni-aviso__texto">{erro}</div>
+                    </div>
+                </div>
+            )}
 
             {modoRevisao && medsRevisao.length > 0 && (
-                <div className="p-4 rounded-lg bg-white border-2 border-amber-200 space-y-3">
-                    <div className="flex items-center gap-2">
-                        <Pill className="w-5 h-5 text-amber-600" />
-                        <h5 className="font-semibold text-slate-800">Medicações encontradas no laudo (confirme antes de adicionar)</h5>
+                <section className="omni-cartao" style={{ display: "grid", gap: 12, borderColor: "var(--atencao)" }} aria-labelledby="laudo-meds-titulo">
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <Pill aria-hidden size={20} style={{ color: "var(--tinta-2)" }} />
+                        <h5 id="laudo-meds-titulo" className="omni-cartao__titulo" style={{ margin: 0 }}>Medicações encontradas no laudo</h5>
                     </div>
-                    <div className="space-y-2">
+                    <p className="omni-apoio" style={{ margin: 0 }}>Confira antes de adicionar.</p>
+                    <div style={{ display: "grid", gap: 8 }}>
                         {medsRevisao.map((m, i) => (
-                            <div key={i} className="grid grid-cols-12 gap-2 items-center p-2 bg-slate-50 rounded">
-                                <div className="col-span-5">
-                                    <input type="text" value={m.nome} onChange={(e) => { const novas = [...medsRevisao]; novas[i].nome = e.target.value; setMedsRevisao(novas); }} className="w-full px-2 py-1 text-sm border border-slate-200 rounded" placeholder="Nome do medicamento" />
+                            <div key={i} className="omni-cartao--plano grid grid-cols-1 sm:grid-cols-12" style={{ gap: 8, alignItems: "center", padding: 8, borderRadius: "var(--o-radius-md)" }}>
+                                <div className="sm:col-span-5">
+                                    <input type="text" aria-label={`Medicação ${i + 1}: nome`} value={m.nome} onChange={(e) => { const novas = [...medsRevisao]; novas[i].nome = e.target.value; setMedsRevisao(novas); }} className="omni-entrada" placeholder="Nome do remédio" />
                                 </div>
-                                <div className="col-span-4">
-                                    <input type="text" value={m.posologia} onChange={(e) => { const novas = [...medsRevisao]; novas[i].posologia = e.target.value; setMedsRevisao(novas); }} className="w-full px-2 py-1 text-sm border border-slate-200 rounded" placeholder="Posologia" />
+                                <div className="sm:col-span-4">
+                                    <input type="text" aria-label={`Medicação ${i + 1}: como toma`} value={m.posologia} onChange={(e) => { const novas = [...medsRevisao]; novas[i].posologia = e.target.value; setMedsRevisao(novas); }} className="omni-entrada" placeholder="Como toma (dose e horário)" />
                                 </div>
-                                <div className="col-span-3 flex items-center gap-2">
-                                    <label className="flex items-center gap-1 text-sm text-slate-700">
-                                        <input type="checkbox" checked={m.escola} onChange={(e) => { const novas = [...medsRevisao]; novas[i].escola = e.target.checked; setMedsRevisao(novas); }} className="rounded" /> Na escola?
+                                <div className="sm:col-span-3">
+                                    <label className="omni-caixa" style={{ fontSize: 15 }}>
+                                        <input type="checkbox" checked={m.escola} onChange={(e) => { const novas = [...medsRevisao]; novas[i].escola = e.target.checked; setMedsRevisao(novas); }} /> Toma na escola
                                     </label>
                                 </div>
                             </div>
                         ))}
                     </div>
-                    <div className="flex gap-2">
-                        <button type="button" onClick={aplicar} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4" /> Adicionar ao PEI
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                        <button type="button" onClick={aplicar} className="omni-btn omni-btn--primario">
+                            <CheckCircle2 aria-hidden size={18} /> Adicionar ao PEI
                         </button>
-                        <button type="button" onClick={() => { setModoRevisao(false); setMedsRevisao([]); }} className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-300 flex items-center gap-2">
-                            <XCircle className="w-4 h-4" /> Cancelar
+                        <button type="button" onClick={() => { setModoRevisao(false); setMedsRevisao([]); }} className="omni-btn omni-btn--secundario">
+                            <XCircle aria-hidden size={18} /> Cancelar
                         </button>
                     </div>
-                </div>
+                </section>
             )}
 
             {extraido && !modoRevisao && (
-                <div className="space-y-3 p-4 rounded-lg bg-white border-2 border-emerald-200">
-                    <div className="flex items-center gap-2 mb-2">
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                        <p className="text-sm font-semibold text-emerald-800">Dados extraídos ✅ (revise as medicações abaixo)</p>
+                <section className="omni-cartao" style={{ display: "grid", gap: 12, borderColor: "var(--sucesso)" }} aria-labelledby="laudo-lido-titulo">
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <CheckCircle2 aria-hidden size={20} style={{ color: "var(--sucesso)" }} />
+                        <h5 id="laudo-lido-titulo" className="omni-cartao__titulo" style={{ margin: 0 }}>Laudo lido. Confira o que veio.</h5>
                     </div>
                     <div>
-                        <div className="text-xs font-semibold text-slate-600 uppercase mb-1">Diagnóstico</div>
-                        <p className="text-sm text-slate-700 bg-slate-50 p-2 rounded">{extraido.diagnostico || "—"}</p>
+                        <div className="omni-rotulo" style={{ marginBottom: 4 }}>Diagnóstico</div>
+                        <p className="omni-cartao--plano" style={{ margin: 0, padding: 8, borderRadius: "var(--o-radius-sm)", font: "400 15px/22px var(--font-sans)", color: "var(--tinta)" }}>{extraido.diagnostico || "—"}</p>
                     </div>
                     {extraido.medicamentos.length > 0 && (
                         <div>
-                            <div className="text-xs font-semibold text-slate-600 uppercase mb-1">Medicamentos</div>
-                            <ul className="text-sm text-slate-700 list-disc list-inside bg-slate-50 p-2 rounded">
+                            <div className="omni-rotulo" style={{ marginBottom: 4 }}>Medicações</div>
+                            <ul className="omni-cartao--plano" style={{ margin: 0, padding: "8px 8px 8px 28px", borderRadius: "var(--o-radius-sm)", font: "400 15px/22px var(--font-sans)", color: "var(--tinta)" }}>
                                 {extraido.medicamentos.map((m, i) => (
                                     <li key={i}>{m.nome}{m.posologia ? ` (${m.posologia})` : ""}</li>
                                 ))}
                             </ul>
                         </div>
                     )}
-                    <button type="button" onClick={aplicar} className="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 flex items-center justify-center gap-2">
-                        <CheckCircle2 className="w-4 h-4" /> Aplicar ao PEI
+                    <button type="button" onClick={aplicar} className="omni-btn omni-btn--primario" style={{ justifySelf: "start" }}>
+                        <CheckCircle2 aria-hidden size={18} /> Levar para o PEI
                     </button>
-                </div>
+                </section>
             )}
         </div>
     );
@@ -264,39 +292,40 @@ export function MedicamentosForm({
     const lista = peiData.lista_medicamentos || [];
 
     return (
-        <div className="p-4 rounded-lg border border-slate-200 bg-white">
-            <div className="flex items-center gap-2 mb-3">
-                <input type="checkbox" checked={lista.length > 0} readOnly className="rounded" />
-                <label className="text-sm font-medium text-slate-700">💊 O estudante faz uso contínuo de medicação?</label>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-7 gap-2 mb-3">
+        <div className="omni-cartao" style={{ display: "grid", gap: 12 }}>
+            <label className="omni-caixa">
+                <input type="checkbox" checked={lista.length > 0} readOnly />
+                <span style={{ fontWeight: 700 }}>O estudante toma medicação todo dia?</span>
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-7" style={{ gap: 8, alignItems: "center" }}>
                 <div className="md:col-span-3">
-                    <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+                    <input type="text" aria-label="Nome do remédio" value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome" className="omni-entrada" />
                 </div>
                 <div className="md:col-span-2">
-                    <input type="text" value={posologia} onChange={(e) => setPosologia(e.target.value)} placeholder="Posologia" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+                    <input type="text" aria-label="Como toma" value={posologia} onChange={(e) => setPosologia(e.target.value)} placeholder="Como toma" className="omni-entrada" />
                 </div>
-                <div className="md:col-span-2 flex items-center gap-2">
-                    <label className="flex items-center gap-2 text-sm text-slate-700">
-                        <input type="checkbox" checked={escola} onChange={(e) => setEscola(e.target.checked)} className="rounded" /> Na escola?
+                <div className="md:col-span-2">
+                    <label className="omni-caixa" style={{ fontSize: 15 }}>
+                        <input type="checkbox" checked={escola} onChange={(e) => setEscola(e.target.checked)} /> Toma na escola
                     </label>
                 </div>
             </div>
-            <button type="button" onClick={() => { if (nome.trim()) { onAdd(nome.trim(), posologia.trim(), escola); setNome(""); setPosologia(""); setEscola(false); } }} className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm font-medium hover:bg-sky-700">
-                Adicionar
+            <button type="button" onClick={() => { if (nome.trim()) { onAdd(nome.trim(), posologia.trim(), escola); setNome(""); setPosologia(""); setEscola(false); } }} className="omni-btn omni-btn--secundario omni-btn--pequeno" style={{ justifySelf: "start" }}>
+                <Plus aria-hidden size={16} /> Adicionar
             </button>
             {lista.length > 0 && (
-                <>
-                    <hr className="my-3 border-slate-200" />
-                    <div className="space-y-2">
-                        {lista.map((m, i) => (
-                            <div key={i} className="flex items-center justify-between p-3 bg-sky-50 rounded-lg border border-sky-200">
-                                <span className="text-sm text-slate-700">💊 <strong>{m.nome || ""}</strong> ({m.posologia || ""}){m.escola ? " [NA ESCOLA]" : ""}</span>
-                                <button type="button" onClick={() => onRemove(i)} className="text-red-600 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors">Excluir</button>
-                            </div>
-                        ))}
-                    </div>
-                </>
+                <ul style={{ listStyle: "none", margin: 0, padding: "12px 0 0", borderTop: "1px solid var(--borda)", display: "grid", gap: 8 }}>
+                    {lista.map((m, i) => (
+                        <li key={i} className="omni-cartao--plano" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "8px 12px", borderRadius: "var(--o-radius-md)" }}>
+                            <span style={{ font: "400 15px/22px var(--font-sans)", color: "var(--tinta)", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+                                <Pill aria-hidden size={16} style={{ color: "var(--tinta-2)" }} />
+                                <strong>{m.nome || ""}</strong>{m.posologia ? ` (${m.posologia})` : ""}
+                                {m.escola && <span className="omni-estado omni-estado--info">Na escola</span>}
+                            </span>
+                            <button type="button" onClick={() => onRemove(i)} className="omni-btn omni-btn--discreto omni-btn--pequeno" aria-label={`Tirar ${m.nome || "medicação"}`}>Tirar</button>
+                        </li>
+                    ))}
+                </ul>
             )}
         </div>
     );

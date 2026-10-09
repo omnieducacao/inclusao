@@ -100,7 +100,7 @@ function buildPrompt(dados: PEIDataPayload, modoPratico: boolean, feedback?: str
 
     const system = `Especialista em Inclusão Escolar e DUA.
 GUIA PRÁTICO PARA SALA DE AULA.
-Use Markdown simples. Seja objetivo e aplicável.
+Use Markdown simples, sem emojis. Seja objetivo e aplicável.
 
 ESTRUTURA:
 ### 1. ENTENDENDO O ESTUDANTE: Resumo do perfil, diagnóstico e como impacta o dia a dia em sala.
@@ -109,7 +109,7 @@ ESTRUTURA:
 ### 4. ACESSIBILIDADE: Adaptações de acesso (visual, auditivo, motor, cognitivo).
 ### 5. METAS SMART PRÁTICAS: 3 metas concretas e mensuráveis (curto, médio, longo prazo) com critério de sucesso.
 ### 6. DICAS DO DIA: 5 dicas rápidas para a rotina diária.
-### 7. 🧩 CHECKLIST DE ADAPTAÇÃO E ACESSIBILIDADE:
+### 7. CHECKLIST DE ADAPTAÇÃO E ACESSIBILIDADE:
 **A. Mediação (Triângulo de Ouro):** Instruções passo a passo, Fragmentação de tarefas, Scaffolding
 **B. Acessibilidade:** Inferências/figuras de linguagem, Descrição de imagens, Adaptação visual, Adequação de desafio`;
 
@@ -157,16 +157,16 @@ Crie um GUIA PRÁTICO para sala de aula com adaptações concretas baseadas em T
 MISSÃO: Criar PEI Técnico Oficial COMPLETO e PERSONALIZADO.
 ${infoSegmento.abordagem}
 
-Use Markdown simples. Use títulos H3 (###). Evite tabelas.
+Use Markdown simples, sem emojis. Use títulos H3 (###). Evite tabelas.
 
 ESTRUTURA OBRIGATÓRIA:
 
-[PERFIL_NARRATIVO] Inicie com "👤 QUEM É O ESTUDANTE?". Parágrafo humanizado incluindo diagnóstico, hiperfoco, potências e nível de desenvolvimento. ${hiperfocoTxt}. Não presuma o gênero: concorde com o nome do estudante e, na dúvida, use o nome e frases sem marca de gênero. [/PERFIL_NARRATIVO]
+[PERFIL_NARRATIVO] Inicie com "QUEM É O ESTUDANTE?". Parágrafo humanizado incluindo diagnóstico, hiperfoco, potências e nível de desenvolvimento. ${hiperfocoTxt}. Não presuma o gênero: concorde com o nome do estudante e, na dúvida, use o nome e frases sem marca de gênero. [/PERFIL_NARRATIVO]
 
-### 1. 🏥 DIAGNÓSTICO E IMPACTO: Cite diagnóstico (e CID se disponível), impactos na aprendizagem, cuidados.
+### 1. DIAGNÓSTICO E IMPACTO: Cite diagnóstico (e CID se disponível), impactos na aprendizagem, cuidados.
 ${detalhesDiagEITxt ? `Use os detalhes clínicos fornecidos para PERSONALIZAR o impacto e as estratégias.` : ""}
 
-### 2. 🌟 AVALIAÇÃO DE REPERTÓRIO:
+### 2. AVALIAÇÃO DE REPERTÓRIO:
 [MAPEAMENTO_BNCC_EI] Use APENAS:
 - Faixa de idade: ${idade || "não informada"}
 - Campo de Experiência: ${campo || "não informado"}
@@ -174,9 +174,9 @@ ${detalhesDiagEITxt ? `Use os detalhes clínicos fornecidos para PERSONALIZAR o 
 ${objTxt}
 [/MAPEAMENTO_BNCC_EI]
 
-### 3. 🚀 ESTRATÉGIAS DE INTERVENÇÃO: Estratégias de acolhimento, rotina, adaptação sensorial. Inclua as estratégias já selecionadas pelo professor e AMPLIE.
+### 3. ESTRATÉGIAS DE INTERVENÇÃO: Estratégias de acolhimento, rotina, adaptação sensorial. Inclua as estratégias já selecionadas pelo professor e AMPLIE.
 
-### 4. 🎯 METAS SMART: Crie metas ESPECÍFICAS, MENSURÁVEIS, ATINGÍVEIS, RELEVANTES e com PRAZO.
+### 4. METAS SMART: Crie metas ESPECÍFICAS, MENSURÁVEIS, ATINGÍVEIS, RELEVANTES e com PRAZO.
 Para cada meta inclua OBRIGATORIAMENTE:
 - **O quê**: descrição clara
 - **Critério de sucesso**: como medir
@@ -185,9 +185,9 @@ Para cada meta inclua OBRIGATORIAMENTE:
 - **Curto prazo** (2 meses) | **Médio** (1 semestre) | **Longo** (1 ano)
 Baseie nas BARREIRAS, POTENCIALIDADES e OBJETIVOS BNCC EI do estudante.
 
-### 5. ⚠️ PONTOS DE ATENÇÃO FARMACOLÓGICA: [ANALISE_FARMA] Se houver medicação, cite efeitos colaterais para atenção pedagógica. [/ANALISE_FARMA]
+### 5. PONTOS DE ATENÇÃO FARMACOLÓGICA: [ANALISE_FARMA] Se houver medicação, cite efeitos colaterais para atenção pedagógica. [/ANALISE_FARMA]
 
-### 6. 🧩 CHECKLIST DE ADAPTAÇÃO: Mediação (instruções passo a passo, fragmentação, scaffolding), Acessibilidade (inferências, imagens, visual, desafio).`;
+### 6. CHECKLIST DE ADAPTAÇÃO: Mediação (instruções passo a passo, fragmentação, scaffolding), Acessibilidade (inferências, imagens, visual, desafio).`;
 
     const promptFeedback = feedback ? `\n\nAJUSTE SOLICITADO PELO PROFESSOR: ${feedback}` : "";
 
@@ -276,27 +276,27 @@ ${infoSegmento.abordagem}
 
 REGRA CRÍTICA (Avaliação de Repertório): Cite SOMENTE habilidades da lista fornecida. Ao citar, reproduza EXATAMENTE: código e descrição COMPLETA. Proibido parafrasear.
 
-Use Markdown simples. Use títulos H3 (###). Evite tabelas.
+Use Markdown simples, sem emojis. Use títulos H3 (###). Evite tabelas.
 
 ESTRUTURA OBRIGATÓRIA:
 
-[PERFIL_NARRATIVO] Inicie com "👤 QUEM É O ESTUDANTE?". Parágrafo humanizado incluindo: diagnóstico, hiperfoco, potências, rede de apoio, composição familiar, nível de alfabetização. ${hiperfocoTxt}. Não presuma o gênero: concorde com o nome do estudante e, na dúvida, use o nome e frases sem marca de gênero. [/PERFIL_NARRATIVO]
+[PERFIL_NARRATIVO] Inicie com "QUEM É O ESTUDANTE?". Parágrafo humanizado incluindo: diagnóstico, hiperfoco, potências, rede de apoio, composição familiar, nível de alfabetização. ${hiperfocoTxt}. Não presuma o gênero: concorde com o nome do estudante e, na dúvida, use o nome e frases sem marca de gênero. [/PERFIL_NARRATIVO]
 
-### 1. 🏥 DIAGNÓSTICO E IMPACTO: Cite diagnóstico (e CID se disponível), impactos na aprendizagem, cuidados.
+### 1. DIAGNÓSTICO E IMPACTO: Cite diagnóstico (e CID se disponível), impactos na aprendizagem, cuidados.
 ${detalhesDiagTxt ? `Use os detalhes clínicos fornecidos (nível de suporte, tipo, comunicação etc.) para PERSONALIZAR o impacto e as estratégias.` : ""}
 
-### 2. 🌟 AVALIAÇÃO DE REPERTÓRIO:
+### 2. AVALIAÇÃO DE REPERTÓRIO:
 [MAPEAMENTO_BNCC] Cite SOMENTE habilidades da lista abaixo. Reproduza EXATAMENTE código + descrição. NÃO invente outras.
 [HABILIDADES]
 ${habTxt || "(use habilidades do ano/série do estudante conforme BNCC)"}
 [/HABILIDADES]
 [/MAPEAMENTO_BNCC]
 
-### 3. 🚀 ESTRATÉGIAS DE INTERVENÇÃO: Adaptações curriculares e de acesso. Inclua as estratégias já selecionadas pelo professor e AMPLIE com sugestões complementares. ${promptLiteracia}
+### 3. ESTRATÉGIAS DE INTERVENÇÃO: Adaptações curriculares e de acesso. Inclua as estratégias já selecionadas pelo professor e AMPLIE com sugestões complementares. ${promptLiteracia}
 
-### 4. 📊 COMPONENTES QUE MERECEM ATENÇÃO: Quadro com componente, nível (Alta|Média|Monitoramento), motivos ligando diagnóstico + barreiras às habilidades.
+### 4. COMPONENTES QUE MERECEM ATENÇÃO: Quadro com componente, nível (Alta|Média|Monitoramento), motivos ligando diagnóstico + barreiras às habilidades.
 
-### 5. 🎯 METAS SMART: Crie metas ESPECÍFICAS, MENSURÁVEIS, ATINGÍVEIS, RELEVANTES e com PRAZO definido.
+### 5. METAS SMART: Crie metas ESPECÍFICAS, MENSURÁVEIS, ATINGÍVEIS, RELEVANTES e com PRAZO definido.
 Para cada meta inclua OBRIGATORIAMENTE:
 - **O quê**: descrição clara da habilidade ou comportamento alvo
 - **Critério de sucesso**: como medir (ex: "em 3 de 5 tentativas", "com 80% de acerto")
@@ -307,9 +307,9 @@ Para cada meta inclua OBRIGATORIAMENTE:
 - **Meta de longo prazo** (1 ano): foco em autonomia e generalização
 Baseie as metas nas BARREIRAS, POTENCIALIDADES e HABILIDADES BNCC do estudante.
 
-### 6. ⚠️ PONTOS DE ATENÇÃO FARMACOLÓGICA: [ANALISE_FARMA] Se houver medicação, cite efeitos colaterais para atenção pedagógica. [/ANALISE_FARMA]
+### 6. PONTOS DE ATENÇÃO FARMACOLÓGICA: [ANALISE_FARMA] Se houver medicação, cite efeitos colaterais para atenção pedagógica. [/ANALISE_FARMA]
 
-### 7. 🧩 CHECKLIST DE ADAPTAÇÃO E ACESSIBILIDADE:
+### 7. CHECKLIST DE ADAPTAÇÃO E ACESSIBILIDADE:
 **A. Mediação (Triângulo de Ouro):** Instruções passo a passo, Fragmentação de tarefas, Scaffolding
 **B. Acessibilidade:** Inferências/figuras de linguagem, Descrição de imagens, Adaptação visual, Adequação de desafio`;
 

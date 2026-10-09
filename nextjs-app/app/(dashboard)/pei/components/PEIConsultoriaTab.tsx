@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { EngineSelector } from "@/components/EngineSelector";
 import { OmniLoader } from "@/components/OmniLoader";
+import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { detectarNivelEnsino } from "@/lib/pei";
 import type { PEIData } from "@/lib/pei";
 import type { EngineId } from "@/lib/ai-engines";
@@ -14,6 +15,7 @@ import {
   Info,
   AlertTriangle,
   Send,
+  Circle,
 } from "lucide-react";
 
 // Helper para validar e parsear respostas JSON
@@ -32,28 +34,6 @@ async function parseJsonResponse(res: Response, url?: string) {
   }
   return res.json();
 }
-
-function formatarTextoConsultoria(texto: string): React.ReactNode {
-  if (!texto) return texto;
-
-  // Remover markdown e melhorar formatação
-  const textoLimpo = texto
-    .replace(/^##+\s*/gm, '') // Remove ## headers
-    .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove **texto** mantendo apenas o texto
-    .replace(/\*([^*]+)\*/g, '$1') // Remove *texto* mantendo apenas o texto
-    .replace(/^###+\s*/gm, '') // Remove ### headers
-    .replace(/^\*\s+/gm, '• ') // Converte * para bullet
-    .replace(/\n{3,}/g, '\n\n') // Remove múltiplas quebras de linha
-    .trim();
-
-  // Retornar como texto pré-formatado simples
-  return (
-    <div className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
-      {textoLimpo}
-    </div>
-  );
-}
-
 
 import type { Student } from "@/lib/students";
 
@@ -165,14 +145,32 @@ export function ConsultoriaTab({
     orange: "Orange (reserva)",
   };
 
+  // Onda 18: "O que a IA vai usar" com ícones e texto (antes eram emojis)
+  const nEstrategias = estrategiasAcesso.length + estrategiasEnsino.length + estrategiasAvaliacao.length;
+  const insumos: Array<{ ok: boolean; texto: string }> = [
+    { ok: temDiagnostico, texto: `Diagnóstico: ${temDiagnostico ? "sim" : "não"}` },
+    { ok: temHistorico, texto: `Histórico: ${temHistorico ? "sim" : "não"}` },
+    { ok: temHiperfoco, texto: `Hiperfoco: ${temHiperfoco ? "sim" : "não"}` },
+    { ok: potencias.length > 0, texto: `Potências: ${potencias.length}` },
+    { ok: nBarreiras > 0, texto: `Barreiras: ${nBarreiras}` },
+    { ok: redeApoio.length > 0, texto: `Rede de apoio: ${redeApoio.length}` },
+    { ok: habValidadas.length > 0, texto: `Habilidades da BNCC: ${habValidadas.length || nHab}` },
+    { ok: nEstrategias > 0, texto: `Estratégias: ${nEstrategias}` },
+    { ok: medicamentos.length > 0, texto: `Medicamentos: ${medicamentos.length}` },
+  ];
+  const resumo: React.CSSProperties = { cursor: "pointer", font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" };
+  const textoDetalhe: React.CSSProperties = { margin: "10px 0 0", display: "grid", gap: 6, font: "400 15px/22px var(--font-sans)", color: "var(--tinta-2)" };
+
   return (
-    <div className="space-y-4">
+    <div style={{ display: "grid", gap: 16 }}>
       {dialogo}
       {!serie ? (
-        <div role="alert" aria-live="assertive" className="p-4 rounded-lg bg-amber-50 border border-amber-200">
-          <p className="text-amber-800 text-sm">
-            Informe a série do estudante em <strong>Estudo de caso → Dados do estudante</strong>. A IA escreve de um jeito para cada etapa de ensino.
-          </p>
+        <div role="alert" aria-live="assertive" className="omni-aviso omni-aviso--atencao">
+          <div>
+            <div className="omni-aviso__texto">
+              Informe a série do estudante em <strong>Estudo de caso → Dados do estudante</strong>. A IA escreve de um jeito para cada etapa de ensino.
+            </div>
+          </div>
         </div>
       ) : (
         <>
@@ -192,21 +190,21 @@ export function ConsultoriaTab({
                   Opções avançadas · motor de IA: {engineNames[engine]}
                 </summary>
                 <p className="omni-apoio" style={{ margin: "8px 0" }}>Troque só se a geração falhar ou o texto não ficar bom. Orange é o reserva, usado quando os outros falham.</p>
-                <div className="flex flex-wrap gap-3">
+                <fieldset style={{ border: 0, margin: 0, padding: 0, display: "flex", flexWrap: "wrap", gap: 12 }}>
+                  <legend className="omni-so-leitor">Motor de IA</legend>
                   {(["red", "blue", "green", "yellow", "orange"] as EngineId[]).map((e) => (
-                    <label key={e} className="flex items-center gap-2 cursor-pointer">
+                    <label key={e} className="omni-caixa" style={{ font: "400 15px/22px var(--font-sans)" }}>
                       <input
                         type="radio"
                         name="engine"
                         value={e}
                         checked={engine === e}
                         onChange={() => setEngine(e)}
-                        className="w-4 h-4 text-sky-600"
                       />
-                      <span className="text-sm text-slate-700">{engineNames[e]}</span>
+                      <span>{engineNames[e]}</span>
                     </label>
                   ))}
-                </div>
+                </fieldset>
               </details>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -229,71 +227,29 @@ export function ConsultoriaTab({
                   </button>
                 </div>
                 <div className="md:col-span-2">
-                  <div style={{ padding: "var(--space-4)", border: "1px solid var(--borda)", borderRadius: "var(--o-radius-md)", background: "var(--superficie-2)" }}>
-                    <p className="omni-rotulo" style={{ marginBottom: 8 }}>O que a IA vai usar</p>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-blue-700 space-y-1">
-                      <div className="flex items-center gap-1">
-                        <span className={temDiagnostico ? "text-emerald-600" : "text-slate-400"}>
-                          {temDiagnostico ? "✅" : "⚪"}
-                        </span>
-                        <span>Diagnóstico: {temDiagnostico ? "Sim" : "Não"}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className={temHistorico ? "text-emerald-600" : "text-slate-400"}>
-                          {temHistorico ? "✅" : "⚪"}
-                        </span>
-                        <span>Histórico: {temHistorico ? "Sim" : "Não"}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className={temHiperfoco ? "text-emerald-600" : "text-slate-400"}>
-                          {temHiperfoco ? "✅" : "⚪"}
-                        </span>
-                        <span>Hiperfoco: {temHiperfoco ? "Sim" : "Não"}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className={potencias.length > 0 ? "text-emerald-600" : "text-slate-400"}>
-                          {potencias.length > 0 ? "✅" : "⚪"}
-                        </span>
-                        <span>Potências: {potencias.length}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className={nBarreiras > 0 ? "text-emerald-600" : "text-slate-400"}>
-                          {nBarreiras > 0 ? "✅" : "⚪"}
-                        </span>
-                        <span>Barreiras: {nBarreiras}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className={redeApoio.length > 0 ? "text-emerald-600" : "text-slate-400"}>
-                          {redeApoio.length > 0 ? "✅" : "⚪"}
-                        </span>
-                        <span>Rede de Apoio: {redeApoio.length}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className={habValidadas.length > 0 ? "text-emerald-600" : "text-slate-400"}>
-                          {habValidadas.length > 0 ? "✅" : "⚪"}
-                        </span>
-                        <span>Habilidades BNCC: {habValidadas.length || nHab}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className={estrategiasAcesso.length > 0 || estrategiasEnsino.length > 0 || estrategiasAvaliacao.length > 0 ? "text-emerald-600" : "text-slate-400"}>
-                          {(estrategiasAcesso.length > 0 || estrategiasEnsino.length > 0 || estrategiasAvaliacao.length > 0) ? "✅" : "⚪"}
-                        </span>
-                        <span>Estratégias: {estrategiasAcesso.length + estrategiasEnsino.length + estrategiasAvaliacao.length}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className={medicamentos.length > 0 ? "text-emerald-600" : "text-slate-400"}>
-                          {medicamentos.length > 0 ? "✅" : "⚪"}
-                        </span>
-                        <span>Medicamentos: {medicamentos.length}</span>
-                      </div>
-                    </div>
-                    <p className="text-xs text-blue-600 mt-3 pt-2 border-t border-blue-200">
+                  <div className="omni-cartao omni-cartao--plano" style={{ display: "grid", gap: 10 }}>
+                    <p className="omni-rotulo" style={{ margin: 0 }}>O que a IA vai usar</p>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                      {insumos.map((x) => (
+                        <li key={x.texto} style={{ display: "flex", alignItems: "center", gap: 6, font: "400 14px/20px var(--font-sans)", color: x.ok ? "var(--tinta)" : "var(--tinta-3)" }}>
+                          {x.ok
+                            ? <CheckCircle2 aria-hidden style={{ width: 16, height: 16, color: "var(--sucesso)", flex: "none" }} />
+                            : <Circle aria-hidden style={{ width: 16, height: 16, color: "var(--tinta-3)", flex: "none" }} />}
+                          <span>{x.texto}<span className="omni-so-leitor">{x.ok ? " (preenchido)" : " (vazio)"}</span></span>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="omni-campo__ajuda" style={{ margin: 0, paddingTop: 8, borderTop: "1px solid var(--borda)" }}>
                       Quanto mais completo o estudo de caso (etapa 1), mais preciso fica o texto.
                     </p>
                     {nHab > 0 && habValidadas.length === 0 && (
-                      <p className="text-xs text-amber-700 mt-2 bg-amber-50 p-2 rounded border border-amber-200">
-                        Há habilidades escolhidas em <strong>Habilidades da BNCC</strong> que ainda não foram confirmadas. Confirme lá para a IA usar.
-                      </p>
+                      <div className="omni-aviso omni-aviso--atencao">
+                        <div>
+                          <div className="omni-aviso__texto">
+                            Há habilidades escolhidas em <strong>Habilidades da BNCC</strong> que ainda não foram confirmadas. Confirme lá para a IA usar.
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -304,62 +260,56 @@ export function ConsultoriaTab({
           {/* Se revisão/aprovado: mostrar texto e permitir aprovar/ajustar */}
           {temTexto && (statusValidacao === "revisao" || statusValidacao === "aprovado") && (
             <>
-              <details className="p-4 rounded-lg border border-slate-200/60 bg-white">
-                <summary className="cursor-pointer font-semibold text-slate-700 mb-3">
-                  Como a IA chegou a este texto
-                </summary>
-                <div className="space-y-2 text-sm text-slate-600">
-                  <p>
+              <details className="omni-cartao" style={{ padding: "14px 16px" }}>
+                <summary style={resumo}>Como a IA chegou a este texto</summary>
+                <div style={textoDetalhe}>
+                  <p style={{ margin: 0 }}>
                     <strong>Gerado por {engineNames[engine]}</strong>
                   </p>
-                  <p>
-                    <strong>1. Input do estudante:</strong> Série <strong>{serie}</strong>, diagnóstico <strong>{peiData.diagnostico || "em observação"}</strong>.
+                  <p style={{ margin: 0 }}>
+                    <strong>1. Dados do estudante:</strong> série <strong>{serie}</strong>, diagnóstico <strong>{peiData.diagnostico || "em observação"}</strong>.
                   </p>
-                  <p>
-                    <strong>2. Barreiras ativas:</strong> detectei <strong>{nBarreiras}</strong> barreiras e cruzei isso com BNCC + DUA.
+                  <p style={{ margin: 0 }}>
+                    <strong>2. Barreiras:</strong> a IA considerou <strong>{nBarreiras}</strong> barreiras junto com a BNCC e o DUA (Desenho Universal para a Aprendizagem).
                   </p>
-                  <p>
-                    <strong>3. Ponto crítico exemplo:</strong> priorizei adaptações para reduzir impacto de <strong>{exemploBarreira}</strong>.
+                  <p style={{ margin: 0 }}>
+                    <strong>3. Exemplo de ponto de atenção:</strong> priorizou adaptações para reduzir o impacto de <strong>{exemploBarreira}</strong>.
                   </p>
                 </div>
               </details>
 
-              <details className="p-4 rounded-lg border border-slate-200/60 bg-white">
-                <summary className="cursor-pointer font-semibold text-slate-700 mb-3">
-                  Cuidados que a IA segue
-                </summary>
-                <div className="space-y-1 text-sm text-slate-600">
-                  <p>- <strong>Farmacologia:</strong> não sugere dose/medicação; apenas sinaliza pontos de atenção.</p>
-                  <p>- <strong>Dados sensíveis:</strong> evite inserir PII desnecessária.</p>
-                  <p>- <strong>Normativa:</strong> sugestões buscam aderência à LBI/DUA e adaptações razoáveis.</p>
-                </div>
+              <details className="omni-cartao" style={{ padding: "14px 16px" }}>
+                <summary style={resumo}>Cuidados que a IA segue</summary>
+                <ul style={{ ...textoDetalhe, paddingLeft: 18 }}>
+                  <li><strong>Remédios:</strong> não sugere dose nem medicação; só aponta o que merece atenção.</li>
+                  <li><strong>Dados pessoais:</strong> evite colocar dados pessoais que não sejam necessários.</li>
+                  <li><strong>Leis:</strong> as sugestões seguem a LBI (Lei Brasileira de Inclusão), o DUA e as adaptações razoáveis.</li>
+                </ul>
               </details>
 
-              <div>
-                <div className="flex flex-wrap items-center gap-3 mb-3">
-                  <h4 className="text-base font-semibold" style={{ margin: 0, color: "var(--tinta)" }}>Texto do PEI</h4>
+              <div style={{ display: "grid", gap: 12 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
+                  <h4 style={{ margin: 0, font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" }}>Texto do PEI</h4>
                   {statusValidacao === "aprovado"
                     ? <span className="omni-estado omni-estado--sucesso">Revisado e aprovado</span>
                     : <span className="omni-estado omni-estado--info">Gerado com IA · revise antes de aprovar</span>}
                 </div>
-                <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 mb-3">
-                  <div
-                    role="region"
-                    aria-live="polite"
-                    aria-label="Sugestão de Plano Completa da Inteligência Artificial"
-                    className="prose prose-sm max-w-none whitespace-pre-wrap text-slate-700"
-                  >
-                    {formatarTextoConsultoria((peiData.ia_sugestao || "").replace(/\[.*?\]/g, ""))}
-                  </div>
+                {/* Onda 18: texto com títulos e listas formatados (antes "##" e "*" apareciam crus) */}
+                <div
+                  role="region"
+                  aria-live="polite"
+                  aria-label="Texto do PEI escrito pela IA"
+                  className="omni-cartao omni-cartao--plano"
+                  style={{ color: "var(--tinta)" }}
+                >
+                  <FormattedTextDisplay texto={(peiData.ia_sugestao || "").replace(/\[.*?\]/g, "")} />
                 </div>
               </div>
 
-              <hr className="my-4" />
-
-              <p className="omni-apoio">A IA pode errar. Leia tudo e ajuste o que não combina com o estudante antes de aprovar.</p>
+              <p className="omni-apoio" style={{ margin: 0, paddingTop: 12, borderTop: "1px solid var(--borda)" }}>A IA pode errar. Leia tudo e ajuste o que não combina com o estudante antes de aprovar.</p>
 
               {statusValidacao === "revisao" && (
-                <div className="flex flex-wrap gap-3">
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
                   <button
                     type="button"
                     onClick={() => {
@@ -383,25 +333,25 @@ export function ConsultoriaTab({
 
               {statusValidacao === "aprovado" && (
                 <>
-                  <p className="omni-apoio">Próximo passo: tornar o PEI vigente (etapa 3).</p>
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Editar o texto (opcional)</label>
+                  <p className="omni-apoio" style={{ margin: 0 }}>Próximo passo: tornar o PEI vigente (etapa 3).</p>
+                  <label className="omni-campo" style={{ maxWidth: "none" }}>
+                    <span className="omni-campo__rotulo">Editar o texto <span className="omni-campo__opcional">(opcional)</span></span>
                     <textarea
                       value={peiData.ia_sugestao || ""}
                       onChange={(e) => updateField("ia_sugestao", e.target.value)}
                       rows={12}
                       className="omni-entrada"
-                      style={{ minHeight: 320, lineHeight: "24px" }}
+                      style={{ maxWidth: "none", minHeight: 320, lineHeight: "24px" }}
                     />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 mt-4">
+                  </label>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
                     <button
                       type="button"
                       onClick={async () => {
                         // Onda 5: apagar o texto do PEI pede confirmação
                         const ok = await confirmar({
                           titulo: "Apagar o texto do PEI e gerar de novo?",
-                          texto: "O texto atual do PEI, com as suas edições, será apagado. Se quiser só mudar uma parte, use \"Gerar novamente com ajustes\".",
+                          texto: "O texto atual do PEI, com as suas edições, será apagado. Se quiser só mudar uma parte, use \"Gerar de novo com o ajuste\".",
                           acao: "Apagar e gerar de novo",
                           cancelar: "Manter o texto",
                           perigo: true,
@@ -410,7 +360,7 @@ export function ConsultoriaTab({
                         updateField("ia_sugestao", "");
                         updateField("status_validacao_pei", "rascunho");
                       }}
-                      className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+                      className="omni-btn omni-btn--perigo"
                     >
                       Apagar e gerar de novo
                     </button>
@@ -419,7 +369,7 @@ export function ConsultoriaTab({
                       onClick={() => {
                         updateField("status_validacao_pei", "revisao");
                       }}
-                      className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+                      className="omni-btn omni-btn--secundario"
                     >
                       Voltar para a revisão
                     </button>
@@ -429,27 +379,28 @@ export function ConsultoriaTab({
             </>
           )}
 
-          {/* Ajustando: caixa de feedback + gerar novamente */}
+          {/* Ajustando: caixa de ajuste + gerar novamente */}
           {statusValidacao === "ajustando" && (
-            <>
-              <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
-                <p className="text-amber-800 font-semibold mb-2">Descreva o ajuste desejado:</p>
+            <section className="omni-cartao" style={{ display: "grid", gap: 12 }}>
+              <label className="omni-campo" style={{ maxWidth: "none" }}>
+                <span className="omni-campo__rotulo">O que a IA deve mudar no texto?</span>
                 <textarea
                   value={feedbackAjuste}
                   onChange={(e) => setFeedbackAjuste(e.target.value)}
-                  placeholder="Ex: Foque mais na alfabetização…"
+                  placeholder="Ex.: foque mais na alfabetização…"
                   rows={4}
-                  className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm"
+                  className="omni-entrada"
+                  style={{ maxWidth: "none" }}
                 />
-              </div>
-              <div className="flex gap-4">
+              </label>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
                 <button
                   type="button"
                   onClick={() => gerar(false, feedbackAjuste)}
                   disabled={loading}
-                  className="px-4 py-2 bg-cyan-600 text-white rounded-lg disabled:opacity-50 hover:bg-cyan-700 transition-colors"
+                  className="omni-btn omni-btn--primario"
                 >
-                  {loading ? "Gerando…" : "Gerar Novamente com Ajustes"}
+                  {loading ? "Gerando…" : "Gerar de novo com o ajuste"}
                 </button>
                 <button
                   type="button"
@@ -457,30 +408,35 @@ export function ConsultoriaTab({
                     updateField("status_validacao_pei", "revisao");
                     setFeedbackAjuste("");
                   }}
-                  className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+                  className="omni-btn omni-btn--secundario"
                 >
                   Cancelar
                 </button>
               </div>
-            </>
+            </section>
           )}
 
           {/* Se não tem texto ainda, mostrar textarea vazio */}
           {!temTexto && statusValidacao === "rascunho" && (
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Sugestão IA (consultoria)</label>
+            <label className="omni-campo" style={{ maxWidth: "none" }}>
+              <span className="omni-campo__rotulo">Texto do PEI</span>
               <textarea
                 value={peiData.ia_sugestao || ""}
                 onChange={(e) => updateField("ia_sugestao", e.target.value)}
                 rows={14}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-sm"
-                placeholder="Gere o relatório usando os botões acima..."
+                className="omni-entrada"
+                style={{ maxWidth: "none" }}
+                placeholder="Gere o texto com os botões acima, ou escreva aqui."
               />
-            </div>
+            </label>
           )}
         </>
       )}
-      {erro && <p className="text-red-600 text-sm p-3 bg-red-50 rounded-lg border border-red-200">{erro}</p>}
+      {erro && (
+        <div className="omni-aviso omni-aviso--erro" role="alert">
+          <div><div className="omni-aviso__texto">{erro}</div></div>
+        </div>
+      )}
     </div>
   );
 }

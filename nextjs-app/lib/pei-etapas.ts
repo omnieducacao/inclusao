@@ -12,7 +12,7 @@ import type { Vigencia } from "./estudo-caso";
 export type Etapa = 1 | 2 | 3 | 4;
 export type SecaoId =
   | "estudante" | "estudo_caso" | "evidencias" | "rede" | "mapeamento"
-  | "consultoria" | "bncc" | "plano" | "monitoramento"
+  | "consultoria" | "bncc" | "plano"
   | "vigencia" | "regentes" | "consolidacao"
   | "revisao" | "acompanhamento";
 
@@ -32,7 +32,6 @@ const NOMES: Record<SecaoId, string> = {
   consultoria: "Texto do PEI",
   bncc: "Habilidades da BNCC",
   plano: "Plano de ação",
-  monitoramento: "Situação das metas",
   vigencia: "Tornar vigente e ciência",
   regentes: "Professores regentes",
   consolidacao: "Consolidação",
@@ -46,7 +45,7 @@ export function secoesDaEtapa(etapa: Etapa, modo: "completo" | "simplificado"): 
     etapa === 1 ? ["estudo_caso", "estudante", ...(completo ? (["evidencias", "rede", "mapeamento"] as SecaoId[]) : [])]
     : etapa === 2 ? ["consultoria", "bncc", ...(completo ? (["plano"] as SecaoId[]) : [])]
     : etapa === 3 ? ["vigencia", ...(completo ? (["regentes", "consolidacao"] as SecaoId[]) : [])]
-    : ["revisao", ...(completo ? (["monitoramento"] as SecaoId[]) : []), "acompanhamento"];
+    : ["revisao", "acompanhamento"]; // onda 18: "Situação das metas" entrou no fim de Revisões
   return ids.map((id) => ({ id, nome: NOMES[id] }));
 }
 
@@ -57,7 +56,7 @@ export function etapaDaAbaAntiga(tab: string | null | undefined): { etapa: Etapa
     case "estudante": return { etapa: 1, secao: "estudante" };
     case "evidencias": case "rede": case "mapeamento": return { etapa: 1, secao: tab };
     case "consultoria": case "bncc": case "plano": return { etapa: 2, secao: tab };
-    case "monitoramento": return { etapa: 4, secao: "monitoramento" };
+    case "monitoramento": return { etapa: 4, secao: "revisao" }; // onda 18: virou um bloco de Revisões
     case "vigencia": case "regentes": case "consolidacao": return { etapa: 3, secao: tab };
     case "revisao": return { etapa: 4, secao: "revisao" };
     case "dashboard": case "acompanhamento": return { etapa: 4, secao: "acompanhamento" };

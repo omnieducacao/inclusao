@@ -17,6 +17,7 @@ import { AlertTriangle, ArrowRight, Check } from "lucide-react";
 import { usePEIData } from "@/hooks/usePEIData";
 import { PEIFase2Regentes } from "@/components/PEIFase2Regentes";
 import { PEIConsolidacao } from "@/components/PEIConsolidacao";
+import { PEIVersionHistory } from "@/components/PEIVersionHistory";
 import { CabecalhoEstudante, EscolherEstudante, type EstudanteResumo } from "@/components/estudante/CabecalhoEstudante";
 import { DashboardTab } from "./components/PEIDashboardTab";
 import { ResumoDiagnostica } from "@/components/avaliacao/ResumoDiagnostica";
@@ -27,7 +28,6 @@ import { PEITabEvidencias } from "./components/PEITabEvidencias";
 import { PEITabRede } from "./components/PEITabRede";
 import { PEITabMapeamento } from "./components/PEITabMapeamento";
 import { PEITabPlano } from "./components/PEITabPlano";
-import { PEITabMonitoramento } from "./components/PEITabMonitoramento";
 import { PEITabEstudoCaso } from "./components/PEITabEstudoCaso";
 import { PEITabVigencia } from "./components/PEITabVigencia";
 import { BaixarPEI } from "./components/BaixarPEI";
@@ -76,7 +76,7 @@ function PEIDoEstudante({
   const daUrl = useMemo(() => {
     const e = Number(params?.get("etapa"));
     if (e >= 1 && e <= 4) return { etapa: e as Etapa, secao: (params?.get("secao") as SecaoId) || null };
-    return etapaDaAbaAntiga(params?.get("tab"));
+    return etapaDaAbaAntiga(params?.get("tab") || params?.get("secao"));
   }, [params]);
   const [etapa, setEtapa] = useState<Etapa>(() => daUrl?.etapa ?? etapaInicial(estados));
   const secoes = secoesDaEtapa(etapa, modo);
@@ -202,7 +202,6 @@ function PEIDoEstudante({
           )}
           {secao === "bncc" && <BNCCTab peiData={peiData} updateField={updateField} serie={peiData.serie || ""} />}
           {secao === "plano" && <PEITabPlano peiData={peiData} updateField={updateField} />}
-          {secao === "monitoramento" && <PEITabMonitoramento peiData={peiData} updateField={updateField} />}
           {(secao === "vigencia" || secao === "revisao") && (
             <PEITabVigencia
               peiData={peiData}
@@ -214,6 +213,7 @@ function PEIDoEstudante({
               parte={secao === "vigencia" ? "vigencia" : "revisao"}
             />
           )}
+          {secao === "revisao" && currentStudentId && <PEIVersionHistory studentId={currentStudentId} currentPeiData={peiData} />}
           {secao === "regentes" && (
             <PEIFase2Regentes
               studentId={currentStudentId}
