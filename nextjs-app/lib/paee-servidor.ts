@@ -7,6 +7,7 @@ import type { SessionPayload } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { negadoForaDoVinculo } from "@/lib/turmas";
 import { contextoEstruturadoDoPei } from "@/lib/pei-metas";
+import { pontosDeAtencaoDaDiagnostica } from "@/lib/avaliacao-servidor";
 
 export async function prepararPaee(
   session: SessionPayload,
@@ -21,5 +22,11 @@ export async function prepararPaee(
     .eq("id", studentId)
     .eq("workspace_id", session.workspace_id)
     .maybeSingle();
-  return { negado: null, contexto: contextoEstruturadoDoPei((data?.pei_data || null) as Record<string, unknown> | null) };
+  let contexto = contextoEstruturadoDoPei((data?.pei_data || null) as Record<string, unknown> | null);
+  // Onda 17: o que a avaliação diagnóstica mostrou, descritor por descritor
+  const pontos = await pontosDeAtencaoDaDiagnostica(session.workspace_id, studentId).catch(() => []);
+  if (pontos.length) {
+    contexto += `${contexto ? "\n\n" : ""}AVALIAÇÃO DIAGNÓSTICA (descritores com nível 0 a 2):\n${pontos.slice(0, 12).map((p) => `- ${p.disciplina}: ${p.descritor} (nível ${p.nivel})`).join("\n")}`;
+  }
+  return { negado: null, contexto };
 }

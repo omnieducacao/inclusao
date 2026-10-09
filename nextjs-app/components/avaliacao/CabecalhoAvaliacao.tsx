@@ -10,14 +10,14 @@ import { ESCALA_OMNISFERA } from "@/lib/omnisfera-types";
 export function CabecalhoAvaliacao({ atual }: { atual: "diagnostica" | "processual" }) {
   const abas = [
     { id: "diagnostica", href: "/avaliacao-diagnostica", nome: "Diagnóstica", ajuda: "No começo: onde o estudante está" },
-    { id: "processual", href: "/avaliacao-processual", nome: "Processual", ajuda: "A cada bimestre: como está evoluindo" },
+    { id: "processual", href: "/avaliacao-processual", nome: "Processual", ajuda: "A cada período: como está evoluindo" },
   ] as const;
   return (
     <div className="space-y-4">
       <PageHero
         route="/avaliacao-diagnostica"
         title="Avaliação"
-        desc="Diagnóstica no começo, processual a cada bimestre. As duas na mesma escala de 0 a 4."
+        desc="Diagnóstica no começo, processual a cada período, descritor por descritor: Matriz Omni no Fundamental e Matriz do ENEM no Médio. Escala de 0 a 4: quanto apoio o estudante precisa."
       />
       <nav className="omni-abas" aria-label="Tipo de avaliação">
         {abas.map((a) => (

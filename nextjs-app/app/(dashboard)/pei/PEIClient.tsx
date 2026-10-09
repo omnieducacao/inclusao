@@ -19,6 +19,7 @@ import { PEIFase2Regentes } from "@/components/PEIFase2Regentes";
 import { PEIConsolidacao } from "@/components/PEIConsolidacao";
 import { CabecalhoEstudante, EscolherEstudante, type EstudanteResumo } from "@/components/estudante/CabecalhoEstudante";
 import { DashboardTab } from "./components/PEIDashboardTab";
+import { ResumoDiagnostica } from "@/components/avaliacao/ResumoDiagnostica";
 import { ConsultoriaTab } from "./components/PEIConsultoriaTab";
 import { BNCCTab } from "./components/PEIBnccTab";
 import { PEITabEstudante } from "./components/PEITabEstudante";
@@ -195,6 +196,7 @@ function PEIDoEstudante({
           )}
           {secao === "rede" && <PEITabRede peiData={peiData} updateField={updateField} />}
           {secao === "mapeamento" && <PEITabMapeamento peiData={peiData} updateField={updateField} hiperfoco={hiperfoco} />}
+          {secao === "consultoria" && currentStudentId && <ResumoDiagnostica studentId={currentStudentId} />}
           {secao === "consultoria" && (
             <ConsultoriaTab peiData={peiData} updateField={updateField} serie={peiData.serie || ""} student={initialStudent} />
           )}

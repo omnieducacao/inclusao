@@ -1,3 +1,4 @@
+import { pontosDeAtencaoDaDiagnostica } from "@/lib/avaliacao-servidor";
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { estudoCasoParaPrompt, type EstudoCaso } from "@/lib/estudo-caso";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
@@ -393,6 +394,12 @@ export async function POST(req: Request) {
           txtDiag = "\nAVALIAÇÃO DIAGNÓSTICA OMNISFERA:\n" + avaliacoes.map((a: any) => {
             return `- ${a.disciplina}: Nivel Identificado = ${a.nivel_omnisfera_identificado} (0 a 4)`;
           }).join("\n");
+        }
+        // Onda 17: os descritores da diagnóstica nova com nível 0–2 viram ponto de partida das metas
+        const pontos = await pontosDeAtencaoDaDiagnostica(session.workspace_id, studentId);
+        if (pontos.length) {
+          txtDiag += "\nDESCRITORES QUE PEDEM MAIS APOIO (nível 0 a 2 na diagnóstica; use-os para as metas):\n"
+            + pontos.slice(0, 12).map((p) => `- ${p.disciplina} · ${p.descritor} (nível ${p.nivel})`).join("\n");
         }
 
         let txtPaee = "";

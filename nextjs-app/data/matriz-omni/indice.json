@@ -1,0 +1,94 @@
+{
+ "nome": "Matriz Omni",
+ "versao": "2026-10-rascunho",
+ "status": "rascunho para revisão do especialista",
+ "fontes": [
+  "BNCC (MEC) — códigos e textos oficiais das habilidades",
+  "Matrizes de Referência do SAEB 2001 (INEP) — Língua Portuguesa e Matemática, 5º e 9º ano"
+ ],
+ "estrutura": "componente → ano → eixo (unidade temática da BNCC) → descritor Omni → habilidades da BNCC → descritor do SAEB (quando houver)",
+ "escala": [
+  {
+   "nivel": 0,
+   "label": "Não Iniciado",
+   "codigo": "NI",
+   "descritor": "Não demonstra a habilidade mesmo com mediação total do professor",
+   "observar": "O aluno não responde ao estímulo, mesmo com mediação física total e ajuda direta do professor.",
+   "suporte": "S4 – Total"
+  },
+  {
+   "nivel": 1,
+   "label": "Emergente",
+   "codigo": "E",
+   "descritor": "Reage a estímulos relacionados, mas sem intencionalidade ou consistência",
+   "observar": "O aluno demonstra reação (olhar, gesto, vocalização) quando o tema é trabalhado, mas sem executar a habilidade de forma funcional.",
+   "suporte": "S3 – Moderado"
+  },
+  {
+   "nivel": 2,
+   "label": "Em Desenvolvimento",
+   "codigo": "ED",
+   "descritor": "Realiza parcialmente com apoio direto e contínuo do professor",
+   "observar": "O aluno inicia a atividade com ajuda, mas não conclui ou conclui com erros sistemáticos sem apoio.",
+   "suporte": "S2–S3 – Mod./Leve"
+  },
+  {
+   "nivel": 3,
+   "label": "Consolidando",
+   "codigo": "C",
+   "descritor": "Realiza em contexto estruturado com apoio mínimo ou pontuais",
+   "observar": "O aluno realiza em ambiente estruturado com pistas verbais ou gestuais pontuais. Não generaliza sozinho.",
+   "suporte": "S1–S2 – Mín./Leve"
+  },
+  {
+   "nivel": 4,
+   "label": "Consolidado",
+   "codigo": "CO",
+   "descritor": "Realiza com autonomia e generaliza em diferentes contextos",
+   "observar": "O aluno realiza sem apoio e em diferentes contextos (sala, recreio, casa). Habilidade funcional e autônoma.",
+   "suporte": "S1 – Independente"
+  }
+ ],
+ "componentes": [
+  {
+   "componente": "Língua Portuguesa",
+   "sigla": "LP",
+   "total": 144
+  },
+  {
+   "componente": "Matemática",
+   "sigla": "MA",
+   "total": 144
+  },
+  {
+   "componente": "Ciências",
+   "sigla": "CI",
+   "total": 87
+  },
+  {
+   "componente": "História",
+   "sigla": "HI",
+   "total": 84
+  },
+  {
+   "componente": "Geografia",
+   "sigla": "GE",
+   "total": 89
+  },
+  {
+   "componente": "Arte",
+   "sigla": "AR",
+   "total": 20
+  },
+  {
+   "componente": "Educação Física",
+   "sigla": "EF",
+   "total": 39
+  },
+  {
+   "componente": "Língua Inglesa",
+   "sigla": "LI",
+   "total": 40
+  }
+ ]
+}
