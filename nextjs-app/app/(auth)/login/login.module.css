@@ -1,0 +1,71 @@
+/* Login · identidade Encontro (mesma do site omnisfera.net) */
+.pagina{
+  --bg:#f6f4f0; --paper:#fff; --soft:#efebe4; --line:#e3ded6; --line2:#d6cfc4;
+  --ink:#1b2a4a; --ink2:#3d4a63; --mut:#5d6a80; --azul:#2f7fd1; --verm:#e5484d; --t1:#fdeceb;
+  position:relative; min-height:100vh; min-height:100dvh; overflow:hidden; isolation:isolate;
+  display:flex; flex-direction:column; background:var(--bg); color:var(--ink);
+  font-family:var(--font-jakarta),"Plus Jakarta Sans",system-ui,sans-serif;
+}
+:global(html[data-theme="dark"]) .pagina{
+  --bg:#0d1526; --paper:#132038; --soft:#18263f; --line:#24314d; --line2:#2f3e5c;
+  --ink:#eef1f6; --ink2:#c9d1df; --mut:#9aa6bb; --t1:#3a1d26; color-scheme:dark;
+}
+
+/* círculos de fundo, grandes e suaves */
+.fundo{position:absolute; inset:0; z-index:-1; pointer-events:none}
+.fundo i{position:absolute; border-radius:50%; opacity:.12; animation:flutua 18s ease-in-out infinite}
+.b1{width:340px;height:340px;background:#e5484d;top:-120px;left:-80px}
+.b2{width:260px;height:260px;background:#2f7fd1;bottom:-90px;left:22%;animation-delay:-4s !important}
+.b3{width:300px;height:300px;background:#2eaa6a;top:12%;right:-110px;animation-delay:-8s !important}
+.b4{width:180px;height:180px;background:#f5b82e;bottom:12%;right:18%;animation-delay:-2s !important}
+.b5{width:140px;height:140px;background:#8e5bd8;top:46%;left:44%;animation-delay:-11s !important}
+@keyframes flutua{0%,100%{transform:translate(0,0)}50%{transform:translate(18px,-22px)}}
+
+.voltar{position:absolute; top:20px; left:clamp(16px,4vw,40px); display:inline-flex; gap:8px; align-items:center;
+  padding:8px 14px; border-radius:999px; border:1px solid var(--line2); background:var(--paper);
+  color:var(--ink2); font-size:14px; font-weight:600; text-decoration:none; z-index:2}
+.voltar:hover{color:var(--ink); border-color:var(--ink2)}
+
+.grade{flex:1; width:100%; max-width:1180px; margin:0 auto; padding:96px clamp(16px,4vw,40px) 32px;
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,440px); gap:clamp(32px,7vw,120px); align-items:center}
+@media (max-width:900px){ .grade{grid-template-columns:1fr; padding-top:84px; gap:28px} }
+
+.marca{display:grid; justify-items:center; text-align:center; gap:6px}
+.simbolo{width:clamp(140px,22vw,240px); height:auto}
+.nome{margin:12px 0 0; font-size:clamp(40px,6vw,64px); font-weight:800; letter-spacing:-.04em; line-height:1; color:var(--ink)}
+.tagline{margin:6px 0 0; font-size:18px; font-weight:600; color:var(--ink2)}
+.sub{margin:8px 0 0; max-width:36ch; font-size:15px; color:var(--mut); line-height:1.55}
+@media (max-width:900px){ .simbolo{width:120px} .nome{font-size:40px; margin-top:6px} .sub{display:none} }
+
+.cartao{background:var(--paper); border:1px solid var(--line); border-radius:22px 22px 22px 6px;
+  padding:clamp(24px,4vw,36px); box-shadow:0 1px 2px rgba(27,42,74,.05),0 18px 44px -18px rgba(27,42,74,.22)}
+.kick{font-family:ui-monospace,"JetBrains Mono",Menlo,monospace; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--azul)}
+.titulo{margin:8px 0 0; font-size:28px; font-weight:800; letter-spacing:-.025em; color:var(--ink); line-height:1.15}
+.mut{margin:8px 0 0; font-size:15px; color:var(--mut)}
+
+.form{display:grid; gap:8px; margin-top:22px}
+.rotulo{font-size:14px; font-weight:700; color:var(--ink); margin-top:8px}
+.campo{width:100%; font:inherit; font-size:16px; padding:13px 16px; border-radius:14px; border:1.5px solid var(--line2);
+  background:var(--bg); color:var(--ink); transition:border-color .15s, box-shadow .15s}
+.campo::placeholder{color:var(--mut); opacity:.8}
+.campo:focus{outline:none; border-color:var(--azul); box-shadow:0 0 0 4px color-mix(in srgb,var(--azul) 22%,transparent)}
+.erro{display:flex; gap:8px; align-items:center; margin:6px 0 0; padding:10px 14px; border-radius:12px;
+  background:var(--t1); color:#b8322f; font-size:14px; font-weight:600}
+:global(html[data-theme="dark"]) .erro{color:#ff9d99}
+.botao{margin-top:14px; display:flex; justify-content:center; align-items:center; gap:10px; width:100%; font:inherit; font-size:16px; font-weight:700;
+  padding:14px 20px; border-radius:999px; border:0; background:var(--ink); color:var(--bg); cursor:pointer; transition:transform .15s, opacity .15s}
+.botao:hover:not(:disabled){transform:translateY(-1px)}
+.botao:disabled{opacity:.6; cursor:default}
+.botao:focus-visible,.link:focus-visible,.voltar:focus-visible{outline:3px solid var(--azul); outline-offset:3px}
+.botaoAdmin{background:var(--ink2)}
+.girando{width:16px; height:16px; border-radius:50%; border:2.5px solid currentColor; border-right-color:transparent; animation:gira .8s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+
+.rodapeCartao{margin-top:20px; padding-top:18px; border-top:1px solid var(--line); display:grid; gap:8px; justify-items:center; text-align:center}
+.link{background:none; border:0; font:inherit; font-size:14px; font-weight:600; color:var(--mut); cursor:pointer; padding:4px 8px; border-radius:8px}
+.link:hover{color:var(--ink)}
+.nota{margin:0; font-size:13px; color:var(--mut)}
+
+.assinatura{padding:20px clamp(16px,4vw,40px) 28px}
+
+@media (prefers-reduced-motion: reduce){ .fundo i,.girando{animation:none} }

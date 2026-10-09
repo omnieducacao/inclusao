@@ -1,45 +1,37 @@
 /**
- * Rodapé com assinatura Omni Educação + link OmniProf + Política de Privacidade
+ * Rodapé com assinatura Omnisfera Soluções Educacionais + link OmniProf + Política de Privacidade
  * Reutilizado no dashboard, home e login.
  */
 import Link from "next/link";
 import Image from "next/image";
+import SimboloOmnisfera from "@/components/SimboloOmnisfera";
 export function OmniEducacaoSignature({ variant = "full" }: { variant?: "full" | "compact" }) {
   return (
     <div className={`flex flex-col ${variant === "full" ? "gap-4" : "gap-3"}`}>
-      {/* Logos lado a lado: Omni Educação + "Conheça também" + OmniProf */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
-        {/* Omni Educação logo */}
-        <div className="shrink-0">
-          <img
-            src="/omni_educacao_logo.webp"
-            alt="Omni Educação"
-            className="h-10 w-auto object-contain"
-          />
+      {/* Empresa (Omnisfera Soluções Educacionais) + "Conheça também" + OmniProf */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
+        <div className="flex items-center gap-2.5 shrink-0">
+          <SimboloOmnisfera tamanho={30} rotulo="Omnisfera" />
+          <span className="flex flex-col leading-tight text-left">
+            <span className="text-[13px] font-bold" style={{ color: 'var(--text-primary, #1b2a4a)' }}>Omnisfera</span>
+            <span className="text-[11px]" style={{ color: 'var(--text-muted, #5d6a80)' }}>Soluções Educacionais</span>
+          </span>
         </div>
 
-        {/* Separador + "Conheça também" + OmniProf logo */}
-        <div className="flex items-center gap-3">
-          <span className="hidden sm:inline text-[10px] font-medium" style={{ color: 'var(--text-muted, #94a3b8)' }}>
-            Conheça também
-          </span>
-          <a
-            href="https://omniprof.net"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 transition-all duration-200 hover:scale-[1.03] hover:opacity-80"
-          >
-            <img
-              src="/omniprof_logo_flat_horizontal.webp"
-              alt="OmniProf"
-              className="h-7 w-auto object-contain"
-              style={{ filter: 'var(--img-dark-invert, none)' }}
-            />
-            <svg className="w-3 h-3 shrink-0" style={{ color: 'var(--text-muted, #94a3b8)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </a>
-        </div>
+        <a
+          href="https://omniprof.net"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Conheça também o OmniProf, ferramentas de inteligência artificial para professores"
+          className="flex items-center gap-3 px-4 py-2 transition-transform duration-200 hover:-translate-y-0.5"
+          style={{ background: '#f3fafe', borderRadius: '18px 40px 18px 4px' }}
+        >
+          <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#44596a' }}>Conheça também</span>
+          <img src="/omniprof_logo_flat_horizontal.webp" alt="OmniProf" className="h-6 w-auto object-contain" />
+          <svg className="w-3 h-3 shrink-0" style={{ color: '#133040' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
       </div>
 
       {/* Copyright + links (apenas no variant full) */}
@@ -64,7 +56,7 @@ export function OmniEducacaoSignature({ variant = "full" }: { variant?: "full" |
             <span className="opacity-40">•</span>
             <Link href="/seguranca" className="hover:text-indigo-600 transition-colors font-semibold">Segurança e Transparência</Link>
             <span className="opacity-40">•</span>
-            <span>© {new Date().getFullYear()} Omni Soluções Educacionais</span>
+            <span>© {new Date().getFullYear()} Omnisfera Soluções Educacionais Ltda.</span>
           </div>
         </div>
       )}

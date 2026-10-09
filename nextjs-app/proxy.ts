@@ -5,7 +5,16 @@ import { getSecret } from "@/lib/jwt-secret";
 import { checkRateLimit } from "@/lib/upstash-rate-limit"; // V5 Rate Limiter
 
 
-const PUBLIC_PATHS = ["/login", "/landing", "/privacidade", "/seguranca", "/api/auth/login", "/api/auth/admin-login", "/api/vitals"];
+const PUBLIC_PATHS = ["/login", "/landing", "/privacidade", "/seguranca", "/site/", "/api/auth/login", "/api/auth/admin-login", "/api/vitals"];
+
+// Site informativo (omnisfera.net): páginas estáticas em public/site, servidas por rewrite.
+// A lista precisa acompanhar as pastas de public/site (gerado pelo projeto omnisfera-net).
+const SITE_PAGES = new Set([
+  "lei", "conceitos", "conhecer-o-estudante", "autismo", "deficiencia-intelectual",
+  "dislexia-discalculia-tdah", "altas-habilidades", "visual-surdez-fisica", "dua-e-caa",
+  "pei-e-aee", "adaptar-e-avaliar", "perfis", "formacao", "checklists", "glossario",
+  "fontes", "sobre", "na-midia", "videos",
+]);
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -49,29 +58,21 @@ export async function proxy(request: NextRequest) {
   }
   // --- V5 RATE LIMITING FIREWALL END ---
 
+  // Páginas do site informativo: públicas para todos, com ou sem sessão.
+  const pagina = pathname.replace(/^\/+|\/+$/g, "");
+  if (SITE_PAGES.has(pagina)) {
+    return NextResponse.rewrite(new URL(`/site/${pagina}/index.html`, request.url));
+  }
+
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
   }
 
   const token = request.cookies.get("omnisfera_session")?.value;
   if (!token) {
-    // If visiting root "/" without session, check if landing page is enabled
+    // Sem sessão, a raiz mostra o site informativo; quem tem sessão segue para o app.
     if (pathname === "/") {
-      try {
-        const baseUrl = request.nextUrl.origin;
-        const res = await fetch(
-          `${baseUrl}/api/public/platform-config?key=landing_page_enabled`,
-          { next: { revalidate: 60 } }
-        );
-        if (res.ok) {
-          const data = await res.json();
-          if (data.value === "true" || data.value === true) {
-            return NextResponse.redirect(new URL("/landing", request.url));
-          }
-        }
-      } catch {
-        // Fallback: redirect to login as usual
-      }
+      return NextResponse.rewrite(new URL("/site/index.html", request.url));
     }
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);

@@ -80,6 +80,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https:",
               "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co",
               "media-src 'self' https://lottie.host",
+              "frame-src https://www.youtube-nocookie.com",
               "frame-ancestors 'none'",
             ].join('; '),
           },
