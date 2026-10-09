@@ -19,13 +19,18 @@ type TabMapeamentoProps = {
   peiData: PEIData;
   updateField: <K extends keyof PEIData>(key: K, value: PEIData[K]) => void;
   hiperfoco: string;
+  /** Onda 2: o estudo de caso mostra partes do mapeamento em passos diferentes */
+  secao?: "tudo" | "potencias" | "barreiras";
 };
 
 export function PEITabMapeamento(props: TabMapeamentoProps) {
   const { peiData, updateField, hiperfoco } = props;
+  const secao = props.secao ?? "tudo";
+  const mostrar = (parte: "potencias" | "barreiras" | "resumo") => secao === "tudo" || secao === parte;
 
   return (
     <div className="space-y-6">
+      {secao === "tudo" && (<>
       {/* Título da aba com ícone */}
       <div className="flex items-center gap-2 mb-4">
         <Radar className="w-5 h-5 text-sky-600" />
@@ -36,6 +41,9 @@ export function PEITabMapeamento(props: TabMapeamentoProps) {
         Mapeie forças, hiperfocos e barreiras. Para cada barreira selecionada, indique a intensidade de apoio necessária.
       </p>
 
+      </>)}
+
+      {mostrar("potencias") && (<>
       {/* Potencialidades e Hiperfoco */}
       <div className="p-4 rounded-lg border-2 border-blue-200 bg-blue-50/30">
         <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
@@ -103,8 +111,11 @@ export function PEITabMapeamento(props: TabMapeamentoProps) {
         </div>
       </div>
 
-      <hr />
+      </>)}
 
+      {secao === "tudo" && <hr />}
+
+      {mostrar("barreiras") && (<>
       {/* Barreiras e nível de apoio */}
       <div>
         <h4 className="text-base font-semibold text-slate-800 mb-2 flex items-center gap-2">
@@ -154,8 +165,11 @@ export function PEITabMapeamento(props: TabMapeamentoProps) {
         </div>
       </div>
 
-      <hr />
+      </>)}
 
+      {secao === "tudo" && <hr />}
+
+      {secao === "tudo" && (<>
       {/* Resumo do Mapeamento */}
       <div>
         <h4 className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
@@ -247,6 +261,7 @@ export function PEITabMapeamento(props: TabMapeamentoProps) {
           </div>
         </div>
       </div>
+      </>)}
     </div>
 
   );

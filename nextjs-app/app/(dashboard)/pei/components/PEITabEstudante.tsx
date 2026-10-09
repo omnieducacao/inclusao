@@ -284,7 +284,10 @@ export function PEITabEstudante(props: TabEstudanteProps) {
       <div>
         <h4 className="text-base font-semibold text-slate-800 mb-3">Contexto Clínico</h4>
         <div>
-          <label className="flex text-sm font-semibold text-slate-700 mb-1 items-center gap-1.5">Diagnóstico <HelpTooltip fieldId="pei-diagnostico" /></label>
+          <label className="flex text-sm font-semibold text-slate-700 mb-1 items-center gap-1.5">Diagnóstico (opcional) <HelpTooltip fieldId="pei-diagnostico" /></label>
+          <p className="text-xs text-slate-500 mb-1.5">
+            Nenhum laudo pode ser exigido para matrícula, AEE ou profissional de apoio (Decreto 12.686/2025 e Portaria MEC 421/2026). O que orienta o PEI é o estudo de caso.
+          </p>
           <input
             type="text"
             value={peiData.diagnostico || ""}

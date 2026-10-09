@@ -5,6 +5,7 @@ import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { Skeleton } from "@/components/Skeleton";
 import { getAdminConfig } from "@/lib/getAdminConfig";
 import { getStudentsWithFallback } from "@/lib/getStudentWithFallback";
+import { modoDaEscola } from "@/lib/escola";
 import dynamic from "next/dynamic";
 
 const PEIClient = dynamic(
@@ -24,6 +25,7 @@ export default async function PEIPage({ searchParams }: Props) {
 
   const initialClasses = workspaceId ? await listClasses(workspaceId) : [];
   const initialGrades = await listGrades();
+  const modo = await modoDaEscola(workspaceId);
 
   const peiData = student?.pei_data
     ? (student.pei_data as Record<string, unknown>)
@@ -47,6 +49,8 @@ export default async function PEIPage({ searchParams }: Props) {
           initialStudent={student}
           initialClasses={initialClasses as never}
           initialGrades={initialGrades as never}
+          modo={modo}
+          usuarioNome={session?.usuario_nome}
         />
       </div>
     </PageAccentProvider>

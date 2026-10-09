@@ -105,8 +105,8 @@ describe("getTabStatus", () => {
 });
 
 describe("TABS", () => {
-    it("tem 12 abas", () => {
-        expect(TABS).toHaveLength(12);
+    it("tem 14 abas (onda 2: + estudo de caso e vigência)", () => {
+        expect(TABS).toHaveLength(14);
     });
 
     it("primeira aba é inicio", () => {

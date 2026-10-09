@@ -174,3 +174,39 @@ export async function resolverTurma(
   const lista = ativas.length > 0 ? ativas : candidatas;
   return lista.length === 1 ? lista[0].id : null;
 }
+
+/**
+ * Onda 2: profissionais (não coordenação/direção) que têm este estudante no vínculo —
+ * quem deve ler e dar ciência do PEI.
+ */
+export async function membrosDoEstudante(
+  workspaceId: string,
+  est: EstudanteMin
+): Promise<Array<{ id: string; nome: string }>> {
+  const sb = getSupabase();
+  const { data: membros } = await sb
+    .from("workspace_members")
+    .select("id, nome, link_type, papel, active")
+    .eq("workspace_id", workspaceId);
+  const ativos = ((membros || []) as Array<{ id: string; nome: string; link_type: string; papel?: string; active?: boolean }>).filter(
+    (m) => m.active !== false && m.papel !== "coordenacao" && m.papel !== "direcao"
+  );
+  if (ativos.length === 0) return [];
+  const ids = ativos.map((m) => m.id);
+  const [{ data: links }, { data: atribs }] = await Promise.all([
+    sb.from("teacher_student_links").select("workspace_member_id").eq("student_id", est.id).in("workspace_member_id", ids),
+    sb.from("teacher_assignments").select("workspace_member_id, class_id").in("workspace_member_id", ids),
+  ]);
+  const tutores = new Set((links || []).map((l: { workspace_member_id: string }) => l.workspace_member_id));
+  const classIds = [...new Set((atribs || []).map((a: { class_id: string }) => a.class_id))];
+  const turmas = await turmasDaEscola(workspaceId, classIds);
+  const turmasDoEst = new Set(turmas.filter((t) => estudanteNaTurma(est, t)).map((t) => t.id));
+  const porTurma = new Set(
+    (atribs || [])
+      .filter((a: { class_id: string }) => turmasDoEst.has(a.class_id))
+      .map((a: { workspace_member_id: string }) => a.workspace_member_id)
+  );
+  return ativos
+    .filter((m) => (m.link_type === "tutor" ? tutores.has(m.id) : m.link_type === "turma" ? porTurma.has(m.id) : false))
+    .map((m) => ({ id: m.id, nome: m.nome }));
+}

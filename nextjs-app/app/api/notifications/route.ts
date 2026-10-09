@@ -1,7 +1,7 @@
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { vinculoDaSessao, filtrarPorVinculo } from "@/lib/turmas";
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
+import { getSession, memberIdDaSessao } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 
@@ -105,6 +105,52 @@ export async function GET() {
                     studentId: st.id,
                     studentName: st.name,
                 });
+            }
+        }
+
+        // 3b. Onda 2: revisão do PEI atrasada (coordenação) e PEI aguardando ciência (professor)
+        const hojeStr = new Date().toISOString().slice(0, 10);
+        const vigentes = students.filter((st) => {
+            const v = (st.pei_data || {}).vigencia as { status?: string } | undefined;
+            return v?.status === "vigente";
+        });
+        if (session.user_role === "master" || session.is_platform_admin || ["coordenacao", "direcao"].includes(String((session.member as Record<string, unknown> | undefined)?.papel || ""))) {
+            for (const st of vigentes) {
+                const v = (st.pei_data || {}).vigencia as { proxima_revisao?: string };
+                if (v.proxima_revisao && v.proxima_revisao < hojeStr) {
+                    notifications.push({
+                        id: `pei-revisao-${st.id}`,
+                        type: "pei",
+                        title: "Revisão do PEI atrasada",
+                        description: `A revisão do PEI de ${st.name} estava marcada para ${new Date(`${v.proxima_revisao}T12:00:00`).toLocaleDateString("pt-BR")}.`,
+                        severity: "alert",
+                        studentId: st.id,
+                        studentName: st.name,
+                    });
+                }
+            }
+        }
+        const meuId = memberIdDaSessao(session);
+        if (session.user_role === "member" && meuId && vigentes.length > 0) {
+            const { data: lidas } = await sb
+                .from("pei_ciencias")
+                .select("student_id, versao")
+                .eq("workspace_id", workspaceId)
+                .eq("member_id", meuId);
+            const ok = new Set((lidas || []).map((c: { student_id: string; versao: number }) => `${c.student_id}:${c.versao}`));
+            for (const st of vigentes) {
+                const v = (st.pei_data || {}).vigencia as { versao?: number };
+                if (!ok.has(`${st.id}:${v.versao}`)) {
+                    notifications.push({
+                        id: `pei-ciencia-${st.id}-${v.versao}`,
+                        type: "pei",
+                        title: "PEI aguardando sua leitura",
+                        description: `O PEI de ${st.name} (versão ${v.versao}) está vigente. Leia e registre ciência em PEI - Professor.`,
+                        severity: "info",
+                        studentId: st.id,
+                        studentName: st.name,
+                    });
+                }
             }
         }
 

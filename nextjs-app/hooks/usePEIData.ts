@@ -11,6 +11,8 @@ import type { PEIData } from "@/lib/pei";
 export type TabId =
     | "inicio"
     | "estudante"
+    | "estudo_caso"
+    | "vigencia"
     | "evidencias"
     | "rede"
     | "mapeamento"
@@ -25,6 +27,7 @@ export type TabId =
 export const TABS: { id: TabId; label: string }[] = [
     { id: "inicio", label: "Início" },
     { id: "estudante", label: "Estudante" },
+    { id: "estudo_caso", label: "Estudo de caso" },
     { id: "evidencias", label: "Evidências" },
     { id: "rede", label: "Rede de Apoio" },
     { id: "mapeamento", label: "Mapeamento" },
@@ -34,8 +37,24 @@ export const TABS: { id: TabId; label: string }[] = [
     { id: "consultoria", label: "Consultoria IA" },
     { id: "regentes", label: "Regentes" },
     { id: "consolidacao", label: "Consolidação" },
+    { id: "vigencia", label: "Vigência" },
     { id: "dashboard", label: "Dashboard" },
 ];
+
+/**
+ * Onda 2: abas conforme o modo da escola.
+ * Simplificado: o estudo de caso guiado substitui Evidências, Rede, Mapeamento e Plano (os
+ * mesmos campos, em quatro passos); o PEI é um documento único da coordenação, sem a etapa
+ * dos regentes nem a consolidação — os professores leem e dão ciência na aba Vigência.
+ */
+export function tabsDoModo(modo: "completo" | "simplificado"): { id: TabId; label: string }[] {
+    if (modo === "completo") return TABS;
+    const simples: TabId[] = ["inicio", "estudante", "estudo_caso", "bncc", "consultoria", "vigencia", "dashboard"];
+    return simples.map((id) => {
+        const t = TABS.find((x) => x.id === id)!;
+        return id === "consultoria" ? { ...t, label: "PEI (IA)" } : t;
+    });
+}
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -99,6 +118,15 @@ export function getTabStatus(d: PEIData, tabId: TabId): "complete" | "in-progres
     switch (tabId) {
         case "inicio": return _isFilled(d.nome) ? "complete" : "empty";
         case "estudante": return _isFilled(d.nome) && _isFilled(d.serie) && _isFilled(d.turma) ? "complete" : _isFilled(d.nome) ? "in-progress" : "empty";
+        case "estudo_caso": {
+            const ec = (d.estudo_caso || {}) as { concluido_em?: string | null; demandas?: string };
+            if (ec.concluido_em) return "complete";
+            return _isFilled(ec) ? "in-progress" : "empty";
+        }
+        case "vigencia": {
+            const v = d.vigencia as { status?: string } | undefined;
+            return v?.status === "vigente" ? "complete" : v?.status === "em_revisao" ? "in-progress" : "empty";
+        }
         case "evidencias": {
             const chk = d.checklist_evidencias || {};
             return Object.values(chk).some((v) => v === true) ? "complete" : "empty";

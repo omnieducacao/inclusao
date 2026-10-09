@@ -52,6 +52,10 @@ export type PEIData = {
   bncc_ei_objetivos?: string[];
   // ── Fase do PEI (multi-fase) ──
   fase_pei?: 'fase_1' | 'fase_2' | 'consolidado';
+  // ── Onda 2: estudo de caso, vigência e revisões ──
+  estudo_caso?: import("./estudo-caso").EstudoCaso;
+  vigencia?: import("./estudo-caso").Vigencia;
+  revisoes?: import("./estudo-caso").Revisao[];
   [key: string]: unknown;
 };
 

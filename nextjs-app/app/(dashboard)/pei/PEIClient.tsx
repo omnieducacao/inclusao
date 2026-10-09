@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
-import { usePEIData, TABS, calcularProgresso, getTabStatus } from "@/hooks/usePEIData";
+import { usePEIData, TABS, tabsDoModo, calcularProgresso, getTabStatus } from "@/hooks/usePEIData";
 import type { TabId } from "@/hooks/usePEIData";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { PEIVersionHistory, createPEISnapshot } from "@/components/PEIVersionHistory";
@@ -23,6 +23,8 @@ import { PEITabMapeamento } from "./components/PEITabMapeamento";
 import { PEITabPlano } from "./components/PEITabPlano";
 import { useStudentRealtime } from "@/hooks/useStudentRealtime";
 import { PEITabMonitoramento } from "./components/PEITabMonitoramento";
+import { PEITabEstudoCaso } from "./components/PEITabEstudoCaso";
+import { PEITabVigencia } from "./components/PEITabVigencia";
 import { TransicaoAnoButton, LaudoPdfSection, MedicamentosForm } from "./components/PEILaudoSection";
 import { NivelSuporteRange, BarreirasDominio } from "./components/PEIBarreiras";
 
@@ -122,6 +124,9 @@ type Props = {
   initialStudent?: Student | null;
   initialClasses: Array<{ id: string; class_group: string; grade_id: string; grades?: { name?: string; label?: string } }>;
   initialGrades: Array<{ id: string; name: string; label?: string }>;
+  /** Onda 2: modo da escola define as abas */
+  modo?: "completo" | "simplificado";
+  usuarioNome?: string;
 };
 
 export function PEIClient({
@@ -132,7 +137,10 @@ export function PEIClient({
   initialStudent,
   initialClasses,
   initialGrades,
+  modo = "completo",
+  usuarioNome,
 }: Props) {
+  const abas = tabsDoModo(modo);
   // ─── Core PEI State (from extracted hook) ─────────────────────────
   const pei = usePEIData({ students, studentId, initialPeiData });
   const {
@@ -302,7 +310,7 @@ export function PEIClient({
 
       {/* Navegação de Abas com Indicadores Visuais */}
       <div className="flex gap-1.5 p-1.5 rounded-2xl overflow-x-auto scrollbar-hide bg-(--omni-bg-tertiary) border border-(--omni-border-default)">
-        {TABS.map((t) => {
+        {abas.map((t) => {
           const status = tabStatuses[t.id];
           const isActive = activeTab === t.id;
 
@@ -341,7 +349,7 @@ export function PEIClient({
           <span className="text-slate-300">/</span>
           <span className="text-slate-700 font-medium">PEI</span>
           <span className="text-slate-300">/</span>
-          <span className="text-sky-600 font-semibold">{TABS.find(t => t.id === activeTab)?.label}</span>
+          <span className="text-sky-600 font-semibold">{abas.find(t => t.id === activeTab)?.label ?? TABS.find(t => t.id === activeTab)?.label}</span>
         </div>
         {currentStudentId && (
           <div className="flex items-center gap-2 text-xs text-slate-600">
@@ -383,6 +391,27 @@ export function PEIClient({
             addMedicamento={() => addMedicamento("", "", false)} removeMedicamento={removeMedicamento}
             serie={serie}
             schoolClasses={schoolClasses} schoolGrades={schoolGrades}
+          />
+        )}
+
+        {activeTab === "estudo_caso" && (
+          <PEITabEstudoCaso
+            peiData={peiData}
+            updateField={updateField}
+            toggleChecklist={toggleChecklist as (field: keyof import("@/lib/pei").PEIData, value: string) => void}
+            hiperfoco={hiperfoco}
+            onIrParaPei={() => setActiveTab("consultoria")}
+          />
+        )}
+
+        {activeTab === "vigencia" && (
+          <PEITabVigencia
+            peiData={peiData}
+            updateField={updateField}
+            currentStudentId={currentStudentId}
+            usuarioNome={usuarioNome}
+            onSalvar={handleUpdate}
+            saving={saving}
           />
         )}
 

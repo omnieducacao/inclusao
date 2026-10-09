@@ -1,4 +1,6 @@
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { estudoCasoParaPrompt, type EstudoCaso } from "@/lib/estudo-caso";
+import { anonymizeMessages } from "@/lib/ai-anonymize";
 import { parseBody, peiConsultoriaSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
@@ -419,18 +421,27 @@ export async function POST(req: Request) {
     logger.warn({ err: err }, "Dossiê Sintético (G1) abortado silenciosamente:");
   }
 
+  // Onda 2: o PEI deriva do estudo de caso (Decreto 12.773/2025)
+  const estudoCaso = estudoCasoParaPrompt(dados.estudo_caso as EstudoCaso | undefined);
+  if (estudoCaso) dossieSintetico = dossieSintetico ? `${estudoCaso}\n\n${dossieSintetico}` : estudoCaso;
+
   const { system, user } = buildPrompt(dados, modoPratico, feedback, dossieSintetico);
 
   try {
-    const texto = await chatCompletionText(
-      engine,
+    // LGPD: o nome do estudante não vai para o provedor de IA (volta na resposta)
+    const { anonymized, restore } = anonymizeMessages(
       [
         { role: "system", content: system },
         { role: "user", content: user },
       ],
+      dados.nome || null
+    );
+    const texto = await chatCompletionText(
+      engine,
+      anonymized as Parameters<typeof chatCompletionText>[1],
       { temperature: 0.7 }
     );
-    return NextResponse.json({ texto: (texto || "").trim() });
+    return NextResponse.json({ texto: restore((texto || "").trim()) });
   } catch (err) {
     logger.error({ err: err }, "PEI Consultoria IA:");
     return NextResponse.json(

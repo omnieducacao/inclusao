@@ -17,7 +17,8 @@ const mockSession = {
     usuario_nome: "Prof. Ana",
 };
 
-vi.mock("@/lib/session", () => ({
+vi.mock("@/lib/session", async (importOriginal) => ({
+    ...(await importOriginal<typeof import("@/lib/session")>()),
     getSession: vi.fn().mockResolvedValue({
         id: "u1",
         workspace_id: "w1",

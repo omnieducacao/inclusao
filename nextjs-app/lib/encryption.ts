@@ -29,6 +29,7 @@ export const SENSITIVE_PEI_FIELDS = [
     "orientacoes_especialistas",
     "orientacoes_por_profissional",
     "detalhes_diagnostico",
+    "estudo_caso", // onda 2: conversa da equipe sobre o estudante (contexto, demandas, apoios)
 ] as const;
 
 /** Campos sensíveis dentro de paee_data que devem ser criptografados. */
@@ -146,6 +147,7 @@ function decryptValue(value: unknown, fieldName: string): unknown {
         "orientacoes_por_profissional",
         "detalhes_diagnostico",
         "input_original_diagnostico_barreiras",
+        "estudo_caso",
     ];
 
     if (jsonFields.includes(fieldName)) {
