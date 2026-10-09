@@ -5,6 +5,7 @@
 
 import { getSupabase } from "./supabase";
 import { logger } from "@/lib/logger";
+import { estimateCostUsd, type UsoChamada } from "@/lib/ai-pricing";
 
 export type EventType =
   | "page_view"
@@ -71,18 +72,38 @@ export async function trackAIUsage(
     workspaceId?: string;
     source?: string;
     creditsConsumed?: number;
+    /** 10/10/2026: modelo, tokens e tempo da chamada, para o custo estimado (como no OmniProf) */
+    uso?: UsoChamada;
   } = {}
 ): Promise<void> {
   try {
     const sb = getSupabase();
-    const { workspaceId, source, creditsConsumed = 1.0 } = options;
+    const { source, creditsConsumed = 1.0, uso } = options;
+    let workspaceId = options.workspaceId;
+    if (!workspaceId) {
+      // As rotas quase nunca passam a escola; a sessão da requisição diz qual é
+      // lib/session registra o resolvedor (não importamos a sessão aqui: este módulo também vai para o navegador)
+      const resolver = (globalThis as { __omniWorkspaceDaSessao?: () => Promise<string | undefined> }).__omniWorkspaceDaSessao;
+      if (resolver) {
+        try { workspaceId = await resolver(); } catch { /* fora de uma requisição (ex.: testes) */ }
+      }
+    }
 
-    // Registrar como evento de uso
+    // Registrar como evento de uso, com o custo estimado
     await trackUsageEvent("ai_call", {
       workspaceId,
       source,
       aiEngine: engine,
-      metadata: { credits_consumed: creditsConsumed },
+      metadata: {
+        credits_consumed: creditsConsumed,
+        ...(uso ? {
+          model: uso.model,
+          tokens_in: uso.tokensIn ?? null,
+          tokens_out: uso.tokensOut ?? null,
+          duration_ms: uso.durationMs ?? null,
+          cost_usd: estimateCostUsd({ model: uso.model, tokensIn: uso.tokensIn, tokensOut: uso.tokensOut }),
+        } : {}),
+      },
     });
 
     // Também registrar na tabela de uso de IA (se existir)

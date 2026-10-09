@@ -43,6 +43,10 @@ export async function GET(request: NextRequest) {
     const byType: Record<string, number> = {};
     const byEngine: Record<string, number> = {};
     const timeline: Record<string, number> = {};
+    // 10/10/2026: custo estimado das chamadas de IA (metadata.cost_usd, gravado desde então)
+    const custoPorMotor: Record<string, number> = {};
+    const custoPorEscola: Record<string, number> = {};
+    let custoTotal = 0;
 
     eventsList.forEach((ev: Record<string, unknown>) => {
       const etype = String(ev.event_type || "desconhecido");
@@ -54,7 +58,16 @@ export async function GET(request: NextRequest) {
       const date = new Date(String(ev.created_at));
       const dayKey = date.toISOString().split("T")[0];
       timeline[dayKey] = (timeline[dayKey] || 0) + 1;
+
+      const custo = Number((ev.metadata as { cost_usd?: unknown } | null)?.cost_usd);
+      if (Number.isFinite(custo) && custo > 0) {
+        custoTotal += custo;
+        custoPorMotor[eng] = (custoPorMotor[eng] || 0) + custo;
+        const ws = String(ev.workspace_id || "sem escola");
+        custoPorEscola[ws] = (custoPorEscola[ws] || 0) + custo;
+      }
     });
+    const arred = (n: number) => Math.round(n * 10000) / 10000;
 
     const byTypeList = Object.entries(byType)
       .map(([event_type, count]) => ({ event_type, count }))
@@ -84,6 +97,11 @@ export async function GET(request: NextRequest) {
       by_engine: byEngineList,
       timeline: timelineList,
       recent,
+      custo_ia: {
+        total_usd: arred(custoTotal),
+        por_motor: Object.entries(custoPorMotor).map(([ai_engine, usd]) => ({ ai_engine, usd: arred(usd) })).sort((a, b) => b.usd - a.usd),
+        por_escola: Object.entries(custoPorEscola).map(([workspace_id, usd]) => ({ workspace_id, usd: arred(usd) })).sort((a, b) => b.usd - a.usd).slice(0, 20),
+      },
     });
   } catch (err) {
     logger.error({ err: err }, "Erro ao buscar métricas:");

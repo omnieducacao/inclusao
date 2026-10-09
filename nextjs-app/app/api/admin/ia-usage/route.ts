@@ -84,7 +84,16 @@ export async function GET(request: NextRequest) {
       entry.credits_used += parseFloat(String(usage.credits_consumed || "1.0"));
     });
 
-    const usageList = Array.from(byWorkspace.values());
+    // 10/10/2026: custo estimado por escola, das chamadas registradas com tokens (usage_events.metadata.cost_usd)
+    const custo = new Map<string, number>();
+    const { data: eventos } = await sb.from("usage_events").select("workspace_id, metadata")
+      .eq("event_type", "ai_call").gte("created_at", since.toISOString()).limit(20000);
+    for (const ev of (eventos || []) as Array<{ workspace_id: string | null; metadata: { cost_usd?: unknown } | null }>) {
+      const v = Number(ev.metadata?.cost_usd);
+      if (ev.workspace_id && Number.isFinite(v) && v > 0) custo.set(ev.workspace_id, (custo.get(ev.workspace_id) || 0) + v);
+    }
+
+    const usageList = Array.from(byWorkspace.values()).map((u) => ({ ...u, custo_usd: Math.round((custo.get(u.workspace_id) || 0) * 10000) / 10000 }));
 
     return NextResponse.json({ usage: usageList });
   } catch (err) {

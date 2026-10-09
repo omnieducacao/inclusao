@@ -71,3 +71,9 @@ export function memberIdDaSessao(session: Partial<SessionPayload> | null | undef
   const id = (session.member as { id?: unknown } | undefined)?.id;
   return typeof id === "string" && id ? id : undefined;
 }
+
+// 10/10/2026: o registro de uso da IA (lib/tracking) descobre a escola da requisição por aqui
+(globalThis as { __omniWorkspaceDaSessao?: () => Promise<string | undefined> }).__omniWorkspaceDaSessao = async () => {
+  const s = await getSession();
+  return (s?.simulating_workspace_id || s?.workspace_id || undefined) as string | undefined;
+};

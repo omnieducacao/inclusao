@@ -108,7 +108,7 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(30, 41, 59);
-    doc.text("PEI - PLANO DE ENSINO INDIVIDUALIZADO", PDF_LEFT, 26);
+    doc.text("PEI - PLANO EDUCACIONAL INDIVIDUALIZADO", PDF_LEFT, 26);
 
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
@@ -607,6 +607,31 @@ export async function gerarPdfPei(dados: PEIData): Promise<Uint8Array> {
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(0, 0, 0);
+  }
+
+  // ======================================================================
+  // DISCIPLINAS — a parte de cada professor, juntada na consolidação
+  // ======================================================================
+  const consolidacao = (dados as { consolidacao?: { em?: string; disciplinas?: Array<{ disciplina?: string; professor?: string; nivel?: number | null; metas?: string[]; adaptacoes?: string }> } }).consolidacao;
+  const discConsolidadas = (consolidacao?.disciplinas || []).filter((d) => d && d.disciplina);
+  if (discConsolidadas.length) {
+    addSpacer(6);
+    addSectionTitle("PARTE DAS DISCIPLINAS");
+    if (consolidacao?.em) {
+      addLine("Juntada ao PEI em:", formatarData(consolidacao.em));
+      addSpacer(2);
+    }
+    for (const d of discConsolidadas) {
+      addSubtitle(limparTexto(d.disciplina));
+      if (d.professor) addLine("Professor(a):", limparTexto(d.professor));
+      if (typeof d.nivel === "number") addLine("Nível de apoio (0 a 4):", String(d.nivel));
+      const metas = (d.metas || []).map((m) => limparTexto(m)).filter(Boolean);
+      for (const m of metas) addBulletItem(m, "check");
+      if (limparTexto(d.adaptacoes)) {
+        addMultiline(`Adaptações: ${limparTexto(d.adaptacoes)}`);
+      }
+      addSpacer(3);
+    }
   }
 
   // ======================================================================

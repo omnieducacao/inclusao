@@ -72,6 +72,7 @@ export function UsoIATab() {
                 <th className="px-4 py-3 text-center text-sm font-semibold text-slate-700">OmniOrange</th>
                 <th className="px-4 py-3 text-center text-sm font-semibold text-slate-700">Total</th>
                 <th className="px-4 py-3 text-center text-sm font-semibold text-slate-700">Créditos</th>
+                <th className="px-4 py-3 text-center text-sm font-semibold text-slate-700">Custo estimado</th>
                 <th className="px-4 py-3 text-center text-sm font-semibold text-slate-700">Plano</th>
                 <th className="px-4 py-3 text-center text-sm font-semibold text-slate-700">Limite</th>
               </tr>
@@ -87,6 +88,7 @@ export function UsoIATab() {
                   <td className="px-4 py-3 text-center text-sm text-slate-600">{u.orange || 0}</td>
                   <td className="px-4 py-3 text-center text-sm font-semibold text-slate-900">{u.total_calls || 0}</td>
                   <td className="px-4 py-3 text-center text-sm font-semibold text-blue-600">{u.credits_used?.toFixed(1) || "0.0"}</td>
+                  <td className="px-4 py-3 text-center text-sm text-slate-700" style={{ fontVariantNumeric: "tabular-nums" }}>{u.custo_usd ? `US$ ${Number(u.custo_usd).toFixed(4)}` : "—"}</td>
                   <td className="px-4 py-3 text-center text-sm">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${u.plan === "robusto" ? "bg-green-100 text-green-800" : "bg-slate-100 text-slate-800"
                       }`}>
@@ -103,6 +105,7 @@ export function UsoIATab() {
       {usage.length > 0 && (
         <p className="text-xs text-slate-500 mt-4">
           Créditos usados = soma das unidades por chamada (1 por padrão, OmniGreen pode ter peso maior).
+          Custo estimado = tokens de cada chamada × preço do modelo (tabela em lib/ai-pricing.ts, a mesma do OmniProf); conta só as chamadas feitas desde 10/10/2026.
           No futuro, planos terão limite; ao atingir, a escola migra para plano mais robusto.
         </p>
       )}

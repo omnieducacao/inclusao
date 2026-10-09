@@ -224,7 +224,13 @@ function PEIDoEstudante({
               saving={saving}
             />
           )}
-          {secao === "consolidacao" && <PEIConsolidacao studentId={currentStudentId} />}
+          {secao === "consolidacao" && (
+            <PEIConsolidacao
+              studentId={currentStudentId}
+              consolidadoEm={(peiData.consolidacao as { em?: string } | undefined)?.em || null}
+              onConsolidar={(r) => { updateField("consolidacao", r); updateField("fase_pei", "consolidado"); }}
+            />
+          )}
           {secao === "acompanhamento" && (
             <DashboardTab
               peiData={peiData}

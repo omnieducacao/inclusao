@@ -143,6 +143,11 @@ export async function comFallback<T>(
   throw ultimoErro;
 }
 
+/** Tokens e modelo de uma resposta no formato OpenAI (DeepSeek, Kimi e OpenAI usam o mesmo). */
+function usoOpenAI(resp: { model?: string; usage?: { prompt_tokens?: number; completion_tokens?: number } | null }, inicio: number) {
+  return { model: resp.model || "desconhecido", tokensIn: resp.usage?.prompt_tokens, tokensOut: resp.usage?.completion_tokens, durationMs: Date.now() - inicio };
+}
+
 /** Chat completion com tempo-limite e motor reserva (use esta). */
 export async function chatCompletionText(
   engine: EngineId,
@@ -165,6 +170,7 @@ export async function chatCompletionTextMotor(
   options?: { temperature?: number; apiKey?: string; workspaceId?: string; source?: string; trackUsage?: boolean; useCache?: boolean; max_tokens?: number }
 ): Promise<string> {
   const temp = options?.temperature ?? 0.7;
+  const inicio = Date.now();
   const apiKey = options?.apiKey || getApiKey(engine);
   const shouldTrack = options?.trackUsage !== false; // Por padrão, rastreia uso
   const shouldCache = options?.useCache !== false; // Por padrão, usa cache
@@ -190,7 +196,7 @@ export async function chatCompletionTextMotor(
     if (shouldCache && result) aiCache.set(engine, messages, result);
     if (shouldTrack && result) {
       const { trackAIUsage } = await import("./tracking");
-      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => { });
+      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, uso: usoOpenAI(resp, inicio) }).catch(() => { });
     }
     return result;
   }
@@ -212,7 +218,7 @@ export async function chatCompletionTextMotor(
     if (shouldCache && result) aiCache.set(engine, messages, result);
     if (shouldTrack && result) {
       const { trackAIUsage } = await import("./tracking");
-      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => { });
+      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, uso: usoOpenAI(resp, inicio) }).catch(() => { });
     }
     return result;
   }
@@ -245,7 +251,7 @@ export async function chatCompletionTextMotor(
       if (shouldCache && result) aiCache.set(engine, messages, result);
       if (shouldTrack && result) {
         const { trackAIUsage } = await import("./tracking");
-        trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => { });
+        trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, uso: usoOpenAI(resp, inicio) }).catch(() => { });
       }
       return result;
     } catch (err) {
@@ -283,7 +289,7 @@ export async function chatCompletionTextMotor(
     const result = (text && "text" in text ? text.text : "").trim();
     if (shouldTrack && result) {
       const { trackAIUsage } = await import("./tracking");
-      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, creditsConsumed: 2.0 }).catch(() => { });
+      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, creditsConsumed: 2.0, uso: { model, tokensIn: resp.usage?.input_tokens, tokensOut: resp.usage?.output_tokens, durationMs: Date.now() - inicio } }).catch(() => { });
     }
     if (shouldCache && result) aiCache.set(engine, messages, result);
     return result;
@@ -301,7 +307,7 @@ export async function chatCompletionTextMotor(
     const textResult = (resp.text() || "").trim();
     if (shouldTrack && textResult) {
       const { trackAIUsage } = await import("./tracking");
-      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source }).catch(() => { });
+      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, uso: { model: "gemini-2.0-flash", tokensIn: resp.usageMetadata?.promptTokenCount, tokensOut: resp.usageMetadata?.candidatesTokenCount, durationMs: Date.now() - inicio } }).catch(() => { });
     }
     if (shouldCache && textResult) aiCache.set(engine, messages, textResult);
     return textResult;

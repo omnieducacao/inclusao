@@ -32,9 +32,27 @@ interface ConsolidacaoData {
     pei_disciplinas?: Array<Record<string, unknown>>;
 }
 
+/** O que fica guardado no PEI quando a coordenação junta as disciplinas (10/10/2026). */
+export type RegistroConsolidacao = {
+    em: string;
+    disciplinas: Array<{ disciplina: string; professor: string; nivel: number | null; metas: string[]; adaptacoes: string }>;
+};
+
 interface Props {
     studentId: string | null;
+    /** quando as disciplinas já foram juntadas ao PEI */
+    consolidadoEm?: string | null;
+    onConsolidar?: (r: RegistroConsolidacao) => void;
 }
+
+const textoDe = (v: unknown): string => {
+    if (typeof v === "string") return v.trim();
+    if (v && typeof v === "object") {
+        const o = v as Record<string, unknown>;
+        for (const k of ["descricao", "meta", "texto", "titulo", "objetivo"]) if (typeof o[k] === "string" && (o[k] as string).trim()) return (o[k] as string).trim();
+    }
+    return "";
+};
 
 // Onda 15: estado de cada disciplina com os chips do design system
 const TOM_DA_FASE: Record<FaseStatusPEIDisciplina, string> = {
@@ -44,7 +62,7 @@ const TOM_DA_FASE: Record<FaseStatusPEIDisciplina, string> = {
     concluido: "omni-estado--sucesso",
 };
 
-export function PEIConsolidacao({ studentId }: Props) {
+export function PEIConsolidacao({ studentId, consolidadoEm, onConsolidar }: Props) {
     const [data, setData] = useState<ConsolidacaoData | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -150,14 +168,39 @@ export function PEIConsolidacao({ studentId }: Props) {
                 </div>
             </section>
 
-            {c.pode_consolidar && (
-                <div className="omni-aviso omni-aviso--sucesso">
-                    <div>
-                        <div className="omni-aviso__titulo">Todas as disciplinas concluídas</div>
-                        <div className="omni-aviso__texto">O PEI está completo. Para o documento oficial, use o botão Baixar, no topo do PEI.</div>
+            {c.pode_consolidar && (() => {
+                // 10/10/2026: a consolidação passa a fechar o PEI: as disciplinas entram no PEI (salvo e versionado com ele)
+                const mudouDepois = Boolean(consolidadoEm && resumo.some((d) => (d as ResumoDisc & { updated_at?: string }).updated_at && String((d as ResumoDisc & { updated_at?: string }).updated_at) > consolidadoEm));
+                const juntar = () => onConsolidar?.({
+                    em: new Date().toISOString(),
+                    disciplinas: resumo.map((d) => {
+                        const dados = ((discMap.get(d.disciplina)?.pei_disciplina_data || {}) as Record<string, unknown>);
+                        const metas = Array.isArray(dados.metas_smart) ? (dados.metas_smart as unknown[]).map(textoDe).filter(Boolean) : [];
+                        return { disciplina: d.disciplina, professor: d.professor_regente, nivel: d.nivel_omnisfera, metas, adaptacoes: textoDe(dados.adaptacoes) };
+                    }),
+                });
+                return (
+                    <div className="omni-aviso omni-aviso--sucesso">
+                        <div>
+                            <div className="omni-aviso__titulo">
+                                {consolidadoEm ? `PEI consolidado em ${new Date(consolidadoEm).toLocaleDateString("pt-BR")}` : "Todas as disciplinas concluídas"}
+                            </div>
+                            <div className="omni-aviso__texto">
+                                {consolidadoEm
+                                    ? (mudouDepois ? "Alguma disciplina mudou depois disso. Junte de novo para o PEI ficar com a versão mais recente." : "As disciplinas já fazem parte do PEI. O documento oficial sai pelo botão Baixar, no topo do PEI.")
+                                    : "Junte o que cada professor fez ao PEI: as metas e adaptações das disciplinas passam a fazer parte do documento."}
+                            </div>
+                            {onConsolidar && (!consolidadoEm || mudouDepois) && (
+                                <div className="omni-aviso__acoes">
+                                    <button type="button" className="omni-btn omni-btn--primario omni-btn--pequeno" onClick={juntar}>
+                                        {consolidadoEm ? "Juntar de novo" : "Juntar as disciplinas ao PEI"}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
+                );
+            })()}
 
             {error && <div className="omni-aviso omni-aviso--erro" role="alert"><div><div className="omni-aviso__texto">{error}</div></div></div>}
 
