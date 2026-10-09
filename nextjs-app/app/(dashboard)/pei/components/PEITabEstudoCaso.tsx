@@ -85,7 +85,7 @@ export function PEITabEstudoCaso({ peiData, updateField, toggleChecklist, hiperf
         <h3 className="text-lg font-semibold text-slate-800">Estudo de caso</h3>
         <p className="text-sm text-slate-600 mt-1 max-w-[65ch]">
           É a etapa que vem antes do PEI: a equipe conversa sobre o estudante e decide os apoios. O PEI sai das conclusões
-          daqui. Nenhum laudo é exigido; o diagnóstico, se houver, é só mais uma informação.
+          daqui. Se o estudante tem laudo, ele entra aqui e ajuda a equipe a entender o caso; só não pode ser condição para o apoio.
         </p>
       </div>
 

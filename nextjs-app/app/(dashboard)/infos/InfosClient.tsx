@@ -58,7 +58,7 @@ const EVITE: { termo: string; porque: string }[] = [
 
 const CICLO: { passo: string; tela: string; href: string; faz: string }[] = [
   { passo: "Conhecer", tela: "Estudantes", href: "/estudantes", faz: "Cadastro e ficha do estudante: turma, situação do PEI e tudo o que já foi feito com ele." },
-  { passo: "Estudo de caso e PEI", tela: "PEI", href: "/pei", faz: "Quatro etapas: estudo de caso, plano, professores e revisão. Nenhum laudo é exigido." },
+  { passo: "Estudo de caso e PEI", tela: "PEI", href: "/pei", faz: "Quatro etapas: estudo de caso, plano, professores e revisão. O laudo, quando o estudante tem, entra no estudo de caso." },
   { passo: "Atendimento", tela: "PAEE", href: "/paee", faz: "O AEE em ciclos: avaliação e adaptação, desenvolvimento e consolidação, com metas do PEI." },
   { passo: "Sala de aula", tela: "PEI do professor e Hub de recursos", href: "/hub", faz: "Cada professor lê o PEI, dá ciência e cria material adaptado a partir do estudante." },
   { passo: "Registro", tela: "Diário de bordo", href: "/diario", faz: "O que aconteceu em cada atendimento, em poucos toques." },
@@ -117,7 +117,7 @@ export default function InfosClient() {
                 <li>Todo estudante com deficiência, com autismo ou com altas habilidades/superdotação tem direito de estudar na <strong>classe comum</strong>, com os apoios de que precisa.</li>
                 <li>A matrícula <strong>não pode ser recusada nem cobrada à parte</strong>, nem na escola privada (LBI, art. 28; STF, ADI 5357).</li>
                 <li>O <strong>AEE</strong> (Atendimento Educacional Especializado) complementa ou suplementa a escolarização; não substitui a sala comum.</li>
-                <li><strong>Nenhum laudo</strong> pode ser exigido para o AEE, o profissional de apoio, a matrícula ou a escolarização.</li>
+                <li>O <strong>laudo</strong>, quando o estudante tem, é informação valiosa para o estudo de caso; o que a lei proíbe é <strong>exigir</strong> laudo para o AEE, o profissional de apoio, a matrícula ou a escolarização.</li>
                 <li>Desde 2025, o <strong>estudo de caso</strong> é a porta de entrada, e o <strong>PAEE</strong> e o <strong>PEI</strong> são obrigatórios.</li>
               </ul>
               <p className="omni-apoio" style={{ margin: 0 }}>
