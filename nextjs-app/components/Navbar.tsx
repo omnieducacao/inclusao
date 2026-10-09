@@ -145,7 +145,7 @@ function getNavItems(icons: ReturnType<typeof loadNavIcons> extends Promise<infe
     { href: "/diario", label: "Diário", icon: icons.BookOpen, permission: "can_diario", group: "modules" },
     { href: "/avaliacao-diagnostica", label: "Avaliação Diagnóstica", icon: icons.Exam, permission: "can_pei_professor", group: "modules" },
     { href: "/avaliacao-processual", label: "Avaliação Processual", icon: icons.ChartLineUp, permission: "can_pei_professor", group: "modules" },
-    { href: "/pei-regente", label: "PEI - Professor", icon: icons.BookOpen, permission: "can_pei_professor", group: "modules" },
+    { href: "/pei-regente", label: "PEI do professor", icon: icons.BookOpen, permission: "can_pei_professor", group: "modules" },
     { href: "/plano-curso", label: "Plano de ensino", icon: icons.BookBookmark, permission: "can_pei_professor", group: "modules" },
     { href: "/hub", label: "Hub", icon: icons.RocketLaunch, permission: "can_hub", group: "modules" },
     { href: "/monitoramento", label: "Evolução & Dados", icon: icons.ChartLineUp, permission: "can_avaliacao", group: "modules" },

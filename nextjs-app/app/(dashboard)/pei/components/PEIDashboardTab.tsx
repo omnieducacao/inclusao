@@ -16,7 +16,6 @@ import { Card, CardHeader, CardTitle, CardContent, Button } from "@omni/ds";
 import { NivelSuporteRange } from "./NivelSuporteRange";
 import { BarreirasDominio } from "./BarreirasDominio";
 import { InteligenciaDoCaso } from "./InteligenciaDoCaso";
-import { PeiExportPdfButton, PeiExportPdfOficialButton, PeiExportDocxButton } from "./PEIExportButtons";
 import {
   calcularIdade,
   getHiperfocoEmoji,

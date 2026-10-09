@@ -17,10 +17,9 @@ export function PdfDownloadButton({ text, filename, title, formatoInclusivo, cla
     <button
       type="button"
       onClick={() => downloadPdfFromText(text, filename, title, { formatoInclusivo })}
-      aria-label="Baixar PDF"
-      className={className ?? "px-3 py-1.5 text-sm bg-cyan-100 text-cyan-800 rounded-lg hover:bg-cyan-200"}
+            className={className ?? "omni-btn omni-btn--secundario omni-btn--pequeno"}
     >
-      {children ?? "📥 Baixar PDF"}
+      {children ?? "Baixar em PDF"}
     </button>
   );
 }

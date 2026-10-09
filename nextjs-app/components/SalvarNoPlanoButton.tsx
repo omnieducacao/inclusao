@@ -12,7 +12,7 @@ type Plano = { id: string; disciplina: string; ano_serie: string; bimestre?: str
 export function SalvarNoPlanoButton({
   conteudo,
   tipo,
-  className = "px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm",
+  className = "omni-btn omni-btn--secundario omni-btn--pequeno",
 }: {
   conteudo: string;
   tipo?: string;
@@ -69,46 +69,48 @@ export function SalvarNoPlanoButton({
   return (
     <>
       <button type="button" onClick={abrir} className={className}>
-        aria-label="Salvar"
-        Salvar no Plano
+        Salvar no plano de ensino
       </button>
       {aberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => !salvando && setAberto(false)}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "grid", placeItems: "center", padding: 16, background: "rgb(16 26 46 / .45)" }} onClick={() => !salvando && setAberto(false)}>
           <div
             ref={focusTrapRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="salvar-plano-title"
-            className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4"
+           
+            style={{ width: "min(460px, 100%)", display: "grid", gap: 14, padding: 24, borderRadius: "var(--o-radius-lg)", background: "var(--superficie)", boxShadow: "var(--sombra-2)" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 id="salvar-plano-title" className="text-lg font-semibold text-slate-800 mb-4">Salvar no Plano de Ensino</h3>
-            {loading && <p className="text-slate-600">Carregando planos…</p>}
-            {erro && <p className="text-red-600 text-sm mb-3">{erro}</p>}
-            {sucesso && <p className="text-emerald-600 text-sm mb-3">Salvo com sucesso!</p>}
+            <h3 id="salvar-plano-title" style={{ margin: 0, font: "800 20px/26px var(--font-sans)", color: "var(--tinta)" }}>Salvar no plano de ensino</h3>
+            {loading && <p className="omni-apoio" role="status" style={{ margin: 0 }}>Carregando os planos…</p>}
+            {erro && <div className="omni-aviso omni-aviso--erro" role="alert"><div><div className="omni-aviso__texto">{erro}</div></div></div>}
+            {sucesso && <div className="omni-aviso omni-aviso--sucesso" role="status"><div><div className="omni-aviso__texto">Salvo no plano.</div></div></div>}
             {!loading && planos.length === 0 && !erro && (
-              <p className="text-slate-600 text-sm">Nenhum plano de ensino encontrado. Crie um em Plano de ensino primeiro.</p>
+              <p className="omni-apoio" style={{ margin: 0 }}>Nenhum plano de ensino ainda. Crie um em Plano de ensino e volte aqui.</p>
             )}
             {!loading && planos.length > 0 && (
-              <ul className="space-y-2 max-h-64 overflow-y-auto">
-                {planos.map((p) => (
-                  <li key={p.id}>
-                    <button
-                      aria-label="Salvar"
-                      type="button"
-                      onClick={() => salvar(p.id)}
-                      disabled={salvando}
-                      className="w-full text-left px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50"
-                    >
-                      {p.disciplina} — {p.ano_serie}
-                      {p.bimestre ? ` (${p.bimestre})` : ""}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <>
+                <p className="omni-apoio" style={{ margin: 0 }}>Escolha o plano:</p>
+                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8, maxHeight: 280, overflowY: "auto" }}>
+                  {planos.map((p) => (
+                    <li key={p.id}>
+                      <button
+                        type="button"
+                        onClick={() => salvar(p.id)}
+                        disabled={salvando}
+                        className="omni-btn omni-btn--secundario"
+                        style={{ width: "100%", justifyContent: "flex-start", whiteSpace: "normal", textAlign: "left" }}
+                      >
+                        {p.disciplina} · {p.ano_serie}{p.bimestre ? ` · ${p.bimestre}` : ""}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
-            <div className="mt-4 flex justify-end">
-              <button type="button" onClick={() => setAberto(false)} disabled={salvando} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg" aria-label="Fechar modal de salvar no plano">
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button type="button" onClick={() => setAberto(false)} disabled={salvando} className="omni-btn omni-btn--discreto">
                 Fechar
               </button>
             </div>

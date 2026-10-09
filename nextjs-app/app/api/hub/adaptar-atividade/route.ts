@@ -10,6 +10,7 @@ import { anonymizeText } from "@/lib/ai-anonymize";
 import { saveHubGeneratedContent, PROMPT_VERSION_HUB } from "@/lib/hub-tracking";
 import { enriquecerComPei, type ContextoPei } from "@/lib/ferramentas/contexto-pei";
 import { logger } from "@/lib/logger";
+import { separarAnalise } from "@/lib/ferramentas/separar-analise";
 
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB
 const MAX_VISION_BYTES = 3 * 1024 * 1024; // 3MB (limite para APIs de visão)
@@ -207,14 +208,9 @@ export async function POST(req: Request) {
     // LGPD: restaurar nomes reais na resposta
     fullText = restore(fullText);
 
-    let analise = "Análise indisponível.";
-    let atividade = fullText;
-
-    if (fullText.includes("---DIVISOR---")) {
-      const parts = fullText.split("---DIVISOR---");
-      analise = parts[0].replace("[ANÁLISE PEDAGÓGICA]", "").trim();
-      atividade = parts[1].replace("[ATIVIDADE]", "").trim();
-    }
+    const separado = separarAnalise(fullText);
+    const analise = separado.analise || "Análise indisponível.";
+    let atividade = separado.material;
 
     // Aplicar garantir_tag_imagem se houver imagem separada (Passo 2)
     if (temImagemSeparada) {

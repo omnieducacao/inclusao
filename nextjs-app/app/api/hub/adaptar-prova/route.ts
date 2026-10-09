@@ -9,6 +9,7 @@ import { anonymizeMessages } from "@/lib/ai-anonymize";
 import { saveHubGeneratedContent, PROMPT_VERSION_HUB } from "@/lib/hub-tracking";
 import { enriquecerComPei, type ContextoPei } from "@/lib/ferramentas/contexto-pei";
 import { logger } from "@/lib/logger";
+import { separarAnalise } from "@/lib/ferramentas/separar-analise";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -114,14 +115,9 @@ export async function POST(req: Request) {
       anonymized,
       { temperature: modoProfundo ? 0.7 : 0.4 }
     ));
-    let analise = "Análise indisponível.";
-    let atividade = fullText;
-
-    if (fullText.includes("---DIVISOR---")) {
-      const parts = fullText.split("---DIVISOR---");
-      analise = parts[0].replace("[ANÁLISE PEDAGÓGICA]", "").trim();
-      atividade = parts[1].replace("[ATIVIDADE]", "").trim();
-    }
+    const separado = separarAnalise(fullText);
+    const analise = separado.analise || "Análise indisponível.";
+    const atividade = separado.material;
 
     const wsId = session?.simulating_workspace_id || session?.workspace_id;
     if (wsId) {

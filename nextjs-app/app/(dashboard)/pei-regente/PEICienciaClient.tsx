@@ -1,5 +1,7 @@
 "use client";
 
+import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
+
 /**
  * PEI do professor: ler e dar ciência (onda 2; onda 13 vale também no modo completo).
  * A coordenação faz um PEI único; cada professor lê o PEI dos seus estudantes, leva as
@@ -147,8 +149,8 @@ export function PEICienciaClient() {
                       <Lista titulo="Na avaliação" itens={i.estrategias_avaliacao} />
                     </div>
                     {i.texto_pei && (
-                      <div className="min-w-0" style={{ maxHeight: "50vh", overflowY: "auto", padding: "var(--space-4)", borderRadius: "var(--o-radius-md)", background: "var(--superficie)", border: "1px solid var(--borda)", whiteSpace: "pre-wrap", font: "400 15px/24px var(--font-sans)", color: "var(--tinta)" }}>
-                        {i.texto_pei}
+                      <div className="min-w-0" style={{ maxHeight: "50vh", overflowY: "auto", padding: "var(--space-4)", borderRadius: "var(--o-radius-md)", background: "var(--superficie)", border: "1px solid var(--borda)", font: "400 15px/24px var(--font-sans)", color: "var(--tinta)" }}>
+                        <FormattedTextDisplay texto={i.texto_pei} />
                       </div>
                     )}
                     <div className="flex flex-wrap items-center gap-3">

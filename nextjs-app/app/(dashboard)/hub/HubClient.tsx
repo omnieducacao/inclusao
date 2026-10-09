@@ -44,6 +44,8 @@ type StudentFull = Student & {
 };
 
 type Props = {
+  /** cabeçalho da página; some quando uma ferramenta está aberta (a ferramenta tem o dela) */
+  cabecalho?: React.ReactNode;
   students: Student[];
   studentId: string | null;
   student: StudentFull | null;
@@ -93,7 +95,7 @@ function ToolCard({ tool, onClick }: { tool: { id: string; icon: LucideIcon; tit
 
 const TODAS_IDS = ["criar-zero", "criar-itens", "criar-experiencia", "papo-mestre", "plano-aula", "adaptar-prova", "adaptar-atividade", "estudio-visual", "roteiro", "dinamica", "rotina-avd", "inclusao-brincar"];
 
-export function HubClient({ students, studentId, student }: Props) {
+export function HubClient({ cabecalho, students, studentId, student }: Props) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -141,6 +143,7 @@ export function HubClient({ students, studentId, student }: Props) {
 
   return (
     <div className="space-y-6">
+      {!activeTool && cabecalho}
       {currentId && student ? (
         <CabecalhoEstudante students={students} student={{ ...student, pei_data: peiData }} />
       ) : (

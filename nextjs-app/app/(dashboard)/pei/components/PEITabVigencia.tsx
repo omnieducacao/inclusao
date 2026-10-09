@@ -217,7 +217,7 @@ export function PEITabVigencia({ peiData, updateField, currentStudentId, usuario
             </div>
           )}
           <p className="text-xs text-slate-500">
-            Os professores veem o PEI em “PEI - Professor” e clicam em “Li e estou ciente”. A lista considera quem tem o
+            Os professores veem o PEI em “PEI do professor” e clicam em “Li e estou ciente”. A lista considera quem tem o
             estudante no seu vínculo (turma ou um a um).
           </p>
         </div>

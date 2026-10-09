@@ -19,42 +19,26 @@ export function MemberSimulationBanner({ session }: { session: SessionPayload })
                 router.push("/gestao");
                 router.refresh();
             } else {
-                alert("Erro ao encerrar simulação.");
+                setEnding(false);
             }
         } catch {
-            alert("Erro ao encerrar simulação.");
+            setEnding(false);
         } finally {
             setEnding(false);
         }
     }
 
+    // Onda 15: faixa no design system (antes era um degradê roxo); a cor de noite separa bem do app
     return (
-        <div className="sticky top-0 z-[60] bg-linear-to-r from-purple-500 via-violet-500 to-purple-500 text-white shadow-lg">
-            <div className="max-w-[1920px] mx-auto px-5 py-2.5 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
-                        <Eye className="w-4 h-4" />
-                    </div>
-                    <div>
-                        <span className="text-sm font-bold">Simulando Membro</span>
-                        <span className="mx-2 opacity-60">·</span>
-                        <span className="text-sm font-medium opacity-90">
-                            {session.simulating_member_name}
-                        </span>
-                    </div>
-                </div>
-                <button
-                    onClick={handleEnd}
-                    disabled={ending}
-                    aria-label="Sair da simulação de membro"
-                    className="flex items-center gap-2 px-4 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
-                >
-                    {ending ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                        <X className="w-4 h-4" />
-                    )}
-                    Encerrar simulação
+        <div role="status" style={{ position: "sticky", top: 0, zIndex: 60, background: "var(--noite)", color: "var(--sobre-noite)", borderBottom: "3px solid var(--encontro-roxo)" }}>
+            <div style={{ maxWidth: 1920, margin: "0 auto", padding: "8px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                <p style={{ margin: 0, display: "flex", alignItems: "center", gap: 10, font: "600 14px/20px var(--font-sans)" }}>
+                    <Eye aria-hidden style={{ width: 18, height: 18 }} />
+                    <span>Você está vendo a Omnisfera como <strong style={{ color: "#fff" }}>{session.simulating_member_name}</strong>. O que você fizer aqui fica registrado como dessa pessoa.</span>
+                </p>
+                <button type="button" onClick={handleEnd} disabled={ending} className="omni-btn omni-btn--pequeno" style={{ background: "#fff", color: "var(--noite)" }}>
+                    {ending ? <Loader2 aria-hidden className="animate-spin" /> : <X aria-hidden />}
+                    Voltar para a minha conta
                 </button>
             </div>
         </div>

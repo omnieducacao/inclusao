@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import {
-    Send, Users, BookOpen, CheckCircle2,
-    Loader2, Trash2, Sparkles, AlertTriangle,
-} from "lucide-react";
+import { Send, BookOpen, Trash2, RefreshCw } from "lucide-react";
+import { useConfirmar } from "@/components/Confirmar";
 import { FASE_STATUS_LABELS, type FaseStatusPEIDisciplina } from "@/lib/omnisfera-types";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -33,11 +31,12 @@ interface Props {
     isEditing?: boolean;
 }
 
-const STATUS_COLORS: Record<FaseStatusPEIDisciplina, string> = {
-    plano_ensino: "var(--color-warning, #f59e0b)",
-    diagnostica: "var(--color-info, #3b82f6)",
-    pei_disciplina: "var(--color-primary, #8b5cf6)",
-    concluido: "var(--color-success, #10b981)",
+// Onda 15: estado de cada disciplina com os chips do design system
+const TOM_DA_FASE: Record<FaseStatusPEIDisciplina, string> = {
+    plano_ensino: "omni-estado--atencao",
+    diagnostica: "omni-estado--info",
+    pei_disciplina: "omni-estado--info",
+    concluido: "omni-estado--sucesso",
 };
 
 // ─── Componente ───────────────────────────────────────────────────────────────
@@ -48,6 +47,7 @@ export function PEIFase2Regentes({ studentId, studentName, studentGrade, student
     const [sending, setSending] = useState(false);
     const [removing, setRemoving] = useState<string | null>(null);
     const [error, setError] = useState("");
+    const { confirmar, dialogo } = useConfirmar();
 
     // Preview: professores detectados da turma
     const [preview, setPreview] = useState<Array<{ name: string; component: string }>>([]);
@@ -125,7 +125,7 @@ export function PEIFase2Regentes({ studentId, studentName, studentGrade, student
 
     const desvincular = async (disc: DisciplinaRegente) => {
         if (!disc.id || !studentId) return;
-        if (!confirm(`Desvincular ${disc.disciplina} (${disc.professor_regente_nome})?`)) return;
+        if (!(await confirmar({ titulo: `Tirar ${disc.disciplina} do PEI?`, texto: `${disc.professor_regente_nome} deixa de ver este PEI na disciplina.`, acao: "Tirar", cancelar: "Manter", perigo: true }))) return;
         setRemoving(disc.id);
         try {
             const res = await fetch("/api/pei/enviar-regentes", {
@@ -146,211 +146,107 @@ export function PEIFase2Regentes({ studentId, studentName, studentGrade, student
         }
     };
 
-    // ─── Empty state ──────────────────────────────────────────────────────────
+    // ─── Sem estudante salvo ──────────────────────────────────────────────────
 
     if (!studentId) {
         return (
-            <div style={{ padding: 24, textAlign: "center", color: "#94a3b8" }}>
-                <Users size={48} style={{ margin: "0 auto 12px", opacity: 0.5 }} />
-                <p>Selecione e salve um estudante para enviar o PEI para os professores regentes.</p>
+            <div className="omni-vazio" style={{ textAlign: "center" }}>
+                <p className="omni-vazio__titulo">Salve o PEI primeiro</p>
+                <p className="omni-vazio__texto">Depois de salvo, dá para enviar o PEI aos professores da turma.</p>
                 {needsSaveFirst && onSave && (
-                    <button
-                        onClick={onSave}
-                        disabled={externalSaving}
-                        aria-label="Salvar plano"
-                        style={{
-                            marginTop: 12, padding: "10px 20px", borderRadius: 10,
-                            background: "linear-gradient(135deg, #7c3aed, #8b5cf6)",
-                            color: "#fff", border: "none", cursor: externalSaving ? "wait" : "pointer",
-                            fontWeight: 700, fontSize: 14,
-                        }}
-                    >
-                        {externalSaving ? "Salvando..." : "☁️ Salvar PEI primeiro"}
+                    <button type="button" className="omni-btn omni-btn--primario" onClick={onSave} disabled={externalSaving}>
+                        {externalSaving ? "Salvando…" : "Salvar o PEI"}
                     </button>
                 )}
             </div>
         );
     }
 
-    // ─── Render ───────────────────────────────────────────────────────────────
+    // ─── Tela ────────────────────────────────────────────────────────────────
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-            {/* Header */}
-            <div style={{
-                background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
-                borderRadius: 16, padding: "20px 24px", color: "#fff",
-            }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                    <Users size={22} />
-                    <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>
-                        Professores Regentes
-                    </h3>
-                </div>
-                <p style={{ margin: 0, fontSize: 14, opacity: 0.9 }}>
-                    Vincule o PEI de <strong>{studentName}</strong> aos professores da turma.
-                    Cada professor receberá acesso para elaborar o PEI da sua disciplina.
+        <div style={{ display: "grid", gap: 20 }}>
+            {dialogo}
+            <div>
+                <h3 style={{ margin: 0, font: "800 20px/26px var(--font-sans)", color: "var(--tinta)" }}>Professores da turma</h3>
+                <p className="omni-apoio" style={{ margin: "4px 0 0", maxWidth: "65ch" }}>
+                    Cada professor recebe o PEI de {studentName}, lê, dá ciência e faz a parte da disciplina dele.
                 </p>
             </div>
 
-            {/* Professores detectados (preview) */}
-            {disciplinas.length === 0 && (
-                <div style={{
-                    background: "rgba(16,185,129,.06)", borderRadius: 14, padding: 20,
-                    border: "1px solid rgba(16,185,129,.2)",
-                }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                        <Sparkles size={18} style={{ color: "#10b981" }} />
-                        <h4 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>
-                            Professores detectados na turma
-                        </h4>
-                    </div>
-
+            {disciplinas.length === 0 && !loading && (
+                <section className="omni-cartao omni-cartao--plano" style={{ display: "grid", gap: 14 }} aria-label="Professores encontrados na turma">
                     {previewLoading ? (
-                        <p style={{ fontSize: 13, color: "#94a3b8" }}>
-                            <Loader2 size={14} className="animate-spin" style={{ verticalAlign: "middle", marginRight: 6 }} />
-                            Buscando professores vinculados...
-                        </p>
+                        <p className="omni-apoio" role="status" style={{ margin: 0 }}>Procurando os professores da turma…</p>
                     ) : preview.length > 0 ? (
-                        <div style={{ marginBottom: 16 }}>
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+                        <>
+                            <p style={{ margin: 0, font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>
+                                {preview.length === 1 ? "1 professor encontrado" : `${preview.length} professores encontrados`} na turma {studentGrade}{studentClass ? ` · ${studentClass}` : ""}
+                            </p>
+                            <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexWrap: "wrap", gap: 8 }}>
                                 {preview.map((t, i) => (
-                                    <div key={i} style={{
-                                        padding: "8px 14px", borderRadius: 10,
-                                        background: "rgba(99,102,241,.08)", border: "1px solid rgba(99,102,241,.15)",
-                                        fontSize: 13, color: "var(--text-primary, #334155)",
-                                    }}>
-                                        <strong>{t.name}</strong>
-                                        <span style={{ opacity: 0.6, marginLeft: 6 }}>• {t.component}</span>
-                                    </div>
+                                    <li key={i} className="omni-estado"><strong style={{ color: "var(--tinta)" }}>{t.name}</strong>&nbsp;· {t.component}</li>
                                 ))}
-                            </div>
-                            <button
-                                onClick={vincularTodos}
-                                disabled={sending}
-                                aria-label="Vincular todos os planos"
-                                style={{
-                                    width: "100%", padding: "12px 20px", borderRadius: 12,
-                                    background: "linear-gradient(135deg, #059669, #10b981)",
-                                    color: "#fff", border: "none",
-                                    cursor: sending ? "wait" : "pointer",
-                                    fontWeight: 700, fontSize: 15, display: "flex",
-                                    alignItems: "center", justifyContent: "center", gap: 8,
-                                }}
-                            >
-                                {sending ? (
-                                    <><Loader2 size={18} className="animate-spin" /> Vinculando...</>
-                                ) : (
-                                    <><Send size={18} /> Vincular todos os professores ({preview.length})</>
-                                )}
+                            </ul>
+                            <button type="button" className="omni-btn omni-btn--primario" style={{ justifySelf: "start" }} onClick={vincularTodos} disabled={sending}>
+                                <Send aria-hidden /> {sending ? "Enviando…" : `Enviar o PEI para ${preview.length === 1 ? "o professor" : `os ${preview.length} professores`}`}
                             </button>
-                        </div>
+                        </>
                     ) : (
-                        <div style={{ fontSize: 13, color: "#94a3b8" }}>
-                            <AlertTriangle size={14} style={{ verticalAlign: "middle", marginRight: 6, color: "#f59e0b" }} />
-                            Nenhum professor vinculado a esta turma. Cadastre professores com componentes curriculares em{" "}
-                            <strong>Gestão de Usuários</strong>.
+                        <div className="omni-aviso omni-aviso--atencao">
+                            <div>
+                                <div className="omni-aviso__texto">Nenhum professor ligado a esta turma ainda. Ligue os professores às turmas e aos componentes em Equipe e papéis.</div>
+                                <div className="omni-aviso__acoes"><a className="omni-btn omni-btn--secundario omni-btn--pequeno" href="/gestao">Abrir Equipe e papéis</a></div>
+                            </div>
                         </div>
                     )}
-                </div>
+                </section>
             )}
 
-            {/* Cards de disciplinas vinculadas */}
             {disciplinas.length > 0 && (
-                <div>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                        <h4 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>
-                            Disciplinas vinculadas ({disciplinas.length})
-                        </h4>
-                        <button
-                            onClick={vincularTodos}
-                            disabled={sending}
-                            aria-label="Vincular todos os planos"
-                            style={{
-                                padding: "6px 14px", borderRadius: 8,
-                                background: "rgba(16,185,129,.1)", border: "1px solid rgba(16,185,129,.2)",
-                                color: "#059669", fontSize: 13, fontWeight: 600,
-                                cursor: sending ? "wait" : "pointer",
-                                display: "flex", alignItems: "center", gap: 6,
-                            }}
-                        >
-                            <Sparkles size={14} />
-                            {sending ? "Detectando..." : "+ Detectar novos"}
+                <section style={{ display: "grid", gap: 12 }} aria-label="Disciplinas com o PEI">
+                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                        <p style={{ margin: 0, font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>
+                            {disciplinas.length === 1 ? "1 disciplina recebeu o PEI" : `${disciplinas.length} disciplinas receberam o PEI`}
+                        </p>
+                        <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" onClick={vincularTodos} disabled={sending}>
+                            <RefreshCw aria-hidden /> {sending ? "Procurando…" : "Procurar professores novos"}
                         </button>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-3" style={{ listStyle: "none", margin: 0, padding: 0 }}>
                         {disciplinas.map((d) => {
                             const status = (d.fase_status || "plano_ensino") as FaseStatusPEIDisciplina;
-                            const color = STATUS_COLORS[status] || "#94a3b8";
                             const isRemoving = removing === d.id;
                             return (
-                                <div
-                                    key={d.id || d.disciplina}
-                                    style={{
-                                        background: "var(--bg-tertiary, #f8fafc)", borderRadius: 12,
-                                        padding: "16px 18px", border: `2px solid ${color}33`,
-                                        transition: "all .2s", position: "relative",
-                                    }}
-                                >
-                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                                        <span
-                                            onClick={() => onDisciplinaSelect?.(d.disciplina)}
-                                            style={{
-                                                fontWeight: 600, fontSize: 15, color: "var(--text-primary, #1e293b)",
-                                                cursor: onDisciplinaSelect ? "pointer" : "default",
-                                            }}
-                                        >
-                                            {d.disciplina}
-                                        </span>
-                                        <span style={{
-                                            fontSize: 11, padding: "2px 8px", borderRadius: 20,
-                                            background: `${color}15`, color, fontWeight: 600,
-                                        }}>
-                                            {FASE_STATUS_LABELS[status] || status}
-                                        </span>
+                                <li key={d.id || d.disciplina} className="omni-cartao omni-cartao--plano" style={{ display: "grid", gap: 8, padding: "14px 16px" }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                                        {onDisciplinaSelect ? (
+                                            <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" style={{ padding: 0, minHeight: 0, font: "800 16px/22px var(--font-sans)" }} onClick={() => onDisciplinaSelect(d.disciplina)}>{d.disciplina}</button>
+                                        ) : (
+                                            <strong style={{ font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>{d.disciplina}</strong>
+                                        )}
+                                        <span className={`omni-estado ${TOM_DA_FASE[status] || ""}`}>{FASE_STATUS_LABELS[status] || status}</span>
                                     </div>
-                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-muted, #64748b)" }}>
-                                            <BookOpen size={14} />
-                                            {d.professor_regente_nome}
-                                        </div>
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); desvincular(d); }}
-                                            disabled={isRemoving}
-                                            title="Desvincular"
-                                            style={{
-                                                background: "none", border: "none",
-                                                color: isRemoving ? "#94a3b8" : "#ef4444",
-                                                cursor: isRemoving ? "wait" : "pointer",
-                                                padding: 4, borderRadius: 6,
-                                            }}
-                                        >
-                                            {isRemoving ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                                        <span className="omni-apoio" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                                            <BookOpen aria-hidden style={{ width: 16, height: 16 }} /> {d.professor_regente_nome}
+                                        </span>
+                                        <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno omni-btn--icone" onClick={() => desvincular(d)} disabled={isRemoving} aria-label={`Tirar ${d.disciplina}`} title="Tirar esta disciplina">
+                                            <Trash2 aria-hidden />
                                         </button>
                                     </div>
-                                </div>
+                                </li>
                             );
                         })}
-                    </div>
-                </div>
+                    </ul>
+                </section>
             )}
 
             {error && (
-                <div style={{
-                    display: "flex", alignItems: "center", gap: 8,
-                    padding: "10px 14px", borderRadius: 10,
-                    background: "rgba(239,68,68,.08)", color: "#ef4444", fontSize: 13,
-                    border: "1px solid rgba(239,68,68,.15)",
-                }}>
-                    <AlertTriangle size={16} /> {error}
-                </div>
+                <div className="omni-aviso omni-aviso--erro" role="alert"><div><div className="omni-aviso__texto">{error}</div></div></div>
             )}
 
-            {loading && (
-                <div style={{ textAlign: "center", padding: 20 }}>
-                    <Loader2 size={24} className="animate-spin" style={{ color: "#6366f1" }} />
-                </div>
-            )}
+            {loading && <p className="omni-apoio" role="status">Carregando…</p>}
         </div>
     );
 }

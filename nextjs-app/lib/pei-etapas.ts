@@ -85,7 +85,9 @@ export function estadoDasEtapas(pei: Record<string, unknown>, hoje: string): Rec
   const valeu = Boolean(vig && vig.versao > 0);
   const revisoes = Array.isArray(pei.revisoes) ? pei.revisoes.length : 0;
 
-  const e1: EstadoEtapa = ec.concluido_em ? { feito: true, texto: "Concluído" }
+  // PEIs anteriores à marcação "concluído" do estudo de caso: se o PEI já foi validado ou já valeu,
+  // o estudo de caso ficou para trás (antes aparecia "Preenchendo" num PEI vigente).
+  const e1: EstadoEtapa = ec.concluido_em || validado || valeu ? { feito: true, texto: "Concluído" }
     : preenchido(pei.estudo_caso) || preenchido(pei.barreiras_selecionadas) ? { feito: false, texto: "Preenchendo" }
     : { feito: false, texto: "A fazer" };
   const e2: EstadoEtapa = validado || valeu ? { feito: true, texto: "Concluído" }

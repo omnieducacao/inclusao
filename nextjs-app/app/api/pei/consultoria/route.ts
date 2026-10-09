@@ -160,7 +160,7 @@ Use Markdown simples. Use títulos H3 (###). Evite tabelas.
 
 ESTRUTURA OBRIGATÓRIA:
 
-[PERFIL_NARRATIVO] Inicie com "👤 QUEM É O ESTUDANTE?". Parágrafo humanizado incluindo diagnóstico, hiperfoco, potências e nível de desenvolvimento. ${hiperfocoTxt}. [/PERFIL_NARRATIVO]
+[PERFIL_NARRATIVO] Inicie com "👤 QUEM É O ESTUDANTE?". Parágrafo humanizado incluindo diagnóstico, hiperfoco, potências e nível de desenvolvimento. ${hiperfocoTxt}. Não presuma o gênero: concorde com o nome do estudante e, na dúvida, use o nome e frases sem marca de gênero. [/PERFIL_NARRATIVO]
 
 ### 1. 🏥 DIAGNÓSTICO E IMPACTO: Cite diagnóstico (e CID se disponível), impactos na aprendizagem, cuidados.
 ${detalhesDiagEITxt ? `Use os detalhes clínicos fornecidos para PERSONALIZAR o impacto e as estratégias.` : ""}
@@ -279,7 +279,7 @@ Use Markdown simples. Use títulos H3 (###). Evite tabelas.
 
 ESTRUTURA OBRIGATÓRIA:
 
-[PERFIL_NARRATIVO] Inicie com "👤 QUEM É O ESTUDANTE?". Parágrafo humanizado incluindo: diagnóstico, hiperfoco, potências, rede de apoio, composição familiar, nível de alfabetização. ${hiperfocoTxt}. [/PERFIL_NARRATIVO]
+[PERFIL_NARRATIVO] Inicie com "👤 QUEM É O ESTUDANTE?". Parágrafo humanizado incluindo: diagnóstico, hiperfoco, potências, rede de apoio, composição familiar, nível de alfabetização. ${hiperfocoTxt}. Não presuma o gênero: concorde com o nome do estudante e, na dúvida, use o nome e frases sem marca de gênero. [/PERFIL_NARRATIVO]
 
 ### 1. 🏥 DIAGNÓSTICO E IMPACTO: Cite diagnóstico (e CID se disponível), impactos na aprendizagem, cuidados.
 ${detalhesDiagTxt ? `Use os detalhes clínicos fornecidos (nível de suporte, tipo, comunicação etc.) para PERSONALIZAR o impacto e as estratégias.` : ""}

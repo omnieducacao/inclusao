@@ -1,11 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import {
-    BarChart3, CheckCircle2, Clock, AlertTriangle,
-    FileText, Loader2, Trophy, RotateCcw, MessageSquare, Send,
-} from "lucide-react";
-import { ESCALA_OMNISFERA, FASE_STATUS_LABELS, type NivelOmnisfera, type FaseStatusPEIDisciplina } from "@/lib/omnisfera-types";
+import { RotateCcw, Send } from "lucide-react";
+import { FASE_STATUS_LABELS, type FaseStatusPEIDisciplina } from "@/lib/omnisfera-types";
 
 interface ResumoDisc {
     id?: string;
@@ -37,17 +34,17 @@ interface ConsolidacaoData {
 
 interface Props {
     studentId: string | null;
-    onExportar?: () => void;
 }
 
-const STATUS_ICONS: Record<FaseStatusPEIDisciplina, React.ReactNode> = {
-    plano_ensino: <Clock size={14} style={{ color: "#f59e0b" }} />,
-    diagnostica: <BarChart3 size={14} style={{ color: "#3b82f6" }} />,
-    pei_disciplina: <FileText size={14} style={{ color: "#8b5cf6" }} />,
-    concluido: <CheckCircle2 size={14} style={{ color: "#10b981" }} />,
+// Onda 15: estado de cada disciplina com os chips do design system
+const TOM_DA_FASE: Record<FaseStatusPEIDisciplina, string> = {
+    plano_ensino: "omni-estado--atencao",
+    diagnostica: "omni-estado--info",
+    pei_disciplina: "omni-estado--info",
+    concluido: "omni-estado--sucesso",
 };
 
-export function PEIConsolidacao({ studentId, onExportar }: Props) {
+export function PEIConsolidacao({ studentId }: Props) {
     const [data, setData] = useState<ConsolidacaoData | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -78,10 +75,7 @@ export function PEIConsolidacao({ studentId, onExportar }: Props) {
 
     // ── Devolver disciplina ao professor ─────────────────────────
     const handleDevolver = async (discId: string) => {
-        if (!feedbackText.trim()) {
-            alert("Informe o feedback/observação para o professor antes de devolver.");
-            return;
-        }
+        if (!feedbackText.trim()) return;
         setSendingFeedback(true);
         try {
             const res = await fetch("/api/pei/disciplina", {
@@ -102,290 +96,123 @@ export function PEIConsolidacao({ studentId, onExportar }: Props) {
             setFeedbackText("");
             await fetchData();
         } catch (err) {
-            alert(err instanceof Error ? err.message : "Erro ao devolver");
+            setError(err instanceof Error ? err.message : "Não deu para devolver agora.");
         } finally {
             setSendingFeedback(false);
         }
     };
 
     if (!studentId) {
-        return (
-            <div style={{ padding: 24, textAlign: "center", color: "#94a3b8" }}>
-                Selecione um estudante para ver a consolidação.
-            </div>
-        );
+        return <p className="omni-apoio">Escolha um estudante para ver o andamento das disciplinas.</p>;
     }
 
-    if (loading) {
-        return (
-            <div style={{ padding: 40, textAlign: "center" }}>
-                <Loader2 size={28} className="animate-spin" style={{ color: "#6366f1" }} />
-            </div>
-        );
+    if (loading && !data) {
+        return <p className="omni-apoio" role="status">Carregando o andamento das disciplinas…</p>;
     }
 
-    if (error || !data) {
+    if (!data) {
         return (
-            <div style={{ padding: 24, textAlign: "center", color: "#f87171" }}>
-                <AlertTriangle size={24} style={{ marginBottom: 8 }} />
-                <p>{error || "Dados não disponíveis"}</p>
+            <div className="omni-aviso omni-aviso--erro" role="alert">
+                <div><div className="omni-aviso__texto">{error || "Não deu para carregar o andamento agora."}</div>
+                <div className="omni-aviso__acoes"><button type="button" className="omni-btn omni-btn--secundario omni-btn--pequeno" onClick={fetchData}>Tentar de novo</button></div></div>
             </div>
         );
     }
 
     const { consolidacao: c, resumo_disciplinas: resumo } = data;
 
-    // Map pei_disciplinas by disciplina for ids and feedback
     const discMap = new Map<string, Record<string, unknown>>();
     (data.pei_disciplinas || []).forEach((d) => {
         discMap.set(d.disciplina as string, d);
     });
 
-    return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {/* Barra de progresso */}
-            <div style={{
-                background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)",
-                borderRadius: 16, padding: "20px 24px", color: "#fff",
-            }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                    <div>
-                        <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Consolidação do PEI</h3>
-                        <p style={{ margin: "4px 0 0", fontSize: 13, opacity: 0.9 }}>
-                            {c.concluidas} de {c.total_disciplinas} disciplinas concluídas
-                        </p>
-                    </div>
-                    <div style={{
-                        fontSize: 32, fontWeight: 800, lineHeight: 1,
-                        color: c.progresso_percentual === 100 ? "#34d399" : "#fff",
-                    }}>
-                        {c.progresso_percentual}%
-                    </div>
-                </div>
-                <div style={{
-                    height: 8, borderRadius: 4, background: "rgba(255,255,255,.2)",
-                    overflow: "hidden",
-                }}>
-                    <div style={{
-                        height: "100%", borderRadius: 4,
-                        background: c.progresso_percentual === 100 ? "#34d399" : "#a78bfa",
-                        width: `${c.progresso_percentual}%`,
-                        transition: "width .5s ease",
-                    }} />
-                </div>
-
-                {/* Stats */}
-                <div style={{
-                    display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
-                    gap: 12, marginTop: 16,
-                }}>
-                    <div style={{ textAlign: "center" }}>
-                        <div style={{ fontSize: 22, fontWeight: 800 }}>{c.concluidas}</div>
-                        <div style={{ fontSize: 11, opacity: 0.8 }}>Concluídas</div>
-                    </div>
-                    <div style={{ textAlign: "center" }}>
-                        <div style={{ fontSize: 22, fontWeight: 800 }}>{c.em_andamento}</div>
-                        <div style={{ fontSize: 11, opacity: 0.8 }}>Em andamento</div>
-                    </div>
-                    <div style={{ textAlign: "center" }}>
-                        <div style={{ fontSize: 22, fontWeight: 800 }}>{c.pendentes}</div>
-                        <div style={{ fontSize: 11, opacity: 0.8 }}>Pendentes</div>
-                    </div>
-                </div>
+    if (resumo.length === 0) {
+        return (
+            <div className="omni-vazio" style={{ textAlign: "center" }}>
+                <p className="omni-vazio__titulo">Nenhuma disciplina recebeu o PEI ainda</p>
+                <p className="omni-vazio__texto">Envie o PEI aos professores em &ldquo;Professores regentes&rdquo;, aqui na mesma etapa. Depois, o andamento de cada disciplina aparece aqui.</p>
             </div>
+        );
+    }
 
-            {/* Cards de disciplinas — com ações de feedback */}
-            {resumo.length > 0 && (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    <h4 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>
-                        Disciplinas ({resumo.length})
-                    </h4>
+    return (
+        <div style={{ display: "grid", gap: 20 }}>
+            <section className="omni-cartao omni-cartao--plano" style={{ display: "grid", gap: 12 }} aria-label="Andamento das disciplinas">
+                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                    <div>
+                        <h3 style={{ margin: 0, font: "800 20px/26px var(--font-sans)", color: "var(--tinta)" }}>Andamento das disciplinas</h3>
+                        <p className="omni-apoio" style={{ margin: "2px 0 0" }}>{c.concluidas} de {c.total_disciplinas} concluídas · {c.em_andamento} em andamento · {c.pendentes} sem começar</p>
+                    </div>
+                    <span style={{ font: "800 28px/1 var(--font-sans)", color: "var(--tinta)", fontVariantNumeric: "tabular-nums" }}>{c.progresso_percentual}%</span>
+                </div>
+                <div role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={c.progresso_percentual} aria-label="Disciplinas concluídas" style={{ height: 8, borderRadius: 4, background: "var(--borda)", overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${c.progresso_percentual}%`, background: c.progresso_percentual === 100 ? "var(--encontro-verde-forte)" : "var(--acao)", transition: "width .5s ease" }} />
+                </div>
+            </section>
 
-                    {resumo.map((d) => {
-                        const status = d.fase_status as FaseStatusPEIDisciplina;
-                        const discData = discMap.get(d.disciplina);
-                        const discId = (discData?.id as string) || d.id || "";
-                        const lastFeedback = (discData?.feedback_professor as string) || d.feedback_professor || "";
-                        const lastDevolucao = (discData?.data_devolucao as string) || d.data_devolucao || "";
-                        const isFeedbackOpen = feedbackFor === discId;
-                        const canDevolver = status === "pei_disciplina" || status === "concluido";
+            {c.pode_consolidar && (
+                <div className="omni-aviso omni-aviso--sucesso">
+                    <div>
+                        <div className="omni-aviso__titulo">Todas as disciplinas concluídas</div>
+                        <div className="omni-aviso__texto">O PEI está completo. Para o documento oficial, use o botão Baixar, no topo do PEI.</div>
+                    </div>
+                </div>
+            )}
 
-                        return (
-                            <div key={d.disciplina} style={{
-                                background: "var(--bg-tertiary, #f8fafc)", borderRadius: 14,
-                                border: "1px solid var(--border-default, rgba(148,163,184,.12))",
-                                overflow: "hidden",
-                            }}>
-                                {/* Main row */}
-                                <div style={{
-                                    display: "grid", gridTemplateColumns: "2fr 2fr 1.5fr 1fr 1fr auto",
-                                    padding: "14px 18px", fontSize: 13,
-                                    alignItems: "center", gap: 8,
-                                }}>
-                                    <span style={{ fontWeight: 600, color: "var(--text-primary, #1e293b)" }}>{d.disciplina}</span>
-                                    <span style={{ color: "var(--text-muted, #64748b)" }}>{d.professor_regente}</span>
-                                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                        {STATUS_ICONS[status]}
-                                        <span style={{ fontSize: 12 }}>{FASE_STATUS_LABELS[status]}</span>
-                                    </span>
-                                    <span>
-                                        {d.nivel_omnisfera !== null ? (
-                                            <span style={{
-                                                padding: "2px 8px", borderRadius: 12, fontSize: 12, fontWeight: 700,
-                                                background: "rgba(99,102,241,.15)", color: "#6366f1",
-                                            }}>
-                                                N{d.nivel_omnisfera}
-                                            </span>
-                                        ) : "—"}
-                                    </span>
-                                    <span style={{ color: "var(--text-muted, #64748b)", fontSize: 12 }}>
-                                        {d.metas_smart > 0 ? `${d.metas_smart} meta${d.metas_smart > 1 ? "s" : ""}` : "—"}
-                                    </span>
-                                    {/* Action buttons */}
-                                    <div style={{ display: "flex", gap: 6 }}>
-                                        {canDevolver && (
-                                            <button
-                                                onClick={() => {
-                                                    if (isFeedbackOpen) {
-                                                        setFeedbackFor(null);
-                                                        setFeedbackText("");
-                                                    } else {
-                                                        setFeedbackFor(discId);
-                                                        setFeedbackText("");
-                                                    }
-                                                }}
-                                                title="Devolver ao professor com feedback"
-                                                style={{
-                                                    padding: "4px 10px", borderRadius: 8, fontSize: 11, fontWeight: 600,
-                                                    background: isFeedbackOpen ? "rgba(245,158,11,.15)" : "rgba(245,158,11,.08)",
-                                                    border: `1px solid ${isFeedbackOpen ? "rgba(245,158,11,.4)" : "rgba(245,158,11,.2)"}`,
-                                                    color: "#d97706", cursor: "pointer",
-                                                    display: "flex", alignItems: "center", gap: 4,
-                                                }}
-                                            >
-                                                <RotateCcw size={12} /> Devolver
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
+            {error && <div className="omni-aviso omni-aviso--erro" role="alert"><div><div className="omni-aviso__texto">{error}</div></div></div>}
 
-                                {/* Last feedback (if exists) */}
-                                {lastFeedback && !isFeedbackOpen && (
-                                    <div style={{
-                                        padding: "8px 18px 12px", borderTop: "1px solid rgba(148,163,184,.08)",
-                                        display: "flex", alignItems: "flex-start", gap: 8,
-                                    }}>
-                                        <MessageSquare size={13} style={{ color: "#f59e0b", marginTop: 2, flexShrink: 0 }} />
-                                        <div>
-                                            <span style={{ fontSize: 11, fontWeight: 600, color: "#d97706" }}>
-                                                Última devolutiva{lastDevolucao ? ` (${new Date(lastDevolucao).toLocaleDateString("pt-BR")})` : ""}:
-                                            </span>
-                                            <p style={{ fontSize: 12, color: "var(--text-secondary, #94a3b8)", margin: "2px 0 0", lineHeight: 1.4 }}>
-                                                {lastFeedback}
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
+            <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 12 }} aria-label="Disciplinas">
+                {resumo.map((d) => {
+                    const status = d.fase_status as FaseStatusPEIDisciplina;
+                    const discData = discMap.get(d.disciplina);
+                    const discId = (discData?.id as string) || d.id || "";
+                    const lastFeedback = (discData?.feedback_professor as string) || d.feedback_professor || "";
+                    const lastDevolucao = (discData?.data_devolucao as string) || d.data_devolucao || "";
+                    const isFeedbackOpen = feedbackFor === discId;
+                    const canDevolver = status === "pei_disciplina" || status === "concluido";
+                    const detalhes = [
+                        d.nivel_omnisfera !== null ? `nível ${d.nivel_omnisfera} na escala de 0 a 4` : "",
+                        d.metas_smart > 0 ? `${d.metas_smart} meta${d.metas_smart > 1 ? "s" : ""}` : "",
+                    ].filter(Boolean).join(" · ");
 
-                                {/* Feedback input (expandable) */}
-                                {isFeedbackOpen && (
-                                    <div style={{
-                                        padding: "12px 18px 16px", borderTop: "1px solid rgba(245,158,11,.15)",
-                                        background: "rgba(245,158,11,.04)",
-                                    }}>
-                                        <label style={{ fontSize: 12, fontWeight: 600, color: "#d97706", display: "block", marginBottom: 6 }}>
-                                            📝 Feedback para {d.professor_regente} ({d.disciplina})
-                                        </label>
-                                        <textarea
-                                            value={feedbackText}
-                                            onChange={(e) => setFeedbackText(e.target.value)}
-                                            placeholder="Descreva o que precisa ser revisado ou melhorado..."
-                                            rows={3}
-                                            style={{
-                                                width: "100%", padding: "10px 12px", borderRadius: 10,
-                                                border: "1px solid rgba(245,158,11,.3)", background: "rgba(255,255,255,.5)",
-                                                fontSize: 13, resize: "vertical", outline: "none",
-                                                color: "var(--text-primary, #1e293b)",
-                                            }}
-                                        />
-                                        <div style={{ display: "flex", gap: 8, marginTop: 8, justifyContent: "flex-end" }}>
-                                            <button
-                                                onClick={() => { setFeedbackFor(null); setFeedbackText(""); }}
-                                                style={{
-                                                    padding: "6px 14px", borderRadius: 8, fontSize: 12,
-                                                    background: "transparent", border: "1px solid rgba(148,163,184,.2)",
-                                                    color: "var(--text-muted, #64748b)", cursor: "pointer",
-                                                }}
-                                            >
-                                                Cancelar
-                                            </button>
-                                            <button
-                                                onClick={() => handleDevolver(discId)}
-                                                aria-label="Devolver para revisão"
-                                                disabled={sendingFeedback || !feedbackText.trim()}
-                                                style={{
-                                                    padding: "6px 16px", borderRadius: 8, fontSize: 12, fontWeight: 700,
-                                                    background: feedbackText.trim() ? "linear-gradient(135deg, #d97706, #f59e0b)" : "#94a3b8",
-                                                    color: "#fff", border: "none",
-                                                    cursor: sendingFeedback || !feedbackText.trim() ? "not-allowed" : "pointer",
-                                                    display: "flex", alignItems: "center", gap: 6,
-                                                    opacity: sendingFeedback ? 0.7 : 1,
-                                                }}
-                                            >
-                                                {sendingFeedback ? (
-                                                    <><Loader2 size={12} className="animate-spin" /> Devolvendo...</>
-                                                ) : (
-                                                    <><Send size={12} /> Devolver ao Professor</>
-                                                )}
-                                            </button>
-                                        </div>
-                                    </div>
+                    return (
+                        <li key={d.disciplina} className="omni-cartao omni-cartao--plano" style={{ display: "grid", gap: 10, padding: "14px 18px" }}>
+                            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px 12px" }}>
+                                <strong style={{ font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>{d.disciplina}</strong>
+                                <span className={`omni-estado ${TOM_DA_FASE[status] || ""}`}>{FASE_STATUS_LABELS[status] || status}</span>
+                                <span className="omni-apoio" style={{ flex: "1 1 auto" }}>{d.professor_regente}{detalhes ? ` · ${detalhes}` : ""}</span>
+                                {canDevolver && (
+                                    <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" aria-expanded={isFeedbackOpen}
+                                        onClick={() => { setFeedbackFor(isFeedbackOpen ? null : discId); setFeedbackText(""); }}>
+                                        <RotateCcw aria-hidden /> Devolver com observação
+                                    </button>
                                 )}
                             </div>
-                        );
-                    })}
-                </div>
-            )}
 
-            {/* Consolidação pronta */}
-            {c.pode_consolidar && (
-                <div style={{
-                    display: "flex", alignItems: "center", gap: 12,
-                    padding: "16px 20px", borderRadius: 12,
-                    background: "rgba(16,185,129,.1)", border: "1px solid rgba(16,185,129,.3)",
-                }}>
-                    <Trophy size={24} style={{ color: "#10b981" }} />
-                    <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 700, color: "#10b981", fontSize: 15 }}>
-                            Todas as disciplinas concluídas!
-                        </div>
-                        <div style={{ fontSize: 12, color: "#94a3b8" }}>
-                            O PEI está pronto para ser consolidado no documento oficial.
-                        </div>
-                    </div>
-                    <button
-                        onClick={onExportar}
-                        aria-label="Exportar consolidação"
-                        style={{
-                            padding: "10px 20px", borderRadius: 10,
-                            background: "linear-gradient(135deg, #059669, #10b981)",
-                            color: "#fff", border: "none", cursor: "pointer",
-                            fontWeight: 700, fontSize: 14,
-                        }}
-                    >
-                        Gerar Documento Oficial
-                    </button>
-                </div>
-            )}
+                            {lastFeedback && !isFeedbackOpen && (
+                                <p className="omni-apoio" style={{ margin: 0 }}>
+                                    <strong>Última devolutiva{lastDevolucao ? ` (${new Date(lastDevolucao).toLocaleDateString("pt-BR")})` : ""}:</strong> {lastFeedback}
+                                </p>
+                            )}
 
-            {/* Sem disciplinas */}
-            {resumo.length === 0 && (
-                <div style={{ padding: 24, textAlign: "center", color: "#94a3b8" }}>
-                    <BarChart3 size={40} style={{ margin: "0 auto 12px", opacity: 0.4 }} />
-                    <p>Nenhuma disciplina enviada para os professores regentes ainda.</p>
-                    <p style={{ fontSize: 13 }}>Vá até a aba &quot;Regentes&quot; para enviar o PEI.</p>
-                </div>
-            )}
+                            {isFeedbackOpen && (
+                                <div style={{ display: "grid", gap: 8 }}>
+                                    <label className="omni-campo" style={{ maxWidth: "none" }}>
+                                        <span className="omni-campo__rotulo">O que {d.professor_regente} precisa rever em {d.disciplina}</span>
+                                        <textarea className="omni-entrada" rows={3} value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)} placeholder="Ex.: as metas ainda não dizem como vamos medir o avanço." />
+                                    </label>
+                                    <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                                        <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" onClick={() => { setFeedbackFor(null); setFeedbackText(""); }}>Cancelar</button>
+                                        <button type="button" className="omni-btn omni-btn--primario omni-btn--pequeno" onClick={() => handleDevolver(discId)} disabled={sendingFeedback || !feedbackText.trim()}>
+                                            <Send aria-hidden /> {sendingFeedback ? "Devolvendo…" : "Devolver ao professor"}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </li>
+                    );
+                })}
+            </ul>
         </div>
     );
 }

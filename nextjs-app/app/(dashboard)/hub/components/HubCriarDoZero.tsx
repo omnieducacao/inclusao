@@ -7,6 +7,7 @@ import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import { SalvarNoPlanoButton } from "@/components/SalvarNoPlanoButton";
 import { ResultadoIA } from "@/components/ia/ResultadoIA";
+import { separarAnalise } from "@/lib/ferramentas/separar-analise";
 import { MesaFerramenta, Etapas, Etapa, Continuar, LinhaEscolha, Pilula } from "@/components/ferramenta/Mesa";
 import {
   useBnccDaSerie, EscolhaComponente, EscolhaHabilidades, EscolhaChecklist, resumoChecklist, EscolhaMotor, contextoDoEstudante,
@@ -171,17 +172,10 @@ export function CriarDoZero({
       if (!res.ok) throw new Error(data.error || "Erro ao gerar");
       let textoFinal = data.texto || "Atividade gerada.";
 
-      // Processar divisor se existir (separar análise e atividade)
-      if (textoFinal.includes("---DIVISOR---")) {
-        const parts = textoFinal.split("---DIVISOR---");
-        const analise = parts[0]?.replace("[ANÁLISE PEDAGÓGICA]", "").trim() || "";
-        const atividade = parts[1]?.replace("[ATIVIDADE]", "").trim() || textoFinal;
-        // Onda 8: a análise é nota para o professor; não entra no material do estudante
-        setNotasResultado(analise);
-        textoFinal = atividade;
-      } else {
-        setNotasResultado("");
-      }
+      // Onda 8: a análise é nota para o professor; não entra no material do estudante
+      const separado = separarAnalise(textoFinal);
+      setNotasResultado(separado.analise);
+      textoFinal = separado.material;
 
       const mapa: Record<number, string> = {};
       if (usarImagens && qtdImagens > 0) {
