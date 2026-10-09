@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 @plugin "tailwindcss-animate";
+/* Onda 4d: as variantes dark: do Tailwind ficam desligadas. As cores do Tailwind agora seguem os tokens do
+   design system (app/omni/tailwind-ponte.css), que já mudam com o tema escolhido no app; as classes dark:
+   antigas seguiam o modo do sistema e brigavam com o tema escolhido. A classe abaixo nunca é usada. */
+@custom-variant dark (&:where(.omni-variante-dark-desligada, .omni-variante-dark-desligada *));
 @source "@omni/ds";
 @source "../app/**/*.{ts,tsx}";
 @source "../components/**/*.{ts,tsx}";

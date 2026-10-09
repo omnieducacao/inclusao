@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmar } from "@/components/Confirmar";
 import React, { useState, useEffect } from "react";
 import { Save, Plus, Trash2, Edit2, Play, Pause, FileText, Download, Target, Calendar, CheckCircle2, ChevronDown, ChevronRight, MessageSquare, AlertTriangle, Users, BookOpen, Layout, Settings, Sparkles, Loader2, ArrowRight, Map, Search } from 'lucide-react';
 import type { StudentFull } from "../lib/paee-types";
@@ -135,16 +136,26 @@ export function PlanoHabilidadesTab({
     }
   };
 
-  const limpar = () => {
+  const { confirmar, dialogo } = useConfirmar();
+  const limpar = async () => {
+    const ok = await confirmar({
+      titulo: "Descartar o plano de habilidades?",
+      texto: "O texto gerado e as observações desta aba serão apagados. Isso não pode ser desfeito.",
+      acao: "Descartar",
+      cancelar: "Manter",
+      perigo: true,
+    });
+    if (!ok) return;
     setPlano("");
     setStatus("rascunho");
     setFeedback("");
-    updateField("conteudo_plano_habilidades", "");
-    updateField("status_plano_habilidades", "rascunho");
+    // uma atualização só (antes eram duas seguidas e a segunda desfazia a primeira)
+    onUpdate({ ...paeeData, conteudo_plano_habilidades: "", status_plano_habilidades: "rascunho" });
   };
 
   return (
     <Card padding="none" className="p-6">
+      {dialogo}
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
         <div className="w-12 h-12 rounded-xl bg-linear-to-br from-(--module-primary-soft) to-(--module-primary)/10 flex items-center justify-center shrink-0">
@@ -167,7 +178,7 @@ export function PlanoHabilidadesTab({
           size="sm"
           onClick={limpar}
         >
-          Limpar / Abandonar
+          Descartar
         </Button>
       )}
 
@@ -209,31 +220,12 @@ export function PlanoHabilidadesTab({
           {!plano || plano.trim() === "" ? (
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
               <p className="text-sm text-amber-800">
-                ⚠️ O plano foi gerado mas o conteúdo não está disponível.
-                <br />
-                <span className="text-xs">Status: {status} | Plano length: {plano?.length || 0} | Loading: {loading ? "sim" : "não"}</span>
-                <br />
-                <Button
-                  onClick={() => {
-                    const conteudoSalvo = (paeeData.conteudo_plano_habilidades as string) || "";
-                    if (conteudoSalvo) {
-                      setPlano(conteudoSalvo);
-                      setStatus("revisao");
-                    }
-                  }}
-                  className="mt-2 text-xs bg-amber-600 text-white border-0 hover:bg-amber-700"
-                  size="sm"
-                >
-                  🔄 Tentar Recarregar do paeeData
-                </Button>
+                O plano foi gerado, mas o texto não chegou. Toque em &ldquo;Descartar&rdquo; e gere de novo; se acontecer outra vez, avise o suporte.
               </p>
             </div>
           ) : (
             <>
               <FormattedTextDisplay texto={plano} titulo="Plano de Habilidades Gerado" />
-              <div className="text-xs text-slate-500">
-                ✅ Plano carregado: {plano.length} caracteres
-              </div>
             </>
           )}
           <div className="flex gap-2 flex-wrap">
@@ -261,7 +253,7 @@ export function PlanoHabilidadesTab({
               variant="secondary"
               onClick={limpar}
             >
-              🗑️ Descartar e Regenerar
+              Descartar e gerar de novo
             </Button>
             <PdfDownloadButton
               text={plano}

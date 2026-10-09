@@ -5,6 +5,7 @@ import "./globals.css";
 import "./omni/tokens.css";
 import "./omni/componentes.css";
 import "./omni/legado.css";
+import "./omni/tailwind-ponte.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ToastProvider } from "@/components/ToastProvider";
 import { QueryProvider } from "@/components/QueryProvider";

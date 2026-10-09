@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmar } from "@/components/Confirmar";
 
 import React, { useState, useEffect, useCallback } from "react";
 import { RubricaOmnisfera } from "@/components/RubricaOmnisfera";
@@ -54,6 +55,7 @@ export default function AvaliacaoDiagnosticaClient({
     initialAlunos?: Aluno[];
     initialProfessorName?: string;
 }) {
+    const { confirmar: confirmarNovaProva, dialogo: dialogoNovaProva } = useConfirmar();
     const [loading, setLoading] = useState(false);
     const [alunos, setAlunos] = useState<Aluno[]>(initialAlunos || []);
     const [professorName, setProfessorName] = useState(initialProfessorName || "");
@@ -2380,7 +2382,19 @@ export default function AvaliacaoDiagnosticaClient({
                                     );
                                 })}
                             </div>
-                            <button onClick={() => { setResultadoFormatado(null); setValidadoFormatado(false); setQuestoesIndividuais([]); }} style={{
+                            {dialogoNovaProva}
+                            <button onClick={async () => {
+                                // Onda 5: antes descartava as questões sem perguntar
+                                const ok = await confirmarNovaProva({
+                                    titulo: "Descartar esta prova e gerar outra?",
+                                    texto: "As questões geradas e os ajustes feitos nelas serão apagados.",
+                                    acao: "Descartar e gerar outra",
+                                    cancelar: "Manter esta prova",
+                                    perigo: true,
+                                });
+                                if (!ok) return;
+                                setResultadoFormatado(null); setValidadoFormatado(false); setQuestoesIndividuais([]);
+                            }} style={{
                                 padding: "10px 18px", borderRadius: 10,
                                 background: "transparent", color: "var(--text-muted, #94a3b8)",
                                 border: "1px solid var(--border-default)",

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card } from "@omni/ds";
 import {
@@ -15,6 +15,9 @@ import { PageHero } from "@/components/PageHero";
 import { OmniLoader } from "@/components/OmniLoader";
 import type { AlunoProcessual as Aluno, HabilidadeAvaliada, TipoPeriodo } from "./types";
 import { cardS, headerS, bodyS, NIVEL_COLORS, PERIODOS } from "./types";
+
+// "Bimestral" → "Bimestre" (antes cortava a última letra e saía "Bimestra")
+const PERIODO_SINGULAR: Record<string, string> = { bimestral: "Bimestre", trimestral: "Trimestre", semestral: "Semestre" };
 
 // ─── Componente Principal ─────────────────────────────────────────────────────
 
@@ -35,6 +38,8 @@ export default function AvaliacaoProcessualClient() {
     const [habilidades, setHabilidades] = useState<HabilidadeAvaliada[]>([]);
     const [observacaoGeral, setObservacaoGeral] = useState("");
     const [salvando, setSalvando] = useState(false);
+    const [erroSalvar, setErroSalvar] = useState<string | null>(null);
+    const [erroRelatorio, setErroRelatorio] = useState<string | null>(null);
     const [salvou, setSalvou] = useState(false);
     const [expandedHab, setExpandedHab] = useState<string | null>(null);
 
@@ -82,8 +87,15 @@ export default function AvaliacaoProcessualClient() {
     useEffect(() => {
         if (!studentIdFromUrl || alunos.length === 0) return;
         const found = alunos.find((a) => a.id === studentIdFromUrl);
-        if (found) setSelectedAluno(found);
-    }, [studentIdFromUrl, alunos]);
+        if (!found) return;
+        // Onda 5: o link de outros módulos abre a disciplina (antes ficava parado na lista)
+        const discUrl = searchParams?.get("disciplina");
+        const discs = (found as { disciplinas?: Array<{ disciplina?: string } | string> }).disciplinas || [];
+        const nomes = discs.map((d) => (typeof d === "string" ? d : d?.disciplina || "")).filter(Boolean);
+        const alvo = discUrl && nomes.includes(discUrl) ? discUrl : nomes.length === 1 ? nomes[0] : null;
+        if (alvo) openProcessualRef.current?.(found, alvo);
+        else setSelectedAluno(found);
+    }, [studentIdFromUrl, alunos, searchParams]);
 
     useEffect(() => {
         if (typeof window === "undefined") return;
@@ -203,6 +215,8 @@ export default function AvaliacaoProcessualClient() {
     // ─── Navigation handlers ────────────────────────────────────────────
 
     const openProcessual = useCallback((aluno: Aluno, disciplina: string) => {
+        setErroSalvar(null);
+        setErroRelatorio(null);
         setSelectedAluno(aluno);
         setSelectedDisc(disciplina);
         setHabilidades([]);
@@ -280,12 +294,17 @@ export default function AvaliacaoProcessualClient() {
             });
 
             if (!res.ok) throw new Error("Erro ao salvar");
+            setErroSalvar(null);
             setSalvou(true);
             setTimeout(() => setSalvou(false), 3000);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Erro ao salvar");
+        } catch {
+            // Onda 5: antes a página inteira virava a tela de erro e o formulário se perdia
+            setErroSalvar("Não conseguimos salvar a avaliação agora. O que você marcou continua aqui: confira a internet e toque em Salvar de novo.");
         } finally { setSalvando(false); }
     };
+
+    const openProcessualRef = useRef(openProcessual);
+    openProcessualRef.current = openProcessual;
 
     // ─── Generate report ──────────────────────────────────────────────
 
@@ -311,9 +330,10 @@ export default function AvaliacaoProcessualClient() {
                 }),
             });
             const data = await res.json();
-            if (data.relatorio) setRelatorio(data.relatorio);
-        } catch (err) {
-            /* client-side */ console.error("Erro ao gerar relatório:", err);
+            if (data.relatorio) { setRelatorio(data.relatorio); setErroRelatorio(null); }
+            else setErroRelatorio(data.error || "A geração do relatório falhou. Tente de novo.");
+        } catch {
+            setErroRelatorio("Não conseguimos gerar o relatório agora. Confira a internet e tente de novo.");
         } finally { setGerandoRelatorio(false); }
     };
 
@@ -384,7 +404,7 @@ export default function AvaliacaoProcessualClient() {
                 </div>
 
                 {/* Tipo de período */}
-                <div className="flex gap-1.5 mb-2.5 p-1 rounded-xl bg-() border border-()">
+                <div className="flex gap-1.5 mb-2.5 p-1 rounded-xl bg-(--superficie-2) border border-(--borda)">
                     {(["bimestral", "trimestral", "semestral"] as TipoPeriodo[]).map(tipo => (
                         <button
                             key={tipo}
@@ -393,7 +413,7 @@ export default function AvaliacaoProcessualClient() {
                                 setSelectedPeriodo(1);
                                 loadRegistro(selectedAluno.id, selectedDisc, 1);
                             }}
-                            className={`flex-1 px-2.5 py-2 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer text-xs font-bold border-none transition-all ${tipoPeriodo === tipo ? 'bg-emerald-500/10 text-emerald-500' : 'bg-transparent text-()'}`}
+                            className={`flex-1 px-2.5 py-2 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer text-xs font-bold border-none transition-all ${tipoPeriodo === tipo ? 'bg-emerald-500/10 text-emerald-500' : 'bg-transparent text-(--tinta-2)'}`}
                         >
                             {PERIODOS[tipo].label}
                         </button>
@@ -401,7 +421,7 @@ export default function AvaliacaoProcessualClient() {
                 </div>
 
                 {/* Período selector */}
-                <div className="flex gap-1.5 mb-5 p-1 rounded-xl bg-() border border-()">
+                <div className="flex gap-1.5 mb-5 p-1 rounded-xl bg-(--superficie-2) border border-(--borda)">
                     {PERIODOS[tipoPeriodo].periodos.map(p => (
                         <button
                             key={p.value}
@@ -409,7 +429,7 @@ export default function AvaliacaoProcessualClient() {
                                 setSelectedPeriodo(p.value);
                                 loadRegistro(selectedAluno.id, selectedDisc, p.value);
                             }}
-                            className={`flex-1 px-3 py-2.5 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer omni-body font-bold border-none transition-all ${selectedPeriodo === p.value ? 'bg-linear-to-br from-emerald-600 to-emerald-500 text-white' : 'bg-transparent text-()'}`}
+                            className={`flex-1 px-3 py-2.5 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer omni-body font-bold border-none transition-all ${selectedPeriodo === p.value ? 'bg-linear-to-br from-emerald-600 to-emerald-500 text-white' : 'bg-transparent text-(--tinta-2)'}`}
                         >
                             <Calendar size={13} /> {p.label}
                         </button>
@@ -420,7 +440,7 @@ export default function AvaliacaoProcessualClient() {
                 <div className={`grid gap-3 mb-5 ${diagBaseline ? 'grid-cols-4' : 'grid-cols-3'}`}>
                     <div className={`${cardS} p-4 text-center bg-emerald-500/5`}>
                         <div className="text-2xl font-extrabold text-emerald-500">{mediaHabs}</div>
-                        <div className="text-xs text-()">Média Omnisfera</div>
+                        <div className="text-xs text-(--tinta-2)">Média Omnisfera</div>
                         {diagBaseline && (
                             <div className={`omni-label-xs font-bold mt-1 ${mediaHabs > diagBaseline.nivel ? 'text-emerald-500' : mediaHabs < diagBaseline.nivel ? 'text-red-500' : 'text-slate-400'}`}>
                                 {mediaHabs > diagBaseline.nivel ? "↗️ Progresso" : mediaHabs < diagBaseline.nivel ? "↘️ Atenção" : "→ Estável"}
@@ -430,17 +450,17 @@ export default function AvaliacaoProcessualClient() {
                     {diagBaseline && (
                         <div className={`${cardS} p-4 text-center bg-sky-500/5`}>
                             <div className="text-2xl font-extrabold text-sky-500">N{diagBaseline.nivel}</div>
-                            <div className="text-xs text-()">Baseline Diag.</div>
-                            <div className="omni-label-xs text-() mt-0.5">{diagBaseline.score}% score</div>
+                            <div className="text-xs text-(--tinta-2)">Baseline Diag.</div>
+                            <div className="omni-label-xs text-(--tinta-2) mt-0.5">{diagBaseline.score}% score</div>
                         </div>
                     )}
                     <div className={`${cardS} p-4 text-center bg-blue-500/5`}>
                         <div className="text-2xl font-extrabold text-blue-500">{habilidades.length}</div>
-                        <div className="text-xs text-()">Habilidades</div>
+                        <div className="text-xs text-(--tinta-2)">Habilidades</div>
                     </div>
                     <div className={`${cardS} p-4 text-center bg-indigo-500/5`}>
                         <div className="text-2xl font-extrabold text-indigo-400">{selectedPeriodo}º</div>
-                        <div className="text-xs text-()">{PERIODOS[tipoPeriodo].label.slice(0, -1)}</div>
+                        <div className="text-xs text-(--tinta-2)">{PERIODO_SINGULAR[tipoPeriodo]}</div>
                     </div>
                 </div>
 
@@ -469,7 +489,7 @@ export default function AvaliacaoProcessualClient() {
                             <div className={bodyS}>
                                 {evolucao.map(evo => (
                                     <div key={evo.disciplina} className="mb-4">
-                                        <div className="text-xs font-semibold text-() mb-2.5">
+                                        <div className="text-xs font-semibold text-(--tinta-2) mb-2.5">
                                             {evo.disciplina}
                                         </div>
                                         <div className="flex items-end gap-2 h-[100px] px-1">
@@ -485,7 +505,7 @@ export default function AvaliacaoProcessualClient() {
                                                             background: `linear-gradient(180deg, ${nc}, ${nc}88)`,
                                                             transition: "height .3s ease",
                                                         }} />
-                                                        <span className="omni-label-xs text-() text-center">
+                                                        <span className="omni-label-xs text-(--tinta-2) text-center">
                                                             {p.bimestre}º
                                                         </span>
                                                         {i > 0 && evo.periodos[i - 1].media_nivel !== null && p.media_nivel !== null && (
@@ -503,7 +523,7 @@ export default function AvaliacaoProcessualClient() {
                                         {/* Scale reference */}
                                         <div className="flex justify-between mt-1.5 px-1">
                                             {[0, 1, 2, 3, 4].map(n => (
-                                                <span key={n} className="omni-label-xs text-() opacity-50">N{n}</span>
+                                                <span key={n} className="omni-label-xs text-(--tinta-2) opacity-50">N{n}</span>
                                             ))}
                                         </div>
                                     </div>
@@ -519,7 +539,7 @@ export default function AvaliacaoProcessualClient() {
                         <div className="w-7 h-7 rounded-full flex items-center justify-center bg-linear-to-br from-sky-600 to-sky-500 text-white omni-body font-extrabold shrink-0">
                             {diagBaseline.nivel}
                         </div>
-                        <div className="text-xs text-()">
+                        <div className="text-xs text-(--tinta-2)">
                             Linha de base <strong>Diagnóstica</strong> ({diagBaseline.disciplina}): Nível {diagBaseline.nivel} · {diagBaseline.score}% score
                         </div>
                         <div className={`ml-auto omni-label-xs font-bold ${mediaHabs > diagBaseline.nivel ? 'text-emerald-500' : mediaHabs < diagBaseline.nivel ? 'text-red-500' : 'text-slate-400'}`}>
@@ -537,7 +557,7 @@ export default function AvaliacaoProcessualClient() {
                                 habSource === "matriz_referencia" ? "Habilidades da Matriz de Referência" :
                                     "Habilidades BNCC"}
                         </span>
-                        <span className="text-xs text-() ml-auto">
+                        <span className="text-xs text-(--tinta-2) ml-auto">
                             Avalie cada habilidade na escala 0-4
                         </span>
                     </div>
@@ -560,7 +580,7 @@ export default function AvaliacaoProcessualClient() {
                                                     </span>
                                                 )}
                                             </div>
-                                            <div className="omni-body text-() leading-relaxed">
+                                            <div className="omni-body text-(--tinta-2) leading-relaxed">
                                                 {hab.descricao}
                                             </div>
                                         </div>
@@ -575,7 +595,7 @@ export default function AvaliacaoProcessualClient() {
                                                         key={n}
                                                         onClick={() => setNivel(idx, n)}
                                                         title={ESCALA_OMNISFERA[n]?.label}
-                                                        className={`w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer omni-body font-extrabold transition-all border ${selected ? 'border-transparent' : 'border-() bg-transparent text-()'}`}
+                                                        className={`w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer omni-body font-extrabold transition-all border ${selected ? 'border-transparent' : 'border-(--borda) bg-transparent text-(--tinta-2)'}`}
                                                         style={selected ? { background: nc.bg, color: nc.text, border: `2px solid ${nc.text}` } : {}}
                                                     >
                                                         {n}
@@ -586,7 +606,7 @@ export default function AvaliacaoProcessualClient() {
 
                                         <button
                                             onClick={() => setExpandedHab(expanded ? null : hab.codigo_bncc)}
-                                            className="flex items-center p-1 border-none bg-transparent text-() cursor-pointer shrink-0"
+                                            className="flex items-center p-1 border-none bg-transparent text-(--tinta-2) cursor-pointer shrink-0"
                                         >
                                             {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                                         </button>
@@ -601,7 +621,7 @@ export default function AvaliacaoProcessualClient() {
                                                 onSelect={(n) => setNivel(idx, n)}
                                                 compact
                                             />
-                                            <div className="text-xs font-semibold text-() mb-1 mt-2.5">
+                                            <div className="text-xs font-semibold text-(--tinta-2) mb-1 mt-2.5">
                                                 Observação do professor:
                                             </div>
                                             <textarea
@@ -609,9 +629,9 @@ export default function AvaliacaoProcessualClient() {
                                                 onChange={(e) => setObsHab(idx, e.target.value)}
                                                 placeholder="Descreva o que observou..."
                                                 rows={2}
-                                                className="w-full px-2.5 py-2 rounded-lg border border-() bg-() text-() text-xs resize-y font-inherit"
+                                                className="w-full px-2.5 py-2 rounded-lg border border-(--borda) bg-(--superficie-2) text-(--tinta-2) text-xs resize-y font-inherit"
                                             />
-                                            <div className="omni-label-xs text-() mt-1 flex items-center gap-1">
+                                            <div className="omni-label-xs text-(--tinta-2) mt-1 flex items-center gap-1">
                                                 <BarChart3 size={10} />
                                                 {ESCALA_OMNISFERA[hab.nivel_atual]?.label} — {ESCALA_OMNISFERA[hab.nivel_atual]?.descricao}
                                             </div>
@@ -626,19 +646,27 @@ export default function AvaliacaoProcessualClient() {
                 {/* Observação geral */}
                 <div className={`${cardS} mb-5`}>
                     <div className={headerS}>
-                        <Activity size={16} className="text-()" />
-                        <span className="font-bold text-sm text-()">Observação Geral</span>
+                        <Activity size={16} className="text-(--tinta-2)" />
+                        <span className="font-bold text-sm text-(--tinta-2)">Observação Geral</span>
                     </div>
                     <div className={bodyS}>
                         <textarea
                             value={observacaoGeral}
                             onChange={(e) => setObservacaoGeral(e.target.value)}
-                            placeholder={`Percepções gerais sobre o estudante neste ${PERIODOS[tipoPeriodo].label.toLowerCase().slice(0, -1)}...`}
+                            placeholder={`Percepções gerais sobre o estudante neste ${PERIODO_SINGULAR[tipoPeriodo].toLowerCase()}...`}
                             rows={3}
-                            className="w-full px-3 py-2.5 rounded-lg border border-() bg-() text-() omni-body resize-y font-inherit"
+                            className="w-full px-3 py-2.5 rounded-lg border border-(--borda) bg-(--superficie-2) text-(--tinta-2) omni-body resize-y font-inherit"
                         />
                     </div>
                 </div>
+
+                {(erroSalvar || erroRelatorio) && (
+                    <div className="omni-aviso omni-aviso--erro" role="alert" style={{ maxWidth: "none" }}>
+                        <AlertTriangle className="omni-aviso__icone" aria-hidden />
+                        <div><div className="omni-aviso__titulo">{erroSalvar || erroRelatorio}</div></div>
+                        <span />
+                    </div>
+                )}
 
                 {/* Save button */}
                 <div className="flex justify-end gap-3">
@@ -650,7 +678,7 @@ export default function AvaliacaoProcessualClient() {
                     <button
                         onClick={salvar}
                         disabled={salvando || habilidades.length === 0}
-                        className={`px-6 py-3 rounded-lg flex items-center gap-2 cursor-pointer text-sm font-bold border-none transition-all ${salvando ? 'bg-() cursor-not-allowed' : 'bg-linear-to-br from-emerald-600 to-emerald-500'} text-white ${habilidades.length === 0 ? 'opacity-50' : 'opacity-100'}`}
+                        className={`px-6 py-3 rounded-lg flex items-center gap-2 cursor-pointer text-sm font-bold border-none transition-all ${salvando ? 'bg-(--superficie-2) cursor-not-allowed' : 'bg-linear-to-br from-emerald-600 to-emerald-500'} text-white ${habilidades.length === 0 ? 'opacity-50' : 'opacity-100'}`}
                     >
                         {salvando ? <OmniLoader engine="green" size={16} /> : <Save size={16} />}
                         {salvando ? "Salvando..." : "Salvar Avaliação"}
@@ -661,7 +689,7 @@ export default function AvaliacaoProcessualClient() {
                         <button
                             onClick={gerarRelatorio}
                             disabled={gerandoRelatorio}
-                            className={`px-6 py-3 rounded-lg flex items-center gap-2 cursor-pointer text-sm font-bold border-none transition-all shadow-[0_4px_16px_"var(--color-accent-strong)"] text-white ${gerandoRelatorio ? 'bg-() cursor-not-allowed' : 'bg-linear-to-br from-purple-600 to-purple-500'}`}
+                            className={`px-6 py-3 rounded-lg flex items-center gap-2 cursor-pointer text-sm font-bold border-none transition-all shadow-[0_4px_16px_"var(--color-accent-strong)"] text-white ${gerandoRelatorio ? 'bg-(--superficie-2) cursor-not-allowed' : 'bg-linear-to-br from-purple-600 to-purple-500'}`}
                         >
                             {gerandoRelatorio ? <OmniLoader engine="red" size={16} /> : <FileText size={16} />}
                             {gerandoRelatorio ? "Gerando..." : "Gerar Relatório IA"}
@@ -685,7 +713,7 @@ export default function AvaliacaoProcessualClient() {
                             setGerandoIntegrado(false);
                         }}
                         disabled={gerandoIntegrado}
-                        className={`px-6 py-3 rounded-lg flex items-center gap-2 cursor-pointer text-sm font-bold border-none transition-all text-white ${gerandoIntegrado ? 'bg-() cursor-not-allowed' : 'bg-linear-to-br from-sky-500 to-sky-400'}`}
+                        className={`px-6 py-3 rounded-lg flex items-center gap-2 cursor-pointer text-sm font-bold border-none transition-all text-white ${gerandoIntegrado ? 'bg-(--superficie-2) cursor-not-allowed' : 'bg-linear-to-br from-sky-500 to-sky-400'}`}
                     >
                         {gerandoIntegrado ? <OmniLoader engine="red" size={16} /> : <BarChart3 size={16} />}
                         {gerandoIntegrado ? "Carregando..." : relatorioIntegrado ? (showIntegrado ? "Ocultar Integrado" : "Ver Integrado") : "Relatório Integrado"}
@@ -717,12 +745,12 @@ export default function AvaliacaoProcessualClient() {
                         </button>
                         <div className={bodyS}>
                             {Boolean(relatorio.periodo_analisado) && (
-                                <div className="text-xs text-() mb-2">
+                                <div className="text-xs text-(--tinta-2) mb-2">
                                     Período: {String(relatorio.periodo_analisado)}
                                 </div>
                             )}
                             {Boolean(relatorio.resumo_evolucao) && (
-                                <p className="omni-body text-() leading-relaxed mt-0 mb-3.5">
+                                <p className="omni-body text-(--tinta-2) leading-relaxed mt-0 mb-3.5">
                                     {String(relatorio.resumo_evolucao)}
                                 </p>
                             )}
@@ -731,7 +759,7 @@ export default function AvaliacaoProcessualClient() {
                             {Array.isArray(relatorio.pontos_destaque) && (relatorio.pontos_destaque as Array<{ tipo: string; texto: string }>).length > 0 && (
                                 <div className="flex flex-col gap-1.5 mb-3.5">
                                     {(relatorio.pontos_destaque as Array<{ tipo: string; texto: string }>).map((p, i) => (
-                                        <div key={i} className={`px-3 py-2 rounded-lg text-xs text-() border ${p.tipo === "positivo" ? "bg-emerald-500/5 border-emerald-500/10" : "bg-amber-500/5 border-amber-500/10"}`}>
+                                        <div key={i} className={`px-3 py-2 rounded-lg text-xs text-(--tinta-2) border ${p.tipo === "positivo" ? "bg-emerald-500/5 border-emerald-500/10" : "bg-amber-500/5 border-amber-500/10"}`}>
                                             {p.tipo === "positivo" ? "✅" : "⚠️"} {p.texto}
                                         </div>
                                     ))}
@@ -743,14 +771,14 @@ export default function AvaliacaoProcessualClient() {
                                 <div className="mb-3.5">
                                     <div className="text-xs font-bold text-purple-500 mb-2">🎯 Ações Sugeridas</div>
                                     {(relatorio.acoes_sugeridas as Array<{ acao: string; justificativa: string; prioridade: string }>).map((a, i) => (
-                                        <div key={i} className="px-3.5 py-2.5 rounded-lg mb-1.5 bg-() border border-()">
+                                        <div key={i} className="px-3.5 py-2.5 rounded-lg mb-1.5 bg-(--superficie-2) border border-(--borda)">
                                             <div className="flex items-center gap-1.5 mb-1">
                                                 <span className={`omni-label-xs font-bold px-1.5 py-px rounded uppercase ${a.prioridade === "alta" ? "bg-red-500/10 text-red-400" : a.prioridade === "media" ? "bg-amber-500/10 text-amber-400" : "bg-slate-500/10 text-slate-400"}`}>
                                                     {a.prioridade}
                                                 </span>
                                             </div>
-                                            <div className="text-xs font-semibold text-() mb-0.5">{a.acao}</div>
-                                            <div className="text-xs text-()">{a.justificativa}</div>
+                                            <div className="text-xs font-semibold text-(--tinta-2) mb-0.5">{a.acao}</div>
+                                            <div className="text-xs text-(--tinta-2)">{a.justificativa}</div>
                                         </div>
                                     ))}
                                 </div>
@@ -844,7 +872,7 @@ export default function AvaliacaoProcessualClient() {
                                         <div className="omni-body font-bold text-sky-500">
                                             Linha de Base — Nível {relatorioIntegrado.diagnostico_baseline.nivel_omnisfera}
                                         </div>
-                                        <div className="text-xs text-() mt-0.5">
+                                        <div className="text-xs text-(--tinta-2) mt-0.5">
                                             Via Diagnóstica · {relatorioIntegrado.diagnostico_baseline.status}
                                         </div>
                                     </div>
@@ -861,15 +889,15 @@ export default function AvaliacaoProcessualClient() {
                                         relatorioIntegrado.tendencia_geral === "regressao" ? "text-red-500" : "text-slate-400"}`}>
                                         {relatorioIntegrado.tendencia_geral === "melhora" ? "↗" : relatorioIntegrado.tendencia_geral === "regressao" ? "↘" : "→"}
                                     </div>
-                                    <div className="text-xs font-semibold text-() mt-0.5">Tendência Geral</div>
+                                    <div className="text-xs font-semibold text-(--tinta-2) mt-0.5">Tendência Geral</div>
                                 </div>
                                 <div className="flex-1 min-w-[120px] px-3.5 py-2.5 rounded-xl bg-indigo-500/5 border border-indigo-500/15 text-center">
                                     <div className="text-[22px] font-extrabold text-indigo-500">{relatorioIntegrado.registros_processual || 0}</div>
-                                    <div className="text-xs font-semibold text-() mt-0.5">Registros</div>
+                                    <div className="text-xs font-semibold text-(--tinta-2) mt-0.5">Registros</div>
                                 </div>
                                 <div className="flex-1 min-w-[120px] px-3.5 py-2.5 rounded-xl bg-amber-500/5 border border-amber-500/15 text-center">
                                     <div className="text-[22px] font-extrabold text-amber-500">{(relatorioIntegrado.alertas_regressao || []).length}</div>
-                                    <div className="text-xs font-semibold text-() mt-0.5">Alertas</div>
+                                    <div className="text-xs font-semibold text-(--tinta-2) mt-0.5">Alertas</div>
                                 </div>
                             </div>
 
@@ -878,10 +906,10 @@ export default function AvaliacaoProcessualClient() {
                                 <div className="mb-3.5">
                                     <div className="text-xs font-bold text-sky-500 mb-2">📈 Evolução por Habilidade</div>
                                     {(relatorioIntegrado.evolucao_por_habilidade as Array<{ codigo: string; descricao: string; nivel_inicial: number; nivel_atual: number; delta: number; tendencia: string }>).map((e, i) => (
-                                        <div key={i} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg mb-1 border ${e.tendencia === "regressao" ? "bg-red-500/5 border-red-500/10" : "bg-transparent border-()"}`}>
+                                        <div key={i} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg mb-1 border ${e.tendencia === "regressao" ? "bg-red-500/5 border-red-500/10" : "bg-transparent border-(--borda)"}`}>
                                             <span className="omni-label-xs font-bold px-1.5 py-px rounded bg-indigo-500/10 text-indigo-400 shrink-0">{e.codigo}</span>
-                                            <span className="flex-1 text-xs text-() py-0.5 line-clamp-1">{e.descricao}</span>
-                                            <span className="text-xs text-() shrink-0">{e.nivel_inicial} → {e.nivel_atual}</span>
+                                            <span className="flex-1 text-xs text-(--tinta-2) py-0.5 line-clamp-1">{e.descricao}</span>
+                                            <span className="text-xs text-(--tinta-2) shrink-0">{e.nivel_inicial} → {e.nivel_atual}</span>
                                             <span className={`text-xs font-bold px-2 py-0.5 rounded-md shrink-0
                                                 ${e.tendencia === "melhora" ? "bg-emerald-500/10 text-emerald-500" :
                                                     e.tendencia === "regressao" ? "bg-red-500/10 text-red-500" :
@@ -898,9 +926,9 @@ export default function AvaliacaoProcessualClient() {
                                 <div>
                                     <div className="text-xs font-bold text-amber-500 mb-2">⚠️ Alertas de Regressão</div>
                                     {(relatorioIntegrado.alertas_regressao as Array<{ codigo: string; descricao: string; de: number; para: number; descricao_nivel: string }>).map((a, i) => (
-                                        <div key={i} className="px-3.5 py-2.5 rounded-xl mb-1.5 bg-amber-500/5 border border-amber-500/15 text-xs text-()">
+                                        <div key={i} className="px-3.5 py-2.5 rounded-xl mb-1.5 bg-amber-500/5 border border-amber-500/15 text-xs text-(--tinta-2)">
                                             ⚠️ <strong>{a.codigo}</strong>: nível {a.de} → {a.para} ({a.descricao_nivel})
-                                            <div className="text-xs text-() mt-0.5 py-0.5 line-clamp-1">{a.descricao}</div>
+                                            <div className="text-xs text-(--tinta-2) mt-0.5 py-0.5 line-clamp-1">{a.descricao}</div>
                                         </div>
                                     ))}
                                 </div>
@@ -943,7 +971,7 @@ export default function AvaliacaoProcessualClient() {
 
             {/* Link to Diagnóstica */}
             <div className="flex items-center justify-between px-4 py-2.5 rounded-xl mb-5 bg-blue-500/5 border border-blue-500/15">
-                <span className="text-xs text-()">
+                <span className="text-xs text-(--tinta-2)">
                     📋 Precisa fazer a avaliação diagnóstica inicial?
                 </span>
                 <a href="/avaliacao-diagnostica" className="text-xs font-bold text-blue-500 no-underline hover:underline">
@@ -954,11 +982,11 @@ export default function AvaliacaoProcessualClient() {
             {/* Empty state */}
             {alunos.length === 0 && (
                 <div className={`${cardS} text-center px-5 py-10`}>
-                    <Users size={48} className="mx-auto mb-3 text-() opacity-30" />
-                    <h3 className="m-0 mb-1.5 text-[15px] font-bold text-()">
+                    <Users size={48} className="mx-auto mb-3 text-(--tinta-2) opacity-30" />
+                    <h3 className="m-0 mb-1.5 text-[15px] font-bold text-(--tinta-2)">
                         Nenhum estudante encontrado
                     </h3>
-                    <p className="m-0 omni-body text-()">
+                    <p className="m-0 omni-body text-(--tinta-2)">
                         Estudantes em Fase 2 do PEI aparecerão aqui.
                     </p>
                 </div>
@@ -974,10 +1002,10 @@ export default function AvaliacaoProcessualClient() {
                                     {aluno.name.split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase()}
                                 </div>
                                 <div>
-                                    <div className="font-bold text-sm text-()">
+                                    <div className="font-bold text-sm text-(--tinta-2)">
                                         {aluno.name}
                                     </div>
-                                    <div className="text-xs text-()">
+                                    <div className="text-xs text-(--tinta-2)">
                                         {aluno.grade} {aluno.class_group && `— ${aluno.class_group}`}
                                         {aluno.diagnostico && ` · ${aluno.diagnostico}`}
                                     </div>
@@ -991,7 +1019,7 @@ export default function AvaliacaoProcessualClient() {
                                 <button
                                     key={disc.id}
                                     onClick={() => openProcessual(aluno, disc.disciplina)}
-                                    className="px-3.5 py-2 rounded-lg flex items-center gap-1.5 cursor-pointer omni-body font-semibold border border-() bg-() text-() transition-all hover:bg-()"
+                                    className="px-3.5 py-2 rounded-lg flex items-center gap-1.5 cursor-pointer omni-body font-semibold border border-(--borda) bg-(--superficie-2) text-(--tinta-2) transition-all hover:bg-(--superficie-2)"
                                 >
                                     <Activity size={14} />
                                     {disc.disciplina}

@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmar } from "@/components/Confirmar";
 import React, { useState, useEffect } from "react";
 import { Save, Plus, Trash2, Edit2, Play, Pause, FileText, Download, Target, Calendar, CheckCircle2, ChevronDown, ChevronRight, MessageSquare, AlertTriangle, Users, BookOpen, Layout, Settings, Sparkles, Loader2, ArrowRight, Map, Search } from 'lucide-react';
 import type { StudentFull } from "../lib/paee-types";
@@ -184,7 +185,16 @@ export function JornadaTab({
     }
   };
 
-  const limpar = () => {
+  const { confirmar, dialogo } = useConfirmar();
+  const limpar = async () => {
+    const ok = await confirmar({
+      titulo: "Descartar o roteiro gamificado?",
+      texto: "O texto gerado e as observações desta aba serão apagados. Isso não pode ser desfeito.",
+      acao: "Descartar",
+      cancelar: "Manter",
+      perigo: true,
+    });
+    if (!ok) return;
     setTexto("");
     setStatus("rascunho");
     setFeedback("");
@@ -273,6 +283,7 @@ export function JornadaTab({
 
   return (
     <Card padding="none" className="p-6">
+      {dialogo}
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
         <div className="w-12 h-12 rounded-xl bg-linear-to-br from-(--module-primary-soft) to-(--module-primary)/10 flex items-center justify-center shrink-0">
@@ -301,7 +312,7 @@ export function JornadaTab({
           size="sm"
           onClick={limpar}
         >
-          Limpar / Abandonar
+          Descartar
         </Button>
       )}
 

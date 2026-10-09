@@ -395,10 +395,16 @@ function NovoRegistroTab({
   const [encaminhamentos, setEncaminhamentos] = useState("");
   const [alertaRegente, setAlertaRegente] = useState(false);
   const [saving, setSaving] = useState(false);
+  // Onda 5: o registro avisa se salvou ou não (antes só limpava os campos, e a falha era silenciosa)
+  const [retorno, setRetorno] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!atividade.trim() || !objetivos.trim() || !estrategias.trim()) return;
+    if (!atividade.trim() || !objetivos.trim() || !estrategias.trim()) {
+      setRetorno({ tipo: "erro", texto: "Preencha a atividade, os objetivos e as estratégias para salvar." });
+      return;
+    }
+    setRetorno(null);
     setSaving(true);
     const reg: RegistroDiario = {
       student_id: studentId,
@@ -431,6 +437,9 @@ function NovoRegistroTab({
       setProximosPassos("");
       setEncaminhamentos("");
       setAlertaRegente(false);
+      setRetorno({ tipo: "ok", texto: `Registro de ${new Date(dataSessao + "T12:00:00").toLocaleDateString("pt-BR")} salvo.` });
+    } else {
+      setRetorno({ tipo: "erro", texto: "Não conseguimos salvar o registro agora. O que você escreveu continua aqui: confira a internet e tente de novo." });
     }
     setSaving(false);
   };
@@ -443,6 +452,13 @@ function NovoRegistroTab({
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {retorno && (
+          <div className={`omni-aviso ${retorno.tipo === "ok" ? "omni-aviso--sucesso" : "omni-aviso--erro"} mb-4`} role={retorno.tipo === "erro" ? "alert" : "status"} style={{ maxWidth: "none" }}>
+            <span aria-hidden className="omni-aviso__icone">{retorno.tipo === "ok" ? "✓" : "!"}</span>
+            <div><div className="omni-aviso__titulo">{retorno.texto}</div></div>
+            <span />
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Input

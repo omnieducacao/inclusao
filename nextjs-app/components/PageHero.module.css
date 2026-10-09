@@ -1,0 +1,33 @@
+/* Cabeçalho das telas dos módulos · Omni Design System */
+.cabecalho {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-2) 0 var(--space-6);
+  margin-bottom: var(--space-2);
+  border-bottom: 1px solid var(--borda);
+  background: transparent;
+}
+.selo {
+  width: 64px !important;
+  height: 64px !important;
+  flex: none;
+}
+.selo svg { width: 30px; height: 30px; }
+.texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.texto :global(.omni-rotulo) { color: var(--tinta-3); }
+.titulo {
+  font: 800 30px/36px var(--font-sans);
+  letter-spacing: -0.02em;
+  color: var(--tinta);
+  text-wrap: balance;
+  margin: 2px 0 0;
+}
+.desc { font: 400 16px/24px var(--font-sans); color: var(--tinta-2); margin: 0; text-wrap: pretty; }
+
+@media (max-width: 640px) {
+  .cabecalho { gap: var(--space-4); padding-bottom: var(--space-5); }
+  .selo { width: 48px !important; height: 48px !important; }
+  .selo svg { width: 24px; height: 24px; }
+  .titulo { font-size: 24px; line-height: 30px; }
+}

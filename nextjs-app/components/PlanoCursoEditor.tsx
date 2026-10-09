@@ -4,8 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
     Save, Loader2, CheckCircle2, BookOpen, Plus, X,
     Sparkles, GraduationCap, ChevronDown, ChevronRight,
-    Trash2, Edit3, Copy,
-} from "lucide-react";
+    Trash2, Edit3, Copy, AlertTriangle } from "lucide-react";
 import { useAILoading } from "@/hooks/useAILoading";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { AutoSaveIndicator } from "@/components/AutoSaveIndicator";
@@ -211,6 +210,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
     const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState("");
     const [iaLoading, setIaLoading] = useState(false);
+    const [iaErro, setIaErro] = useState<string | null>(null);
     const [expandedBloco, setExpandedBloco] = useState<string | null>(null);
 
     // ─── Auto-Save ───────────────────────────────────────────────────────
@@ -383,6 +383,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
     const gerarSugestaoIA = useCallback(async () => {
         if (form.habilidades_bncc.length === 0) return;
         setIaLoading(true);
+        setIaErro(null);
         aiLoadingStart("red", "plano_curso");
         try {
             const res = await fetch("/api/pei/plano-ensino/sugestao-ia", {
@@ -393,6 +394,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                 }),
             });
             const data = await res.json();
+            if (!res.ok || !data.sugestao) setIaErro(data.error || "A IA não trouxe sugestão desta vez. Tente de novo.");
             if (data.sugestao) {
                 setForm(prev => ({
                     ...prev,
@@ -405,7 +407,9 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                     avaliacao_livre: data.sugestao.avaliacao_texto || prev.avaliacao_livre,
                 }));
             }
-        } catch { /* silent */ }
+        } catch {
+            setIaErro("Não conseguimos falar com a IA agora. Confira a internet e tente de novo."); // onda 5: antes falhava em silêncio
+        }
         finally { setIaLoading(false); aiLoadingStop(); }
     }, [form.habilidades_bncc, form.habilidades_descricoes, componenteSel, unidadeSel, objetoSel, serie, aiLoadingStart, aiLoadingStop]);
 
@@ -632,10 +636,17 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
                         <textarea aria-label="Avaliação livre" placeholder="Detalhes adicionais..." value={form.avaliacao_livre} onChange={e => setForm(f => ({ ...f, avaliacao_livre: e.target.value }))} className={`${textareaC} min-h-[40px]`} />
                     </div></div>
 
+                    {iaErro && (
+                        <div className="omni-aviso omni-aviso--erro mt-4" role="alert" style={{ maxWidth: "none" }}>
+                            <AlertTriangle className="omni-aviso__icone" aria-hidden />
+                            <div><div className="omni-aviso__titulo">{iaErro}</div></div>
+                            <span />
+                        </div>
+                    )}
                     {/* Action buttons */}
                     <div className="flex gap-2 flex-wrap mt-4">
                         <button onClick={gerarSugestaoIA} disabled={iaLoading || form.habilidades_bncc.length === 0} type="button" className={`btn-premium px-4 py-2.5 rounded-xl omni-body-sm border-2 border-purple-500/50 hover:border-purple-500 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 ${(form.habilidades_bncc.length === 0 || iaLoading) ? 'opacity-50 cursor-not-allowed active:scale-100' : ''}`}>
-                            {iaLoading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} Sugestão IA
+                            {iaLoading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} {iaLoading ? "Sugerindo…" : "Sugerir com IA"}
                         </button>
                         <button onClick={addBloco} disabled={!canAddBloco} type="button" className={`btn-premium flex-1 px-4 py-2.5 rounded-xl omni-body-sm hover:shadow-premium-lg ${canAddBloco ? 'btn-premium-primary bg-sky-600 hover:bg-sky-500 border-none' : 'bg-slate-200 dark:bg-slate-800 text-slate-500 cursor-not-allowed opacity-70 border border-slate-300 dark:border-slate-700 active:scale-100'}`}>
                             <Plus size={16} strokeWidth={2.5} /> {editingIndex !== null ? "Salvar Bloco" : "Adicionar Bloco"}

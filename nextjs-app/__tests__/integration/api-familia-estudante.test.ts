@@ -172,3 +172,27 @@ describe("API /api/familia/estudante/[id]", () => {
     expect(data.ciencia_pei.acknowledged).toBe(false);
   });
 });
+
+describe("API /api/familia/estudante/[id] · resumo do PEI (onda 5)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSession = { workspace_id: "ws-1", user_role: "family", family_responsible_id: "resp-1" };
+    mockLinkData = { id: "link-1" };
+    mockProcessualData = [];
+  });
+
+  it("não mostra o texto técnico da IA à família", async () => {
+    mockStudentData = { id: "est-1", name: "João", grade: "1º ano", class_group: "A", pei_data: { ia_sugestao: "Texto técnico" }, paee_data: null, paee_ciclos: [], planejamento_ativo: null };
+    const res = await GET(new Request("http://localhost"), { params: Promise.resolve({ id: "est-1" }) });
+    const body = await res.json();
+    expect(JSON.stringify(body)).not.toContain("Texto técnico");
+    expect(body.pei_resumo.resumo).toBeNull();
+  });
+
+  it("mostra o resumo liberado pela coordenação", async () => {
+    mockStudentData = { id: "est-1", name: "João", grade: "1º ano", class_group: "A", pei_data: { ia_sugestao: "Texto técnico", resumo_familia: { texto: "Resumo para a família", liberado_em: "2026-10-09T12:00:00Z" } }, paee_data: null, paee_ciclos: [], planejamento_ativo: null };
+    const res = await GET(new Request("http://localhost"), { params: Promise.resolve({ id: "est-1" }) });
+    const body = await res.json();
+    expect(body.pei_resumo.resumo).toBe("Resumo para a família");
+  });
+});

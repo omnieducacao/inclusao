@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmar } from "@/components/Confirmar";
 
 import { useState, useEffect } from "react";
 import { nomeDoPapel } from "@/lib/papeis";
@@ -28,6 +29,7 @@ export function MemberCard({
     onAction: () => void;
     onError: (err: string) => void;
 }) {
+    const { confirmar, dialogo } = useConfirmar();
     const perms = Object.entries(PERM_LABELS)
         .filter(([k]) => member[k as keyof WorkspaceMember])
         .map(([, v]) => v);
@@ -217,6 +219,7 @@ export function MemberCard({
             </TableCell>
             <TableCell className="align-top text-right">
                 <div className="flex justify-end items-center gap-1.5 shrink-0 flex-wrap">
+                    {dialogo}
                     <SimularButton memberId={member.id} memberName={member.nome} />
                     <Button
                         variant="ghost"
@@ -231,6 +234,14 @@ export function MemberCard({
                         variant="ghost"
                         size="sm"
                         onClick={async () => {
+                            const ok = await confirmar({
+                                titulo: `Desativar ${member.nome}?`,
+                                texto: "A pessoa deixa de entrar na Omnisfera. O que ela registrou continua salvo, e você pode reativar depois.",
+                                acao: "Desativar",
+                                cancelar: "Manter ativo",
+                                perigo: true,
+                            });
+                            if (!ok) return;
                             const res = await fetch(`/api/members/${member.id}`, {
                                 method: "PATCH",
                                 headers: { "Content-Type": "application/json" },

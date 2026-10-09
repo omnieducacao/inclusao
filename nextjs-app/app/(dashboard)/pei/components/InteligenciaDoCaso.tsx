@@ -8,7 +8,36 @@ import type { EngineId } from "@/lib/ai-engines";
 import type { PEIData } from "@/lib/pei";
 import { OmniLoader } from "@/components/OmniLoader";
 
-export function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
+export function InteligenciaDoCaso({
+  peiData,
+  studentId,
+  onResumoLiberado,
+}: {
+  peiData: PEIData;
+  /** onda 5: para liberar o resumo à família */
+  studentId?: string | null;
+  onResumoLiberado?: (r: { texto: string; liberado_em: string } | null) => void;
+}) {
+  const liberado = (peiData as Record<string, unknown>).resumo_familia as { texto?: string; liberado_em?: string } | undefined;
+  const [liberando, setLiberando] = useState(false);
+  const [liberarMsg, setLiberarMsg] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
+  const liberarResumo = async (texto: string | null) => {
+    if (!studentId) return;
+    setLiberando(true); setLiberarMsg(null);
+    try {
+      const res = await fetch("/api/pei/resumo-familia/liberar", {
+        method: texto ? "POST" : "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId, texto }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Não conseguimos salvar agora.");
+      onResumoLiberado?.(data.resumo_familia ?? null);
+      setLiberarMsg({ tipo: "ok", texto: texto ? "Resumo liberado. A família já pode ler na área dela." : "Resumo recolhido. A família deixou de ver." });
+    } catch (e) {
+      setLiberarMsg({ tipo: "erro", texto: e instanceof Error ? e.message : "Não conseguimos salvar agora." });
+    } finally { setLiberando(false); }
+  };
   const [engine, setEngine] = useState<EngineId>("red");
   // Mapa Mental
   const [mapaLoading, setMapaLoading] = useState(false);
@@ -213,9 +242,41 @@ export function InteligenciaDoCaso({ peiData }: { peiData: PEIData }) {
               </button>
             </div>
           </div>
-          <div className="prose prose-sm prose-emerald max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap">
-            {resumoTexto}
+          {/* Onda 5: a coordenação revisa e libera; só então a família vê */}
+          <label htmlFor="resumo-familia-texto" className="omni-campo__rotulo">Revise o texto antes de liberar</label>
+          <textarea
+            id="resumo-familia-texto"
+            className="omni-entrada"
+            style={{ minHeight: 220, marginTop: 6 }}
+            value={resumoTexto}
+            onChange={(e) => setResumoTexto(e.target.value)}
+          />
+          <div className="flex flex-wrap items-center gap-2 mt-3">
+            <button type="button" className="omni-btn omni-btn--primario" disabled={liberando || !studentId} onClick={() => liberarResumo(resumoTexto)}>
+              {liberando ? "Liberando…" : "Liberar para a família"}
+            </button>
+            {!studentId && <span className="omni-apoio">Salve o estudante antes de liberar.</span>}
           </div>
+        </div>
+      )}
+      {liberado?.texto && !resumoTexto && (
+        <div className="omni-aviso omni-aviso--sucesso mb-6" style={{ maxWidth: "none" }}>
+          <CheckCircle2 className="omni-aviso__icone" aria-hidden />
+          <div>
+            <div className="omni-aviso__titulo">A família vê o resumo liberado em {liberado.liberado_em ? new Date(liberado.liberado_em).toLocaleDateString("pt-BR") : "—"}</div>
+            <div className="omni-aviso__texto">Para trocar, gere um novo resumo, revise e libere de novo.</div>
+            <div className="omni-aviso__acoes">
+              <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" disabled={liberando} onClick={() => liberarResumo(null)}>Recolher o resumo</button>
+            </div>
+          </div>
+          <span />
+        </div>
+      )}
+      {liberarMsg && (
+        <div className={`omni-aviso ${liberarMsg.tipo === "ok" ? "omni-aviso--sucesso" : "omni-aviso--erro"} mb-6`} role={liberarMsg.tipo === "erro" ? "alert" : "status"} style={{ maxWidth: "none" }}>
+          {liberarMsg.tipo === "ok" ? <CheckCircle2 className="omni-aviso__icone" aria-hidden /> : <AlertTriangle className="omni-aviso__icone" aria-hidden />}
+          <div><div className="omni-aviso__titulo">{liberarMsg.texto}</div></div>
+          <span />
         </div>
       )}
 

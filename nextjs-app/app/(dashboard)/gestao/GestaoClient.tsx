@@ -11,7 +11,7 @@ import {
   Heart,
 } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell, Badge, Card, CardHeader, CardTitle, CardDescription, CardContent, DonutChart } from "@omni/ds";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell, Badge, Card } from "@omni/ds";
 import type { WorkspaceMember, FamilyResponsavel, WorkspaceMaster } from "./types";
 import { MasterSetupForm } from "./components/MasterSetupForm";
 import { NovoUsuarioUnificado } from "./components/MemberForms";
@@ -38,8 +38,9 @@ export function GestaoClient({
 
   // === VIRTUALIZATION SETUP ===
   const membersParentRef = useRef<HTMLDivElement>(null);
+  const activeMembers = members.filter((m) => m.active);
   const membersVirtualizer = useVirtualizer({
-    count: members.length,
+    count: activeMembers.length, // antes contava também os desativados e a lista quebrava
     getScrollElement: () => membersParentRef.current,
     estimateSize: () => 76,
     overscan: 5,
@@ -76,7 +77,6 @@ export function GestaoClient({
     }
   }, []);
 
-  const activeMembers = members.filter((m) => m.active);
   const inactiveMembers = members.filter((m) => !m.active);
   const activeFamily = familyResponsaveis.filter((f) => f.active !== false);
   const inactiveFamily = familyResponsaveis.filter((f) => f.active === false);
@@ -97,7 +97,7 @@ export function GestaoClient({
       {!loading && master && (
         <p className="text-sm text-slate-600 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          Usuário master configurado. Login: PIN + email + senha.
+          A conta da coordenação (master) já está criada. Ela entra com e-mail e senha.
         </p>
       )}
 
@@ -137,24 +137,7 @@ export function GestaoClient({
         )
       }
 
-      {/* Dashboard Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Demografia de Estudantes</CardTitle>
-            <CardDescription>Estudantes regulares vs. Inclusão (PEI)</CardDescription>
-          </CardHeader>
-          <CardContent className="flex justify-center pb-6">
-            <DonutChart
-              segments={[
-                { label: "Ensino Regular", value: 340, color: "var(--text-muted)" },
-                { label: "Inclusão (PEI)", value: 45, color: "var(--color-info)" },
-              ]}
-              size={180}
-            />
-          </CardContent>
-        </Card>
-      </div>
+      {/* Onda 5: saiu o gráfico "Demografia de Estudantes", que mostrava números fixos (340 e 45) e não os da escola */}
 
       {/* Lista de membros ativos */}
       <div>

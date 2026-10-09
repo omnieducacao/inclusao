@@ -24,11 +24,10 @@ import {
 export default function InfosClient() {
   const [activeTab, setActiveTab] = useState("panorama");
   const [searchTerm, setSearchTerm] = useState("");
-  const [legalQuestion, setLegalQuestion] = useState("");
 
   const tabs = [
     { id: "panorama", label: "Panorama & Fluxos", icon: BarChart3 },
-    { id: "legal", label: "Legislação & IA", icon: Scale },
+    { id: "legal", label: "Legislação", icon: Scale },
     { id: "glossario", label: "Glossário Técnico", icon: BookOpen },
     { id: "linguagem", label: "Dicionário Inclusivo", icon: MessageSquare },
     { id: "biblio", label: "Biblioteca Virtual", icon: BookText },
@@ -459,31 +458,19 @@ export default function InfosClient() {
                 </Card>
               </div>
 
-              <div className="bg-linear-to-br from-teal-50 to-cyan-50 rounded-xl border border-teal-200/60 p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-teal-100 flex items-center justify-center">
-                    <Rocket className="w-6 h-6 text-teal-600" />
+              {/* Onda 5: saiu o "Consultor Legal IA", que respondia sempre o mesmo texto, qualquer que fosse a pergunta */}
+              <div className="omni-aviso omni-aviso--info" style={{ maxWidth: "none" }}>
+                <Scale className="omni-aviso__icone" aria-hidden />
+                <div>
+                  <div className="omni-aviso__titulo">A lei explicada, artigo por artigo</div>
+                  <div className="omni-aviso__texto">
+                    Os textos completos do Decreto 12.686/2025, do Decreto 12.773/2025 e da Portaria MEC 421/2026, com o que muda na escola, estão no site da Omnisfera.
                   </div>
-                  <div className="font-bold text-teal-900">Consultor Legal IA</div>
+                  <div className="omni-aviso__acoes">
+                    <a href="/lei" target="_blank" rel="noopener" className="omni-btn omni-btn--secundario omni-btn--pequeno">Abrir a legislação explicada</a>
+                  </div>
                 </div>
-                <p className="text-sm text-teal-800 mb-4">
-                  Dúvidas sobre a lei? Pergunte à nossa inteligência especializada nos decretos de inclusão.
-                </p>
-                <input
-                  type="text"
-                  value={legalQuestion}
-                  onChange={(e) => setLegalQuestion(e.target.value)}
-                  placeholder="Ex: A escola pode exigir laudo para matricular?"
-                  className="w-full px-3 py-2 border-2 border-teal-200 rounded-lg text-sm mb-3 focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
-                />
-                {legalQuestion && (
-                  <div className="bg-white rounded-lg p-4 border-l-4 border-teal-500">
-                    <div className="font-bold text-teal-700 text-sm mb-2">Resposta da IA:</div>
-                    <div className="text-xs text-slate-700">
-                      Com base no <strong>Decreto 12.773/2025</strong>, a exigência de laudo médico como condição prévia para matrícula é ilegal. A escola deve realizar o <strong>Estudo de Caso</strong> pedagógico.
-                    </div>
-                  </div>
-                )}
+                <span />
               </div>
             </div>
           </div>

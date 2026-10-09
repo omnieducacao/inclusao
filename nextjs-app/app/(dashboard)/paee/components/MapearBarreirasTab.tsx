@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmar } from "@/components/Confirmar";
 import React, { useState, useEffect } from "react";
 import { Save, Plus, Trash2, Edit2, Play, Pause, FileText, Download, Target, Calendar, CheckCircle2, ChevronDown, ChevronRight, MessageSquare, AlertTriangle, Users, BookOpen, Layout, Settings, Sparkles, Loader2, ArrowRight, Map, Search } from 'lucide-react';
 import type { StudentFull } from "../lib/paee-types";
@@ -97,17 +98,27 @@ export function MapearBarreirasTab({
     }
   };
 
-  const limpar = () => {
+  const { confirmar, dialogo } = useConfirmar();
+  const limpar = async () => {
+    const ok = await confirmar({
+      titulo: "Descartar o mapeamento de barreiras?",
+      texto: "O texto gerado e as observações desta aba serão apagados. Isso não pode ser desfeito.",
+      acao: "Descartar",
+      cancelar: "Manter",
+      perigo: true,
+    });
+    if (!ok) return;
     setDiagnostico("");
     setStatus("rascunho");
     setObservacoes("");
     setFeedback("");
-    updateField("conteudo_diagnostico_barreiras", "");
-    updateField("status_diagnostico_barreiras", "rascunho");
+    // uma atualização só (antes eram duas seguidas e a segunda desfazia a primeira)
+    onUpdate({ ...paeeData, conteudo_diagnostico_barreiras: "", status_diagnostico_barreiras: "rascunho" });
   };
 
   return (
     <Card padding="none" className="p-6">
+      {dialogo}
       {/* Header da aba */}
       <div className="flex items-start gap-4 mb-6">
         <div className="w-12 h-12 rounded-xl bg-linear-to-br from-(--module-primary-soft) to-(--module-primary)/10 flex items-center justify-center shrink-0">
@@ -131,7 +142,7 @@ export function MapearBarreirasTab({
           size="sm"
           onClick={limpar}
         >
-          Limpar / Abandonar
+          Descartar
         </Button>
       )}
 
@@ -199,7 +210,7 @@ export function MapearBarreirasTab({
               variant="secondary"
               onClick={limpar}
             >
-              Descartar e Regenerar
+              Descartar e gerar de novo
             </Button>
             <PdfDownloadButton
               text={diagnostico}

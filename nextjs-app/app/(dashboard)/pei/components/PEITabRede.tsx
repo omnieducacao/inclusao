@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmar } from "@/components/Confirmar";
 
 import React, { useState, useEffect } from "react";
 import type { PEIData } from "@/lib/pei";
@@ -17,9 +18,11 @@ type TabRedeProps = {
 
 export function PEITabRede(props: TabRedeProps) {
   const { peiData, updateField } = props;
+  const { confirmar, dialogo } = useConfirmar();
 
   return (
     <div className="space-y-6 max-w-4xl">
+      {dialogo}
       {/* Título da aba com ícone */}
       <div className="flex items-center gap-2 mb-4">
         <Users className="w-5 h-5 text-sky-600" />
@@ -63,7 +66,8 @@ export function PEITabRede(props: TabRedeProps) {
                   {p}
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
+                      if (!(await confirmar({ titulo: `Tirar ${p} da rede de apoio?`, texto: "As orientações escritas para esse profissional também serão apagadas.", acao: "Tirar da rede", cancelar: "Manter", perigo: true }))) return;
                       const atual = peiData.rede_apoio || [];
                       updateField("rede_apoio", atual.filter((item) => item !== p));
                       // Remove orientações desse profissional também
@@ -73,7 +77,7 @@ export function PEITabRede(props: TabRedeProps) {
                     }}
                     className="text-purple-600 hover:text-purple-800"
                   >
-                    ×
+                    <span aria-hidden="true">×</span><span className="omni-so-leitor">Tirar {p} da rede</span>
                   </button>
                 </span>
               ))}
@@ -268,7 +272,8 @@ export function PEITabRede(props: TabRedeProps) {
                 <div className="grid grid-cols-2 gap-2 mt-3">
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
+                      if (!(await confirmar({ titulo: `Apagar as orientações de ${prof}?`, acao: "Apagar orientações", cancelar: "Manter", perigo: true }))) return;
                       updateField("orientacoes_por_profissional", {
                         ...(peiData.orientacoes_por_profissional || {}),
                         [prof]: "",
@@ -276,11 +281,12 @@ export function PEITabRede(props: TabRedeProps) {
                     }}
                     className="px-3 py-1.5 text-xs border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-700"
                   >
-                    🧹 Limpar
+                    Apagar orientações
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
+                      if (!(await confirmar({ titulo: `Tirar ${prof} da rede de apoio?`, texto: "As orientações escritas para esse profissional também serão apagadas.", acao: "Tirar da rede", cancelar: "Manter", perigo: true }))) return;
                       const atual = peiData.rede_apoio || [];
                       updateField("rede_apoio", atual.filter((item) => item !== prof));
                       const orientacoes = { ...(peiData.orientacoes_por_profissional || {}) };
@@ -289,7 +295,7 @@ export function PEITabRede(props: TabRedeProps) {
                     }}
                     className="px-3 py-1.5 text-xs border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
                   >
-                    🗑️ Remover profissional
+                    Tirar da rede
                   </button>
                 </div>
               </div>

@@ -6,7 +6,7 @@ import { ArrowLeft, FileText, TrendingUp, Loader2, CheckCircle2, PenLine, Upload
 
 type EstudanteData = {
   estudante: { id: string; name: string; grade: string | null; class_group: string | null };
-  pei_resumo: { nome?: string; serie?: string; turma?: string; ia_sugestao?: string | null } | null;
+  pei_resumo: { nome?: string; serie?: string; turma?: string; resumo?: string | null; resumo_liberado_em?: string | null } | null;
   paee_resumo: { periodo?: string | null; foco?: string } | null;
   evolucao: { evolucao: Array<{ disciplina: string; periodos: number; media_mais_recente: number | null }> };
   ciencia_pei: { acknowledged: boolean; acknowledged_at: string | null };
@@ -178,12 +178,12 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
             <FileText className="w-5 h-5 text-blue-600" />
             Resumo do PEI
           </h3>
-          {pei_resumo?.ia_sugestao ? (
-            <div className="text-sm text-(--omni-text-secondary) whitespace-pre-wrap max-h-[600px] overflow-y-auto">{pei_resumo.ia_sugestao}</div>
+          {pei_resumo?.resumo ? (
+            <div className="text-sm text-(--omni-text-secondary) whitespace-pre-wrap max-h-[600px] overflow-y-auto" style={{ lineHeight: 1.65 }}>{pei_resumo.resumo}</div>
           ) : (
-            <p className="text-sm text-(--omni-text-muted)">PEI em elaboração ou sem resumo disponível.</p>
+            <p className="text-sm text-(--omni-text-muted)">A escola está preparando um resumo do plano de {estudante?.name?.split(" ")[0] || "seu filho(a)"} para você. Ele aparece aqui assim que for liberado.</p>
           )}
-          {pei_resumo?.ia_sugestao && (
+          {pei_resumo?.resumo && (
             <div className="mt-4 pt-4 border-t border-(--omni-border-default)">
               {(ciencia_pei?.acknowledged ?? false) ? (
                 <div className="flex items-center gap-2 text-emerald-600 text-sm">

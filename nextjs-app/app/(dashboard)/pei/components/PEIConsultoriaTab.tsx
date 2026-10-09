@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmar } from "@/components/Confirmar";
 
 import React, { useState, useEffect } from "react";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
@@ -67,6 +68,7 @@ export function ConsultoriaTab({
   serie: string;
   student?: Student | null;
 }) {
+  const { confirmar, dialogo } = useConfirmar();
   const [engine, setEngine] = useState<EngineId>((peiData.consultoria_engine as EngineId) || "red");
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -165,6 +167,7 @@ export function ConsultoriaTab({
 
   return (
     <div className="space-y-4">
+      {dialogo}
       {!serie ? (
         <div role="alert" aria-live="assertive" className="p-4 rounded-lg bg-amber-50 border border-amber-200">
           <p className="text-amber-800 text-sm">
@@ -396,13 +399,22 @@ export function ConsultoriaTab({
                   <div className="grid grid-cols-2 gap-4 mt-4">
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={async () => {
+                        // Onda 5: apagar o texto do PEI pede confirmação
+                        const ok = await confirmar({
+                          titulo: "Apagar o texto do PEI e gerar de novo?",
+                          texto: "O texto atual do PEI, com as suas edições, será apagado. Se quiser só mudar uma parte, use \"Gerar novamente com ajustes\".",
+                          acao: "Apagar e gerar de novo",
+                          cancelar: "Manter o texto",
+                          perigo: true,
+                        });
+                        if (!ok) return;
                         updateField("ia_sugestao", "");
                         updateField("status_validacao_pei", "rascunho");
                       }}
                       className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
                     >
-                      🔁 Gerar Novamente do Zero
+                      Apagar e gerar de novo
                     </button>
                     <button
                       type="button"
@@ -411,7 +423,7 @@ export function ConsultoriaTab({
                       }}
                       className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
                     >
-                      🧹 Voltar para Revisão
+                      Voltar para a revisão
                     </button>
                   </div>
                 </>

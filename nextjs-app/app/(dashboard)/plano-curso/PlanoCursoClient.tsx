@@ -72,6 +72,7 @@ export default function PlanoCursoClient() {
 
     // ─── Fetch data ─────────────────────────────────────────────────────────
 
+    const [erroCarregar, setErroCarregar] = useState(false);
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
@@ -83,7 +84,10 @@ export default function PlanoCursoClient() {
             setIsMaster(compRes.is_master || false);
             setProfessorName(compRes.professor?.name || "Professor");
             setPlanos(planosRes.planos || []);
-        } catch { /* silent */ }
+            setErroCarregar(false);
+        } catch {
+            setErroCarregar(true); // onda 5: antes a tela ficava vazia sem dizer por quê
+        }
         finally { setLoading(false); }
     }, []);
 
@@ -171,8 +175,15 @@ export default function PlanoCursoClient() {
                 desc={`${professorName} · ${combos.length} componente${combos.length !== 1 ? "s" : ""}/série${combos.length !== 1 ? "s" : ""} vinculado${combos.length !== 1 ? "s" : ""}`}
             />
 
+            {erroCarregar && (
+                <div className="omni-aviso omni-aviso--erro" role="alert" style={{ maxWidth: "none" }}>
+                    <div><div className="omni-aviso__titulo">Não conseguimos carregar seus componentes e planos agora.</div>
+                    <div className="omni-aviso__texto">Recarregue a página para tentar de novo.</div></div>
+                    <span />
+                </div>
+            )}
             {/* Empty state */}
-            {combos.length === 0 && (
+            {!erroCarregar && combos.length === 0 && (
                 <EmptyState
                     icon={BookOpen}
                     title="Nenhum componente vinculado"

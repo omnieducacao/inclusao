@@ -581,7 +581,7 @@ export function PEIRegenteClient() {
 
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <a
-                                                href={`/pei?studentId=${selectedAluno.id}`}
+                                                href={`/pei?student=${selectedAluno.id}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold text-white transition-all bg-linear-to-br from-emerald-600 to-emerald-500"
@@ -648,7 +648,7 @@ export function PEIRegenteClient() {
                                     acessível pelo módulo PEI principal.
                                 </p>
                                 <a
-                                    href={`/pei?studentId=${selectedAluno.id}`}
+                                    href={`/pei?student=${selectedAluno.id}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold transition-colors text-indigo-500 hover:text-indigo-600"
@@ -687,7 +687,7 @@ export function PEIRegenteClient() {
                             <h3 className="font-bold text-slate-800 dark:text-slate-200">{selectedAluno.name}</h3>
                             <p className="text-xs text-slate-500 dark:text-slate-400">
                                 {selectedAluno.grade} {selectedAluno.class_group && `— ${selectedAluno.class_group}`}
-                                {selectedAluno.diagnostico && ` · ${selectedAluno.diagnostico}`}
+                                {/* Onda 5: o diagnóstico não aparece ao lado do nome */}
                             </p>
                         </div>
                     </div>

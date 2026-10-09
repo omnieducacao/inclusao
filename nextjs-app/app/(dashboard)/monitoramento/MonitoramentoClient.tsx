@@ -68,12 +68,8 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
   const currentId = studentId || searchParams?.get("student") || null;
 
-  const [rubrica, setRubrica] = useState<Record<string, string>>({
-    autonomia: "Em Desenvolvimento",
-    social: "Em Desenvolvimento",
-    conteudo: "Em Desenvolvimento",
-    comportamento: "Em Desenvolvimento",
-  });
+  // Onda 5: a rubrica começa vazia (antes vinha "Em Desenvolvimento" nos quatro critérios e salvar sem mexer gravava dado inventado)
+  const [rubrica, setRubrica] = useState<Record<string, string>>({ autonomia: "", social: "", conteudo: "", comportamento: "" });
   const [observacao, setObservacao] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
@@ -130,18 +126,20 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
         const map: Record<number, string> = { 1: "Não Iniciado", 2: "Iniciado", 3: "Em Desenvolvimento", 4: "Consolidado", 5: "Consolidado" };
         const r = data.rubricas;
         setRubrica({
-          autonomia: map[r.autonomia?.score] || "Em Desenvolvimento",
-          social: map[r.social?.score] || "Em Desenvolvimento",
-          conteudo: map[r.conteudo?.score] || "Em Desenvolvimento",
-          comportamento: map[r.comportamento?.score] || "Em Desenvolvimento",
+          autonomia: map[r.autonomia?.score] || "",
+          social: map[r.social?.score] || "",
+          conteudo: map[r.conteudo?.score] || "",
+          comportamento: map[r.comportamento?.score] || "",
         });
         const justifs = [r.autonomia, r.social, r.conteudo, r.comportamento]
           .filter(Boolean)
           .map((x: { justificativa?: string }) => x.justificativa)
           .filter(Boolean)
           .join(" | ");
-        setObservacao(r.resumo ? `${r.resumo}\n\nDetalhes: ${justifs}` : justifs);
-        setMessage({ type: "ok", text: "Rubricas sugeridas pela IA! Revise antes de salvar." });
+        const sugestao = r.resumo ? `${r.resumo}\n\nDetalhes: ${justifs}` : justifs;
+        // Onda 5: não apaga o que a pessoa já escreveu; a sugestão entra depois do texto dela
+        setObservacao((atual) => (atual.trim() ? `${atual.trim()}\n\n— Sugestão da IA —\n${sugestao}` : sugestao));
+        setMessage({ type: "ok", text: "A IA sugeriu os níveis e um texto. Revise antes de salvar: nada foi salvo ainda." });
       }
     } catch { /* expected fallback */
       setMessage({ type: "err", text: "Erro ao sugerir rubricas." });
@@ -399,32 +397,29 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
                 ) : evolucaoProcessual && evolucaoProcessual.resumo.total_registros > 0 ? (
                   <div className="space-y-4 pt-1">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {evolucaoProcessual.evolucao.map((e) => {
-                        // Converter nota 0-4 para percentage 0-100%
-                        const pct = e.media_mais_recente ? (e.media_mais_recente / 4) * 100 : 0;
+                      {evolucaoProcessual.evolucao.filter((e) => e.media_mais_recente != null).map((e) => {
+                        // Converter nota 0-4 para percentage 0-100% (disciplina sem nota não entra: antes aparecia 0% e "Intervir")
+                        const pct = ((e.media_mais_recente as number) / 4) * 100;
                         const status: "intervir" | "acompanhar" | "desafiar" = pct < 40 ? "intervir" : pct < 70 ? "acompanhar" : "desafiar";
 
                         return (
                           <SubjectProgressRow
                             key={e.disciplina}
                             subject={e.disciplina}
-                            meta={`${e.periodos.length} bimestres`}
+                            meta={`${e.periodos.length} ${e.periodos.length === 1 ? "período avaliado" : "períodos avaliados"}`}
                             percentage={Math.round(pct)}
                             status={status}
                           />
                         );
                       })}
                     </div>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      className="bg-emerald-600 hover:bg-emerald-700"
-                    >
-                      <Link href={`/avaliacao-processual?student=${currentId}`} className="flex items-center gap-2 text-white">
-                        <ExternalLink className="w-4 h-4" />
-                        Abrir Avaliação Completa
-                      </Link>
-                    </Button>
+                    <p className="omni-apoio">
+                      Média mais recente na escala de 0 a 4: abaixo de 1,6 (40%) é &ldquo;Intervir&rdquo;, de 1,6 a 2,8 é &ldquo;Acompanhar&rdquo; e a partir de 2,8 (70%) é &ldquo;Desafiar&rdquo;.
+                    </p>
+                    <Link href={`/avaliacao-processual?student=${currentId}`} className="omni-btn omni-btn--secundario omni-btn--pequeno">
+                      <ExternalLink className="w-4 h-4" aria-hidden />
+                      Abrir avaliação completa
+                    </Link>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -456,18 +451,11 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
 
           {/* Links rápidos */}
           <div className="flex flex-wrap gap-2">
-            <Link href={`/pei?student=${student.id}`}>
-              <Button variant="primary" size="sm" className="bg-sky-600 hover:bg-sky-700">Ver PEI</Button>
-            </Link>
-            <Link href={`/paee?student=${student.id}`}>
-              <Button variant="ghost" size="sm">Ver PAEE</Button>
-            </Link>
-            <Link href={`/diario?student=${student.id}`}>
-              <Button variant="ghost" size="sm">Ver Diário</Button>
-            </Link>
-            <Link href={`/avaliacao-processual?student=${student.id}`}>
-              <Button variant="ghost" size="sm">Avaliação Processual</Button>
-            </Link>
+            {/* links simples (antes eram botões dentro de links, que o teclado e o leitor de tela leem duas vezes) */}
+            <Link href={`/pei?student=${student.id}`} className="omni-btn omni-btn--secundario omni-btn--pequeno">Ver PEI</Link>
+            <Link href={`/paee?student=${student.id}`} className="omni-btn omni-btn--discreto omni-btn--pequeno">Ver PAEE</Link>
+            <Link href={`/diario?student=${student.id}`} className="omni-btn omni-btn--discreto omni-btn--pequeno">Ver diário de bordo</Link>
+            <Link href={`/avaliacao-processual?student=${student.id}`} className="omni-btn omni-btn--discreto omni-btn--pequeno">Ver avaliação processual</Link>
           </div>
 
           {/* Rubrica de Avaliação */}
@@ -492,10 +480,12 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
                   <div key={key}>
                     <label className="block text-sm font-medium text-(--omni-text-secondary) mb-1">{label}</label>
                     <select
-                      value={rubrica[key] || "Em Desenvolvimento"}
+                      required
+                      value={rubrica[key] || ""}
                       onChange={(e) => setRubrica((p) => ({ ...p, [key]: e.target.value }))}
                       className="w-full px-3 py-2 border border-(--omni-border-default) rounded-lg text-sm bg-(--omni-bg-primary) text-(--omni-text-primary) focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                     >
+                      <option value="" disabled>Escolha um nível</option>
                       {OPCOES_RUBRICA.map((op) => (
                         <option key={op} value={op}>
                           {op}

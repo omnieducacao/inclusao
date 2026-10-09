@@ -89,15 +89,15 @@ a.omni-cartao:hover,button.omni-cartao:hover{box-shadow:var(--sombra-2);border-c
 .omni-cartao__titulo{font:700 17px/24px var(--font-sans);color:var(--tinta)}
 .omni-cartao__texto{font:400 15px/24px var(--font-sans);color:var(--tinta-2)}
 .omni-cartao__rodape{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center;margin-top:auto;padding-top:var(--space-2)}
-/* Cartão de módulo: um círculo na cor pura do módulo (como os círculos do símbolo), ícone em sobre-encontro; o cartão continua neutro */
+/* Cartão de módulo: um círculo na cor pura do módulo (como os círculos do símbolo), ícone branco (azul, roxo, vermelho) ou escuro (amarelo, laranja, verde), sempre o de maior contraste; o cartão continua neutro */
 .omni-modulo{--mod:var(--acao)}
-.omni-modulo--pei{--mod:var(--modulo-pei);--mod-suave:var(--encontro-azul-suave);--mod-pura:var(--encontro-azul)}
-.omni-modulo--paee{--mod:var(--modulo-paee);--mod-suave:var(--encontro-laranja-suave);--mod-pura:var(--encontro-laranja)}
-.omni-modulo--hub{--mod:var(--modulo-hub);--mod-suave:var(--encontro-roxo-suave);--mod-pura:var(--encontro-roxo)}
-.omni-modulo--diario{--mod:var(--modulo-diario);--mod-suave:var(--encontro-verde-suave);--mod-pura:var(--encontro-verde)}
-.omni-modulo--monitoramento{--mod:var(--modulo-monitoramento);--mod-suave:var(--encontro-amarelo-suave);--mod-pura:var(--encontro-amarelo)}
-.omni-modulo--gestao{--mod:var(--modulo-gestao);--mod-suave:var(--encontro-vermelho-suave);--mod-pura:var(--encontro-vermelho)}
-.omni-modulo__selo{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--mod-pura,var(--encontro-azul));color:var(--sobre-encontro)}
+.omni-modulo--pei{--mod:var(--modulo-pei);--mod-suave:var(--encontro-azul-suave);--mod-pura:var(--encontro-azul);--mod-tinta:var(--sobre-encontro-claro)}
+.omni-modulo--paee{--mod:var(--modulo-paee);--mod-suave:var(--encontro-laranja-suave);--mod-pura:var(--encontro-laranja);--mod-tinta:var(--sobre-encontro)}
+.omni-modulo--hub{--mod:var(--modulo-hub);--mod-suave:var(--encontro-roxo-suave);--mod-pura:var(--encontro-roxo);--mod-tinta:var(--sobre-encontro-claro)}
+.omni-modulo--diario{--mod:var(--modulo-diario);--mod-suave:var(--encontro-verde-suave);--mod-pura:var(--encontro-verde);--mod-tinta:var(--sobre-encontro)}
+.omni-modulo--monitoramento{--mod:var(--modulo-monitoramento);--mod-suave:var(--encontro-amarelo-suave);--mod-pura:var(--encontro-amarelo);--mod-tinta:var(--sobre-encontro)}
+.omni-modulo--gestao{--mod:var(--modulo-gestao);--mod-suave:var(--encontro-vermelho-suave);--mod-pura:var(--encontro-vermelho);--mod-tinta:var(--sobre-encontro-claro)}
+.omni-modulo__selo{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--mod-pura,var(--encontro-azul));color:var(--mod-tinta,var(--sobre-encontro-claro))}
 .omni-modulo__selo svg{width:24px;height:24px}
 .omni-modulo__nome{font:500 12px/16px var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mod)}
 

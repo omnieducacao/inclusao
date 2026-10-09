@@ -25,9 +25,7 @@ export default async function DashboardLayout({
     <AILoadingWrapper>
       <div
         className="min-h-screen flex flex-col transition-colors duration-300"
-        style={{
-          background: `linear-gradient(135deg, var(--bg-gradient-from), var(--bg-gradient-via), var(--bg-gradient-to))`,
-        }}
+        style={{ background: "var(--fundo)" }}
       >
         {/* Skip link for keyboard navigation (a11y) */}
         <a href="#main-content" className="omni-skip-link">
@@ -38,7 +36,7 @@ export default async function DashboardLayout({
         <nav aria-label="Navegação principal">
           <Navbar session={session} />
         </nav>
-        <main id="main-content" className="w-full px-6 py-6 flex-1">{children}</main>
+        <main id="main-content" className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-6 flex-1">{children}</main>
         <footer className="w-full px-6" role="contentinfo">
           <Footer />
         </footer>

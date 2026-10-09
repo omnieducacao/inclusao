@@ -623,17 +623,19 @@ export function DashboardTab({
           </div>
         </div>
 
-        {/* 2. Diagnóstico */}
+        {/* 2. Situação do PEI (onda 5: antes era um indicador de diagnóstico, que não deve ficar em destaque) */}
         <div className="metric-card cursor-default">
-          <div className="text-[1.2rem] min-w-6 text-center">🏥</div>
           <div className="min-w-0 overflow-hidden">
-            <div
-              className="font-bold text-[10px] text-slate-800 leading-snug line-clamp-2 wrap-break-word"
-              title={String(peiData.diagnostico || "Não informado")}
-            >
-              {diagTxt}
+            <div className="font-bold text-sm text-slate-800 leading-snug">
+              {(() => {
+                const v = peiData.vigencia as { status?: string; versao?: number; proxima_revisao?: string } | undefined;
+                if (!v) return "Rascunho";
+                if (v.status === "vigente") return `Vigente · versão ${v.versao ?? 1}`;
+                if (v.status === "em_revisao") return "Em revisão";
+                return "Rascunho";
+              })()}
             </div>
-            <div className="d-lbl mt-px">Diagnóstico{nDetalhes > 0 ? ` • ${nDetalhes} det.` : ""}</div>
+            <div className="d-lbl mt-px">Situação do PEI</div>
           </div>
         </div>
 
@@ -953,7 +955,11 @@ export function DashboardTab({
       {/* ============================================================ */}
       {/* 🤖 INTELIGÊNCIA DO CASO                                      */}
       {/* ============================================================ */}
-      <InteligenciaDoCaso peiData={peiData} />
+      <InteligenciaDoCaso
+        peiData={peiData}
+        studentId={currentStudentId}
+        onResumoLiberado={(r) => updateField("resumo_familia" as keyof PEIData, (r ?? undefined) as never)}
+      />
     </div >
   );
 }

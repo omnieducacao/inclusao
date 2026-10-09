@@ -56,12 +56,13 @@ export function PEITabVigencia({ peiData, updateField, currentStudentId, usuario
     void onSalvar();
   }, [salvarDepois, onSalvar]);
 
+  const [cienciasErro, setCienciasErro] = useState(false);
   useEffect(() => {
     if (!currentStudentId || vig.status === "rascunho") return;
     fetch(`/api/pei/ciencia?studentId=${encodeURIComponent(currentStudentId)}`, { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => d && setCiencias(d))
-      .catch(() => {});
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((d) => { setCienciasErro(false); setCiencias(d); })
+      .catch(() => setCienciasErro(true)); // onda 5: antes ficava em "Carregando…" para sempre
   }, [currentStudentId, vig.status, vig.versao]);
 
   const temPei = Boolean(String(peiData.ia_sugestao || "").trim());
@@ -177,7 +178,9 @@ export function PEITabVigencia({ peiData, updateField, currentStudentId, usuario
           <h4 className="font-semibold text-slate-800 flex items-center gap-2">
             <Users className="w-4 h-4 text-sky-600" /> Ciência dos professores · versão {vig.versao}
           </h4>
-          {!ciencias ? (
+          {cienciasErro ? (
+            <p className="text-sm text-slate-600">Não conseguimos carregar quem já leu. Recarregue a página para tentar de novo.</p>
+          ) : !ciencias ? (
             <p className="text-sm text-slate-500">Carregando…</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">

@@ -75,6 +75,23 @@ function PAEEClientInner({ students, studentId, student }: Props) {
   const [paeeData, setPaeeData] = useState<Record<string, unknown>>({});
   const [relatorio, setRelatorio] = useState<string | null>(null);
   const [relLoading, setRelLoading] = useState(false);
+  const [relErro, setRelErro] = useState<string | null>(null);
+  // Onda 5: o salvamento do PAEE avisa quando falha (antes o erro ia só para o console e o trabalho se perdia)
+  const [salvamento, setSalvamento] = useState<{ estado: "salvando" | "salvo" | "erro"; hora?: string } | null>(null);
+  const salvarPaee = async (id: string, data: Record<string, unknown>) => {
+    setSalvamento({ estado: "salvando" });
+    try {
+      const res = await fetch(`/api/students/${id}/paee`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paee_data: data }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      setSalvamento({ estado: "salvo", hora: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) });
+    } catch {
+      setSalvamento({ estado: "erro" });
+    }
+  };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -286,8 +303,23 @@ function PAEEClientInner({ students, studentId, student }: Props) {
 
   return (
     <div className="space-y-6">
+      {salvamento?.estado === "erro" && (
+        <div className="omni-aviso omni-aviso--erro" role="alert">
+          <AlertTriangle className="omni-aviso__icone" aria-hidden />
+          <div>
+            <div className="omni-aviso__titulo">Não conseguimos salvar o PAEE agora</div>
+            <div className="omni-aviso__texto">O que você fez continua nesta tela. Confira a internet e faça a última alteração de novo; se persistir, avise o suporte.</div>
+          </div>
+          <span />
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-3">
         <StudentSelector students={students} currentId={currentId} />
+        {salvamento && salvamento.estado !== "erro" && (
+          <span className="omni-apoio" role="status" aria-live="polite">
+            {salvamento.estado === "salvando" ? "Salvando…" : `Salvo às ${salvamento.hora}`}
+          </span>
+        )}
         {currentId && (
           <a
             href={`/pei?student=${currentId}`}
@@ -364,11 +396,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
           onUpdate={(data) => {
             setPaeeData(data);
             if (student?.id) {
-              fetch(`/api/students/${student.id}/paee`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ paee_data: data }),
-              }).catch(console.error);
+              salvarPaee(student.id, data);
             }
           }}
         />
@@ -382,19 +410,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
           onUpdate={async (data) => {
             setPaeeData(data);
             if (student?.id) {
-              try {
-                const res = await fetch(`/api/students/${student.id}/paee`, {
-                  method: "PATCH",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ paee_data: data }),
-                });
-                if (!res.ok) {
-                  /* client-side */ console.error("Erro ao salvar paee_data:", await res.text());
-                } else {
-                }
-              } catch (err) {
-                /* client-side */ console.error("Erro ao salvar paee_data:", err);
-              }
+              await salvarPaee(student.id, data);
             }
           }}
         />
@@ -408,11 +424,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
           onUpdate={(data) => {
             setPaeeData(data);
             if (student?.id) {
-              fetch(`/api/students/${student.id}/paee`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ paee_data: data }),
-              }).catch(console.error);
+              salvarPaee(student.id, data);
             }
           }}
         />
@@ -427,11 +439,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
           onUpdate={(data) => {
             setPaeeData(data);
             if (student?.id) {
-              fetch(`/api/students/${student.id}/paee`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ paee_data: data }),
-              }).catch(console.error);
+              salvarPaee(student.id, data);
             }
           }}
         />
@@ -512,6 +520,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                     disabled={relLoading}
                     onClick={async () => {
                       setRelLoading(true);
+                      setRelErro(null);
                       setRelatorio(null);
                       aiLoadingStart(jornadaEngine || "red", "paee");
                       try {
@@ -526,7 +535,10 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                         });
                         const data = await res.json();
                         if (res.ok && data.texto) setRelatorio(data.texto);
-                      } catch { /* ignore */ } finally {
+                        else setRelErro(data.error || "A geração do relatório falhou. Tente de novo.");
+                      } catch {
+                        setRelErro("Não conseguimos gerar o relatório agora. Confira a internet e tente de novo.");
+                      } finally {
                         setRelLoading(false);
                         aiLoadingStop();
                       }
@@ -536,6 +548,13 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                   >
                     {relLoading ? "Gerando..." : "📊 Relatório do Ciclo"}
                   </Button>
+                </div>
+              )}
+              {relErro && (
+                <div className="omni-aviso omni-aviso--erro" role="alert">
+                  <AlertTriangle className="omni-aviso__icone" aria-hidden />
+                  <div><div className="omni-aviso__titulo">{relErro}</div></div>
+                  <span />
                 </div>
               )}
               {relatorio && (
@@ -675,11 +694,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
           onUpdate={(data) => {
             setPaeeData(data);
             if (student?.id) {
-              fetch(`/api/students/${student.id}/paee`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ paee_data: data }),
-              }).catch(console.error);
+              salvarPaee(student.id, data);
             }
           }}
           engine={jornadaEngine}
