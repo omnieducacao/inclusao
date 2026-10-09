@@ -47,7 +47,7 @@ describe("ThemeProvider", () => {
         });
     });
 
-    it("inicializa consumindo os valores Default (notebook, false, none)", async () => {
+    it("inicializa consumindo os valores padrão (segue o aparelho: Claro quando ele está claro, false, none)", async () => {
         render(
             <ThemeProvider>
                 <TestComponent />
@@ -59,7 +59,7 @@ describe("ThemeProvider", () => {
             await new Promise(resolve => setTimeout(resolve, 10));
         });
 
-        expect(screen.getByTestId("theme-val").textContent).toBe("notebook");
+        expect(screen.getByTestId("theme-val").textContent).toBe("light") // onda 4: sem escolha salva, segue o aparelho (aqui, claro);
         expect(screen.getByTestId("dyslexia-val").textContent).toBe("false");
         expect(screen.getByTestId("cb-val").textContent).toBe("none");
     });

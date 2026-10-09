@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Lexend } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono, Atkinson_Hyperlegible } from "next/font/google";
 import "./globals.css";
+// Omni Design System (onda 4): tokens, componentes omni-* e a ponte das variáveis antigas, nesta ordem
+import "./omni/tokens.css";
+import "./omni/componentes.css";
+import "./omni/legado.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ToastProvider } from "@/components/ToastProvider";
 import { QueryProvider } from "@/components/QueryProvider";
@@ -10,16 +14,24 @@ import { WebVitalsReporter } from "@/components/WebVitalsReporter";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["200", "300", "400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
   variable: "--font-jakarta",
 });
 
-const lexend = Lexend({
+// Rótulos e dados (mono) e a fonte para leitura (Atkinson Hyperlegible, ligada pelo painel de acessibilidade)
+const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["500"],
   display: "swap",
-  variable: "--font-lexend",
+  variable: "--font-jetbrains",
+});
+
+const atkinson = Atkinson_Hyperlegible({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  display: "swap",
+  variable: "--font-atkinson",
 });
 
 export const metadata: Metadata = {
@@ -32,7 +44,8 @@ const themeScript = `
   (function() {
     try {
       var theme = localStorage.getItem('omnisfera-theme');
-      if (!theme) {
+      if (theme !== 'light' && theme !== 'dark' && theme !== 'notebook') {
+        // Sem escolha salva: segue o computador ou o celular (Escuro ou Claro)
         theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       }
       document.documentElement.setAttribute('data-theme', theme);
@@ -58,10 +71,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning className={`${jakarta.variable} ${lexend.variable}`}>
+    <html lang="pt-BR" suppressHydrationWarning className={`${jakarta.variable} ${jetbrains.variable} ${atkinson.variable}`}>
       <head>
-        <link rel="icon" type="image/png" href="/omni_icone.png" />
-        <link rel="apple-touch-icon" href="/omni_icone.png" />
+        <link rel="icon" type="image/svg+xml" href="/site/favicon.svg" />
+        <link rel="icon" type="image/png" href="/site/favicon.png" />
+        <link rel="apple-touch-icon" href="/site/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

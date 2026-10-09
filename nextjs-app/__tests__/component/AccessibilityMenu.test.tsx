@@ -13,11 +13,13 @@ vi.mock("lucide-react", () => ({
     Moon: () => <div data-testid="icon-moon" />,
     Sun: () => <div data-testid="icon-sun" />,
     Check: () => <div data-testid="icon-check" />,
-    Laptop: () => <div data-testid="icon-laptop" />,
+    NotebookPen: () => <div data-testid="icon-notebook" />,
 }));
 
 describe("AccessibilityMenu", () => {
     const mockToggleTheme = vi.fn();
+    const mockSetTheme = vi.fn();
+    const mockSetPreferencia = vi.fn();
     const mockToggleHighContrast = vi.fn();
     const mockToggleDyslexiaFont = vi.fn();
     const mockSetColorBlindMode = vi.fn();
@@ -29,6 +31,9 @@ describe("AccessibilityMenu", () => {
         vi.spyOn(ThemeProviderModule, "useTheme").mockReturnValue({
             theme: "light",
             toggleTheme: mockToggleTheme,
+            setTheme: mockSetTheme,
+            preferencia: "auto",
+            setPreferencia: mockSetPreferencia,
             isDark: false,
             highContrast: false,
             toggleHighContrast: mockToggleHighContrast,
@@ -57,9 +62,13 @@ describe("AccessibilityMenu", () => {
         });
 
         // Toggle Buttons text
-        expect(screen.getByText(/Alternar Tema Principal/i)).toBeInTheDocument();
+        // Tema: o padrão segue o aparelho; a pessoa pode fixar Claro, Caderno ou Escuro
+        expect(screen.getByLabelText("Automático")).toBeChecked();
+        expect(screen.getByLabelText("Claro")).not.toBeChecked();
+        expect(screen.getByLabelText("Caderno")).not.toBeChecked();
+        expect(screen.getByLabelText("Escuro")).not.toBeChecked();
         expect(screen.getByText(/Alto Contraste/i)).toBeInTheDocument();
-        expect(screen.getByText(/Modo Dislexia/i)).toBeInTheDocument();
+        expect(screen.getByText(/Fonte para leitura/i)).toBeInTheDocument();
 
         // Color Blind specific modes
         expect(screen.getByText(/Protanopia/i)).toBeInTheDocument();
@@ -80,7 +89,7 @@ describe("AccessibilityMenu", () => {
         // Acha os checkboxes invisíveis pelo texto ou simulando o clique no label
         // Como o input usa `sr-only` e o clique ocorre no label, vamos pegar o container pai.
         const hcLabel = screen.getByText(/Alto Contraste/i).closest("label");
-        const dfLabel = screen.getByText(/Modo Dislexia/i).closest("label");
+        const dfLabel = screen.getByText(/Fonte para leitura/i).closest("label");
 
         // Triggers the simulated toggles
         expect(hcLabel).not.toBeNull();
@@ -97,5 +106,9 @@ describe("AccessibilityMenu", () => {
         fireEvent.click(btnProtanopia!);
 
         expect(mockSetColorBlindMode).toHaveBeenCalledWith("protanopia");
+
+        // Escolher o Caderno fixa a preferência
+        fireEvent.click(screen.getByLabelText("Caderno"));
+        expect(mockSetPreferencia).toHaveBeenCalledWith("notebook");
     });
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import SimboloOmnisfera from "@/components/SimboloOmnisfera";
 import { usePathname, useRouter } from "next/navigation";
 import type { SessionPayload } from "@/lib/session";
 import { getRouteTheme } from "@/lib/module-theme";
@@ -553,7 +553,7 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
   const [navIcons, setNavIcons] = useState<Awaited<ReturnType<typeof loadNavIcons>>>(null);
   const [isMounted, setIsMounted] = useState(false);
   const { state: aiState } = useAILoading();
-  const { isDark } = useTheme();
+  useTheme(); // mantém o tema sincronizado no topo
   const [topbarOverrides, setTopbarOverrides] = useState<TopbarOverrides>({});
 
   useEffect(() => {
@@ -600,15 +600,9 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
     <header className="glass-strong sticky top-0 z-50 shadow-premium" style={{ borderBottom: '1px solid var(--omni-border-default)', overflow: 'visible' }}>
       <div className="max-w-[1920px] mx-auto px-5" style={{ overflow: 'visible' }}>
         <div className="flex items-center h-[68px]" style={{ overflow: 'visible' }}>
-          <Link href="/" className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-slate-800 hover:bg-slate-50/80 font-bold transition-all group shrink-0">
-            <div className="relative">
-              <div className="flex items-center justify-center group-hover:scale-105 transition-transform omni-logo-spin">
-                <Image src={isDark ? "/logo-dark.png" : "/omni_icone.png"} alt="Omnisfera" width={36} height={36} className="object-contain" priority />
-              </div>
-              <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-[1.5px] border-white animate-pulse-soft" />
-            </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={isDark ? "/omni_texto_branco.webp" : "/omni_texto.webp"} alt="Omnisfera" className="h-8 object-contain" style={{ width: 'auto', maxHeight: '32px' }} fetchPriority="high" />
+          <Link href="/" aria-label="Omnisfera, início" className="omni-topo__marca shrink-0">
+            <SimboloOmnisfera tamanho={34} />
+            <span className="omni-topo__nome">omnisfera</span>
           </Link>
           {!hideMenu && (
             <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center px-4">
@@ -672,45 +666,14 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
         {/* LAYOUT: Logo (esquerda) | Nav (centro, flex-1) | Busca+Ícones (direita) | Perfil (extrema direita) */}
         <div className="flex items-center h-[68px]" style={{ overflow: 'visible' }}>
 
-          {/* 1️⃣ LOGO - Sempre esquerda, nunca encolhe */}
+          {/* 1️⃣ LOGO vivo: abre no hover; gira enquanto a IA trabalha (design system: Navegacao) */}
           <Link
             href="/"
-            aria-label="Página Inicial da Omnisfera"
-            className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl text-slate-800 hover:bg-slate-50/80 font-bold transition-all group shrink-0"
+            aria-label={aiState.isLoading ? "Omnisfera, início (IA trabalhando)" : "Omnisfera, início"}
+            className="omni-topo__marca shrink-0"
           >
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <div className={`flex items-center justify-center group-hover:scale-105 transition-transform omni-logo-spin ${aiState.isLoading ? 'opacity-30' : ''}`}>
-                  <Image
-                    src={isDark ? "/logo-dark.png" : "/omni_icone.png"}
-                    alt="Símbolo Omnisfera"
-                    width={36}
-                    height={36}
-                    className="object-contain"
-                    priority
-                  />
-                </div>
-                {aiState.isLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center omni-logo-spin-fast">
-                    <Image
-                      src={isDark ? "/logo-dark.png" : "/omni_icone.png"}
-                      alt=""
-                      width={36}
-                      height={36}
-                      className="object-contain"
-                    />
-                  </div>
-                )}
-                <div className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 ${aiState.isLoading ? 'bg-amber-400' : 'bg-emerald-400'} rounded-full border-[1.5px] border-white animate-pulse-soft`} title={aiState.isLoading ? 'IA processando' : 'Sistema online'} />
-              </div>
-              <img
-                src={isDark ? "/omni_texto_branco.webp" : "/omni_texto.webp"}
-                alt="Omnisfera"
-                className="h-8 object-contain"
-                style={{ width: 'auto', maxHeight: '32px' }}
-                fetchPriority="high"
-              />
-            </div>
+            <SimboloOmnisfera key={aiState.isLoading ? "ia" : "hover"} tamanho={34} animacao={aiState.isLoading ? "carregando" : "hover"} />
+            <span className="omni-topo__nome">omnisfera</span>
           </Link>
 
 

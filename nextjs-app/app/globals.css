@@ -292,16 +292,16 @@ html.high-contrast {
 }
 
 /* ═══════════════════════════════════════════════════
-   Acessibilidade — Modo Dislexia (Lexend Font)
+   Acessibilidade — Fonte para leitura (Atkinson Hyperlegible; antes Lexend)
    ═══════════════════════════════════════════════════ */
 html.dyslexia-font body {
-  font-family: var(--font-lexend), var(--font-primary) !important;
+  font-family: var(--font-acessivel), var(--font-primary) !important;
   letter-spacing: 0.035em !important;
   line-height: 1.6 !important;
 }
 
 html.dyslexia-font * {
-  font-family: var(--font-lexend), var(--font-primary) !important;
+  font-family: var(--font-acessivel), var(--font-primary) !important;
 }
 
 /* ═══════════════════════════════════════════════════

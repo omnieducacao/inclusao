@@ -1,21 +1,16 @@
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
-import { getSession } from "@/lib/session";
+import { getSession, memberIdDaSessao } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { Navbar } from "@/components/Navbar";
-import { AIEnginesBadge } from "@/components/AIEnginesBadge";
-import { getEngineError } from "@/lib/ai-engines";
-import type { EngineId } from "@/lib/ai-engines";
-import { ModuleCardsLottie } from "@/components/ModuleCardsLottie";
 import { TermsOfUseModal } from "@/components/TermsOfUseModal";
 import { SimulationBanner } from "@/components/SimulationBanner";
-import { QuickActions } from "@/components/QuickActions";
-import { SituationPanel } from "@/components/SituationPanel";
 import { OmnisferaFeed } from "@/components/OmnisferaFeed";
 import { OmniEducacaoSignature } from "@/components/Footer";
-import { SecurityAndAIPanel } from "@/components/SecurityAndAIPanel";
-import { Skeleton } from "@/components/Skeleton";
 import { logger } from "@/lib/logger";
+import { listStudentsDaSessao, type Student } from "@/lib/students";
+import { pendenciasDoInicio, pedemAtencao, saudacao, dataPorExtenso, hojeBrasilia, primeiroNome, type Pendencia } from "@/lib/inicio";
+import type { Vigencia } from "@/lib/estudo-caso";
+import { Inicio, type CartaoDeModulo, type GrupoDeModulos, type Atalho } from "@/components/inicio/Inicio";
 
 export default async function RootPage() {
   const session = await getSession();
@@ -42,236 +37,151 @@ export default async function RootPage() {
     return member[permission] === true;
   }
 
-  // ── Fetch KPIs for smart badges ──
-  type BadgeInfo = { text: string; variant: "green" | "yellow" | "red" | "gray" };
-  const kpiBadges: Record<string, BadgeInfo> = {};
+  // ── Estudantes do vínculo, PEIs e pendências (onda 4: a home mostra o que é de cada pessoa) ──
+  const editaPei = canAccessModule("can_pei");
+  const memberId = memberIdDaSessao(sessionNonNull);
+  const hoje = hojeBrasilia();
+  let estudantes: Student[] = [];
+  let pendencias: Pendencia[] = [];
+  let peisVigentes = 0;
+  let peisDesatualizados = 0;
+  let diario7d = 0;
+  let processualCount = 0;
   let familyModuleEnabled = false;
   try {
     if (sessionNonNull.workspace_id && !sessionNonNull.is_platform_admin) {
       const sb = getSupabase();
       const wid = sessionNonNull.workspace_id;
+      estudantes = await listStudentsDaSessao(sessionNonNull);
 
-      const [studentsRes, peiRes, diarioRes] = await Promise.all([
-        sb.from("students").select("id", { count: "exact", head: true }).eq("workspace_id", wid),
-        sb.from("students").select("id, updated_at").eq("workspace_id", wid).not("pei_data", "is", null),
+      const valendo = estudantes.filter((e) => {
+        const v = (e.pei_data as Record<string, unknown> | undefined)?.vigencia as Vigencia | undefined;
+        return v && (v.status === "vigente" || v.status === "em_revisao") && v.versao > 0;
+      });
+      peisVigentes = valendo.length;
+      peisDesatualizados = valendo.filter((e) => {
+        const v = (e.pei_data as Record<string, unknown>).vigencia as Vigencia;
+        return v.status === "vigente" && v.proxima_revisao && v.proxima_revisao < hoje;
+      }).length;
+
+      // Ciência: só para quem é profissional da escola (tem membro); a coordenação sem membro não dá ciência
+      let cientes: Set<string> | null = null;
+      if (memberId && sessionNonNull.user_role === "member" && valendo.length > 0) {
+        const { data } = await sb
+          .from("pei_ciencias")
+          .select("student_id, versao")
+          .eq("workspace_id", wid)
+          .eq("member_id", memberId)
+          .in("student_id", valendo.map((e) => e.id));
+        cientes = new Set((data || []).map((c: { student_id: string; versao: number }) => `${c.student_id}:${c.versao}`));
+      }
+      pendencias = pendenciasDoInicio(estudantes, { editaPei, cientes, hoje });
+
+      const [diarioRes, wsData] = await Promise.all([
         sb.from("diario_registros").select("id", { count: "exact", head: true }).eq("workspace_id", wid)
           .gte("criado_em", new Date(Date.now() - 7 * 86400000).toISOString()),
+        sb.from("workspaces").select("family_module_enabled").eq("id", wid).maybeSingle(),
       ]);
-
-      // Try processual count (table may not exist yet)
-      let processualCount = 0;
+      diario7d = diarioRes.count || 0;
+      familyModuleEnabled = Boolean((wsData.data as { family_module_enabled?: boolean } | null)?.family_module_enabled);
       try {
         const processualRes = await sb.from("avaliacao_processual")
           .select("id", { count: "exact", head: true })
           .eq("workspace_id", wid)
           .eq("ano_letivo", new Date().getFullYear());
         processualCount = processualRes.count || 0;
-      } catch { /* table may not exist */ }
-
-      const totalStudents = studentsRes.count || 0;
-      const peiStudents = peiRes.data || [];
-      const peiTotal = peiStudents.length;
-      const sixtyDaysAgo = new Date(Date.now() - 60 * 86400000);
-      const peiStale = peiStudents.filter(s => s.updated_at && new Date(s.updated_at) < sixtyDaysAgo).length;
-      const diario7d = diarioRes.count || 0;
-      const peiCoverage = totalStudents > 0 ? Math.round((peiTotal / totalStudents) * 100) : 0;
-
-      kpiBadges["Estudantes"] = { text: `${totalStudents} aluno${totalStudents !== 1 ? "s" : ""}`, variant: "green" };
-
-      if (peiStale > 0) {
-        kpiBadges["Estratégias & PEI"] = { text: `⚠ ${peiStale} desatualizado${peiStale > 1 ? "s" : ""}`, variant: peiStale > 2 ? "red" : "yellow" };
-      } else if (peiTotal > 0) {
-        kpiBadges["Estratégias & PEI"] = { text: `${peiTotal}/${totalStudents} PEIs`, variant: "green" };
-      }
-
-      if (diario7d === 0 && totalStudents > 0) {
-        kpiBadges["Diário de Bordo"] = { text: "0 esta semana", variant: "gray" };
-      } else if (diario7d > 0) {
-        kpiBadges["Diário de Bordo"] = { text: `${diario7d} esta semana`, variant: "green" };
-      }
-
-      if (totalStudents > 0) {
-        kpiBadges["Evolução & Dados"] = {
-          text: `${peiCoverage}% cobertura`,
-          variant: peiCoverage >= 80 ? "green" : peiCoverage >= 50 ? "yellow" : "red",
-        };
-      }
-
-      // Family module badge
-      const wsData = await sb.from("workspaces").select("family_module_enabled").eq("id", wid).maybeSingle();
-      familyModuleEnabled = Boolean((wsData.data as { family_module_enabled?: boolean } | null)?.family_module_enabled);
-      if (familyModuleEnabled) {
-        kpiBadges["Família"] = { text: "Ativo", variant: "green" };
-      }
-
-      // Assessment badges
-      if (processualCount > 0) {
-        kpiBadges["Avaliação Processual"] = { text: `${processualCount} registros`, variant: "green" };
-      }
+      } catch { /* tabela pode não existir */ }
     }
   } catch (err) {
-    logger.error({ err }, "[RootPage] KPI fetch error");
+    logger.error({ err }, "[RootPage] erro ao montar o início");
   }
 
-  // ── Load card customizations from admin panel ──
-  type CardCustomization = Record<string, { color?: string; icon?: string }>;
-  let cardCustomizations: CardCustomization = {};
-  try {
-    const sb = getSupabase();
-    const { data: configRow } = await sb
-      .from("platform_config")
-      .select("value")
-      .eq("key", "card_customizations")
-      .maybeSingle();
-    if (configRow?.value) {
-      // Handle both text column (string) and jsonb column (already parsed)
-      const raw = configRow.value;
-      cardCustomizations = typeof raw === "string" ? JSON.parse(raw) : raw as CardCustomization;
-    }
-  } catch (err) {
-    logger.error({ err }, "[RootPage] card_customizations load error");
-  }
-
-  // Helper to apply customization overrides to a module card
-  function applyCustomization<T extends { href: string; color: string; iconName: string; customKey?: string }>(card: T): T & { lottieOverride?: string } {
-    // Use customKey if provided (e.g., Família has customKey="familia" but href="/estudantes")
-    const key = card.customKey || card.href.replace(/^\//, "");
-    const custom = cardCustomizations[key];
-    if (!custom) return card;
-    return {
-      ...card,
-      // Aplica cor e ícone customizados pelo admin
-      color: custom.color || card.color,
-      lottieOverride: custom.icon || undefined,
-    };
-  }
-
-  // ── Row 1: Módulos Principais ──
-  const row1Raw = [
-    { href: "/estudantes", iconName: "UsersFour" as const, title: "Estudantes", desc: "Gestão completa de estudantes e acompanhamento.", color: "omnisfera", permission: "can_estudantes", badge: kpiBadges["Estudantes"] },
-    { href: "/pei", iconName: "Student" as const, title: "Estratégias & PEI", desc: "Plano Educacional Individual com IA e acompanhamento.", color: "pei", permission: "can_pei", badge: kpiBadges["Estratégias & PEI"] },
-    { href: "/pei-regente", iconName: "BookOpen" as const, title: "PEI - Professor", desc: "Plano de ensino, avaliação diagnóstica e PEI por disciplina.", color: "monitoramento", permission: "can_pei_professor" },
-    { href: "/plano-curso", iconName: "BookBookmark" as const, title: "Plano de Curso", desc: "Planejamento pedagógico por componente curricular e série.", color: "omnisfera", permission: "can_pei_professor" },
-    { href: "/avaliacao-diagnostica", iconName: "Brain" as const, title: "Avaliação Diagnóstica", desc: "Gere questões com IA, aplique e identifique o nível Omnisfera.", color: "ferramentas", permission: "can_pei_professor" },
-    { href: "/avaliacao-processual", iconName: "ChartLineUp" as const, title: "Avaliação Processual", desc: "Acompanhe a evolução do estudante ao longo do ano letivo.", color: "diario", permission: "can_pei_professor", badge: kpiBadges["Avaliação Processual"] },
-    { href: "/paee", iconName: "PuzzlePiece" as const, title: "Plano de Ação / PAEE", desc: "Atendimento Educacional Especializado e sala de recursos.", color: "paee", permission: "can_paee" },
-    { href: "/hub", iconName: "RocketLaunch" as const, title: "Hub de Inclusão", desc: "Ferramentas de inteligência artificial para criar e adaptar.", color: "hub", permission: "can_hub" },
-  ];
-  const row1 = row1Raw.filter((m) => canAccessModule(m.permission)).map(applyCustomization);
-
-  // ── Row 2: Acompanhamento + Referência ──
-  const row2Raw = [
-    { href: "/diario", iconName: "BookOpen" as const, title: "Diário de Bordo", desc: "Registro de observações, evidências e intervenções.", color: "diario", permission: "can_diario", badge: kpiBadges["Diário de Bordo"] },
-    { href: "/monitoramento", iconName: "ChartLineUp" as const, title: "Evolução & Dados", desc: "Indicadores e relatórios de progresso dos estudantes.", color: "monitoramento", permission: "can_avaliacao", badge: kpiBadges["Evolução & Dados"] },
-    ...(familyModuleEnabled && canAccessModule("can_estudantes")
-      ? [{ href: "/estudantes", customKey: "familia", iconName: "Users" as const, title: "Família", desc: "Cadastrar responsáveis e vincular a estudantes para acesso à plataforma.", color: "cursos", permission: "can_estudantes" as const, badge: kpiBadges["Família"] }]
+  // ── Módulos, nas cores dos seis círculos (design system: CartaoModulo) ──
+  type Mod = CartaoDeModulo & { permission?: string };
+  const n = estudantes.length;
+  const acompanhar: Mod[] = [
+    { href: "/estudantes", icone: "users", cor: "pei", titulo: "Estudantes", descricao: "Cadastro, turma e acompanhamento de cada estudante.", permission: "can_estudantes",
+      selo: n ? { texto: `${n} no vínculo`, tipo: "neutro" } : undefined },
+    { href: "/pei", icone: "fileText", cor: "pei", titulo: "PEI", descricao: "Estudo de caso, PEI com IA, versões, ciência e revisões.", permission: "can_pei",
+      selo: peisDesatualizados ? { texto: `${peisDesatualizados} com revisão vencida`, tipo: "atencao" } : peisVigentes ? { texto: `${peisVigentes} vigentes`, tipo: "neutro" } : undefined },
+    { href: "/pei-regente", icone: "bookOpen", cor: "pei", titulo: "PEI do professor", descricao: "Ler o PEI, dar ciência e fazer a parte da sua disciplina.", permission: "can_pei_professor" },
+    { href: "/paee", icone: "layers", cor: "paee", titulo: "PAEE", descricao: "Atendimento Educacional Especializado e sala de recursos.", permission: "can_paee" },
+    { href: "/diario", icone: "notebookPen", cor: "diario", titulo: "Diário de bordo", descricao: "Observações, evidências e intervenções do dia a dia.", permission: "can_diario",
+      selo: n ? { texto: `${diario7d} esta semana`, tipo: "neutro" } : undefined },
+    ...(familyModuleEnabled
+      ? [{ href: "/estudantes", icone: "heartHandshake", cor: "diario", titulo: "Família", descricao: "Responsáveis com acesso ao PEI e à evolução.", permission: "can_estudantes" } as Mod]
       : []),
-    { href: "/pgi", iconName: "ClipboardText" as const, title: "PGI", desc: "Plano de Gestão Inclusiva da escola.", color: "pgi", permission: "can_gestao" },
-    { href: "/infos", iconName: "BookBookmark" as const, title: "Central de Inteligência", desc: "Fundamentos pedagógicos, legislação e ferramentas.", color: "gestao", permission: "can_gestao" },
   ];
-  const row2 = row2Raw.filter((m) => !m.permission || canAccessModule(m.permission)).map(applyCustomization);
+  const planejar: Mod[] = [
+    { href: "/hub", icone: "sparkles", cor: "hub", titulo: "Hub de recursos", descricao: "Ferramentas de IA para criar e adaptar materiais.", permission: "can_hub" },
+    { href: "/plano-curso", icone: "bookMarked", cor: "hub", titulo: "Plano de curso", descricao: "Planejamento por componente curricular e série.", permission: "can_pei_professor" },
+    { href: "/avaliacao-diagnostica", icone: "brain", cor: "hub", titulo: "Avaliação diagnóstica", descricao: "Questões com IA para conhecer o ponto de partida.", permission: "can_pei_professor" },
+    { href: "/avaliacao-processual", icone: "chartLine", cor: "monitoramento", titulo: "Avaliação processual", descricao: "A evolução do estudante ao longo do ano.", permission: "can_pei_professor",
+      selo: processualCount ? { texto: `${processualCount} registros`, tipo: "neutro" } : undefined },
+    { href: "/monitoramento", icone: "chartLine", cor: "monitoramento", titulo: "Evolução e dados", descricao: "Indicadores e relatórios de progresso.", permission: "can_avaliacao" },
+  ];
+  const gestao: Mod[] = [
+    { href: "/pgi", icone: "clipboardList", cor: "gestao", titulo: "PGI", descricao: "Plano de Gestão Inclusiva da escola.", permission: "can_gestao" },
+    { href: "/infos", icone: "library", cor: "gestao", titulo: "Central de inteligência", descricao: "Fundamentos pedagógicos, legislação e referências.", permission: "can_gestao" },
+    { href: "/gestao", icone: "userCog", cor: "gestao", titulo: "Equipe e papéis", descricao: "Profissionais, papéis, permissões e vínculos.", permission: "can_gestao" },
+    { href: "/config-escola", icone: "school", cor: "gestao", titulo: "Configuração da escola", descricao: "Ano letivo, séries, turmas e modo da escola.", permission: "can_gestao" },
+    ...(sessionNonNull.is_platform_admin
+      ? [{ href: "/admin", icone: "settings", cor: "gestao", titulo: "Administração", descricao: "Escolas e configurações da plataforma." } as Mod]
+      : []),
+  ];
+  const so = (lista: Mod[]): CartaoDeModulo[] =>
+    lista.filter((m) => canAccessModule(m.permission)).map(({ permission: _p, ...m }) => m);
+  const grupos: GrupoDeModulos[] = [
+    { titulo: "Acompanhar o estudante", modulos: so(acompanhar) },
+    { titulo: "Planejar e avaliar", modulos: so(planejar) },
+    { titulo: "Gestão da escola", modulos: so(gestao) },
+  ];
 
-  // ── Row 3: Gestão e Configuração ──
-  const row3Raw: Array<{ href: string; iconName: string; title: string; desc: string; color: string; permission?: string }> = [
-    { href: "/gestao", iconName: "UsersThree", title: "Gestão de Usuários", desc: "Cadastrar usuários, permissões e vínculos.", color: "gestao", permission: "can_gestao" },
-    { href: "/config-escola", iconName: "GraduationCap", title: "Configuração Escola", desc: "Ano letivo, séries e turmas.", color: "cursos", permission: "can_gestao" },
+  // ── Atalhos para as ferramentas mais usadas ──
+  const atalhos: Atalho[] = [
+    ...(canAccessModule("can_hub")
+      ? ([
+          { href: "/hub?tool=adaptar-atividade", rotulo: "Adaptar atividade", icone: "sparkles" },
+          { href: "/hub?tool=adaptar-prova", rotulo: "Adaptar prova", icone: "fileText" },
+          { href: "/hub?tool=criar-zero", rotulo: "Criar questões", icone: "brain" },
+          { href: "/hub?tool=plano-aula", rotulo: "Plano de aula (DUA)", icone: "bookMarked" },
+        ] as Atalho[])
+      : []),
+    ...(canAccessModule("can_diario") ? ([{ href: "/diario?tab=novo", rotulo: "Novo registro no diário", icone: "notebookPen" }] as Atalho[]) : []),
   ];
-  const row3Base = sessionNonNull.is_platform_admin
-    ? [...row3Raw, { href: "/admin", iconName: "Gear", title: "Admin Plataforma", desc: "Gerenciamento completo da plataforma", color: "admin" }]
-    : row3Raw;
-  const row3 = row3Base.filter((m) => !m.permission || canAccessModule(m.permission)).map(applyCustomization);
+
+  const atencao = pedemAtencao(pendencias);
+  const contexto = sessionNonNull.is_platform_admin && !sessionNonNull.workspace_id
+    ? "Administração da plataforma"
+    : [
+        `${n} ${n === 1 ? "estudante" : "estudantes"} ${sessionNonNull.user_role === "member" ? "no seu vínculo" : "na escola"}`,
+        peisVigentes ? `${peisVigentes} ${peisVigentes === 1 ? "PEI vigente" : "PEIs vigentes"}` : null,
+        atencao ? `${atencao} ${atencao === 1 ? "pede" : "pedem"} sua atenção` : "nada pendente",
+      ].filter(Boolean).join(" · ");
+  const nomePessoa = primeiroNome(sessionNonNull.simulating_member_name || sessionNonNull.usuario_nome);
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom right, var(--bg-primary), var(--bg-gradient-via), var(--bg-gradient-to))' }}>
+    <div className="min-h-screen" style={{ background: "var(--fundo)" }}>
       <SimulationBanner session={sessionNonNull} />
       <Navbar session={sessionNonNull} hideMenu={true} />
-      <main className="max-w-[1600px] mx-auto px-6 sm:px-8 py-6 sm:py-8">
-
-        {/* ── Two-column layout: Cards (left) + QuickActions & SituationPanel (right) ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-
-          {/* ═════ LEFT COLUMN: Module Cards ═════ */}
-          <div className="lg:col-span-7 space-y-6 stagger-children">
-            {row1.length > 0 && (
-              <Suspense fallback={<Skeleton className="h-[100px] rounded-2xl w-full" />}>
-                <ModuleCardsLottie
-                  modules={row1.map(({ permission, ...rest }) => rest)}
-                  title="Módulos Principais"
-                  titleIconName="Sparkle"
-                  titleIconColor="text-sky-600"
-                  useLottieOnHover={true}
-                  useLottieByDefault={true}
-                />
-              </Suspense>
-            )}
-
-            {row2.length > 0 && (
-              <Suspense fallback={<Skeleton className="h-[100px] rounded-2xl w-full" />}>
-                <ModuleCardsLottie
-                  modules={row2.map(({ permission, ...rest }) => rest)}
-                  title="Acompanhamento e Referência"
-                  titleIconName="RocketLaunch"
-                  titleIconColor="text-cyan-600"
-                  useLottieOnHover={true}
-                  useLottieByDefault={true}
-                />
-              </Suspense>
-            )}
-
-            {row3.length > 0 && (
-              <Suspense fallback={<Skeleton className="h-[100px] rounded-2xl w-full" />}>
-                <ModuleCardsLottie
-                  modules={row3.map(({ permission, ...rest }) => rest)}
-                  title="Configuração e Gestão"
-                  titleIconName="Gear"
-                  titleIconColor="text-slate-600"
-                  useLottieOnHover={true}
-                  useLottieByDefault={true}
-                />
-              </Suspense>
-            )}
-
-            {/* ── Security & AI Engines Panel ── */}
-            <SecurityAndAIPanel engines={["red", "blue", "green", "yellow", "orange"]} />
-          </div>
-
-          {/* ═════ RIGHT COLUMN: Quick Actions + Situation Panel ═════ */}
-          <div className="lg:col-span-5 space-y-6 stagger-children">
-            {/* Quick Actions — now integrated in sidebar */}
-            <section className="relative z-20">
-              <div className="flex items-center gap-2 mb-3">
-                <h2 className="premium-section-title" style={{ color: 'var(--text-secondary)' }}>
-                  Acesso Rápido
-                </h2>
-              </div>
-              <QuickActions session={sessionNonNull} />
-            </section>
-
-            {/* Situation Panel — Visão Geral | Alertas | Legislação */}
-            <SituationPanel />
-
-            {/* Feed Omnisfera — Posts, informativos, datas */}
-            <OmnisferaFeed />
-          </div>
-        </div>
-
-        {/* ── Full-width footer ── */}
-        <footer className="sidebar-glass-card mt-12 overflow-hidden">
-          <div className="h-[2px] w-full" style={{ background: 'linear-gradient(to right, #3b82f6, #6366f1, #8b5cf6, #ec4899, #6366f1, #3b82f6)' }} />
-          <div className="px-6 py-3" style={{ background: 'var(--bg-tertiary)', borderBottom: '1px solid var(--border-default)' }}>
-            <p className="text-xs leading-relaxed text-center" style={{ color: 'var(--text-secondary)' }}>
-              A plataforma utiliza motores de IA para apoiar sua prática. Essas ferramentas podem apresentar falhas. É fundamental{" "}
-              <strong style={{ color: 'var(--text-primary)' }}>revisar sempre com muito cuidado</strong> todo conteúdo gerado.
-            </p>
-          </div>
-          <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary), var(--bg-secondary))' }}>
+      <Inicio
+        saudacao={saudacao()}
+        nome={nomePessoa}
+        escola={sessionNonNull.simulating_workspace_name || sessionNonNull.workspace_name || "Omnisfera"}
+        data={dataPorExtenso()}
+        contexto={contexto}
+        pendencias={pendencias}
+        totalPendencias={pendencias.length}
+        grupos={grupos}
+        atalhos={atalhos}
+        novidades={<OmnisferaFeed />}
+        rodape={
+          <footer className="omni-cartao" style={{ padding: "var(--space-5) var(--space-6)" }}>
             <OmniEducacaoSignature variant="full" />
-          </div>
-        </footer>
-      </main>
-      <AIEnginesBadge engines={["red", "blue", "green", "yellow", "orange"] as EngineId[]} />
+          </footer>
+        }
+      />
       <TermsOfUseModal session={sessionNonNull} />
     </div>
   );
 }
-

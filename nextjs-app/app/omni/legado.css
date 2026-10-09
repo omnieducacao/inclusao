@@ -1,0 +1,109 @@
+/* Omni Design System · ponte com as variáveis antigas do app (onda 4).
+ *
+ * As telas antigas usam --bg-*, --text-*, --border-*, --color-* (globals.css). Aqui elas passam a
+ * apontar para os tokens do design system, então todas as telas mudam de cor e de fonte juntas,
+ * nos três temas e no alto contraste, sem mexer em cada tela. Quando uma tela for refeita com as
+ * classes omni-*, ela deixa de depender desta ponte.
+ *
+ * O seletor repetido (:root:root:root:root) ganha dos blocos antigos de tema e de alto contraste
+ * (html.high-contrast:not([data-theme="dark"]) etc.), que são mais específicos que :root.
+ */
+:root:root:root:root {
+  --font-primary: var(--font-sans);
+
+  --bg-primary: var(--fundo);
+  --bg-secondary: var(--superficie);
+  --bg-tertiary: var(--superficie-2);
+  --bg-hover: var(--superficie-2);
+  --bg-gradient-from: var(--fundo);
+  --bg-gradient-via: var(--fundo);
+  --bg-gradient-to: var(--fundo);
+
+  --text-primary: var(--tinta);
+  --text-secondary: var(--tinta-2);
+  --text-muted: var(--tinta-3);
+  --text-inverse: var(--superficie);
+
+  --border-default: var(--borda);
+  --border-strong: var(--borda-forte);
+  --border-subtle: var(--borda);
+  --omni-border-default: var(--borda);
+
+  --surface-0: var(--fundo);
+  --surface-1: var(--superficie);
+  --surface-2: var(--superficie);
+  --surface-3: var(--superficie-2);
+  --glass-bg: var(--superficie);
+  --glass-bg-strong: var(--superficie);
+
+  --shadow-sm: var(--sombra-1);
+  --shadow-md: var(--sombra-1);
+  --shadow-lg: var(--sombra-2);
+  --shadow-xl: var(--sombra-2);
+  --shadow-glow: none;
+
+  --focus-color: var(--foco);
+  --focus-ring: 3px solid var(--foco);
+
+  --color-primary: var(--acao);
+  --color-primary-hover: var(--acao-hover);
+  --color-primary-subtle: var(--acao-suave);
+  --color-primary-bg: var(--acao-suave);
+  --color-primary-strong: var(--acao-suave);
+  --color-muted-subtle: var(--superficie-2);
+  --text-link: var(--acao);
+  --shadow-xs: var(--sombra-1);
+  --omni-text-primary: var(--tinta);
+  --omni-text-muted: var(--tinta-3);
+  --omni-bg-hover: var(--superficie-2);
+
+  --color-success: var(--sucesso);
+  --color-success-subtle: var(--sucesso-suave);
+  --color-success-bg: var(--sucesso-suave);
+  --color-success-border: var(--sucesso);
+  --color-success-strong: var(--sucesso-suave);
+
+  --color-warning: var(--atencao);
+  --color-warning-subtle: var(--atencao-suave);
+  --color-warning-bg: var(--atencao-suave);
+  --color-warning-border: var(--atencao);
+  --color-warning-strong: var(--atencao-suave);
+
+  --color-error: var(--erro);
+  --color-error-subtle: var(--erro-suave);
+  --color-error-bg: var(--erro-suave);
+  --color-error-border: var(--erro);
+  --color-error-strong: var(--erro-suave);
+
+  --color-info: var(--info);
+  --color-info-subtle: var(--info-suave);
+  --color-info-bg: var(--info-suave);
+  --color-info-border: var(--info);
+  --color-info-strong: var(--info-suave);
+
+  --color-accent: var(--encontro-roxo-forte);
+  --color-accent-subtle: var(--encontro-roxo-suave);
+  --color-accent-bg: var(--encontro-roxo-suave);
+  --color-accent-border: var(--encontro-roxo-forte);
+  --color-accent-strong: var(--encontro-roxo-suave);
+
+  --color-muted-bg: var(--superficie-2);
+  --color-muted-border: var(--borda);
+  --color-muted-strong: var(--superficie-2);
+
+  --scrollbar-thumb: var(--borda-forte);
+  --scrollbar-thumb-hover: var(--tinta-3);
+}
+
+/* Fundo e texto da página vêm do tema, sem degradê */
+html body {
+  background: var(--fundo);
+  color: var(--tinta);
+  font-family: var(--font-sans);
+}
+
+/* Foco único da família: anel sólido de 3 px */
+:root *:focus-visible {
+  outline: 3px solid var(--foco);
+  outline-offset: 2px;
+}

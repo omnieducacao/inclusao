@@ -1,0 +1,339 @@
+/* Omni Design System · componentes (de components/bundle.css do design system). Raios com --o-. */
+/* Omni — componentes da família (Omnisfera + OmniProf), sem framework.
+   Carrega depois de tokens.css. Toda cor vem de um token; nenhuma cor literal fora da marca.
+   Classes: omni-<componente>, omni-<componente>__<parte>, omni-<componente>--<variação>.
+   Produto: <body data-produto="omniprof"> troca os cantos (azulejo) e a cor de ação. */
+
+/* ───────────────────────── Base ───────────────────────── */
+.omni-base, .omni-base *{box-sizing:border-box}
+.omni-base{font-family:var(--font-sans);font-size:16px;line-height:26px;color:var(--tinta);background:var(--fundo);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.omni-base :where(h1,h2,h3,h4){text-wrap:balance;margin:0}
+.omni-base :where(p){margin:0;text-wrap:pretty}
+.omni-base :where(a){color:var(--acao);text-underline-offset:3px;text-decoration-thickness:1px}
+.omni-base :where(a:hover){text-decoration-thickness:2px}
+:where(.omni-base) :focus-visible{outline:3px solid var(--foco);outline-offset:2px;border-radius:var(--o-radius-xs)}
+.omni-rotulo{font:500 12px/16px var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--tinta-3)}
+.omni-dado{font:500 13px/20px var(--font-mono);font-variant-numeric:tabular-nums;color:var(--tinta-2)}
+.omni-apoio{font:400 14px/20px var(--font-sans);color:var(--tinta-2)}
+.omni-so-leitor{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.omni-pular{position:absolute;left:var(--space-4);top:-100px;z-index:var(--camada-carregamento);background:var(--acao);color:var(--sobre-acao);padding:var(--space-2) var(--space-4);border-radius:var(--o-radius-sm);font-weight:700;text-decoration:none}
+.omni-pular:focus{top:var(--space-4)}
+
+/* ───────────────────────── Botão ───────────────────────── */
+.omni-btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:44px;padding:10px 18px;border-radius:var(--o-radius-md);border:2px solid transparent;font:700 15px/20px var(--font-sans);letter-spacing:-.005em;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background-color var(--duracao-rapida) var(--curva-padrao),border-color var(--duracao-rapida) var(--curva-padrao),color var(--duracao-rapida) var(--curva-padrao),transform var(--duracao-rapida) var(--curva-padrao)}
+.omni-btn:active{transform:translateY(1px)}
+.omni-btn:focus-visible{outline:3px solid var(--foco);outline-offset:2px}
+.omni-btn svg{width:18px;height:18px;flex:none}
+.omni-btn--primario{background:var(--acao);color:var(--sobre-acao)}
+.omni-btn--primario:hover{background:var(--acao-hover)}
+.omni-btn--secundario{background:var(--superficie);color:var(--tinta);border-color:var(--borda-forte)}
+.omni-btn--secundario:hover{background:var(--superficie-2)}
+.omni-btn--discreto{background:transparent;color:var(--acao);padding-inline:12px}
+.omni-btn--discreto:hover{background:var(--acao-suave)}
+.omni-btn--perigo{background:var(--superficie);color:var(--erro);border-color:var(--erro)}
+.omni-btn--perigo:hover{background:var(--erro-suave)}
+.omni-btn--pequeno{min-height:36px;padding:6px 12px;font-size:14px;border-radius:var(--o-radius-sm)}
+.omni-btn--grande{min-height:52px;padding:14px 24px;font-size:16px}
+.omni-btn--icone{padding:0;width:44px}
+.omni-btn[disabled],.omni-btn[aria-disabled="true"]{background:var(--superficie-2);color:var(--tinta-3);border-color:var(--borda);cursor:not-allowed;transform:none}
+.omni-btn[aria-busy="true"]{cursor:progress}
+.omni-btn__simbolo{width:20px!important;height:20px!important}
+
+/* ───────────────────────── Campo ───────────────────────── */
+.omni-campo{display:flex;flex-direction:column;gap:6px;max-width:var(--largura-formulario);min-width:0}
+.omni-campo__rotulo{font:700 14px/20px var(--font-sans);color:var(--tinta)}
+.omni-campo__opcional{font-weight:400;color:var(--tinta-3)}
+.omni-campo__ajuda{font:400 14px/20px var(--font-sans);color:var(--tinta-2)}
+.omni-campo__erro{display:flex;gap:6px;align-items:flex-start;font:600 14px/20px var(--font-sans);color:var(--erro)}
+.omni-campo__erro svg{flex:none;width:18px;height:18px;margin-top:1px}
+.omni-campo__contador{font:500 12px/16px var(--font-mono);color:var(--tinta-3);text-align:right;font-variant-numeric:tabular-nums}
+.omni-entrada{width:100%;min-height:44px;font:400 16px/24px var(--font-sans);color:var(--tinta);background:var(--superficie);border:1.5px solid var(--borda-forte);border-radius:var(--o-radius-sm);padding:9px 12px;transition:border-color var(--duracao-rapida),box-shadow var(--duracao-rapida)}
+.omni-entrada::placeholder{color:var(--tinta-3)}
+.omni-entrada:hover{border-color:var(--tinta-2)}
+.omni-entrada:focus-visible{outline:none;border-color:var(--foco);box-shadow:0 0 0 3px var(--foco)}
+.omni-entrada[aria-invalid="true"]{border-color:var(--erro);border-width:2px}
+.omni-entrada[disabled]{background:var(--superficie-2);color:var(--tinta-3);cursor:not-allowed}
+textarea.omni-entrada{min-height:120px;resize:vertical;line-height:26px}
+select.omni-entrada{appearance:none;padding-right:40px;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 14px) 50%;background-size:6px 6px;background-repeat:no-repeat}
+
+/* ───────────────────────── Escolha (chips, segmentado, caixa) ───────────────────────── */
+.omni-escolhas{display:flex;flex-wrap:wrap;gap:var(--space-2);border:0;padding:0;margin:0;min-width:0}
+.omni-escolhas legend{font:700 14px/20px var(--font-sans);margin-bottom:var(--space-2);padding:0}
+.omni-chip{position:relative;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 14px;border-radius:var(--o-radius-pill);border:1.5px solid var(--borda-forte);background:var(--superficie);color:var(--tinta);font:600 14px/20px var(--font-sans);cursor:pointer;user-select:none;transition:background-color var(--duracao-rapida),border-color var(--duracao-rapida)}
+.omni-chip:hover{background:var(--superficie-2)}
+.omni-chip input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.omni-chip:has(input:focus-visible){outline:3px solid var(--foco);outline-offset:2px}
+.omni-chip:has(input:checked),.omni-chip[aria-pressed="true"]{background:var(--acao-suave);border-color:var(--acao);color:var(--tinta)}
+.omni-chip__marca{width:16px;height:16px;flex:none;display:none}
+.omni-chip:has(input:checked) .omni-chip__marca,.omni-chip[aria-pressed="true"] .omni-chip__marca{display:block;color:var(--acao)}
+.omni-segmentado{display:inline-flex;padding:3px;gap:3px;border-radius:var(--o-radius-md);background:var(--superficie-2);border:1px solid var(--borda)}
+.omni-segmentado label{position:relative;display:inline-flex;align-items:center;min-height:38px;padding:8px 16px;border-radius:9px;font:600 14px/20px var(--font-sans);color:var(--tinta-2);cursor:pointer}
+.omni-segmentado input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.omni-segmentado label:has(input:checked){background:var(--superficie);color:var(--tinta);box-shadow:var(--sombra-1);outline:1.5px solid var(--borda-forte)}
+.omni-segmentado label:has(input:focus-visible){outline:3px solid var(--foco)}
+.omni-caixa{display:flex;gap:10px;align-items:flex-start;font:400 16px/24px var(--font-sans);cursor:pointer}
+.omni-caixa input{appearance:none;flex:none;width:22px;height:22px;margin:1px 0 0;border:1.5px solid var(--borda-forte);border-radius:var(--o-radius-xs);background:var(--superficie);display:grid;place-content:center;cursor:pointer}
+.omni-caixa input[type=radio]{border-radius:50%}
+.omni-caixa input:checked{background:var(--acao);border-color:var(--acao)}
+.omni-caixa input[type=checkbox]:checked::after{content:"";width:10px;height:6px;border:2.5px solid var(--sobre-acao);border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.omni-caixa input[type=radio]:checked::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--sobre-acao)}
+.omni-caixa input:focus-visible{outline:3px solid var(--foco);outline-offset:2px}
+
+/* ───────────────────────── Cartão ───────────────────────── */
+.omni-cartao{background:var(--superficie);border:1px solid var(--borda);border-radius:var(--o-radius-lg) var(--o-radius-lg) var(--o-radius-lg) var(--o-radius-xs);padding:var(--space-6);display:flex;flex-direction:column;gap:var(--space-3);min-width:0}
+[data-produto="omniprof"] .omni-cartao,.omni-cartao--azulejo{border-radius:24px var(--o-radius-azulejo) 24px var(--o-radius-xs)}
+.omni-cartao--elevado{box-shadow:var(--sombra-1);border-color:transparent}
+.omni-cartao--plano{background:var(--superficie-2);border-color:transparent}
+a.omni-cartao,button.omni-cartao{text-align:left;font:inherit;color:inherit;text-decoration:none;cursor:pointer;transition:box-shadow var(--duracao-base) var(--curva-padrao),transform var(--duracao-base) var(--curva-padrao),border-color var(--duracao-base)}
+a.omni-cartao:hover,button.omni-cartao:hover{box-shadow:var(--sombra-2);border-color:var(--borda-forte);transform:translateY(-2px)}
+.omni-cartao__titulo{font:700 17px/24px var(--font-sans);color:var(--tinta)}
+.omni-cartao__texto{font:400 15px/24px var(--font-sans);color:var(--tinta-2)}
+.omni-cartao__rodape{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center;margin-top:auto;padding-top:var(--space-2)}
+/* Cartão de módulo: um círculo na cor pura do módulo (como os círculos do símbolo), ícone em sobre-encontro; o cartão continua neutro */
+.omni-modulo{--mod:var(--acao)}
+.omni-modulo--pei{--mod:var(--modulo-pei);--mod-suave:var(--encontro-azul-suave);--mod-pura:var(--encontro-azul)}
+.omni-modulo--paee{--mod:var(--modulo-paee);--mod-suave:var(--encontro-laranja-suave);--mod-pura:var(--encontro-laranja)}
+.omni-modulo--hub{--mod:var(--modulo-hub);--mod-suave:var(--encontro-roxo-suave);--mod-pura:var(--encontro-roxo)}
+.omni-modulo--diario{--mod:var(--modulo-diario);--mod-suave:var(--encontro-verde-suave);--mod-pura:var(--encontro-verde)}
+.omni-modulo--monitoramento{--mod:var(--modulo-monitoramento);--mod-suave:var(--encontro-amarelo-suave);--mod-pura:var(--encontro-amarelo)}
+.omni-modulo--gestao{--mod:var(--modulo-gestao);--mod-suave:var(--encontro-vermelho-suave);--mod-pura:var(--encontro-vermelho)}
+.omni-modulo__selo{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--mod-pura,var(--encontro-azul));color:var(--sobre-encontro)}
+.omni-modulo__selo svg{width:24px;height:24px}
+.omni-modulo__nome{font:500 12px/16px var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mod)}
+
+/* ───────────────────────── Chip de estado ───────────────────────── */
+.omni-estado{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:3px 10px 3px 8px;border-radius:var(--o-radius-pill);font:700 13px/18px var(--font-sans);white-space:nowrap;background:var(--superficie-2);color:var(--tinta-2);border:1px solid transparent}
+.omni-estado svg{width:14px;height:14px;flex:none}
+.omni-estado--sucesso{background:var(--sucesso-suave);color:var(--sucesso)}
+.omni-estado--atencao{background:var(--atencao-suave);color:var(--atencao)}
+.omni-estado--erro{background:var(--erro-suave);color:var(--erro)}
+.omni-estado--info{background:var(--info-suave);color:var(--info)}
+.omni-estado--neutro{background:var(--superficie-2);color:var(--tinta-2);border-color:var(--borda)}
+
+/* ───────────────────────── Aviso e toast ───────────────────────── */
+.omni-aviso{display:grid;grid-template-columns:auto 1fr auto;gap:var(--space-3);align-items:start;padding:var(--space-4);border-radius:var(--o-radius-md);border:1px solid var(--borda);background:var(--superficie);color:var(--tinta);max-width:var(--largura-formulario)}
+.omni-aviso__icone{width:22px;height:22px;margin-top:2px}
+.omni-aviso__titulo{font:700 15px/22px var(--font-sans)}
+.omni-aviso__texto{font:400 15px/22px var(--font-sans);color:var(--tinta-2);margin-top:2px}
+.omni-aviso__acoes{display:flex;gap:var(--space-2);margin-top:var(--space-3);flex-wrap:wrap}
+.omni-aviso--sucesso{background:var(--sucesso-suave);border-color:transparent}.omni-aviso--sucesso .omni-aviso__icone{color:var(--sucesso)}
+.omni-aviso--atencao{background:var(--atencao-suave);border-color:transparent}.omni-aviso--atencao .omni-aviso__icone{color:var(--atencao)}
+.omni-aviso--erro{background:var(--erro-suave);border-color:transparent}.omni-aviso--erro .omni-aviso__icone{color:var(--erro)}
+.omni-aviso--info{background:var(--info-suave);border-color:transparent}.omni-aviso--info .omni-aviso__icone{color:var(--info)}
+.omni-toasts{position:fixed;z-index:var(--camada-toast);right:var(--space-4);bottom:calc(var(--space-4) + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:var(--space-2);width:min(380px,calc(100vw - 32px))}
+.omni-toast{display:flex;gap:var(--space-3);align-items:center;padding:12px 12px 12px 16px;border-radius:var(--o-radius-md);background:var(--noite);color:var(--sobre-noite);box-shadow:var(--sombra-2);font:500 15px/22px var(--font-sans);animation:omni-toast-entra var(--duracao-base) var(--curva-padrao)}
+.omni-toast__texto{flex:1;min-width:0}
+.omni-toast__acao{background:none;border:0;color:var(--sobre-noite);font:700 14px/20px var(--font-sans);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px 8px;border-radius:var(--o-radius-xs)}
+.omni-toast__acao:focus-visible{outline:3px solid var(--sobre-noite)}
+.omni-toast svg{width:20px;height:20px;flex:none}
+@keyframes omni-toast-entra{from{opacity:0;transform:translateY(8px)}}
+
+/* ───────────────────────── Estado vazio ───────────────────────── */
+.omni-vazio{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:var(--space-8);align-items:center;padding:var(--space-8);border:1.5px dashed var(--borda-forte);border-radius:var(--o-radius-lg) var(--o-radius-lg) var(--o-radius-lg) var(--o-radius-xs);background:var(--superficie)}
+.omni-vazio__texto{display:flex;flex-direction:column;gap:var(--space-3);align-items:flex-start}
+.omni-vazio__titulo{font:800 22px/28px var(--font-sans);letter-spacing:-.015em}
+.omni-vazio__midia{position:relative;aspect-ratio:16/10;max-width:100%;border-radius:var(--o-radius-md);overflow:hidden;background:var(--superficie-2);border:1px solid var(--borda)}
+.omni-vazio__midia video,.omni-vazio__midia img{width:100%;height:100%;object-fit:cover;display:block}
+.omni-vazio__legenda{position:absolute;left:var(--space-2);bottom:var(--space-2);font:500 12px/16px var(--font-mono);letter-spacing:.06em;background:var(--superficie);color:var(--tinta-2);padding:2px 8px;border-radius:var(--o-radius-xs)}
+@media (max-width:640px){.omni-vazio{grid-template-columns:1fr;padding:var(--space-5)}}
+
+/* ───────────────────────── Abas e passos ───────────────────────── */
+.omni-abas{display:flex;gap:var(--space-1);border-bottom:1px solid var(--borda);overflow-x:auto;scrollbar-width:none}
+.omni-aba{position:relative;flex:none;background:none;border:0;padding:12px 14px;font:600 15px/20px var(--font-sans);color:var(--tinta-2);cursor:pointer;border-radius:var(--o-radius-sm) var(--o-radius-sm) 0 0}
+.omni-aba:hover{color:var(--tinta);background:var(--superficie-2)}
+.omni-aba[aria-selected="true"]{color:var(--tinta)}
+.omni-aba[aria-selected="true"]::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:3px;border-radius:3px 3px 0 0;background:var(--acao)}
+.omni-aba__conta{margin-left:6px;font:500 12px/16px var(--font-mono);color:var(--tinta-3)}
+.omni-passos{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--space-2);counter-reset:passo}
+.omni-passo{display:flex;gap:10px;align-items:flex-start;padding:var(--space-3);border-radius:var(--o-radius-md);border:1px solid var(--borda);background:var(--superficie);min-width:0}
+.omni-passo__num{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:700 13px/1 var(--font-mono);border:1.5px solid var(--borda-forte);color:var(--tinta-2);background:var(--superficie)}
+.omni-passo__titulo{font:700 14px/20px var(--font-sans);color:var(--tinta)}
+.omni-passo__estado{font:400 13px/18px var(--font-sans);color:var(--tinta-3)}
+.omni-passo--feito .omni-passo__num{background:var(--sucesso);border-color:var(--sucesso);color:var(--superficie)}
+.omni-passo--atual{border-color:var(--acao);box-shadow:inset 0 0 0 1px var(--acao)}
+.omni-passo--atual .omni-passo__num{border-color:var(--acao);color:var(--acao)}
+.omni-passo--atual .omni-passo__estado{color:var(--acao)}
+
+/* ───────────────────────── Navegação ───────────────────────── */
+.omni-topo{position:sticky;top:env(safe-area-inset-top,0px);z-index:var(--camada-cabecalho);display:flex;align-items:center;gap:var(--space-4);min-height:64px;padding:0 var(--space-5);background:var(--superficie);border-bottom:1px solid var(--borda)}
+.omni-topo__marca{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--tinta);border-radius:var(--o-radius-sm);padding:4px}
+.omni-topo__marca svg[data-omni-simbolo]{width:34px;height:34px}
+.omni-topo__nome{font:800 21px/1 var(--font-sans);letter-spacing:-.035em;text-transform:lowercase}
+.omni-topo__escola{font:500 12px/16px var(--font-mono);letter-spacing:.08em;color:var(--tinta-3);padding-left:var(--space-4);border-left:1px solid var(--borda);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.omni-topo__acoes{margin-left:auto;display:flex;align-items:center;gap:var(--space-2)}
+.omni-avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--encontro-roxo-suave);color:var(--encontro-roxo-forte);font:700 14px/1 var(--font-sans)}
+.omni-lateral{display:flex;flex-direction:column;gap:2px;width:var(--largura-barra-lateral);max-width:100%;padding:var(--space-3);background:var(--superficie);border-right:1px solid var(--borda)}
+.omni-lateral__grupo{font:500 11px/16px var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--tinta-3);padding:var(--space-4) var(--space-3) var(--space-1)}
+.omni-lateral__item{display:flex;align-items:center;gap:10px;min-height:40px;padding:8px 12px;border-radius:var(--o-radius-sm);color:var(--tinta-2);text-decoration:none;font:600 15px/20px var(--font-sans)}
+.omni-lateral__item svg{width:20px;height:20px;flex:none}
+.omni-lateral__item:hover{background:var(--superficie-2);color:var(--tinta)}
+.omni-lateral__item[aria-current="page"]{background:var(--acao-suave);color:var(--tinta)}
+.omni-lateral__item[aria-current="page"] svg{color:var(--acao)}
+
+/* ───────────────────────── Tabela ───────────────────────── */
+.omni-tabela-caixa{overflow-x:auto;border:1px solid var(--borda);border-radius:var(--o-radius-md);background:var(--superficie)}
+.omni-tabela{width:100%;border-collapse:collapse;font:400 15px/22px var(--font-sans);color:var(--tinta)}
+.omni-tabela caption{text-align:left;padding:var(--space-4);font:700 15px/22px var(--font-sans)}
+.omni-tabela th{text-align:left;font:500 12px/16px var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--tinta-2);background:var(--superficie-2);padding:10px 16px;white-space:nowrap;border-bottom:1px solid var(--borda)}
+.omni-tabela td{padding:12px 16px;border-bottom:1px solid var(--borda);vertical-align:middle}
+.omni-tabela tr:last-child td{border-bottom:0}
+.omni-tabela tbody tr:hover td{background:var(--superficie-2)}
+.omni-tabela .num{text-align:right;font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.omni-tabela__nome{font-weight:700}
+.omni-tabela__sub{display:block;font-size:13px;line-height:18px;color:var(--tinta-3)}
+
+/* ───────────────────────── Diálogo ───────────────────────── */
+.omni-dialogo{border:0;padding:0;border-radius:var(--o-radius-lg) var(--o-radius-lg) var(--o-radius-lg) var(--o-radius-xs);background:var(--superficie);color:var(--tinta);width:min(520px,calc(100vw - 32px));box-shadow:var(--sombra-2)}
+.omni-dialogo::backdrop{background:rgba(13,21,38,.55)}
+.omni-dialogo__corpo{padding:var(--space-6);display:flex;flex-direction:column;gap:var(--space-3)}
+.omni-dialogo__titulo{font:800 22px/28px var(--font-sans);letter-spacing:-.015em}
+.omni-dialogo__acoes{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2);padding:var(--space-4) var(--space-6);border-top:1px solid var(--borda);background:var(--superficie-2);border-radius:0 0 var(--o-radius-lg) var(--o-radius-xs)}
+.omni-dialogo--estatico{position:relative;display:block;margin:0}
+
+/* ───────────────────────── Geração com IA ───────────────────────── */
+.omni-geracao{display:grid;grid-template-columns:auto 1fr;gap:var(--space-5);align-items:start;padding:var(--space-6);border:1px solid var(--borda);border-radius:var(--o-radius-lg) var(--o-radius-lg) var(--o-radius-lg) var(--o-radius-xs);background:var(--superficie);max-width:640px}
+.omni-geracao__marca{width:64px;height:64px;display:grid;place-items:center}
+.omni-geracao__marca svg{width:64px;height:64px}
+.omni-geracao__marca .omni-livro{width:64px;height:auto}
+.omni-geracao__titulo{font:800 20px/26px var(--font-sans);letter-spacing:-.01em}
+.omni-geracao__frase{font:400 16px/24px var(--font-sans);color:var(--tinta-2);min-height:24px}
+.omni-geracao__etapas{list-style:none;margin:var(--space-3) 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.omni-geracao__etapa{display:flex;align-items:center;gap:10px;font:500 14px/20px var(--font-sans);color:var(--tinta-3)}
+.omni-geracao__etapa::before{content:"";flex:none;width:10px;height:10px;border-radius:50%;border:1.5px solid var(--borda-forte)}
+.omni-geracao__etapa--feita{color:var(--tinta-2)}
+.omni-geracao__etapa--feita::before{background:var(--sucesso);border-color:var(--sucesso)}
+.omni-geracao__etapa--atual{color:var(--tinta);font-weight:700}
+.omni-geracao__etapa--atual::before{border-color:var(--acao);background:var(--acao);animation:omni-pulso 1.2s var(--curva-padrao) infinite}
+.omni-geracao__barra{height:6px;border-radius:var(--o-radius-pill);background:var(--superficie-2);overflow:hidden;margin-top:var(--space-3)}
+.omni-geracao__barra span{display:block;height:100%;width:var(--progresso,30%);background:var(--acao);border-radius:inherit;transition:width var(--duracao-base) var(--curva-padrao)}
+.omni-geracao__nota{font:400 14px/20px var(--font-sans);color:var(--tinta-2);margin-top:var(--space-3);padding-top:var(--space-3);border-top:1px solid var(--borda)}
+@keyframes omni-pulso{50%{transform:scale(.6);opacity:.6}}
+
+/* ───────────────────────── Esqueleto ───────────────────────── */
+.omni-esqueleto{display:block;border-radius:var(--o-radius-xs);background:linear-gradient(90deg,var(--superficie-2) 0 40%,var(--borda) 50%,var(--superficie-2) 60% 100%);background-size:300% 100%;animation:omni-brilho 1.6s linear infinite}
+@keyframes omni-brilho{from{background-position:100% 0}to{background-position:-50% 0}}
+
+/* ───────────────────────── Tela de carregamento (Omni.carregando) ───────────────────────── */
+.omni-carregando{position:fixed;inset:0;z-index:var(--camada-carregamento);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-5);background:var(--fundo);color:var(--tinta);animation:omni-aparece var(--duracao-base) var(--curva-padrao)}
+.omni-carregando--contido{position:absolute}
+.omni-carregando__marca{width:96px;height:96px;display:grid;place-items:center}
+.omni-carregando__marca svg{width:96px;height:96px}
+.omni-carregando__marca .omni-livro{width:88px;height:auto}
+.omni-carregando__texto{font:600 16px/24px var(--font-sans);color:var(--tinta-2);text-align:center;max-width:32ch;min-height:24px;margin:0}
+.omni-carregando--saindo{opacity:0;transition:opacity var(--duracao-base) var(--curva-padrao)}
+@keyframes omni-aparece{from{opacity:0}}
+
+/* ───────────────────────── Símbolo Encontro (Omnisfera) ───────────────────────── */
+svg[data-omni-simbolo]{display:block;overflow:visible}
+.omni-assinatura{display:inline-flex;align-items:center;gap:.32em;color:var(--tinta);text-decoration:none;font-size:34px}
+.omni-assinatura svg[data-omni-simbolo]{width:1.5em;height:1.5em;margin-right:-.08em}
+.omni-assinatura__nome{font:800 1em/1 var(--font-sans);letter-spacing:-.035em;text-transform:lowercase}
+.omni-assinatura--vertical{flex-direction:column;gap:.3em}
+.omni-assinatura--vertical svg[data-omni-simbolo]{width:2.4em;height:2.4em}
+.omni-assinatura--negativo{color:var(--sobre-noite)}
+.omni-endosso{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-4) var(--space-6);padding:var(--space-5) var(--space-6);background:var(--noite);color:var(--sobre-noite);border-radius:var(--o-radius-lg) var(--o-radius-lg) var(--o-radius-lg) var(--o-radius-xs)}
+.omni-endosso__empresa{display:flex;align-items:center;gap:var(--space-3);min-width:0}
+.omni-endosso__empresa svg[data-omni-simbolo]{width:40px;height:40px;flex:none}
+.omni-endosso__nome{font:700 15px/20px var(--font-sans)}
+.omni-endosso__sub{font:400 13px/18px var(--font-sans);color:var(--sobre-noite-2)}
+.omni-endosso__tambem{margin-left:auto;display:flex;align-items:center;gap:var(--space-3);font:500 12px/16px var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--sobre-noite-2);text-decoration:none}
+.omni-endosso__tambem .omni-livro{height:22px;width:auto}
+
+/* ───────────────────────── Livro do OmniProf (Omni.livro) ─────────────────────────
+   Porta fiel de OmniLogo.module.css (OmniProf, 07/10/2026). Três variantes, nunca misturadas:
+   cor (azul + vermelho; podem trocar entre si), branco (tudo branco), tinta (tudo currentColor). */
+.omni-livro{display:block;width:auto;overflow:visible;--azul:var(--prof-azul);--verm:var(--prof-vermelho);--a:var(--azul);--b:var(--verm);--a-txt:var(--azul);--b-txt:var(--verm)}
+.omni-livro--branco{--a:#fff;--b:#fff;--a-txt:#fff;--b-txt:#fff}
+.omni-livro--tinta{--a:currentColor;--b:currentColor;--a-txt:currentColor;--b-txt:currentColor}
+.omni-livro__esq{fill:var(--a)}.omni-livro__dir{fill:var(--b)}
+.omni-livro__omni{fill:var(--a-txt)}.omni-livro__prof{fill:var(--b-txt)}
+.omni-livro__ge{transform-box:fill-box;transform-origin:100% 100%}
+.omni-livro__gd,.omni-livro__vira{transform-box:fill-box;transform-origin:0% 100%}
+.omni-livro__folha{fill:var(--b)}
+.omni-livro__vira{display:none}
+/* A · hover: fecha, troca as cores com o livro fechado e reabre (0,56 s) */
+.omni-livro--hover .omni-livro__esq,.omni-livro--hover .omni-livro__dir,.omni-livro--hover .omni-livro__omni,.omni-livro--hover .omni-livro__prof{transition:fill 0s .28s}
+:hover>.omni-livro--hover .omni-livro__ge,:focus-visible>.omni-livro--hover .omni-livro__ge,:hover>*>.omni-livro--hover .omni-livro__ge,:focus-visible>*>.omni-livro--hover .omni-livro__ge{animation:omni-fechaE var(--duracao-logo) var(--curva-logo)}
+:hover>.omni-livro--hover .omni-livro__gd,:focus-visible>.omni-livro--hover .omni-livro__gd,:hover>*>.omni-livro--hover .omni-livro__gd,:focus-visible>*>.omni-livro--hover .omni-livro__gd{animation:omni-fechaD var(--duracao-logo) var(--curva-logo)}
+:hover>.omni-livro--hover.omni-livro--cor,:focus-visible>.omni-livro--hover.omni-livro--cor,:hover>*>.omni-livro--hover.omni-livro--cor,:focus-visible>*>.omni-livro--hover.omni-livro--cor{--a:var(--verm);--b:var(--azul);--a-txt:var(--verm);--b-txt:var(--azul)}
+@keyframes omni-fechaE{50%{transform:scaleX(.04) skewY(6deg)}}
+@keyframes omni-fechaD{50%{transform:scaleX(.04) skewY(-6deg)}}
+/* A · carregando: o mesmo fecha-e-abre, em ciclo de 4,8 s */
+.omni-livro--carregando .omni-livro__ge{animation:omni-livroE 4.8s var(--curva-logo) infinite}
+.omni-livro--carregando .omni-livro__gd{animation:omni-livroD 4.8s var(--curva-logo) infinite}
+.omni-livro--carregando .omni-livro__esq{animation:omni-trocaA 4.8s infinite}
+.omni-livro--carregando .omni-livro__dir{animation:omni-trocaB 4.8s infinite}
+@keyframes omni-livroE{0%,12%,38%,62%,88%,100%{transform:none}25%,75%{transform:scaleX(.04) skewY(6deg)}}
+@keyframes omni-livroD{0%,12%,38%,62%,88%,100%{transform:none}25%,75%{transform:scaleX(.04) skewY(-6deg)}}
+@keyframes omni-trocaA{0%,24.9%{fill:var(--a)}25%,74.9%{fill:var(--b)}75%,100%{fill:var(--a)}}
+@keyframes omni-trocaB{0%,24.9%{fill:var(--b)}25%,74.9%{fill:var(--a)}75%,100%{fill:var(--b)}}
+/* B · gerando: folhear, 2,6 s */
+.omni-livro--gerando .omni-livro__vira{display:inline;animation:omni-vira 2.6s cubic-bezier(.55,0,.25,1) infinite;filter:drop-shadow(-6px 8px 10px rgba(19,48,64,.22))}
+.omni-livro--gerando .omni-livro__folha{animation:omni-verso 2.6s infinite}
+@keyframes omni-vira{0%,18%{transform:none;opacity:1}50%{transform:scaleX(0) translateY(-5%) skewY(-8deg)}82%{transform:scaleX(-1);opacity:1}92%,100%{transform:scaleX(-1);opacity:0}}
+@keyframes omni-verso{0%,49.9%{fill:var(--b)}50%,100%{fill:var(--a)}}
+/* C · aguardando: gangorra, 3,2 s */
+.omni-livro--aguardando .omni-livro__ge{animation:omni-gangE 3.2s cubic-bezier(.45,0,.2,1) infinite}
+.omni-livro--aguardando .omni-livro__gd{animation:omni-gangD 3.2s cubic-bezier(.45,0,.2,1) infinite}
+.omni-livro--aguardando .omni-livro__esq,.omni-livro--aguardando .omni-livro__omni{animation:omni-meioA 3.2s infinite}
+.omni-livro--aguardando .omni-livro__dir,.omni-livro--aguardando .omni-livro__prof{animation:omni-meioB 3.2s infinite}
+@keyframes omni-gangE{0%,100%{transform:none}12%,30%{transform:rotate(-10deg) translateY(-5%)}45%,55%{transform:none}70%,88%{transform:rotate(3deg) translateY(1%)}}
+@keyframes omni-gangD{0%,100%{transform:none}12%,30%{transform:rotate(-3deg) translateY(1%)}45%,55%{transform:none}70%,88%{transform:rotate(10deg) translateY(-5%)}}
+@keyframes omni-meioA{0%,49.9%{fill:var(--a)}50%,100%{fill:var(--b)}}
+@keyframes omni-meioB{0%,49.9%{fill:var(--b)}50%,100%{fill:var(--a)}}
+
+/* ───────────────────────── Seletor de tema e preferências ───────────────────────── */
+.omni-temas{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:var(--space-2);border:0;padding:0;margin:0}
+.omni-tema{position:relative;display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:var(--o-radius-md);border:1.5px solid var(--borda);background:var(--superficie);cursor:pointer;font:600 14px/20px var(--font-sans);color:var(--tinta)}
+.omni-tema input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.omni-tema:has(input:checked){border-color:var(--acao);box-shadow:inset 0 0 0 1.5px var(--acao)}
+.omni-tema:has(input:focus-visible){outline:3px solid var(--foco);outline-offset:2px}
+.omni-tema__amostra{height:56px;border-radius:8px;display:flex;align-items:flex-end;gap:4px;padding:8px;border:1px solid rgba(0,0,0,.12)}
+.omni-tema__amostra i{display:block;height:8px;border-radius:4px}
+.omni-preferencia{display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);padding:var(--space-3) 0;border-bottom:1px solid var(--borda)}
+.omni-preferencia__texto{min-width:0}
+.omni-preferencia__nome{font:700 15px/22px var(--font-sans)}
+.omni-preferencia__ajuda{font:400 14px/20px var(--font-sans);color:var(--tinta-2)}
+.omni-interruptor{appearance:none;flex:none;width:46px;height:28px;border-radius:var(--o-radius-pill);background:var(--borda-forte);position:relative;cursor:pointer;transition:background-color var(--duracao-rapida);margin:0}
+.omni-interruptor::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--superficie);transition:transform var(--duracao-rapida) var(--curva-padrao)}
+.omni-interruptor:checked{background:var(--acao)}
+.omni-interruptor:checked::after{transform:translateX(18px)}
+.omni-interruptor:focus-visible{outline:3px solid var(--foco);outline-offset:2px}
+
+/* ───────────────────────── Modificadores de acessibilidade (no <html>) ─────────────────────────
+   Somam-se a qualquer tema. Status nunca depende só da cor (sempre ícone + palavra);
+   estes modificadores só tiram o par vermelho/verde de quem não o distingue. */
+.omni-leitura,.omni-leitura body,.dyslexia-font,.dyslexia-font body{font-family:var(--font-acessivel)}
+.dyslexia-font :where(.omni-base,.omni-base *,.omni-btn,.omni-entrada,.omni-chip,.omni-cartao__texto,.omni-campo__rotulo),.omni-leitura :where(.omni-base,.omni-base *,.omni-btn,.omni-entrada,.omni-chip,.omni-cartao__texto,.omni-campo__rotulo){font-family:var(--font-acessivel)!important;letter-spacing:.01em}
+.omni-leitura :where(p,li,.omni-cartao__texto,.omni-campo__ajuda){line-height:1.65}
+.omni-cb-protanopia,html.cb-protanopia{--sucesso:var(--encontro-azul-forte);--sucesso-suave:var(--encontro-azul-suave);--erro:var(--encontro-roxo-forte);--erro-suave:var(--encontro-roxo-suave)}
+.omni-cb-deuteranopia,html.cb-deuteranopia{--sucesso:var(--encontro-azul-forte);--sucesso-suave:var(--encontro-azul-suave);--erro:var(--encontro-laranja-forte);--erro-suave:var(--encontro-laranja-suave)}
+.omni-cb-tritanopia,html.cb-tritanopia{--atencao:var(--encontro-laranja-forte);--atencao-suave:var(--encontro-laranja-suave);--info:var(--encontro-roxo-forte);--info-suave:var(--encontro-roxo-suave)}
+.omni-sem-movimento *,html.reduce-motion *,.omni-sem-movimento *::before,.omni-sem-movimento *::after{animation:none!important;transition:none!important}
+.omni-sem-movimento .omni-livro--gerando .omni-livro__vira{display:none}
+@media (prefers-reduced-motion:reduce){
+  .omni-livro g,.omni-livro path{animation:none!important;transition:none!important;transform:none!important}
+  .omni-livro--gerando .omni-livro__vira{display:none}
+  .omni-esqueleto,.omni-geracao__etapa--atual::before,.omni-toast,.omni-carregando{animation:none!important}
+  .omni-btn,a.omni-cartao,button.omni-cartao{transition:none}
+  a.omni-cartao:hover,button.omni-cartao:hover{transform:none}
+}
+@media (forced-colors:active){
+  .omni-btn,.omni-chip,.omni-cartao,.omni-estado,.omni-aviso{border:1px solid CanvasText}
+  .omni-aba[aria-selected="true"]::after{background:Highlight}
+}
+
+/* ───────────────────────── Produto: OmniProf ───────────────────────── */
+[data-produto="omniprof"]{--acao:var(--prof-azul);--acao-hover:var(--prof-azul-escuro);--sobre-acao:var(--sobre-prof-azul)}
+
+/* ───────────────────────── Ajustes por tema ───────────────────────── */
+/* No Escuro, noite fica perto do fundo: endosso e toast ganham contorno */
+[data-theme="dark"] .omni-endosso,[data-theme="dark"] .omni-toast{border:1px solid var(--borda-forte)}
+/* No Alto contraste, superfícies se separam por borda, nunca só por tom */
+html.high-contrast :is(.omni-aviso,.omni-estado,.omni-cartao--plano,.omni-cartao--elevado,.omni-segmentado,.omni-toast,.omni-endosso),[data-theme="alto-contraste"] :is(.omni-aviso,.omni-estado,.omni-cartao--plano,.omni-cartao--elevado,.omni-segmentado,.omni-toast,.omni-endosso){border:1.5px solid var(--borda)}
+[data-theme="alto-contraste"] .omni-lateral__item[aria-current="page"]{outline:2px solid var(--tinta);outline-offset:-2px}
+
+
+/* Tela de carregamento do Next (app/loading.tsx): só aparece depois de 300 ms, para não piscar em navegação rápida */
+.omni-carregando--atrasado{animation:omni-aparece var(--duracao-base) var(--curva-padrao) .3s both}
+.omni-carregando--pagina{position:fixed;inset:0}
