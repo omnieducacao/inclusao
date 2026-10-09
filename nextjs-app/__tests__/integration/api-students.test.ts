@@ -66,9 +66,13 @@ vi.mock("@/lib/supabase", () => ({
 // Mock session
 let mockSession: { workspace_id: string; user_role: string; is_platform_admin: boolean; member: Record<string, unknown> | null } | null = null;
 
-vi.mock("@/lib/session", () => ({
+vi.mock("@/lib/session", async (importOriginal) => ({
+    ...(await importOriginal<typeof import("@/lib/session")>()),
     getSession: vi.fn(() => Promise.resolve(mockSession)),
 }));
+
+// chave só de teste: o POST agora grava o diagnóstico criptografado
+process.env.ENCRYPTION_KEY ||= "0".repeat(64);
 
 import { GET as listStudents, POST as createStudent } from "@/app/api/students/route";
 import { GET as getStudent, PATCH as updateStudent, DELETE as deleteStudent } from "@/app/api/students/[id]/route";

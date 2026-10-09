@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/session";
+import { getSession, memberIdDaSessao } from "@/lib/session";
 import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { Skeleton } from "@/components/Skeleton";
@@ -26,7 +26,7 @@ export default async function HubPage({ searchParams }: Props) {
   if (workspaceId && student && studentId) {
     try {
       const sb = (await import("@/lib/supabase")).getSupabase();
-      const memberId = (session as Record<string, unknown>)?.member_id as string | undefined;
+      const memberId = memberIdDaSessao(session);
       if (memberId) {
         const { data: peiDiscs } = await sb
           .from("pei_disciplinas")

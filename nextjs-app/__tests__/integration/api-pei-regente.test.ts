@@ -32,7 +32,8 @@ const defaultSession = {
 
 let sessionToReturn: typeof defaultSession | null = defaultSession;
 
-vi.mock("@/lib/session", () => ({
+vi.mock("@/lib/session", async (importOriginal) => ({
+    ...(await importOriginal<typeof import("@/lib/session")>()),
     getSession: vi.fn(() => Promise.resolve(sessionToReturn)),
 }));
 

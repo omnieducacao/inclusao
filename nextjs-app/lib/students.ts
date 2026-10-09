@@ -306,3 +306,18 @@ export async function deleteStudent(
   logger.debug({ studentId, workspaceId }, "deleteStudent: estudante excluído");
   return { success: true };
 }
+
+/**
+ * Onda 0: confere se o estudante é da escola da sessão antes de gravar algo ligado a ele.
+ * Use em rotas que recebem student_id no corpo e inserem registros novos.
+ */
+export async function estudanteDaEscola(workspaceId: string | null | undefined, studentId: string | null | undefined): Promise<boolean> {
+  if (!workspaceId || !studentId) return false;
+  const { data } = await getSupabase()
+    .from("students")
+    .select("id")
+    .eq("id", studentId)
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  return Boolean(data);
+}

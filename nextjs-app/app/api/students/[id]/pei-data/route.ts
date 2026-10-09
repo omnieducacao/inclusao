@@ -3,11 +3,13 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
+import { decryptSensitivePeiFields } from "@/lib/encryption";
+import { updateStudentPeiData } from "@/lib/students";
 
 /**
  * Rota alternativa para buscar apenas o pei_data de um estudante.
  * Usa quando o estudante está na lista mas a API principal retorna 404.
- * Busca diretamente do Supabase sem verificar workspace_id (já que o estudante está na lista do usuário).
+ * Sempre filtra pela escola da sessão (onda 0: antes buscava por id sem checar a escola).
  */
 export async function GET(
   _req: Request,
@@ -26,6 +28,7 @@ export async function GET(
     .from("students")
     .select("pei_data")
     .eq("id", id)
+    .eq("workspace_id", session.workspace_id)
     .maybeSingle();
 
   if (error) {
@@ -43,10 +46,12 @@ export async function GET(
     );
   }
 
-  // Retornar o pei_data (pode ser null se não tiver dados salvos)
-  return NextResponse.json({
-    pei_data: (data.pei_data as Record<string, unknown>) || null,
-  });
+  // Retornar o pei_data (pode ser null se não tiver dados salvos), já descriptografado
+  let pei = (data.pei_data as Record<string, unknown>) || null;
+  if (pei) {
+    try { pei = decryptSensitivePeiFields(pei); } catch { /* dados antigos sem criptografia */ }
+  }
+  return NextResponse.json({ pei_data: pei });
 }
 
 export async function PATCH(
@@ -70,15 +75,11 @@ export async function PATCH(
     return NextResponse.json({ error: "pei_data é obrigatório." }, { status: 400 });
   }
 
-  const sb = getSupabase();
-  const { error } = await sb
-    .from("students")
-    .update({ pei_data })
-    .eq("id", id)
-    .eq("workspace_id", session.workspace_id);
+  // LGPD: grava com os campos sensíveis criptografados, como o resto do app
+  const ok = await updateStudentPeiData(session.workspace_id, id, pei_data as Record<string, unknown>);
 
-  if (error) {
-    logger.error({ err: error }, "Erro ao atualizar pei_data:");
+  if (!ok) {
+    logger.error("Erro ao atualizar pei_data");
     return NextResponse.json(
       { error: "Erro ao atualizar dados do PEI." },
       { status: 500 }

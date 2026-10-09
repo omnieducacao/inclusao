@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { estudanteDaEscola } from "@/lib/students";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 
@@ -63,6 +64,10 @@ export async function POST(req: Request) {
         return NextResponse.json({
             error: "Campos obrigatórios: studentId, disciplina, bimestre",
         }, { status: 400 });
+    }
+
+    if (!(await estudanteDaEscola(session.workspace_id, studentId))) {
+        return NextResponse.json({ error: "Estudante não encontrado." }, { status: 404 });
     }
 
     const supabase = getSupabase();

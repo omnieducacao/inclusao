@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { estudanteDaEscola } from "@/lib/students";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
@@ -36,6 +37,10 @@ export async function POST(req: Request) {
             { error: "studentId e disciplina são obrigatórios" },
             { status: 400 }
         );
+    }
+
+    if (!(await estudanteDaEscola(session.workspace_id, studentId))) {
+        return NextResponse.json({ error: "Estudante não encontrado." }, { status: 404 });
     }
 
     const sb = getSupabase();

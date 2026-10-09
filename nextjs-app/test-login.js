@@ -1,6 +1,11 @@
 const { chromium } = require('playwright');
 
+// Uso: TEST_EMAIL=... TEST_PASSWORD=... node test-login.js (credenciais nunca no código)
 (async () => {
+    if (!process.env.TEST_EMAIL || !process.env.TEST_PASSWORD) {
+        console.error('Defina TEST_EMAIL e TEST_PASSWORD.');
+        process.exit(1);
+    }
     const browser = await chromium.launch();
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -20,8 +25,8 @@ const { chromium } = require('playwright');
     await page.goto('http://localhost:3000/login', { waitUntil: 'domcontentloaded', timeout: 120000 });
 
     console.log("Filling login...");
-    await page.fill('input[type="email"]', 'admin@omnisfera.com');
-    await page.fill('input[type="password"]', 'senhasecreta');
+    await page.fill('input[type="email"]', process.env.TEST_EMAIL);
+    await page.fill('input[type="password"]', process.env.TEST_PASSWORD);
     const navPromise = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 120000 });
     await page.click('button[type="submit"]');
     await navPromise;

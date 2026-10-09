@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { estudanteDaEscola } from "@/lib/students";
 import { parseBody, assessmentSchema } from "@/lib/validation";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
@@ -13,12 +14,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    const denied = requirePermission(session, "can_monitoramento");
+    const denied = requirePermission(session, "can_avaliacao");
     if (denied) return denied;
 
     const parsed = await parseBody(request, assessmentSchema);
     if (parsed.error) return parsed.error;
     const { student_id, rubric_data, observation } = parsed.data;
+
+    if (!(await estudanteDaEscola(workspaceId, student_id))) {
+      return NextResponse.json({ error: "Estudante não encontrado." }, { status: 404 });
+    }
 
     const sb = getSupabase();
     const { data, error } = await sb

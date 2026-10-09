@@ -5,6 +5,7 @@ import { getSupabase } from "@/lib/supabase";
 import { requirePermission } from "@/lib/permissions";
 import { parseBody, createStudentSchema } from "@/lib/validation";
 import { logger } from "@/lib/logger";
+import { encryptField, encryptSensitivePeiFields } from "@/lib/encryption";
 
 export async function GET() {
   const session = await getSession();
@@ -53,11 +54,12 @@ export async function POST(req: Request) {
         name: name.trim(),
         grade: grade || null,
         class_group: class_group || null,
-        diagnosis: diagnosis || null,
-        pei_data: pei_data || null,
+        // LGPD: diagnóstico e campos sensíveis do PEI gravados criptografados
+        diagnosis: diagnosis ? encryptField(diagnosis) : null,
+        pei_data: pei_data ? encryptSensitivePeiFields(pei_data as Record<string, unknown>) : null,
         privacy_consent_at: new Date().toISOString(),
       })
-      .select("id, workspace_id, name, grade, class_group, diagnosis, pei_data, created_at")
+      .select("id, workspace_id, name, grade, class_group, created_at")
       .single();
 
     if (error) {
@@ -68,7 +70,11 @@ export async function POST(req: Request) {
       );
     }
 
-    return NextResponse.json({ student: data }, { status: 201 });
+    // devolve o que o cliente enviou (em texto), não a versão criptografada
+    return NextResponse.json(
+      { student: { ...data, diagnosis: diagnosis || null, pei_data: pei_data || null } },
+      { status: 201 }
+    );
   } catch (err) {
     logger.error({ err: err }, "POST /api/students:");
     return NextResponse.json(

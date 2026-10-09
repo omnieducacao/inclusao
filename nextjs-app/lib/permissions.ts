@@ -14,11 +14,12 @@ export type PermissionKey =
     | "can_paee"
     | "can_hub"
     | "can_diario"
-    | "can_monitoramento"
-    | "can_pgi"
+    | "can_avaliacao"      // Evolução & Dados (monitoramento) e avaliações
+    | "can_pei_professor"
     | "can_estudantes"
-    | "can_config"
-    | "can_gestao";
+    | "can_gestao";        // Gestão, PGI e Configuração da escola
+// Onda 0: can_monitoramento, can_pgi e can_config não existiam nos membros, então
+// professores com acesso legítimo recebiam 403. Agora seguem as mesmas flags das telas.
 
 /**
  * Get the current session or return a 401 response.

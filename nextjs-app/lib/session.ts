@@ -59,3 +59,15 @@ export async function deleteSession(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(COOKIE_NAME);
 }
+
+/**
+ * Onda 0: id do membro (professor/coordenação) logado, tirado da própria sessão.
+ * Antes, algumas telas procuravam o membro pelo nome, o que confunde homônimos
+ * e, sem achar, tratava o professor como coordenação (via todos os estudantes).
+ */
+export function memberIdDaSessao(session: Partial<SessionPayload> | null | undefined): string | undefined {
+  if (!session) return undefined;
+  if (session.simulating_member_id) return session.simulating_member_id;
+  const id = (session.member as { id?: unknown } | undefined)?.id;
+  return typeof id === "string" && id ? id : undefined;
+}

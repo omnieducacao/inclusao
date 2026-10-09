@@ -2,6 +2,7 @@ import { getSupabase } from "@/lib/supabase";
 import { decryptField } from "@/lib/encryption";
 import type { Session } from "@supabase/supabase-js";
 import { logger } from "@/lib/logger";
+import { memberIdDaSessao } from "@/lib/session";
 
 /**
  * Retorna os estudantes vinculados ao professor logado,
@@ -27,26 +28,11 @@ export async function getAlunosRegente(session: any) {
         .maybeSingle();
     const allowAvaliacaoFase1 = Boolean((wsData as { allow_avaliacao_fase_1?: boolean } | null)?.allow_avaliacao_fase_1);
 
-    // 1. Identificar o membro logado
-    const memberId = (session as Record<string, unknown>).member_id as string | undefined;
-    let memberIdResolved = memberId;
+    // 1. Identificar o membro logado (pelo id da sessão, nunca pelo nome)
+    const memberIdResolved = memberIdDaSessao(session);
 
-    // Se não tiver member_id na sessão, buscar pelo nome do usuário
-    if (!memberIdResolved) {
-        const { data: memberData } = await sb
-            .from("workspace_members")
-            .select("id, nome")
-            .eq("workspace_id", session.workspace_id)
-            .eq("nome", session.usuario_nome)
-            .maybeSingle();
-
-        if (memberData) {
-            memberIdResolved = memberData.id;
-        }
-    }
-
-    // Para master: retornar TODOS os estudantes com pei_disciplinas
-    const isMaster = session.user_role === "master" || !memberIdResolved;
+    // Coordenação (master) e admin veem todos; membro sem id não vê nada
+    const isMaster = session.user_role === "master" || Boolean(session.is_platform_admin);
 
     // 2. Buscar pei_disciplinas do professor (ou todos se master)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

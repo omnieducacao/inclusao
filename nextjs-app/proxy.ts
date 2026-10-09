@@ -7,6 +7,21 @@ import { checkRateLimit } from "@/lib/upstash-rate-limit"; // V5 Rate Limiter
 
 const PUBLIC_PATHS = ["/login", "/landing", "/privacidade", "/seguranca", "/site/", "/api/auth/login", "/api/auth/admin-login", "/api/vitals"];
 
+// Família (responsáveis): só enxerga a área /familia e as APIs feitas para ela.
+// Tudo o mais é negado aqui, antes de chegar às rotas, para que um esquecimento numa rota
+// não exponha dados de outros estudantes da escola.
+const FAMILIA_PAGINAS = ["/familia"];
+const FAMILIA_APIS = [
+  "/api/familia/", "/api/auth/", "/api/notifications", "/api/announcements",
+  "/api/vitals", "/api/health", "/api/public/",
+  "/api/simulate-family", // só para a coordenação sair da simulação (a rota confere o papel original)
+];
+
+function familiaPode(pathname: string): boolean {
+  if (pathname.startsWith("/api/")) return FAMILIA_APIS.some((p) => pathname.startsWith(p));
+  return FAMILIA_PAGINAS.some((p) => pathname === p || pathname.startsWith(p + "/"));
+}
+
 // Site informativo (omnisfera.net): páginas estáticas em public/site, servidas por rewrite.
 // A lista precisa acompanhar as pastas de public/site (gerado pelo projeto omnisfera-net).
 const SITE_PAGES = new Set([
@@ -80,7 +95,13 @@ export async function proxy(request: NextRequest) {
   }
 
   try {
-    await jwtVerify(token, getSecret());
+    const { payload } = await jwtVerify(token, getSecret());
+    if (payload.user_role === "family" && !familiaPode(pathname)) {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json({ error: "Acesso não permitido para o perfil família." }, { status: 403 });
+      }
+      return NextResponse.redirect(new URL("/familia", request.url));
+    }
     return NextResponse.next();
   } catch {
     const loginUrl = new URL("/login", request.url);

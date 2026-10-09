@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  const denied = requirePermission(session, "can_config");
+  const denied = requirePermission(session, "can_gestao");
   if (denied) return denied;
 
   const parsed = await parseBody(request, createClassSchema);

@@ -1,43 +1,52 @@
 "use client";
 
 import { useEffect } from "react";
-import { getSupabaseBrowser } from "@/lib/supabase-client";
 import { useRouter } from "next/navigation";
 
+const INTERVALO_MS = 20_000;
+
 /**
- * Omnisfera V5 Hook: useStudentRealtime
- * Ouve ativamente alterações no escopo do estudante para atualizar o VDOM sem requests pesados ou F5 manual.
- * Impede sobreposições de salvamento entre Especialistas (Diário de Bordo, PEI, PAEE).
+ * useStudentRealtime
+ * Atualiza a tela quando outra pessoa salva algo no mesmo estudante (Diário, PEI, PAEE).
+ *
+ * Onda 0: antes ouvia o realtime do Supabase direto do navegador, com a chave pública,
+ * o que exigia o banco aberto. Agora pergunta ao servidor (sessão + escola conferidas)
+ * a data da última alteração, a cada 20 s e quando a aba volta a ficar visível.
  */
 export function useStudentRealtime(studentId: string | null) {
-    const router = useRouter();
+  const router = useRouter();
 
-    useEffect(() => {
-        if (!studentId) return;
+  useEffect(() => {
+    if (!studentId) return;
 
-        const supabase = getSupabaseBrowser();
+    let ultima: string | null | undefined;
+    let parado = false;
 
-        // Listen to changes on the 'students' table specifically for this single student's updates
-        const channel = supabase
-            .channel(`realtime-student-${studentId}`)
-            .on(
-                "postgres_changes",
-                {
-                    event: "UPDATE",
-                    schema: "public",
-                    table: "students",
-                    filter: `id=eq.${studentId}`,
-                },
-                (payload) => {
-                    console.info("[Omnisfera Realtime] Student Document Updated by another session. Refreshing dataset... ");
-                    // Aciona o Next.js App Router para revalidar a rota no Header e injetar os novos props
-                    router.refresh();
-                }
-            )
-            .subscribe();
+    const conferir = async () => {
+      if (parado || document.visibilityState !== "visible") return;
+      try {
+        const r = await fetch(`/api/students/${encodeURIComponent(studentId)}/versao`, { cache: "no-store" });
+        if (!r.ok) return;
+        const { updated_at } = (await r.json()) as { updated_at: string | null };
+        if (ultima === undefined) {
+          ultima = updated_at;
+        } else if (updated_at !== ultima) {
+          ultima = updated_at;
+          router.refresh();
+        }
+      } catch {
+        /* sem rede: tenta de novo na próxima volta */
+      }
+    };
 
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [studentId, router]);
+    conferir();
+    const timer = window.setInterval(conferir, INTERVALO_MS);
+    document.addEventListener("visibilitychange", conferir);
+
+    return () => {
+      parado = true;
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", conferir);
+    };
+  }, [studentId, router]);
 }
