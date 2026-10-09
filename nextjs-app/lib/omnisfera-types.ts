@@ -94,9 +94,9 @@ export type FaseStatusPEIDisciplina =
   | 'concluido'
 
 export const FASE_STATUS_LABELS: Record<FaseStatusPEIDisciplina, string> = {
-  plano_ensino: 'Plano de Ensino',
+  plano_ensino: 'Plano de ensino',
   diagnostica: 'Diagnóstica',
-  pei_disciplina: 'PEI Disciplina',
+  pei_disciplina: 'PEI da disciplina',
   concluido: 'Concluído',
 }
 

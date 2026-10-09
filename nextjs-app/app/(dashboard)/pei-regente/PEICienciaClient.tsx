@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * PEI - Professor no modo simplificado (onda 2).
+ * PEI do professor: ler e dar ciência (onda 2; onda 13 vale também no modo completo).
  * A coordenação faz um PEI único; cada professor lê o PEI dos seus estudantes, leva as
  * estratégias para a sala e registra "Li e estou ciente" da versão vigente.
  */
@@ -31,10 +31,10 @@ function Lista({ titulo, itens }: { titulo: string; itens: string[] }) {
   if (!itens?.length) return null;
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">{titulo}</p>
-      <ul className="flex flex-wrap gap-1.5">
+      <p className="omni-rotulo" style={{ margin: "0 0 6px" }}>{titulo}</p>
+      <ul className="flex flex-wrap gap-1.5" style={{ listStyle: "none", margin: 0, padding: 0 }}>
         {itens.map((i) => (
-          <li key={i} className="px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-700">{i}</li>
+          <li key={i} className="omni-estado omni-estado--neutro" style={{ whiteSpace: "normal" }}>{i}</li>
         ))}
       </ul>
     </div>
@@ -78,97 +78,89 @@ export function PEICienciaClient() {
   }
 
   if (!itens) {
-    return <div className="rounded-2xl min-h-[160px] animate-pulse bg-(--omni-bg-secondary) border border-(--omni-border-default)" />;
+    return <div className="omni-esqueleto" style={{ minHeight: 160, borderRadius: "var(--o-radius-lg)" }} />;
   }
 
   const pendentes = itens.filter((i) => !i.ciente && i.vigencia.status === "vigente").length;
+  // Onda 13: quem ainda não leu vem primeiro
+  const ordenados = [...itens].sort((a, b) => Number(a.ciente) - Number(b.ciente) || a.nome.localeCompare(b.nome, "pt-BR"));
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl p-5 bg-(--omni-bg-secondary) border border-(--omni-border-default)">
-        <h2 className="text-lg font-semibold text-(--omni-text-primary)">PEIs dos seus estudantes</h2>
-        <p className="text-sm text-(--omni-text-muted) mt-1 max-w-[65ch]">
-          A coordenação prepara o PEI de cada estudante. Leia, leve as estratégias para as suas aulas e registre que está
-          ciente. Quando o PEI muda de versão, a ciência é pedida de novo.
+      <div>
+        <h2 style={{ margin: 0, font: "800 20px/26px var(--font-sans)", color: "var(--tinta)" }}>PEIs dos seus estudantes</h2>
+        <p className="omni-apoio" style={{ margin: "2px 0 0", maxWidth: "65ch" }}>
+          Leia o PEI, leve as estratégias para as suas aulas e registre que está ciente. Quando o PEI muda de versão, a leitura é pedida de novo.
         </p>
         {itens.length > 0 && (
-          <p className="text-sm mt-3 font-medium text-(--omni-text-secondary)">
-            {pendentes === 0 ? "Você está em dia com todos os PEIs." : `${pendentes} PEI(s) aguardando a sua leitura.`}
+          <p style={{ marginTop: 10 }}>
+            <span className={`omni-estado omni-estado--${pendentes === 0 ? "sucesso" : "info"}`}>
+              {pendentes === 0 ? "Você está em dia com todos os PEIs" : `${pendentes} ${pendentes === 1 ? "PEI aguarda" : "PEIs aguardam"} a sua leitura`}
+            </span>
           </p>
         )}
       </div>
 
-      {erro && <p role="alert" className="text-sm text-red-700">{erro}</p>}
+      {erro && <div className="omni-aviso omni-aviso--erro" role="alert"><div><div className="omni-aviso__texto">{erro}</div></div></div>}
 
       {itens.length === 0 ? (
-        <div className="rounded-2xl p-8 text-center bg-(--omni-bg-secondary) border border-(--omni-border-default)">
-          <p className="text-(--omni-text-muted)">Nenhum PEI vigente para os estudantes do seu vínculo ainda.</p>
+        <div className="omni-cartao omni-cartao--plano">
+          <p className="omni-apoio" style={{ margin: 0 }}>Nenhum PEI vigente para os estudantes do seu vínculo ainda. Quando a coordenação tornar um PEI vigente, ele aparece aqui.</p>
         </div>
       ) : (
-        <ul className="space-y-3">
-          {itens.map((i) => {
+        <ul className="space-y-3" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+          {ordenados.map((i) => {
             const isAberto = aberto === i.id;
+            const podeMarcar = podeDarCiencia && i.vigencia.status === "vigente" && !i.ciente;
             return (
-              <li key={i.id} className="rounded-2xl bg-(--omni-bg-secondary) border border-(--omni-border-default) overflow-hidden">
-                <div className="p-4 flex flex-wrap items-center gap-3">
+              <li key={i.id} className="omni-cartao omni-cartao--plano" style={{ padding: 0, overflow: "hidden" }}>
+                <div className="flex flex-wrap items-center gap-3" style={{ padding: "var(--space-4) var(--space-5)" }}>
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-(--omni-text-primary)">{i.nome}</p>
-                    <p className="text-xs text-(--omni-text-muted)">
-                      {[i.serie, i.turma && `Turma ${i.turma}`].filter(Boolean).join(" · ")} · PEI versão {i.vigencia.versao} ·
-                      desde {dataBR(i.vigencia.vigente_desde)}
+                    <p style={{ margin: 0, font: "700 16px/22px var(--font-sans)", color: "var(--tinta)" }}>{i.nome}</p>
+                    <p className="omni-apoio" style={{ margin: 0, fontSize: 14 }}>
+                      {[i.serie, i.turma && `Turma ${i.turma}`].filter(Boolean).join(" · ")} · PEI versão {i.vigencia.versao} · desde {dataBR(i.vigencia.vigente_desde)}
                       {i.vigencia.status === "em_revisao" && " · em revisão pela coordenação"}
                     </p>
                   </div>
                   {i.ciente ? (
-                    <span className="inline-flex items-center gap-1 text-sm text-emerald-700">
-                      <CheckCircle2 className="w-4 h-4" /> Ciente
-                    </span>
-                  ) : podeDarCiencia && i.vigencia.status === "vigente" ? (
-                    <button
-                      type="button"
-                      disabled={enviando === i.id || !isAberto}
-                      title={isAberto ? undefined : "Abra e leia o PEI antes"}
-                      onClick={() => darCiencia(i.id)}
-                      className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-emerald-600 text-white disabled:opacity-40"
-                    >
-                      Li e estou ciente
-                    </button>
+                    <span className="omni-estado omni-estado--sucesso"><CheckCircle2 aria-hidden /> Ciente</span>
+                  ) : podeMarcar ? (
+                    <span className="omni-estado omni-estado--info">Para ler</span>
                   ) : null}
-                  <button
-                    type="button"
-                    onClick={() => setAberto(isAberto ? null : i.id)}
-                    aria-expanded={isAberto}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm border border-(--omni-border-default)"
-                  >
-                    <FileText className="w-4 h-4" /> {isAberto ? "Fechar" : "Ler PEI"}
-                    {isAberto ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  <button type="button" onClick={() => setAberto(isAberto ? null : i.id)} aria-expanded={isAberto}
+                    className={`omni-btn omni-btn--pequeno ${isAberto ? "omni-btn--discreto" : "omni-btn--secundario"}`}>
+                    <FileText aria-hidden /> {isAberto ? "Fechar" : "Ler o PEI"} {isAberto ? <ChevronUp aria-hidden /> : <ChevronDown aria-hidden />}
                   </button>
                 </div>
                 {isAberto && (
-                  <div className="px-4 pb-4 space-y-4 border-t border-(--omni-border-default) pt-4">
+                  <div className="space-y-4" style={{ padding: "var(--space-4) var(--space-5) var(--space-5)", borderTop: "1px solid var(--borda)" }}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {i.hiperfoco && (
                         <div>
-                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Hiperfoco</p>
-                          <p className="text-sm">{i.hiperfoco}</p>
+                          <p className="omni-rotulo" style={{ margin: "0 0 4px" }}>Interesse do estudante</p>
+                          <p style={{ margin: 0 }}>{i.hiperfoco}</p>
                         </div>
                       )}
                       <Lista titulo="Potencialidades" itens={i.potencias} />
-                      <Lista titulo="Acesso" itens={i.estrategias_acesso} />
-                      <Lista titulo="Ensino" itens={i.estrategias_ensino} />
-                      <Lista titulo="Avaliação" itens={i.estrategias_avaliacao} />
+                      <Lista titulo="Estratégias de acesso" itens={i.estrategias_acesso} />
+                      <Lista titulo="Estratégias de ensino" itens={i.estrategias_ensino} />
+                      <Lista titulo="Na avaliação" itens={i.estrategias_avaliacao} />
                     </div>
                     {i.texto_pei && (
-                      <div className="max-h-[50vh] overflow-y-auto rounded-xl p-4 bg-(--omni-bg-tertiary) text-sm whitespace-pre-wrap leading-relaxed min-w-0">
+                      <div className="min-w-0" style={{ maxHeight: "50vh", overflowY: "auto", padding: "var(--space-4)", borderRadius: "var(--o-radius-md)", background: "var(--superficie)", border: "1px solid var(--borda)", whiteSpace: "pre-wrap", font: "400 15px/24px var(--font-sans)", color: "var(--tinta)" }}>
                         {i.texto_pei}
                       </div>
                     )}
-                    <Link
-                      href={`/hub?student=${i.id}`}
-                      className="inline-flex items-center gap-1.5 text-sm font-medium text-sky-700"
-                    >
-                      <Wand2 className="w-4 h-4" /> Criar ou adaptar material para este estudante
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-3">
+                      {podeMarcar && (
+                        <button type="button" disabled={enviando === i.id} onClick={() => darCiencia(i.id)} className="omni-btn omni-btn--primario">
+                          {enviando === i.id ? "Registrando…" : "Li e estou ciente"}
+                        </button>
+                      )}
+                      <Link href={`/hub?student=${i.id}`} className="omni-btn omni-btn--discreto">
+                        <Wand2 aria-hidden /> Criar ou adaptar material para este estudante
+                      </Link>
+                    </div>
                   </div>
                 )}
               </li>

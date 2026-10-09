@@ -5,6 +5,7 @@ import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { SafeModuleWrapper } from "@/components/SafeModuleWrapper";
 import { PEIRegenteClient } from "./PEIRegenteClient";
 import { PEICienciaClient } from "./PEICienciaClient";
+import { AbasProfessor } from "./AbasProfessor";
 import { modoDaEscola } from "@/lib/escola";
 import { getAdminConfig } from "@/lib/getAdminConfig";
 
@@ -30,14 +31,14 @@ export default async function PEIRegentePage() {
                     title="PEI do professor"
                     desc={simplificado
                         ? "Os PEIs dos seus estudantes: leia, leve para a sala e registre que está ciente."
-                        : "Plano de Ensino, Avaliação Diagnóstica e PEI por Componente Curricular."}
+                        : "Leia os PEIs dos seus estudantes e dê ciência; depois, faça a parte da sua disciplina."}
                 />
 
                 <Suspense fallback={
                     <div className="rounded-2xl animate-pulse min-h-[200px] bg-(--omni-bg-secondary) border border-(--omni-border-default)" />
                 }>
                     <SafeModuleWrapper fallbackTitle="PEI Professor">
-                        {simplificado ? <PEICienciaClient /> : <PEIRegenteClient />}
+                        {simplificado ? <PEICienciaClient /> : <AbasProfessor ciencia={<PEICienciaClient />} disciplina={<PEIRegenteClient />} />}
                     </SafeModuleWrapper>
                 </Suspense>
             </div>

@@ -12,6 +12,7 @@ import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { PEIPlanoEnsino } from "@/components/PEIPlanoEnsino";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { OnboardingPanel, OnboardingResetButton } from "@/components/OnboardingPanel";
+import { iniciais } from "@/lib/inicio";
 import { ESCALA_OMNISFERA, FASE_STATUS_LABELS, type NivelOmnisfera, type FaseStatusPEIDisciplina } from "@/lib/omnisfera-types";
 import { FinalizarPeiDisciplinaButton, PEIAvaliacaoDiagnosticaLink } from "./components/PEIDisciplinaActions";
 
@@ -496,7 +497,7 @@ export function PEIRegenteClient() {
                                                 </span>
                                             )}
                                             <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold ${adaptacaoMeta?.plano_encontrado ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>
-                                                📚 Plano de ensino: {adaptacaoMeta?.plano_encontrado ? "✅ Encontrado" : "⚠️ Não encontrado"}
+                                                Plano de ensino: {adaptacaoMeta?.plano_encontrado ? "encontrado" : "não encontrado"}
                                             </span>
                                         </div>
 
@@ -532,7 +533,7 @@ export function PEIRegenteClient() {
                                             <div className="flex flex-wrap gap-1.5">
                                                 {(adaptacaoSugestao.habilidades_prioritarias as string[]).map((h: string, i: number) => (
                                                     <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-md omni-label-xs font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                                                        🎯 {h}
+                                                        {h}
                                                     </span>
                                                 ))}
                                             </div>
@@ -561,7 +562,7 @@ export function PEIRegenteClient() {
                                                 )}
                                                 {adaptacaoSugestao.estrategias_ensino?.length > 0 && (
                                                     <div className="p-3 rounded-lg bg-indigo-500/5 border border-indigo-500/15">
-                                                        <p className="text-xs font-bold mb-1 text-indigo-500">📚 Ensino</p>
+                                                        <p className="text-xs font-bold mb-1 text-indigo-500">Ensino</p>
                                                         {(adaptacaoSugestao.estrategias_ensino as string[]).map((e: string, i: number) => (
                                                             <p key={i} className="text-xs text-slate-500 dark:text-slate-400">• {e}</p>
                                                         ))}
@@ -781,118 +782,60 @@ export function PEIRegenteClient() {
 
     // ─── Lista de Alunos ──────────────────────────────────────────────────────
 
+    // Onda 13: lista no design system; quem tem mais disciplinas por fazer vem primeiro
+    const alunosOrdenados = [...data.alunos].sort((x, y) => {
+        const falta = (al: typeof x) => al.disciplinas.filter((d) => d.fase_status !== "concluido").length;
+        return falta(y) - falta(x) || x.name.localeCompare(y.name, "pt-BR");
+    });
     return (
-        <div className="rounded-2xl overflow-hidden bg-(--bg-secondary) border border-(--border-default)">
-            {/* Onboarding Panel */}
-            {showOnboarding && (
-                <div className="px-6 pt-6">
-                    <OnboardingPanel
-                        moduleKey="pei_regente"
-                        moduleTitle="Bem-vindo ao PEI do Professor"
-                        moduleSubtitle="Acompanhe e adapte o PEI para suas disciplinas"
-                        accentColor="#10b981"
-                        accentColorLight="#34d399"
-                        steps={[
-                            { icon: <Users size={22} />, title: "Seus Estudantes", description: "Veja os alunos em Fase 2 do PEI" },
-                            { icon: <FileText size={22} />, title: "Plano de Ensino", description: "Vincule o plano da sua turma" },
-                            { icon: <Brain size={22} />, title: "Diagnóstica", description: "Verifique o nível do estudante" },
-                            { icon: <ClipboardCheck size={22} />, title: "PEI Disciplina", description: "Gere adaptações com a Ponte Pedagógica" },
-                        ]}
-                        onStart={() => setShowOnboarding(false)}
-                    />
+        <section className="space-y-4" aria-labelledby="disc-titulo">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                    <h2 id="disc-titulo" style={{ margin: 0, font: "800 20px/26px var(--font-sans)", color: "var(--tinta)" }}>
+                        {data.professor.is_master ? "Todas as disciplinas, por estudante" : "Sua parte em cada PEI"}
+                    </h2>
+                    <p className="omni-apoio" style={{ margin: "2px 0 0", maxWidth: "65ch" }}>
+                        Para cada disciplina: plano de ensino, avaliação diagnóstica e as adaptações da disciplina no PEI. {data.alunos.length} estudante{data.alunos.length !== 1 ? "s" : ""} com o PEI já enviado aos professores.
+                    </p>
                 </div>
-            )}
-            {/* Header com info do professor */}
-            <div className="px-6 py-4 border-b border-(--border-default) bg-(--bg-tertiary)">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-linear-to-br from-emerald-600 to-emerald-500">
-                            <BookOpen size={20} className="text-white" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-(--omni-text-primary)">
-                                {data.professor.is_master ? "Visão Geral — Todos os Estudantes" : `Meus Estudantes`}
-                            </h3>
-                            <p className="text-xs text-(--omni-text-muted)">
-                                {data.professor.name} · {data.alunos.length} estudante{data.alunos.length !== 1 ? "s" : ""} em Fase 2
-                            </p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={fetchData}
-                        className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors bg-(--bg-tertiary) text-(--text-muted) border border-(--border-default) hover:bg-(--bg-hover)"
-                    >
-                        Atualizar
-                    </button>
-                </div>
+                <button type="button" onClick={fetchData} className="omni-btn omni-btn--discreto omni-btn--pequeno">Atualizar</button>
             </div>
-
-            {/* Lista de alunos como cards com orquestração do framer-motion */}
-            <motion.div
-                className="p-6 space-y-3"
-                variants={containerVariants}
-                initial="hidden"
-                animate="show"
-            >
-                {data.alunos.map((aluno) => {
+            <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 10 }}>
+                {alunosOrdenados.map((aluno) => {
                     const totalDisc = aluno.disciplinas.length;
                     const concluidas = aluno.disciplinas.filter(d => d.fase_status === "concluido").length;
-                    const progress = totalDisc > 0 ? Math.round((concluidas / totalDisc) * 100) : 0;
-
                     return (
-                        <motion.div
-                            key={aluno.id}
-                            variants={itemVariants}
-                            whileHover={{ scale: 1.01, y: -2 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => setSelectedAluno(aluno)}
-                            className="rounded-xl p-4 cursor-pointer transition-all bg-(--bg-primary) border border-(--border-default) hover:border-emerald-500/40 hover:shadow-[0_2px_12px_var(--color-success-bg)]"
-                        >
-                            <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold bg-linear-to-br from-indigo-500 to-violet-500">
-                                        {aluno.name.split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase()}
-                                    </div>
-                                    <div>
-                                        <span className="font-bold text-sm text-(--omni-text-primary)">
-                                            {aluno.name}
+                        <li key={aluno.id}>
+                            <button type="button" onClick={() => setSelectedAluno(aluno)} className="omni-cartao omni-cartao--plano"
+                                style={{ width: "100%", textAlign: "left", cursor: "pointer", display: "flex", flexDirection: "column", gap: 10 }}>
+                                <span className="flex items-center justify-between gap-3" style={{ width: "100%" }}>
+                                    <span className="flex items-center gap-3">
+                                        <span className="omni-avatar" aria-hidden style={{ background: "var(--encontro-azul-suave)", color: "var(--encontro-azul-forte)" }}>
+                                            {iniciais(aluno.name)}
                                         </span>
-                                        <p className="text-xs text-(--omni-text-muted)">
-                                            {aluno.grade} {aluno.class_group && `— ${aluno.class_group}`}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <div className="text-right">
-                                        <span className={`text-xs font-bold ${progress === 100 ? 'text-emerald-500' : 'text-(--text-muted)'}`}>
-                                            {concluidas}/{totalDisc}
+                                        <span>
+                                            <span style={{ display: "block", font: "700 16px/22px var(--font-sans)", color: "var(--tinta)" }}>{aluno.name}</span>
+                                            <span className="omni-apoio" style={{ fontSize: 14 }}>{[aluno.grade, aluno.class_group].filter(Boolean).join(" · ")}</span>
                                         </span>
-                                        <p className="omni-label-xs text-(--omni-text-muted)">disciplinas</p>
-                                    </div>
-                                    <ChevronRight size={16} className="text-(--omni-text-muted)" />
-                                </div>
-                            </div>
-
-                            {/* Mini pipeline */}
-                            <div className="flex gap-1.5 mt-2">
-                                {aluno.disciplinas.map((d) => {
-                                    const stepColor = STEP_COLORS[d.fase_status];
-                                    return (
-                                        <span
-                                            key={d.id}
-                                            className={`omni-label-xs font-semibold px-2 py-0.5 rounded-md border ${stepColor.border} ${stepColor.bg} ${stepColor.text}`}
-                                            title={`${d.disciplina}: ${FASE_STATUS_LABELS[d.fase_status]}`}
-                                        >
-                                            {d.disciplina.length > 12 ? d.disciplina.slice(0, 10) + "…" : d.disciplina}
+                                    </span>
+                                    <span className={`omni-estado omni-estado--${concluidas === totalDisc && totalDisc > 0 ? "sucesso" : "neutro"}`}>
+                                        {concluidas} de {totalDisc} disciplina{totalDisc !== 1 ? "s" : ""}
+                                    </span>
+                                </span>
+                                <span className="flex flex-wrap gap-1.5">
+                                    {aluno.disciplinas.map((d) => (
+                                        <span key={d.id} className={`omni-estado omni-estado--${d.fase_status === "concluido" ? "sucesso" : d.fase_status === "plano_ensino" ? "neutro" : "info"}`}
+                                            title={`${d.disciplina}: ${FASE_STATUS_LABELS[d.fase_status]}`}>
+                                            {d.disciplina} · {FASE_STATUS_LABELS[d.fase_status]}
                                         </span>
-                                    );
-                                })}
-                            </div>
-                        </motion.div>
+                                    ))}
+                                </span>
+                            </button>
+                        </li>
                     );
                 })}
-            </motion.div>
-        </div>
+            </ul>
+        </section>
     );
 }
 
