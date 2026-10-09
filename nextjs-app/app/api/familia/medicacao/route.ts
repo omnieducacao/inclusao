@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
+import { encryptField, decryptField } from "@/lib/encryption";
+
+// Dados de saúde: gravados criptografados (10/10/2026); registros antigos em texto plano continuam legíveis
+type RegMed = { medicamento?: string | null; dosagem?: string | null; observacao?: string | null };
+const abrir = <T extends RegMed>(r: T): T => ({ ...r, medicamento: r.medicamento ? decryptField(r.medicamento) : r.medicamento, dosagem: r.dosagem ? decryptField(r.dosagem) : r.dosagem, observacao: r.observacao ? decryptField(r.observacao) : r.observacao });
 
 /**
  * GET /api/familia/medicacao?student_id=xxx
@@ -53,7 +58,7 @@ export async function GET(req: Request) {
             return NextResponse.json({ registros: [] });
         }
 
-        return NextResponse.json({ registros: registros || [] });
+        return NextResponse.json({ registros: (registros || []).map(abrir) });
     } catch { /* expected fallback */
         return NextResponse.json({ registros: [] });
     }
@@ -107,10 +112,10 @@ export async function POST(req: Request) {
             .insert({
                 student_id,
                 family_responsible_id: familyId,
-                medicamento: medicamento.trim(),
-                dosagem: dosagem?.trim() || null,
+                medicamento: encryptField(medicamento.trim()),
+                dosagem: dosagem?.trim() ? encryptField(dosagem.trim()) : null,
                 tipo_alteracao,
-                observacao: observacao?.trim() || null,
+                observacao: observacao?.trim() ? encryptField(observacao.trim()) : null,
             })
             .select("id, medicamento, dosagem, tipo_alteracao, observacao, created_at")
             .single();
@@ -120,7 +125,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Erro ao salvar registro." }, { status: 500 });
         }
 
-        return NextResponse.json({ registro }, { status: 201 });
+        return NextResponse.json({ registro: registro ? abrir(registro) : registro }, { status: 201 });
     } catch (err) {
         logger.error({ err: err }, "[familia/medicacao] POST error:");
         return NextResponse.json(

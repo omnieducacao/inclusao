@@ -12,6 +12,7 @@ import { listStudentsDaSessao, type Student } from "@/lib/students";
 import { pendenciasDoInicio, pedemAtencao, saudacao, dataPorExtenso, hojeBrasilia, primeiroNome, type Pendencia } from "@/lib/inicio";
 import type { Vigencia } from "@/lib/estudo-caso";
 import { PrimeirosPassos } from "@/components/inicio/PrimeirosPassos";
+import { AvisoFamilia } from "@/components/inicio/AvisoFamilia";
 import { primeirosPassos, mostrarPrimeirosPassos, type PassoEscola } from "@/lib/primeiros-passos";
 import { Inicio, type CartaoDeModulo, type GrupoDeModulos, type Atalho } from "@/components/inicio/Inicio";
 
@@ -189,7 +190,7 @@ export default async function RootPage() {
         grupos={grupos}
         atalhos={atalhos}
         novidades={<OmnisferaFeed />}
-        primeirosPassos={mostrarPrimeirosPassos(passosEscola) ? <PrimeirosPassos passos={passosEscola} /> : undefined}
+        primeirosPassos={<>{mostrarPrimeirosPassos(passosEscola) && <PrimeirosPassos passos={passosEscola} />}<AvisoFamilia /></>}
         rodape={
           <footer className="omni-cartao" style={{ padding: "var(--space-5) var(--space-6)" }}>
             <OmniEducacaoSignature variant="full" />

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
+import { snapshotDaVersao } from "@/lib/familia-caixa";
 
 /**
  * POST /api/familia/ciencia-pei
@@ -44,11 +45,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Estudante não vinculado a este responsável" }, { status: 403 });
   }
 
+  // A ciência vale para a versão vigente do PEI: quando o PEI muda de versão, a família lê de novo (10/10/2026)
+  const { data: est } = await sb.from("students").select("pei_data").eq("id", studentId).eq("workspace_id", session.workspace_id).maybeSingle();
+  const snapshot = snapshotDaVersao((est?.pei_data || {}) as Record<string, unknown>);
+
   const { data: existing } = await sb
     .from("family_pei_acknowledgments")
     .select("id")
     .eq("family_responsible_id", familyId)
     .eq("student_id", studentId)
+    .eq("pei_snapshot_id", snapshot)
+    .limit(1)
     .maybeSingle();
 
   if (existing) {
@@ -66,6 +73,7 @@ export async function POST(req: Request) {
   const { error } = await sb.from("family_pei_acknowledgments").insert({
     family_responsible_id: familyId,
     student_id: studentId,
+    pei_snapshot_id: snapshot,
     ip_address: ip,
     user_agent: userAgent,
   });

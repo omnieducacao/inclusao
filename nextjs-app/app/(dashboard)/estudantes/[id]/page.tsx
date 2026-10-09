@@ -17,6 +17,7 @@ import { vinculoDaSessao, vinculoInclui, turmasDaEscola } from "@/lib/turmas";
 import { situacaoDoPei, iniciais, hojeBrasilia, dataCurta } from "@/lib/inicio";
 import { podeVer } from "@/lib/navegacao";
 import { FichaDados } from "./FichaDados";
+import { FichaFamilia } from "@/components/familia/FichaFamilia";
 import s from "./ficha.module.css";
 
 type Props = { params: Promise<{ id: string }> };
@@ -111,6 +112,8 @@ export default async function FichaEstudantePage({ params }: Props) {
 
   const member = (session.member || {}) as Record<string, boolean>;
   const podeEditar = Boolean(session.is_platform_admin || session.user_role === "master" || member.can_estudantes);
+  // O que a família envia (laudo, medicação) é dado de saúde: só direção, coordenação do PEI e quem cuida do cadastro
+  const podeVerFamilia = Boolean(podeEditar || member.can_pei);
 
   const sb = getSupabase();
   const { data: ws } = await sb.from("workspaces").select("family_module_enabled").eq("id", session.workspace_id).maybeSingle();
@@ -151,6 +154,8 @@ export default async function FichaEstudantePage({ params }: Props) {
           ))}
         </ul>
       </section>
+
+      {familia && podeVerFamilia && <FichaFamilia studentId={student.id} nome={student.name} />}
 
       <FichaDados
         estudante={{ id: student.id, name: student.name, grade: student.grade, class_group: student.class_group }}

@@ -2,80 +2,49 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Users, FileText, TrendingUp, Loader2 } from "lucide-react";
 
-type Estudante = {
-  id: string;
-  name: string;
-  grade: string | null;
-  class_group: string | null;
-};
+type Estudante = { id: string; name: string; grade: string | null; class_group: string | null };
 
-export default function FamiliaDashboardPage() {
-  const [estudantes, setEstudantes] = useState<Estudante[]>([]);
-  const [loading, setLoading] = useState(true);
+/** Início da família (10/10/2026): os estudantes ligados à conta, no design system. */
+export default function FamiliaInicioPage() {
+  const [estudantes, setEstudantes] = useState<Estudante[] | null>(null);
 
   useEffect(() => {
     fetch("/api/familia/meus-estudantes")
       .then((r) => r.json())
-      .then((data) => {
-        setEstudantes(data.estudantes || []);
-      })
-      .catch(() => setEstudantes([]))
-      .finally(() => setLoading(false));
+      .then((d) => setEstudantes(d.estudantes || []))
+      .catch(() => setEstudantes([]));
   }, []);
 
   return (
-    <div className="space-y-8">
+    <div style={{ display: "grid", gap: 24 }}>
       <div>
-        <h1 className="text-2xl font-bold text-(--omni-text-primary)">Meus Estudantes</h1>
-        <p className="text-(--omni-text-secondary) mt-1">
-          Acompanhe o PEI e a evolução dos estudantes vinculados a você.
-        </p>
+        <h1 style={{ margin: 0, font: "800 28px/34px var(--font-sans)", color: "var(--tinta)" }}>Meus estudantes</h1>
+        <p className="omni-apoio" style={{ margin: "4px 0 0" }}>O plano de cada um, como estão indo e a conversa com a escola.</p>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-16 gap-2 text-(--omni-text-muted)">
-          <Loader2 className="w-6 h-6 animate-spin" />
-          Carregando...
-        </div>
+      {estudantes === null ? (
+        <p className="omni-apoio" role="status">Carregando…</p>
       ) : estudantes.length === 0 ? (
-        <div className="rounded-2xl bg-(--omni-bg-secondary) p-8 text-center border border-(--omni-border-default) shadow-sm">
-          <Users className="w-12 h-12 text-(--omni-border-default) mx-auto mb-4" />
-          <p className="text-(--omni-text-secondary) font-medium">Nenhum estudante vinculado</p>
-          <p className="text-sm text-(--omni-text-muted) mt-4">
-            Entre em contato com a escola para cadastrar o vínculo e acessar o acompanhamento.
-          </p>
+        <div className="omni-vazio" style={{ textAlign: "center" }}>
+          <p className="omni-vazio__titulo">Nenhum estudante ligado à sua conta</p>
+          <p className="omni-vazio__texto">Fale com a escola para ligar o estudante ao seu acesso.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" style={{ listStyle: "none", margin: 0, padding: 0 }}>
           {estudantes.map((e) => (
-            <Link
-              key={e.id}
-              href={`/familia/estudante/${e.id}`}
-              className="block p-6 rounded-2xl bg-(--omni-bg-secondary) border border-(--omni-border-default) hover:border-emerald-400 hover:shadow-md transition-all"
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                  <span className="text-lg font-bold text-emerald-700">
-                    {e.name?.[0]?.toUpperCase() || "?"}
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-(--omni-text-primary) truncate">{e.name}</h3>
-                  <p className="text-sm text-(--omni-text-muted) mt-0.5">
-                    {e.grade || "—"} {e.class_group ? `• ${e.class_group}` : ""}
-                  </p>
-                  <div className="flex items-center gap-2 mt-3 text-(--omni-text-secondary)">
-                    <FileText className="w-4 h-4" />
-                    <span className="text-s-xs">Ver PEI e evolução</span>
-                    <TrendingUp className="w-4 h-4 ml-auto" />
-                  </div>
-                </div>
-              </div>
-            </Link>
+            <li key={e.id}>
+              <Link href={`/familia/estudante/${e.id}`} className="omni-cartao omni-cartao--plano" style={{ display: "flex", flexDirection: "row", gap: 14, alignItems: "center", textDecoration: "none", height: "100%" }}>
+                <span className="omni-avatar" aria-hidden style={{ width: 48, height: 48, fontSize: 18 }}>{e.name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase()}</span>
+                <span style={{ minWidth: 0 }}>
+                  <span style={{ display: "block", font: "800 17px/22px var(--font-sans)", color: "var(--tinta)" }}>{e.name}</span>
+                  <span className="omni-apoio" style={{ display: "block" }}>{[e.grade, e.class_group && `Turma ${e.class_group}`].filter(Boolean).join(" · ") || "—"}</span>
+                  <span style={{ display: "block", marginTop: 4, font: "700 14px/20px var(--font-sans)", color: "var(--acao)" }}>Abrir →</span>
+                </span>
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

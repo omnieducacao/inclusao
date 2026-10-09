@@ -10,33 +10,22 @@ let mockLinkData: { id: string } | null = { id: "link-1" };
 let mockAckExists: { id: string } | null = null;
 let mockInsertError: Error | null = null;
 
+// Consulta encadeável: qualquer sequência de eq/limit/order termina em maybeSingle
+function consulta(resultado: () => unknown) {
+  const q: Record<string, unknown> = {};
+  for (const m of ["select", "eq", "limit", "order"]) q[m] = vi.fn(() => q);
+  q.maybeSingle = vi.fn(() => Promise.resolve({ data: resultado(), error: null }));
+  return q;
+}
+
 vi.mock("@/lib/supabase", () => ({
   getSupabase: vi.fn(() => ({
     from: vi.fn((table: string) => {
-      if (table === "family_student_links") {
-        return {
-          select: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              eq: vi.fn(() => ({
-                maybeSingle: vi.fn(() =>
-                  Promise.resolve({ data: mockLinkData, error: null })
-                ),
-              })),
-            })),
-          })),
-        };
-      }
+      if (table === "family_student_links") return consulta(() => mockLinkData);
+      if (table === "students") return consulta(() => ({ pei_data: { vigencia: { versao: 1 } } }));
       if (table === "family_pei_acknowledgments") {
         return {
-          select: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              eq: vi.fn(() => ({
-                maybeSingle: vi.fn(() =>
-                  Promise.resolve({ data: mockAckExists, error: null })
-                ),
-              })),
-            })),
-          })),
+          ...consulta(() => mockAckExists),
           insert: vi.fn(() =>
             mockInsertError
               ? Promise.resolve({ error: mockInsertError })

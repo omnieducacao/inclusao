@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
+import { snapshotDaVersao } from "@/lib/familia-caixa";
 
 /**
  * GET /api/familia/estudante/[id]
@@ -86,13 +87,16 @@ export async function GET(
   // Ciência do PEI (tabela pode não existir)
   let ack: { id: string; acknowledged_at: string | null } | null = null;
   try {
+    // Vale a ciência da versão vigente; antes, uma ciência antiga valia para sempre
     const { data: ackData } = await sb
       .from("family_pei_acknowledgments")
-      .select("id, acknowledged_at")
+      .select("id, acknowledged_at, pei_snapshot_id")
       .eq("family_responsible_id", familyId)
       .eq("student_id", studentId)
-      .maybeSingle();
-    ack = ackData;
+      .order("acknowledged_at", { ascending: false });
+    const snap = snapshotDaVersao(peiData);
+    const rows = (ackData || []) as Array<{ id: string; acknowledged_at: string | null; pei_snapshot_id: string | null }>;
+    ack = rows.find((r) => r.pei_snapshot_id === snap) || (snap === "sem-versao" ? rows[0] || null : null);
   } catch (err) {
     logger.warn({ err: err }, "[familia/estudante] family_pei_acknowledgments query failed (table may not exist):");
   }
@@ -123,6 +127,7 @@ export async function GET(
       // Onda 5: a família vê só o resumo escrito para ela e liberado pela coordenação (antes via o texto técnico da IA)
       resumo: ((peiData.resumo_familia as { texto?: string } | undefined)?.texto) || null,
       resumo_liberado_em: ((peiData.resumo_familia as { liberado_em?: string } | undefined)?.liberado_em) || null,
+      versao: (peiData.vigencia as { versao?: number; status?: string } | undefined)?.versao || null,
     },
     paee_resumo: paeeAtivo
       ? {

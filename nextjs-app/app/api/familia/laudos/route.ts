@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
+import { encryptField, decryptField } from "@/lib/encryption";
 
 /**
  * GET /api/familia/laudos?student_id=xxx
@@ -55,7 +56,8 @@ export async function GET(req: Request) {
             return NextResponse.json({ laudos: [] });
         }
 
-        return NextResponse.json({ laudos: laudos || [] });
+        // Transcrição do laudo é dado de saúde: gravada criptografada desde 10/10/2026
+        return NextResponse.json({ laudos: (laudos || []).map((l) => ({ ...l, transcricao: l.transcricao ? decryptField(l.transcricao) : l.transcricao })) });
     } catch { /* expected fallback */
         return NextResponse.json({ laudos: [] });
     }
@@ -130,7 +132,7 @@ export async function POST(req: Request) {
             .insert({
                 student_id: studentId,
                 family_responsible_id: familyId,
-                transcricao,
+                transcricao: encryptField(transcricao),
                 nome_arquivo: file.name || null,
             })
             .select("id, transcricao, nome_arquivo, created_at")
@@ -141,7 +143,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Erro ao salvar laudo." }, { status: 500 });
         }
 
-        return NextResponse.json({ laudo }, { status: 201 });
+        return NextResponse.json({ laudo: laudo ? { ...laudo, transcricao } : laudo }, { status: 201 });
     } catch (err) {
         logger.error({ err: err }, "[familia/laudos] POST error:");
         return NextResponse.json(
