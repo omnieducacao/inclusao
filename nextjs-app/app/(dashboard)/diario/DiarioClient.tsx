@@ -7,19 +7,13 @@ import { CabecalhoEstudante, EscolherEstudante } from "@/components/estudante/Ca
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { useStudentRealtime } from "@/hooks/useStudentRealtime";
-import { getColorClasses } from "@/lib/colors";
-import { Card, CardHeader, CardTitle, CardContent, Input, Textarea, Select, Button, Checkbox, Slider } from "@omni/ds";
-import { OmniLoader } from "@/components/OmniLoader";
-import { Filter, Plus, List, Settings, BarChart3, Download, FileText, Sparkles } from "lucide-react";
+import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const RelatoriosTab = dynamic(() => import("./components/RelatoriosTab"), {
   ssr: false,
   loading: () => (
-    <div className="flex flex-col items-center justify-center p-10 space-y-4">
-      <div className="w-8 h-8 rounded-full border-4 border-slate-200 border-t-violet-600 animate-spin" />
-      <span className="text-sm font-medium text-slate-500">Montando os gráficos da IA...</span>
-    </div>
+    <p className="omni-apoio" role="status" style={{ padding: "40px 0", textAlign: "center" }}>Montando os gráficos…</p>
   )
 });
 
@@ -83,14 +77,28 @@ type Props = {
   student: StudentFull | null;
 };
 
+/** Data só com o dia ("2026-10-09") é lida ao meio-dia local, para não aparecer como o dia anterior. */
+function lerData(s: string | undefined): Date | null {
+  if (!s) return null;
+  const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(s) ? `${s}T12:00:00` : s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 function fmtData(s: string | undefined): string {
   if (!s) return "—";
-  try {
-    return new Date(s).toLocaleDateString("pt-BR");
-  } catch { /* expected fallback */
-    return String(s);
-  }
+  const d = lerData(s);
+  return d ? d.toLocaleDateString("pt-BR") : String(s);
 }
+
+const ENGAJAMENTO_ROTULO = ["Muito baixo", "Baixo", "Médio", "Bom", "Muito bom"];
+
+/** Cor do ponto na linha do tempo, por modalidade (variáveis do design system). */
+const COR_MODALIDADE: Record<string, string> = {
+  individual: "var(--acao)",
+  grupo: "var(--sucesso)",
+  observacao_sala: "var(--atencao)",
+  consultoria: "var(--info)",
+};
 
 function DiarioClientInner({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
@@ -215,7 +223,7 @@ function DiarioClientInner({ students, studentId, student }: Props) {
   );
 }
 
-// Aba: Filtros & Estatísticas
+// Aba: Análise (filtros e números)
 function FiltrosTab({ students, registros }: { students: Student[]; registros: RegistroDiario[] }) {
   const [filtroAluno, setFiltroAluno] = useState<string>("Todos");
   const [filtroPeriodo, setFiltroPeriodo] = useState<string>("Todos");
@@ -224,7 +232,7 @@ function FiltrosTab({ students, registros }: { students: Student[]; registros: R
   const registrosFiltrados = registros.filter((r) => {
     if (filtroAluno !== "Todos" && r.student_id !== filtroAluno) return false;
     if (filtroPeriodo !== "Todos") {
-      const data = r.data_sessao ? new Date(r.data_sessao) : null;
+      const data = lerData(r.data_sessao);
       if (!data) return false;
       const hoje = new Date();
       if (filtroPeriodo === "Últimos 7 dias") {
@@ -233,97 +241,82 @@ function FiltrosTab({ students, registros }: { students: Student[]; registros: R
       } else if (filtroPeriodo === "Últimos 30 dias") {
         const trintaDiasAtras = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
         if (data < trintaDiasAtras) return false;
+      } else if (filtroPeriodo === "Este mês") {
+        // Onda 19: a opção existia mas não filtrava nada
+        if (data.getFullYear() !== hoje.getFullYear() || data.getMonth() !== hoje.getMonth()) return false;
       }
     }
     if (filtroModalidade.length > 0 && !filtroModalidade.includes(r.modalidade_atendimento || "")) return false;
     return true;
   });
 
-  return (
-    <div className="space-y-6">
-      <Card variant="default">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xl flex items-center gap-2">🔍 Filtros</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Select
-              label="Estudante"
-              value={filtroAluno}
-              onChange={(e) => setFiltroAluno(e.target.value)}
-              options={[
-                { value: "Todos", label: "Todos" },
-                ...students.map(s => ({ value: s.id, label: s.name }))
-              ]}
-            />
-            <Select
-              label="Período"
-              value={filtroPeriodo}
-              onChange={(e) => setFiltroPeriodo(e.target.value)}
-              options={[
-                { value: "Todos", label: "Todos" },
-                { value: "Últimos 7 dias", label: "Últimos 7 dias" },
-                { value: "Últimos 30 dias", label: "Últimos 30 dias" },
-                { value: "Este mês", label: "Este mês" },
-              ]}
-            />
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Modalidade</label>
-              <div className="flex flex-wrap gap-3 mt-1">
-                {MODALIDADES.map((m) => (
-                  <div key={m.value} className="bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors">
-                    <Checkbox
-                      label={m.label}
-                      checked={filtroModalidade.includes(m.value)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setFiltroModalidade([...filtroModalidade, m.value]);
-                        } else {
-                          setFiltroModalidade(filtroModalidade.filter((v) => v !== m.value));
-                        }
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+  const horas = Math.round(registrosFiltrados.reduce((acc, r) => acc + (r.duracao_minutos || 0), 0) / 60);
+  const engajamentoMedio = registrosFiltrados.length > 0
+    ? (registrosFiltrados.reduce((acc, r) => acc + (r.engajamento_aluno || 0), 0) / registrosFiltrados.length).toFixed(1).replace(".", ",")
+    : "0";
+  const numeros = [
+    { valor: String(registrosFiltrados.length), rotulo: registrosFiltrados.length === 1 ? "Atendimento" : "Atendimentos" },
+    { valor: String(horas), rotulo: "Horas de atendimento" },
+    { valor: engajamentoMedio, rotulo: "Engajamento médio (1 a 5)" },
+    { valor: String(new Set(registrosFiltrados.map((r) => r.student_id).filter(Boolean)).size), rotulo: "Estudantes" },
+  ];
 
-      <Card variant="default">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xl flex items-center gap-2">📊 Estatísticas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <div className="text-2xl font-bold text-rose-600">{registrosFiltrados.length}</div>
-              <div className="text-sm text-slate-600 mt-1">Total de Registros</div>
-            </div>
-            <div className="text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <div className="text-2xl font-bold text-rose-600">
-                {Math.round(registrosFiltrados.reduce((acc, r) => acc + (r.duracao_minutos || 0), 0) / 60)}
-              </div>
-              <div className="text-sm text-slate-600 mt-1">Horas de Atend.</div>
-            </div>
-            <div className="text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <div className="text-2xl font-bold text-rose-600">
-                {registrosFiltrados.length > 0
-                  ? (registrosFiltrados.reduce((acc, r) => acc + (r.engajamento_aluno || 0), 0) / registrosFiltrados.length).toFixed(1)
-                  : "0"}
-              </div>
-              <div className="text-sm text-slate-600 mt-1">Engajamento Médio</div>
-            </div>
-            <div className="text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <div className="text-2xl font-bold text-rose-600">
-                {new Set(registrosFiltrados.map((r) => r.student_id).filter(Boolean)).size}
-              </div>
-              <div className="text-sm text-slate-600 mt-1">Estudantes</div>
-            </div>
+  return (
+    <div style={{ display: "grid", gap: 24 }}>
+      <section className="omni-cartao" aria-labelledby="diario-filtros">
+        <h2 id="diario-filtros" className="omni-cartao__titulo" style={{ marginTop: 0 }}>Filtrar atendimentos</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{ marginTop: 12 }}>
+          <div className="omni-campo">
+            <label className="omni-campo__rotulo" htmlFor="diario-filtro-estudante">Estudante</label>
+            <select id="diario-filtro-estudante" className="omni-entrada" value={filtroAluno} onChange={(e) => setFiltroAluno(e.target.value)}>
+              <option value="Todos">Todos</option>
+              {students.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
           </div>
-        </CardContent>
-      </Card>
+          <div className="omni-campo">
+            <label className="omni-campo__rotulo" htmlFor="diario-filtro-periodo">Período</label>
+            <select id="diario-filtro-periodo" className="omni-entrada" value={filtroPeriodo} onChange={(e) => setFiltroPeriodo(e.target.value)}>
+              <option value="Todos">Todos</option>
+              <option value="Últimos 7 dias">Últimos 7 dias</option>
+              <option value="Últimos 30 dias">Últimos 30 dias</option>
+              <option value="Este mês">Este mês</option>
+            </select>
+          </div>
+          <fieldset style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+            <legend className="omni-campo__rotulo" style={{ marginBottom: 6 }}>Como foi</legend>
+            <div className="omni-escolhas" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {MODALIDADES.map((m) => (
+                <label key={m.value} className="omni-chip">
+                  <input
+                    type="checkbox"
+                    checked={filtroModalidade.includes(m.value)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFiltroModalidade([...filtroModalidade, m.value]);
+                      } else {
+                        setFiltroModalidade(filtroModalidade.filter((v) => v !== m.value));
+                      }
+                    }}
+                  />
+                  {m.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+      </section>
+
+      <section className="omni-cartao" aria-labelledby="diario-numeros">
+        <h2 id="diario-numeros" className="omni-cartao__titulo" style={{ marginTop: 0 }}>Números do período</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4" style={{ marginTop: 12 }} role="status">
+          {numeros.map((n) => (
+            <div key={n.rotulo} className="omni-cartao omni-cartao--plano" style={{ textAlign: "center", padding: 16 }}>
+              <div style={{ font: "800 26px/32px var(--font-sans)", color: "var(--acao)", fontVariantNumeric: "tabular-nums" }}>{n.valor}</div>
+              <div className="omni-apoio" style={{ marginTop: 4 }}>{n.rotulo}</div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
@@ -488,7 +481,7 @@ function NovoRegistroTab({
           <input type="checkbox" checked={alertaRegente} onChange={(e) => setAlertaRegente(e.target.checked)} style={{ marginTop: 4 }} />
           <span>
             <span style={{ font: "700 15px/22px var(--font-sans)", color: "var(--tinta)", display: "block" }}>Avisar o professor da sala</span>
-            <span className="omni-apoio">Para algo importante que ele precisa saber logo (mudança de comportamento, crise, um avanço). O aviso aparece no PEI por 30 dias.</span>
+            <span className="omni-apoio">Para algo importante que ele precisa saber logo (mudança de comportamento, crise, um avanço). O professor recebe um aviso no sino, e o recado fica no PEI por 30 dias.</span>
           </span>
         </label>
 
@@ -509,44 +502,39 @@ function ListaTab({
   const [viewMode, setViewMode] = useState<"lista" | "timeline">("timeline");
 
   return (
-    <div className="space-y-4">
-      <Card variant="default">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-xl flex items-center gap-2">Atendimentos</CardTitle>
-            <div className="flex gap-1" role="group" aria-label="Como ver">
-              <button type="button" className={`omni-btn omni-btn--pequeno ${viewMode === "timeline" ? "omni-btn--secundario" : "omni-btn--discreto"}`} aria-pressed={viewMode === "timeline"} onClick={() => setViewMode("timeline")}>Linha do tempo</button>
-              <button type="button" className={`omni-btn omni-btn--pequeno ${viewMode === "lista" ? "omni-btn--secundario" : "omni-btn--discreto"}`} aria-pressed={viewMode === "lista"} onClick={() => setViewMode("lista")}>Lista</button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {registros.length === 0 ? (
-            <div className="text-(--omni-text-muted) p-4 text-center border-2 border-dashed border-slate-200 rounded-xl mt-4">
-              Nenhum atendimento registrado ainda. O primeiro que você registrar aparece aqui.
-            </div>
-          ) : viewMode === "lista" ? (
-            <div className="space-y-3 mt-4">
-              {registros.map((r, i) => (
-                <RegistroCard
-                  key={r.registro_id || `temp-${i}`}
-                  registro={r}
-                  onDelete={() => r.registro_id && onDelete(r.registro_id)}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="mt-6">
-              <TimelineView registros={registros} onDelete={onDelete} />
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+    <section className="omni-cartao" aria-labelledby="diario-atendimentos">
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <h2 id="diario-atendimentos" className="omni-cartao__titulo" style={{ margin: 0 }}>Atendimentos</h2>
+        <div style={{ display: "flex", gap: 4 }} role="group" aria-label="Como ver">
+          <button type="button" className={`omni-btn omni-btn--pequeno ${viewMode === "timeline" ? "omni-btn--secundario" : "omni-btn--discreto"}`} aria-pressed={viewMode === "timeline"} onClick={() => setViewMode("timeline")}>Linha do tempo</button>
+          <button type="button" className={`omni-btn omni-btn--pequeno ${viewMode === "lista" ? "omni-btn--secundario" : "omni-btn--discreto"}`} aria-pressed={viewMode === "lista"} onClick={() => setViewMode("lista")}>Lista</button>
+        </div>
+      </div>
+      {registros.length === 0 ? (
+        <p className="omni-apoio" style={{ marginTop: 16, padding: 16, textAlign: "center", border: "1.5px dashed var(--borda-forte)", borderRadius: "var(--o-radius-md)" }}>
+          Nenhum atendimento registrado ainda. O primeiro que você registrar aparece aqui.
+        </p>
+      ) : viewMode === "lista" ? (
+        <ul style={{ listStyle: "none", padding: 0, margin: "16px 0 0", display: "grid", gap: 12 }}>
+          {registros.map((r, i) => (
+            <li key={r.registro_id || `temp-${i}`}>
+              <RegistroCard
+                registro={r}
+                onDelete={() => r.registro_id && onDelete(r.registro_id)}
+              />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div style={{ marginTop: 20 }}>
+          <TimelineView registros={registros} onDelete={onDelete} />
+        </div>
+      )}
+    </section>
   );
 }
 
-// Timeline Visual
+// Linha do tempo
 function TimelineView({
   registros,
   onDelete,
@@ -554,144 +542,113 @@ function TimelineView({
   registros: RegistroDiario[];
   onDelete: (id: string) => void;
 }) {
-  const getModalidadeColor = (mod: string) => {
-    switch (mod) {
-      case "individual":
-        return "bg-blue-100 border-blue-300 text-blue-800";
-      case "grupo":
-        return "bg-green-100 border-green-300 text-green-800";
-      case "observacao_sala":
-        return "bg-yellow-100 border-yellow-300 text-yellow-800";
-      case "consultoria":
-        return "bg-purple-100 border-purple-300 text-purple-800";
-      default:
-        return "bg-slate-100 border-slate-300 text-slate-800";
-    }
-  };
-
   return (
-    <div className="relative">
-      {/* Linha vertical da timeline */}
-      <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-slate-300" />
-      <div className="space-y-6">
-        {registros.map((r, idx) => {
-          const modLabel = MODALIDADES.find((m) => m.value === r.modalidade_atendimento)?.label || r.modalidade_atendimento;
-          const data = r.data_sessao ? new Date(r.data_sessao) : null;
-          const dataFormatada = data ? data.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "—";
-          const horaFormatada = data ? data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "";
+    <ol style={{ position: "relative", listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 16 }}>
+      {/* Linha vertical */}
+      <span aria-hidden style={{ position: "absolute", left: 7, top: 8, bottom: 8, width: 2, background: "var(--borda)" }} />
+      {registros.map((r, idx) => {
+        const modLabel = MODALIDADES.find((m) => m.value === r.modalidade_atendimento)?.label || r.modalidade_atendimento || "Sem modalidade";
+        const data = lerData(r.data_sessao);
+        const dataFormatada = data ? data.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "Sem data";
+        const engaj = r.engajamento_aluno || 0;
 
-          return (
-            <div key={r.registro_id || idx} className="relative flex items-start gap-4">
-              {/* Ponto na timeline */}
-              <div className="relative z-10 shrink-0">
-                <div className={`w-4 h-4 rounded-full border-2 ${r.modalidade_atendimento === "individual" ? "bg-blue-500 border-blue-700" :
-                  r.modalidade_atendimento === "grupo" ? "bg-green-500 border-green-700" :
-                    r.modalidade_atendimento === "observacao_sala" ? "bg-yellow-500 border-yellow-700" :
-                      r.modalidade_atendimento === "consultoria" ? "bg-purple-500 border-purple-700" :
-                        "bg-slate-500 border-slate-700"
-                  }`} />
-              </div>
-              {/* Card do registro */}
-              <div className={`flex-1 border-2 rounded-lg p-4 ${getModalidadeColor(r.modalidade_atendimento || "")}`}>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="font-bold text-lg">{dataFormatada}</span>
-                      {horaFormatada && <span className="text-sm opacity-75">{horaFormatada}</span>}
-                      <span className={`px-2 py-1 text-xs font-semibold rounded ${getModalidadeColor(r.modalidade_atendimento || "")}`}>
-                        {modLabel}
-                      </span>
-                    </div>
-                    <div className="space-y-1 text-sm">
-                      <div><strong>Duração:</strong> {r.duracao_minutos || 0} minutos</div>
-                      {r.engajamento_aluno && (
-                        <div><strong>Engajamento:</strong> {"⭐".repeat(r.engajamento_aluno)} ({r.engajamento_aluno}/5)</div>
-                      )}
-                      {r.atividade_principal && (
-                        <div><strong>Atividade:</strong> {r.atividade_principal.substring(0, 100)}{r.atividade_principal.length > 100 ? "..." : ""}</div>
-                      )}
-                      {r.competencias_trabalhadas && r.competencias_trabalhadas.length > 0 && (
-                        <div><strong>Competências:</strong> {r.competencias_trabalhadas.join(", ")}</div>
-                      )}
-                    </div>
-                  </div>
+        return (
+          <li key={r.registro_id || idx} style={{ position: "relative", display: "flex", alignItems: "flex-start", gap: 14 }}>
+            {/* Ponto na linha do tempo */}
+            <span aria-hidden style={{ position: "relative", zIndex: 1, flexShrink: 0, width: 16, height: 16, marginTop: 4, borderRadius: "50%", background: COR_MODALIDADE[r.modalidade_atendimento || ""] || "var(--tinta-3)", border: "3px solid var(--superficie)", boxShadow: "0 0 0 1px var(--borda)" }} />
+            <div className="omni-cartao omni-cartao--plano" style={{ flex: 1, minWidth: 0, padding: 16 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+                  <span style={{ font: "700 16px/22px var(--font-sans)", color: "var(--tinta)" }}>{dataFormatada}</span>
+                  <span className="omni-estado omni-estado--neutro">{modLabel}</span>
+                </div>
+                {r.registro_id && (
                   <button
-                    onClick={() => {
-                      {
-                        if (r.registro_id) onDelete(r.registro_id);
-                      }
-                    }}
-                    className="text-red-600 hover:text-red-800 text-sm"
+                    type="button"
+                    className="omni-btn omni-btn--discreto omni-btn--pequeno"
+                    onClick={() => { if (r.registro_id) onDelete(r.registro_id); }}
+                    aria-label={`Excluir atendimento de ${fmtData(r.data_sessao)}`}
                   >
+                    <Trash2 className="w-4 h-4" aria-hidden />
                     Excluir
                   </button>
-                </div>
+                )}
               </div>
+              <dl style={{ margin: "8px 0 0", display: "grid", gap: 4, font: "400 14px/20px var(--font-sans)", color: "var(--tinta-2)" }}>
+                <div><dt style={{ display: "inline", fontWeight: 700, color: "var(--tinta)" }}>Duração: </dt><dd style={{ display: "inline", margin: 0 }}>{r.duracao_minutos || 0} minutos</dd></div>
+                {engaj > 0 && (
+                  <div><dt style={{ display: "inline", fontWeight: 700, color: "var(--tinta)" }}>Engajamento: </dt><dd style={{ display: "inline", margin: 0 }}>{ENGAJAMENTO_ROTULO[engaj - 1] || ""} ({engaj} de 5)</dd></div>
+                )}
+                {r.atividade_principal && (
+                  <div><dt style={{ display: "inline", fontWeight: 700, color: "var(--tinta)" }}>O que foi feito: </dt><dd style={{ display: "inline", margin: 0 }}>{r.atividade_principal.substring(0, 100)}{r.atividade_principal.length > 100 ? "…" : ""}</dd></div>
+                )}
+                {r.competencias_trabalhadas && r.competencias_trabalhadas.length > 0 && (
+                  <div><dt style={{ display: "inline", fontWeight: 700, color: "var(--tinta)" }}>Competências: </dt><dd style={{ display: "inline", margin: 0 }}>{r.competencias_trabalhadas.join(", ")}</dd></div>
+                )}
+              </dl>
             </div>
-          );
-        })}
-      </div>
-    </div>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
 function RegistroCard({ registro, onDelete }: { registro: RegistroDiario; onDelete: () => void }) {
   const [expand, setExpand] = useState(false);
   const modLabel = MODALIDADES.find((m) => m.value === registro.modalidade_atendimento)?.label || registro.modalidade_atendimento;
+  const idDetalhe = `diario-reg-${registro.registro_id || registro.data_sessao || "x"}`;
+  const linha = (rotulo: string, valor?: string) => valor ? (
+    <div><strong style={{ color: "var(--tinta)" }}>{rotulo}:</strong> {valor}</div>
+  ) : null;
 
   return (
-    <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
-      <div
-        className="flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-slate-50"
-        onClick={() => setExpand((x) => !x)}
-      >
-        <div>
-          <span className="font-semibold text-slate-800">{fmtData(registro.data_sessao)}</span>
-          <span className="mx-2 text-slate-400">•</span>
-          <span className="text-sm text-slate-600">{modLabel}</span>
-          <span className="mx-2 text-slate-400">•</span>
-          <span className="text-sm text-slate-600">{registro.duracao_minutos || 0} min</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            className="text-red-600 text-sm hover:underline"
-          >
-            Excluir
-          </button>
-          <span className="text-slate-400">{expand ? "▲" : "▼"}</span>
-        </div>
+    <div className="omni-cartao omni-cartao--plano" style={{ padding: 0, overflow: "hidden" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: "8px 12px" }}>
+        <button
+          type="button"
+          onClick={() => setExpand((x) => !x)}
+          aria-expanded={expand}
+          aria-controls={idDetalhe}
+          style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 8, background: "none", border: 0, padding: "4px 0", textAlign: "left", cursor: "pointer", font: "400 14px/20px var(--font-sans)", color: "var(--tinta-2)" }}
+        >
+          {expand ? <ChevronUp className="w-4 h-4" aria-hidden /> : <ChevronDown className="w-4 h-4" aria-hidden />}
+          <span style={{ fontWeight: 700, color: "var(--tinta)" }}>{fmtData(registro.data_sessao)}</span>
+          <span aria-hidden>·</span>
+          <span>{modLabel}</span>
+          <span aria-hidden>·</span>
+          <span>{registro.duracao_minutos || 0} min</span>
+        </button>
+        <button
+          type="button"
+          className="omni-btn omni-btn--discreto omni-btn--pequeno"
+          onClick={onDelete}
+          aria-label={`Excluir atendimento de ${fmtData(registro.data_sessao)}`}
+        >
+          <Trash2 className="w-4 h-4" aria-hidden />
+          Excluir
+        </button>
       </div>
       {expand && (
-        <div className="px-4 pb-4 pt-0 border-t border-slate-100 space-y-2 text-sm text-slate-700">
-          <div><strong>Atividade:</strong> {registro.atividade_principal}</div>
-          <div><strong>Objetivos:</strong> {registro.objetivos_trabalhados}</div>
-          <div><strong>Estratégias:</strong> {registro.estrategias_utilizadas}</div>
-          {registro.recursos_materiais && <div><strong>Recursos:</strong> {registro.recursos_materiais}</div>}
-          {registro.pontos_positivos && <div><strong>Pontos positivos:</strong> {registro.pontos_positivos}</div>}
-          {registro.dificuldades_identificadas && <div><strong>Dificuldades:</strong> {registro.dificuldades_identificadas}</div>}
-          {registro.observacoes && <div><strong>Observações:</strong> {registro.observacoes}</div>}
-          {registro.proximos_passos && <div><strong>Próximos passos:</strong> {registro.proximos_passos}</div>}
+        <div id={idDetalhe} style={{ padding: "12px 16px 16px", borderTop: "1px solid var(--borda)", display: "grid", gap: 6, font: "400 14px/20px var(--font-sans)", color: "var(--tinta-2)" }}>
+          {linha("O que foi feito", registro.atividade_principal)}
+          {linha("Objetivos", registro.objetivos_trabalhados)}
+          {linha("Estratégias", registro.estrategias_utilizadas)}
+          {linha("Recursos", registro.recursos_materiais)}
+          {linha("O que foi bem", registro.pontos_positivos)}
+          {linha("Dificuldades", registro.dificuldades_identificadas)}
+          {linha("Observações", registro.observacoes)}
+          {linha("Próximos passos", registro.proximos_passos)}
         </div>
       )}
     </div>
   );
 }
 
-
-
-// Aba: Configurações
 export function DiarioClient({ students, studentId, student }: Props) {
   return (
     <Suspense fallback={
-      <div className="space-y-4">
-        <div className="h-10 bg-slate-100 rounded-lg animate-pulse" />
-        <div className="text-slate-500 text-center py-8">Carregando...</div>
-      </div>
+      <p className="omni-apoio" role="status" style={{ padding: "32px 0", textAlign: "center" }}>Carregando…</p>
     }>
       <DiarioClientInner students={students} studentId={studentId} student={student} />
     </Suspense>

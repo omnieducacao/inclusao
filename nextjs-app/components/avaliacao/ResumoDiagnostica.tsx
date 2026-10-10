@@ -43,7 +43,7 @@ export function ResumoDiagnostica({ studentId }: { studentId: string }) {
         {avs.map((a) => `${a.disciplina}: nível ${a.nivel ?? "—"}`).join(" · ")}. {sugestoes.length ? "Os descritores abaixo pedem mais apoio e são o ponto de partida das metas; a IA do PEI já os considera." : "Nenhum descritor abaixo do nível 3."}
       </p>
       {sugestoes.length > 0 && (
-        <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 4 }}>
+        <ul style={{ margin: 0, paddingLeft: 18, listStyle: "disc", display: "grid", gap: 4 }}>
           {sugestoes.slice(0, 10).map((s) => (
             <li key={`${s.componente}-${s.codigo}`} style={{ font: "400 15px/22px var(--font-sans)", color: "var(--tinta)" }}>
               <strong>{s.componente}</strong> · {s.texto} <span className="omni-apoio">({s.nivel} · {ESCALA_OMNISFERA[s.nivel as NivelOmnisfera].label})</span>

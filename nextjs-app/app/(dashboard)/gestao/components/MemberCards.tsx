@@ -3,12 +3,28 @@ import { useConfirmar } from "@/components/Confirmar";
 
 import { useState, useEffect } from "react";
 import { nomeDoPapel } from "@/lib/papeis";
-import { Trash2, Edit, Pause, Play, User } from "lucide-react";
-import { TableRow, TableCell, Avatar, Badge, Button } from "@omni/ds";
+import { Trash2, Edit, Pause, Play, User, AlertTriangle, Heart } from "lucide-react";
 import type { WorkspaceMember, FamilyResponsavel } from "../types";
 import { PERM_LABELS } from "../types";
 import { EditarUsuarioForm } from "./MemberForms";
 import { SimularButton, SimularFamilyButton } from "./SimularButtons";
+
+/** Iniciais para o avatar (até duas letras). */
+function iniciais(nome: string): string {
+    const partes = (nome || "").trim().split(/\s+/).filter(Boolean);
+    if (partes.length === 0) return "?";
+    const primeira = partes[0][0] ?? "";
+    const ultima = partes.length > 1 ? partes[partes.length - 1][0] ?? "" : "";
+    return (primeira + ultima).toUpperCase();
+}
+
+function Avatar({ nome }: { nome: string }) {
+    return <span className="omni-avatar" aria-hidden style={{ flex: "none" }}>{iniciais(nome)}</span>;
+}
+
+const nomeEstilo: React.CSSProperties = { margin: 0, font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" };
+const subEstilo: React.CSSProperties = { margin: "2px 0 0", font: "400 13px/18px var(--font-sans)", color: "var(--tinta-2)" };
+const acoesEstilo: React.CSSProperties = { display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 4, flexWrap: "wrap" };
 
 export function MemberCard({
     member,
@@ -63,78 +79,65 @@ export function MemberCard({
     if (confirmDelId === member.id) {
         const hasData = impactData && impactData.total > 0;
         return (
-            <TableRow className={hasData ? "bg-amber-50" : "bg-red-50"}>
-                <TableCell colSpan={4}>
-                    <div className="py-3 space-y-3">
-                        <p className="font-semibold text-sm text-slate-800">
+            <tr>
+                <td colSpan={4} style={{ background: hasData ? "var(--atencao-suave)" : "var(--erro-suave)" }}>
+                    <div role="group" aria-labelledby={`excluir-${member.id}-t`} style={{ display: "grid", gap: 12, padding: "4px 0" }}>
+                        <p id={`excluir-${member.id}-t`} style={{ ...nomeEstilo, font: "800 16px/22px var(--font-sans)" }}>
                             Excluir {member.nome}?
                         </p>
 
                         {loadingImpact && (
-                            <p className="text-xs text-slate-500 animate-pulse">Verificando dados vinculados...</p>
+                            <p className="omni-apoio" role="status" style={{ margin: 0 }}>Vendo o que está ligado a essa pessoa…</p>
                         )}
 
                         {hasData && (
-                            <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 space-y-2">
-                                <p className="text-xs font-semibold text-amber-800">
-                                    ⚠️ Este professor possui dados pedagógicos vinculados:
-                                </p>
-                                <div className="flex flex-wrap gap-2">
-                                    {impactData!.pei_disciplinas > 0 && (
-                                        <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-md font-medium">
-                                            📋 {impactData!.pei_disciplinas} disciplina(s) PEI
-                                        </span>
-                                    )}
-                                    {impactData!.planos_ensino > 0 && (
-                                        <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-md font-medium">
-                                            📝 {impactData!.planos_ensino} plano(s) de ensino
-                                        </span>
-                                    )}
-                                    {impactData!.avaliacoes_diagnosticas > 0 && (
-                                        <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-md font-medium">
-                                            📊 {impactData!.avaliacoes_diagnosticas} avaliação(ões) diagnóstica(s)
-                                        </span>
-                                    )}
+                            <div className="omni-aviso omni-aviso--atencao" role="alert" style={{ maxWidth: "none", background: "var(--superficie)", borderColor: "var(--borda)" }}>
+                                <AlertTriangle className="omni-aviso__icone" aria-hidden />
+                                <div>
+                                    <div className="omni-aviso__titulo">Essa pessoa tem registros pedagógicos</div>
+                                    <ul style={{ listStyle: "none", margin: "8px 0 0", padding: 0, display: "flex", flexWrap: "wrap", gap: 6 }}>
+                                        {impactData!.pei_disciplinas > 0 && (
+                                            <li className="omni-estado omni-estado--atencao">
+                                                {impactData!.pei_disciplinas} disciplina(s) de PEI
+                                            </li>
+                                        )}
+                                        {impactData!.planos_ensino > 0 && (
+                                            <li className="omni-estado omni-estado--atencao">
+                                                {impactData!.planos_ensino} plano(s) de ensino
+                                            </li>
+                                        )}
+                                        {impactData!.avaliacoes_diagnosticas > 0 && (
+                                            <li className="omni-estado omni-estado--atencao">
+                                                {impactData!.avaliacoes_diagnosticas} avaliação(ões) diagnóstica(s)
+                                            </li>
+                                        )}
+                                    </ul>
+                                    <div className="omni-aviso__texto" style={{ marginTop: 8 }}>
+                                        Esses registros ficam guardados (o PEI continua funcionando), mas deixam de mostrar quem os fez.
+                                        Recomendamos <strong>desativar</strong> em vez de excluir.
+                                    </div>
                                 </div>
-                                <p className="text-xs text-amber-700">
-                                    Esses registros serão <strong>preservados</strong> (o PEI continua funcionando),
-                                    mas a referência ao professor será removida.
-                                    <br />
-                                    💡 <strong>Recomendação:</strong> prefira <em>desativar</em> em vez de excluir.
-                                </p>
                             </div>
                         )}
 
                         {!hasData && !loadingImpact && (
-                            <p className="text-xs text-slate-600">
-                                Nenhum dado pedagógico vinculado. O email será liberado.
+                            <p className="omni-apoio" style={{ margin: 0 }}>
+                                Não há registros pedagógicos ligados a essa pessoa. O e-mail fica livre para um novo cadastro.
                             </p>
                         )}
 
-                        <div className="flex gap-2">
-                            <Button
-                                variant="danger"
-                                size="sm"
-                                disabled={deleting || loadingImpact}
-                                onClick={async () => {
-                                    setDeleting(true);
-                                    const res = await fetch(`/api/members/${member.id}`, { method: "DELETE" });
-                                    if (!res.ok) {
-                                        const d = await res.json();
-                                        onError(d.error || "Erro ao excluir.");
-                                        setDeleting(false);
-                                        return;
-                                    }
-                                    setConfirmDelId(null);
-                                    onAction();
-                                }}
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                            <button
+                                type="button"
+                                className="omni-btn omni-btn--secundario omni-btn--pequeno"
+                                onClick={() => { setConfirmDelId(null); setImpactData(null); }}
                             >
-                                {deleting ? "Excluindo..." : hasData ? "Excluir mesmo assim" : "Sim, excluir"}
-                            </Button>
+                                Cancelar
+                            </button>
                             {hasData && (
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
+                                <button
+                                    type="button"
+                                    className="omni-btn omni-btn--primario omni-btn--pequeno"
                                     onClick={async () => {
                                         const res = await fetch(`/api/members/${member.id}`, {
                                             method: "PATCH",
@@ -150,27 +153,40 @@ export function MemberCard({
                                         onAction();
                                     }}
                                 >
-                                    <Pause size={14} /> Desativar (recomendado)
-                                </Button>
+                                    <Pause aria-hidden /> Desativar (recomendado)
+                                </button>
                             )}
-                            <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={() => { setConfirmDelId(null); setImpactData(null); }}
+                            <button
+                                type="button"
+                                className="omni-btn omni-btn--perigo omni-btn--pequeno"
+                                disabled={deleting || loadingImpact}
+                                aria-busy={deleting}
+                                onClick={async () => {
+                                    setDeleting(true);
+                                    const res = await fetch(`/api/members/${member.id}`, { method: "DELETE" });
+                                    if (!res.ok) {
+                                        const d = await res.json();
+                                        onError(d.error || "Erro ao excluir.");
+                                        setDeleting(false);
+                                        return;
+                                    }
+                                    setConfirmDelId(null);
+                                    onAction();
+                                }}
                             >
-                                Cancelar
-                            </Button>
+                                <Trash2 aria-hidden /> {deleting ? "Excluindo…" : hasData ? "Excluir mesmo assim" : "Excluir"}
+                            </button>
                         </div>
                     </div>
-                </TableCell>
-            </TableRow>
+                </td>
+            </tr>
         );
     }
 
     if (editingId === member.id) {
         return (
-            <TableRow>
-                <TableCell colSpan={4} className="p-0">
+            <tr>
+                <td colSpan={4} style={{ padding: 0 }}>
                     <EditarUsuarioForm
                         member={member}
                         onSuccess={() => {
@@ -180,59 +196,58 @@ export function MemberCard({
                         onCancel={() => setEditingId(null)}
                         onError={onError}
                     />
-                </TableCell>
-            </TableRow>
+                </td>
+            </tr>
         );
     }
 
     return (
-        <TableRow
+        <tr
             className="animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both"
             style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
         >
-            <TableCell className="align-top">
-                <div className="flex items-center gap-3">
-                    <div className="hidden auto-cols-auto md:block">
-                        <Avatar name={member.nome} size="sm" />
-                    </div>
-                    <div>
-                        <p className="font-medium text-(--omni-text-primary)">
+            <td style={{ verticalAlign: "top" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <Avatar nome={member.nome} />
+                    <div style={{ minWidth: 0 }}>
+                        <p style={nomeEstilo}>
                             {member.nome}
-                            <span className="font-normal text-(--omni-text-muted)"> · {nomeDoPapel(member.papel)}{member.cargo ? ` (${member.cargo})` : ""}</span>
+                            <span style={{ fontWeight: 400, color: "var(--tinta-2)" }}> · {nomeDoPapel(member.papel)}{member.cargo ? ` (${member.cargo})` : ""}</span>
                         </p>
-                        <p className="text-xs text-(--omni-text-muted) mt-0.5">
+                        <p style={subEstilo}>
                             {member.email} · {member.telefone || "—"}
                         </p>
                     </div>
                 </div>
-            </TableCell>
-            <TableCell className="align-top">
-                <div className="flex flex-wrap gap-1">
+            </td>
+            <td style={{ verticalAlign: "top" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                     {perms.map((p) => (
-                        <Badge key={p} variant="default" className="font-medium text-[10px]">{p}</Badge>
+                        <span key={p} className="omni-estado omni-estado--neutro">{p}</span>
                     ))}
-                    {perms.length === 0 && <span className="text-slate-400 text-sm">—</span>}
+                    {perms.length === 0 && <span style={{ color: "var(--tinta-3)" }}>—</span>}
                 </div>
-            </TableCell>
-            <TableCell className="align-top">
-                <p className="text-xs text-(--omni-text-muted) whitespace-nowrap">{linkTxt}</p>
-            </TableCell>
-            <TableCell className="align-top text-right">
-                <div className="flex justify-end items-center gap-1.5 shrink-0 flex-wrap">
+            </td>
+            <td style={{ verticalAlign: "top" }}>
+                <p style={{ ...subEstilo, margin: 0, whiteSpace: "nowrap" }}>{linkTxt}</p>
+            </td>
+            <td style={{ verticalAlign: "top" }}>
+                <div style={acoesEstilo}>
                     {dialogo}
                     <SimularButton memberId={member.id} memberName={member.nome} />
-                    <Button
-                        variant="ghost"
-                        size="sm"
+                    <button
+                        type="button"
+                        className="omni-btn omni-btn--discreto omni-btn--pequeno"
                         onClick={() => setEditingId(member.id)}
-                        className="h-8"
+                        aria-label={`Editar ${member.nome}`}
                     >
-                        <Edit size={14} />
+                        <Edit aria-hidden />
                         Editar
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
+                    </button>
+                    <button
+                        type="button"
+                        className="omni-btn omni-btn--discreto omni-btn--pequeno"
+                        aria-label={`Desativar ${member.nome}`}
                         onClick={async () => {
                             const ok = await confirmar({
                                 titulo: `Desativar ${member.nome}?`,
@@ -254,30 +269,29 @@ export function MemberCard({
                             }
                             onAction();
                         }}
-                        className="h-8"
                     >
-                        <Pause size={14} />
+                        <Pause aria-hidden />
                         Desativar
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
+                    </button>
+                    <button
+                        type="button"
+                        className="omni-btn omni-btn--discreto omni-btn--pequeno"
+                        style={{ color: "var(--erro)" }}
                         onClick={() => setConfirmDelId(member.id)}
-                        className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        aria-label={`Excluir ${member.nome}`}
                     >
-                        <Trash2 size={14} />
+                        <Trash2 aria-hidden />
                         Excluir
-                    </Button>
+                    </button>
                 </div>
-            </TableCell>
-        </TableRow>
+            </td>
+        </tr>
     );
 }
 
 export function InactiveMemberCard({
     member,
     index,
-    confirmDelId,
     setConfirmDelId,
     onAction,
     onError,
@@ -289,63 +303,50 @@ export function InactiveMemberCard({
     onAction: () => void;
     onError: (err: string) => void;
 }) {
-    if (confirmDelId === member.id) {
-        return (
-            <TableRow className="bg-amber-50">
-                <TableCell colSpan={3}>
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 py-2">
-                        <p className="text-amber-800 font-medium text-sm">Confirma exclusão permanente? O email será liberado.</p>
-                        <div className="flex gap-2">
-                            <Button
-                                variant="danger"
-                                size="sm"
-                                onClick={async () => {
-                                    const res = await fetch(`/api/members/${member.id}`, { method: "DELETE" });
-                                    if (!res.ok) {
-                                        const d = await res.json();
-                                        onError(d.error || "Erro ao excluir.");
-                                        return;
-                                    }
-                                    setConfirmDelId(null);
-                                    onAction();
-                                }}
-                            >
-                                Sim, excluir
-                            </Button>
-                            <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={() => setConfirmDelId(null)}
-                            >
-                                Cancelar
-                            </Button>
-                        </div>
-                    </div>
-                </TableCell>
-            </TableRow>
-        );
+    // Onda 19: a confirmação feita à mão na linha virou o diálogo do design system
+    const { confirmar, dialogo } = useConfirmar();
+
+    async function excluirDeVez() {
+        const ok = await confirmar({
+            titulo: `Excluir ${member.nome} de vez?`,
+            texto: "Não dá para desfazer. O e-mail fica livre para um novo cadastro.",
+            acao: "Excluir de vez",
+            cancelar: "Manter",
+            perigo: true,
+        });
+        if (!ok) return;
+        const res = await fetch(`/api/members/${member.id}`, { method: "DELETE" });
+        if (!res.ok) {
+            const d = await res.json();
+            onError(d.error || "Erro ao excluir.");
+            return;
+        }
+        setConfirmDelId(null);
+        onAction();
     }
 
     return (
-        <TableRow
-            className="bg-slate-50/50 animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both"
+        <tr
+            className="animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both"
             style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
         >
-            <TableCell className="align-top">
-                <p className="font-medium text-(--omni-text-primary)">
-                    <User className="w-4 h-4 inline mr-1" />
+            <td style={{ verticalAlign: "top" }}>
+                <p style={{ ...nomeEstilo, display: "flex", alignItems: "center", gap: 6 }}>
+                    <User aria-hidden style={{ width: 16, height: 16, color: "var(--tinta-3)" }} />
                     {member.nome}
                 </p>
-                <p className="text-xs text-(--omni-text-muted) mt-0.5">{member.email}</p>
-            </TableCell>
-            <TableCell className="align-top">
-                <Badge variant="default" className="bg-slate-200 text-slate-700 font-medium text-[10px]">Membro (inativo)</Badge>
-            </TableCell>
-            <TableCell className="align-top text-right">
-                <div className="flex justify-end gap-1.5 shrink-0 flex-wrap">
-                    <Button
-                        variant="ghost"
-                        size="sm"
+                <p style={subEstilo}>{member.email}</p>
+            </td>
+            <td style={{ verticalAlign: "top" }}>
+                <span className="omni-estado omni-estado--neutro">Equipe · desativado</span>
+            </td>
+            <td style={{ verticalAlign: "top" }}>
+                <div style={acoesEstilo}>
+                    {dialogo}
+                    <button
+                        type="button"
+                        className="omni-btn omni-btn--discreto omni-btn--pequeno"
+                        aria-label={`Reativar ${member.nome}`}
                         onClick={async () => {
                             const res = await fetch(`/api/members/${member.id}`, {
                                 method: "PATCH",
@@ -359,23 +360,23 @@ export function InactiveMemberCard({
                             }
                             onAction();
                         }}
-                        className="h-8"
                     >
-                        <Play size={14} />
+                        <Play aria-hidden />
                         Reativar
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setConfirmDelId(member.id)}
-                        className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    </button>
+                    <button
+                        type="button"
+                        className="omni-btn omni-btn--discreto omni-btn--pequeno"
+                        style={{ color: "var(--erro)" }}
+                        aria-label={`Excluir ${member.nome} de vez`}
+                        onClick={excluirDeVez}
                     >
-                        <Trash2 size={14} />
-                        Excluir permanentemente
-                    </Button>
+                        <Trash2 aria-hidden />
+                        Excluir de vez
+                    </button>
                 </div>
-            </TableCell>
-        </TableRow>
+            </td>
+        </tr>
     );
 }
 
@@ -389,36 +390,32 @@ export function FamilyCard({
     onError: (err: string) => void;
 }) {
     return (
-        <TableRow
+        <tr
             className="animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both"
             style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
         >
-            <TableCell className="align-top">
-                <div className="flex items-center gap-3">
-                    <div className="hidden auto-cols-auto md:block">
-                        <Avatar name={responsavel.nome} size="sm" />
-                    </div>
-                    <div>
-                        <p className="font-medium text-(--omni-text-primary)">
-                            {responsavel.nome}
-                        </p>
-                        <p className="text-xs text-(--omni-text-muted) mt-0.5">
-                            {responsavel.email} {responsavel.telefone && `· Tel: ${responsavel.telefone}`}
+            <td style={{ verticalAlign: "top" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <Avatar nome={responsavel.nome} />
+                    <div style={{ minWidth: 0 }}>
+                        <p style={nomeEstilo}>{responsavel.nome}</p>
+                        <p style={subEstilo}>
+                            {responsavel.email} {responsavel.telefone && `· Tel.: ${responsavel.telefone}`}
                         </p>
                     </div>
                 </div>
-            </TableCell>
-            <TableCell className="align-top">
-                <Badge variant="default" className="bg-amber-100 text-amber-700 font-medium text-[10px]">Família</Badge>
-            </TableCell>
-            <TableCell className="align-top">
-                <p className="text-xs text-(--omni-text-muted)">{responsavel.parentesco || "—"}</p>
-            </TableCell>
-            <TableCell className="align-top text-right">
-                <div className="flex justify-end gap-2 shrink-0 flex-wrap">
+            </td>
+            <td style={{ verticalAlign: "top" }}>
+                <span className="omni-estado omni-estado--info"><Heart aria-hidden /> Família</span>
+            </td>
+            <td style={{ verticalAlign: "top" }}>
+                <p style={{ ...subEstilo, margin: 0 }}>{responsavel.parentesco || "—"}</p>
+            </td>
+            <td style={{ verticalAlign: "top" }}>
+                <div style={acoesEstilo}>
                     <SimularFamilyButton responsavelId={responsavel.id} responsavelName={responsavel.nome} />
                 </div>
-            </TableCell>
-        </TableRow>
+            </td>
+        </tr>
     );
 }

@@ -9,11 +9,11 @@ import {
 } from "@/lib/pgi";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { EngineSelector } from "@/components/EngineSelector";
-import { Plus, User, Trash2, Save, MapPin, Calendar, Sparkles } from "lucide-react";
+import { Plus, User, Trash2, MapPin, Calendar, Sparkles, Wallet, Info, CheckCircle2, AlertTriangle, Scale } from "lucide-react";
+import { useConfirmar } from "@/components/Confirmar";
 import { OmniLoader } from "@/components/OmniLoader";
 import type { EngineId } from "@/lib/ai-engines";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
-import { Card } from "@omni/ds";
 
 type TabId = "inicial" | "gerador";
 
@@ -66,94 +66,115 @@ export function PGIClient() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-lg border border-slate-200 bg-amber-50/50 px-3 py-2 text-sm text-amber-800">
-        <strong>Recurso destinado à gestão escolar</strong> — direção, coordenação pedagógica e equipe de planejamento.
+    <div style={{ display: "grid", gap: 24 }}>
+      <div className="omni-aviso omni-aviso--info" role="note" style={{ maxWidth: "none" }}>
+        <Info className="omni-aviso__icone" aria-hidden />
+        <div>
+          <div className="omni-aviso__titulo">Para a gestão da escola</div>
+          <div className="omni-aviso__texto">
+            O PGI (Plano de Gestão Inclusiva) é feito pela direção, pela coordenação pedagógica e pela equipe de planejamento.
+          </div>
+        </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-200">
+      <div className="omni-abas" role="tablist" aria-label="Partes do PGI">
         <button
           type="button"
+          role="tab"
+          id="pgi-aba-inicial"
+          aria-selected={tab === "inicial"}
+          aria-controls="pgi-painel"
+          className="omni-aba"
           onClick={() => setTab("inicial")}
-          className={`px-4 py-2 text-sm font-medium rounded-t-lg ${tab === "inicial"
-            ? "bg-teal-50 text-teal-800 border border-slate-200 border-b-0 -mb-px"
-            : "text-slate-600 hover:bg-slate-50"
-            }`}
         >
-          Inicial — Acolhimento
+          Acolhimento
         </button>
         <button
           type="button"
+          role="tab"
+          id="pgi-aba-gerador"
+          aria-selected={tab === "gerador"}
+          aria-controls="pgi-painel"
+          className="omni-aba"
           onClick={() => setTab("gerador")}
-          className={`px-4 py-2 text-sm font-medium rounded-t-lg ${tab === "gerador"
-            ? "bg-teal-50 text-teal-800 border border-slate-200 border-b-0 -mb-px"
-            : "text-slate-600 hover:bg-slate-50"
-            }`}
         >
-          Gerador — O Plano da Escola
+          O plano da escola
         </button>
       </div>
 
       {message && (
         <div
-          className={`p-3 rounded-lg text-sm ${message.type === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
-            }`}
+          className={`omni-aviso ${message.type === "ok" ? "omni-aviso--sucesso" : "omni-aviso--erro"}`}
+          role={message.type === "err" ? "alert" : "status"}
+          style={{ maxWidth: "none" }}
         >
-          {message.text}
+          {message.type === "ok" ? <CheckCircle2 className="omni-aviso__icone" aria-hidden /> : <AlertTriangle className="omni-aviso__icone" aria-hidden />}
+          <div><div className="omni-aviso__texto" style={{ marginTop: 0 }}>{message.text}</div></div>
         </div>
       )}
 
-      {tab === "inicial" && <AcolhimentoTab />}
-      {tab === "gerador" && (
-        <GeradorTab
-          acoes={acoes}
-          dimensionamento={dimensionamento}
-          loading={loading}
-          onSave={saveData}
-          onSuccess={() => setMessage({ type: "ok", text: "Plano atualizado." })}
-          onError={(e) => setMessage({ type: "err", text: e })}
-        />
-      )}
+      <div id="pgi-painel" role="tabpanel" aria-labelledby={tab === "inicial" ? "pgi-aba-inicial" : "pgi-aba-gerador"}>
+        {tab === "inicial" && <AcolhimentoTab />}
+        {tab === "gerador" && (
+          <GeradorTab
+            acoes={acoes}
+            dimensionamento={dimensionamento}
+            loading={loading}
+            onSave={saveData}
+            onSuccess={() => setMessage({ type: "ok", text: "Plano atualizado." })}
+            onError={(e) => setMessage({ type: "err", text: e })}
+          />
+        )}
+      </div>
     </div>
   );
 }
 
+const tituloSecao: React.CSSProperties = { font: "800 18px/24px var(--font-sans)", color: "var(--tinta)", margin: 0 };
+const textoCorrido: React.CSSProperties = { font: "400 15px/24px var(--font-sans)", color: "var(--tinta-2)", margin: 0 };
+
 function AcolhimentoTab() {
   return (
-    <div className="prose prose-slate max-w-none space-y-6 text-sm">
-      <div className="rounded-xl border border-teal-100 bg-teal-50/50 p-4">
-        <h3 className="text-base font-semibold text-teal-800 mt-0">Acolhimento dos estudantes</h3>
-        <p>
-          A inclusão de estudantes com deficiência no ambiente escolar é um compromisso essencial. Todos os estudantes
-          devem ser acolhidos em uma escola que não apenas os receba, mas os integre por meio de práticas pedagógicas
-          significativas e inclusivas.
+    <div style={{ display: "grid", gap: 20, maxWidth: "72ch" }}>
+      <section className="omni-cartao omni-cartao--plano">
+        <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Acolhimento dos estudantes</h3>
+        <p className="omni-cartao__texto" style={{ margin: 0 }}>
+          A inclusão de estudantes com deficiência é um compromisso da escola. Todo estudante deve ser acolhido
+          por uma escola que não só o receba, mas o integre com práticas pedagógicas significativas e inclusivas.
         </p>
-      </div>
-      <div>
-        <h4 className="font-semibold text-slate-800">Elementos fundamentais</h4>
-        <ul className="list-disc pl-5 space-y-2">
-          <li><strong>Políticas inclusivas:</strong> PPP que contemple a diversidade como valor essencial.</li>
-          <li><strong>Ambientes acessíveis:</strong> rampas, banheiros adaptados, tecnologias assistivas.</li>
-          <li><strong>Formação continuada:</strong> capacitação dos educadores para práticas inclusivas.</li>
+      </section>
+      <section style={{ display: "grid", gap: 8 }}>
+        <h4 style={tituloSecao}>O que não pode faltar</h4>
+        <ul style={{ ...textoCorrido, paddingLeft: 20, display: "grid", gap: 8, listStyle: "disc" }}>
+          <li><strong style={{ color: "var(--tinta)" }}>Políticas inclusivas:</strong> um PPP (Projeto Político-Pedagógico) que trate a diversidade como valor da escola.</li>
+          <li><strong style={{ color: "var(--tinta)" }}>Ambientes acessíveis:</strong> rampas, banheiros adaptados e tecnologias assistivas.</li>
+          <li><strong style={{ color: "var(--tinta)" }}>Formação continuada:</strong> preparo dos educadores para práticas inclusivas.</li>
         </ul>
-      </div>
-      <div>
-        <h4 className="font-semibold text-slate-800">PGEI — Estrutura e equipe</h4>
-        <p>
-          O Plano Geral de Educação Inclusiva deve prever orientação educacional ou departamento de apoio. Equipe:
-          orientadores, psicólogos, psicopedagogos, professores habilitados. Coordenação pedagógica na adaptação curricular.
+      </section>
+      <section style={{ display: "grid", gap: 8 }}>
+        <h4 style={tituloSecao}>PGEI: estrutura e equipe</h4>
+        <p style={textoCorrido}>
+          O PGEI (Plano Geral de Educação Inclusiva) deve prever uma orientação educacional ou um departamento de apoio.
+          A equipe reúne orientadores, psicólogos, psicopedagogos e professores habilitados. A coordenação pedagógica
+          cuida da adaptação do currículo.
         </p>
-      </div>
-      <div>
-        <h4 className="font-semibold text-slate-800">Salas Multifuncionais (SRM)</h4>
-        <p>
-          Decreto nº 6.571/2008: ambientes com equipamentos, mobiliários e materiais para o AEE. O trabalho nas SRM não
-          substitui o das classes comuns — complementa e elimina obstáculos à plena participação.
+      </section>
+      <section style={{ display: "grid", gap: 8 }}>
+        <h4 style={tituloSecao}>Salas de Recursos Multifuncionais (SRM)</h4>
+        <p style={textoCorrido}>
+          Pelo Decreto nº 6.571/2008, são ambientes com equipamentos, mobiliário e materiais para o AEE (Atendimento
+          Educacional Especializado). O trabalho na SRM não substitui o da sala comum: ele complementa e tira os
+          obstáculos à plena participação.
         </p>
-      </div>
-      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-800">
-        A escola <strong>não pode negar a matrícula</strong> aos alunos com deficiência (Lei 7.853/89). A matrícula é direito constitucional.
+      </section>
+      <div className="omni-aviso omni-aviso--atencao" role="note" style={{ maxWidth: "none" }}>
+        <Scale className="omni-aviso__icone" aria-hidden />
+        <div>
+          <div className="omni-aviso__titulo">A matrícula é um direito</div>
+          <div className="omni-aviso__texto">
+            A escola não pode negar a matrícula a estudantes com deficiência (Lei 7.853/89). É um direito garantido pela Constituição.
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -163,9 +184,9 @@ function formatPGIText(acoes: AcaoPGI[], dim: DimensionamentoPGI): string {
   const parts: string[] = [];
   if (dim.n_total != null || dim.n_deficiencia != null || dim.n_prof != null) {
     parts.push("DIMENSIONAMENTO PRELIMINAR");
-    parts.push(`Nº total de alunos: ${dim.n_total ?? "—"}`);
-    parts.push(`Nº alunos com deficiência: ${dim.n_deficiencia ?? "—"}`);
-    parts.push(`Nº profissionais inclusão: ${dim.n_prof ?? "—"}`);
+    parts.push(`Nº total de estudantes: ${dim.n_total ?? "—"}`);
+    parts.push(`Nº de estudantes com deficiência: ${dim.n_deficiencia ?? "—"}`);
+    parts.push(`Nº de profissionais da inclusão: ${dim.n_prof ?? "—"}`);
     parts.push(`Horas/dia da equipe: ${dim.horas_dia ?? "—"}`);
     parts.push("");
   }
@@ -206,7 +227,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
   const [custo, setCusto] = useState("");
   const [perfil, setPerfil] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
-  const [confirmDel, setConfirmDel] = useState<number | null>(null);
+  const { confirmar, dialogo } = useConfirmar();
   const [engine, setEngine] = useState<EngineId>("red");
   const [gerandoAcoes, setGerandoAcoes] = useState(false);
 
@@ -262,10 +283,22 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
     onSuccess();
   }
 
+  async function pedirRemocao(i: number) {
+    const alvo = acoes[i];
+    if (!alvo) return;
+    const ok = await confirmar({
+      titulo: "Tirar esta ação do plano?",
+      texto: `"${alvo.o_que}" sai do PGI. Não dá para desfazer.`,
+      acao: "Tirar ação",
+      cancelar: "Manter ação",
+      perigo: true,
+    });
+    if (ok) await remover(i);
+  }
+
   async function remover(i: number) {
     const next = acoes.filter((_, idx) => idx !== i);
     await onSave(next);
-    setConfirmDel(null);
     onSuccess();
   }
 
@@ -280,129 +313,144 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
     onSuccess();
   }
 
+  const pequeno: React.CSSProperties = { font: "600 13px/18px var(--font-sans)", color: "var(--tinta-2)" };
+
   return (
-    <div className="space-y-6">
+    <div style={{ display: "grid", gap: 24 }}>
+      {dialogo}
+
       {/* Dimensionamento */}
-      <Card padding="none" className="p-4">
+      <section className="omni-cartao">
         <details>
-          <summary className="cursor-pointer font-medium text-slate-700">Dimensionamento preliminar (opcional)</summary>
-          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Nº total de alunos</label>
+          <summary style={{ cursor: "pointer", font: "700 16px/22px var(--font-sans)", color: "var(--tinta)" }}>
+            Dimensionamento preliminar <span className="omni-campo__opcional">(opcional)</span>
+          </summary>
+          <p className="omni-apoio" style={{ margin: "8px 0 0" }}>
+            Quantos estudantes e profissionais a escola tem hoje. Com esses números, a IA sugere ações.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4" style={{ gap: 16, marginTop: 16 }}>
+            <label className="omni-campo">
+              <span className="omni-campo__rotulo">Total de estudantes</span>
               <input
                 type="number"
                 min={0}
                 value={nTotal}
                 onChange={(e) => setDimLocal((d) => ({ ...d, n_total: Number(e.target.value) }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                className="omni-entrada"
               />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Nº alunos com deficiência</label>
+            </label>
+            <label className="omni-campo">
+              <span className="omni-campo__rotulo">Estudantes com deficiência</span>
               <input
                 type="number"
                 min={0}
                 value={nDef}
                 onChange={(e) => setDimLocal((d) => ({ ...d, n_deficiencia: Number(e.target.value) }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                className="omni-entrada"
               />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Nº profissionais inclusão</label>
+            </label>
+            <label className="omni-campo">
+              <span className="omni-campo__rotulo">Profissionais da inclusão</span>
               <input
                 type="number"
                 min={0}
                 value={nProf}
                 onChange={(e) => setDimLocal((d) => ({ ...d, n_prof: Number(e.target.value) }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                className="omni-entrada"
               />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Horas/dia da equipe</label>
+            </label>
+            <label className="omni-campo">
+              <span className="omni-campo__rotulo">Horas por dia da equipe</span>
               <input
                 type="number"
                 min={0}
                 step={0.5}
                 value={horasDia}
                 onChange={(e) => setDimLocal((d) => ({ ...d, horas_dia: Number(e.target.value) }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                className="omni-entrada"
               />
-            </div>
+            </label>
           </div>
-          <button
-            type="button"
-            onClick={() => salvarDimensionamento(nTotal, nDef, nProf, horasDia)}
-            className="mt-2 px-3 py-1.5 text-sm bg-teal-100 text-teal-800 rounded-lg hover:bg-teal-200"
-          >
-            Salvar dimensionamento
-          </button>
+          <div style={{ marginTop: 16 }}>
+            <button
+              type="button"
+              onClick={() => salvarDimensionamento(nTotal, nDef, nProf, horasDia)}
+              className="omni-btn omni-btn--secundario omni-btn--pequeno"
+            >
+              Salvar dimensionamento
+            </button>
+          </div>
         </details>
-      </Card>
+      </section>
 
       {/* Gerar ações com IA */}
       {(nTotal > 0 || nDef > 0 || nProf > 0 || horasDia > 0) && (
-        <div className="rounded-xl border border-teal-200 bg-teal-50/50 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <p className="text-sm font-semibold text-teal-800">Gerar ações com IA</p>
-              <p className="text-xs text-teal-700 mt-1">
-                A IA analisa o dimensionamento e sugere ações prioritárias para o PGI.
+        <section className="omni-cartao omni-cartao--plano">
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <div style={{ minWidth: 0 }}>
+              <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Sugerir ações com IA</h3>
+              <p className="omni-cartao__texto" style={{ margin: "4px 0 0" }}>
+                A IA lê o dimensionamento e sugere as ações mais urgentes para o PGI.
               </p>
             </div>
             <EngineSelector value={engine} onChange={setEngine} />
           </div>
-          <button
-            type="button"
-            onClick={async () => {
-              setGerandoAcoes(true);
-              aiLoadingStart(engine || "red", "pgi");
-              try {
-                const res = await fetch("/api/pgi/gerar-acoes", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ dimensionamento: dimLocal, engine }),
-                });
-                const data = await res.json();
-                if (!res.ok) {
-                  onError(data.error || "Erro ao gerar ações.");
-                  return;
+          <div>
+            <button
+              type="button"
+              onClick={async () => {
+                setGerandoAcoes(true);
+                aiLoadingStart(engine || "red", "pgi");
+                try {
+                  const res = await fetch("/api/pgi/gerar-acoes", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ dimensionamento: dimLocal, engine }),
+                  });
+                  const data = await res.json();
+                  if (!res.ok) {
+                    onError(data.error || "Erro ao gerar ações.");
+                    return;
+                  }
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const novasAcoes = (data.acoes || []).map((a: any) => ({
+                    ...a,
+                    criado_em: new Date().toISOString(),
+                  }));
+                  await onSave([...acoes, ...novasAcoes]);
+                  onSuccess();
+                } catch (err) {
+                  onError("Erro ao gerar ações. Tente novamente.");
+                } finally {
+                  setGerandoAcoes(false);
+                  aiLoadingStop();
                 }
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const novasAcoes = (data.acoes || []).map((a: any) => ({
-                  ...a,
-                  criado_em: new Date().toISOString(),
-                }));
-                await onSave([...acoes, ...novasAcoes]);
-                onSuccess();
-              } catch (err) {
-                onError("Erro ao gerar ações. Tente novamente.");
-              } finally {
-                setGerandoAcoes(false);
-                aiLoadingStop();
-              }
-            }}
-            disabled={gerandoAcoes}
-            className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 disabled:opacity-60 flex items-center gap-2"
-          >
-            {gerandoAcoes ? (
-              <>
-                <OmniLoader engine={engine} size={16} />
-                Gerando ações...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4" />
-                Gerar ações com IA
-              </>
-            )}
-          </button>
-        </div>
+              }}
+              disabled={gerandoAcoes}
+              aria-busy={gerandoAcoes}
+              className="omni-btn omni-btn--primario"
+            >
+              {gerandoAcoes ? (
+                <>
+                  <OmniLoader engine={engine} size={16} />
+                  Gerando ações…
+                </>
+              ) : (
+                <>
+                  <Sparkles aria-hidden />
+                  Sugerir ações com IA
+                </>
+              )}
+            </button>
+          </div>
+        </section>
       )}
 
       {/* Ações rápidas */}
-      <div>
-        <p className="text-sm font-medium text-slate-700 mb-2">Ações sugeridas (rápidas)</p>
-        <div className="flex flex-wrap gap-2">
+      <section style={{ display: "grid", gap: 8 }}>
+        <h3 style={{ font: "700 15px/22px var(--font-sans)", color: "var(--tinta)", margin: 0 }}>Ações prontas</h3>
+        <p className="omni-apoio" style={{ margin: 0 }}>Toque numa ação para colocá-la no plano.</p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {[
             ["Contratar mediador adicional", "Insuficiência de mediadores", "dimensionamento_pgei"],
             ["Grupo enriquecimento altas habilidades", "Atendimento diferenciado", "dimensionamento_pgei"],
@@ -415,147 +463,148 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
               key={i}
               type="button"
               onClick={() => addRapida(oq, pq, t)}
-              className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-50"
+              className="omni-chip"
             >
-              <Plus className="w-3 h-3 inline mr-1" />
+              <Plus aria-hidden style={{ width: 16, height: 16 }} />
               {oq}
             </button>
           ))}
         </div>
-      </div>
+      </section>
 
       {/* Formulário */}
-      <Card>
-        <form onSubmit={handleAddAcao} className="space-y-4">
-          <h4 className="font-semibold text-slate-800">Adicionar ação ao plano</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">Tipo de ação</label>
-              <select
-                value={tipo}
-                onChange={(e) => setTipo(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-              >
-                {Object.entries(TIPOS_ACAO).map(([k, [label]]) => (
-                  <option key={k} value={k}>{label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">O QUE (Ação prática) *</label>
+      <section className="omni-cartao">
+        <form onSubmit={handleAddAcao} style={{ display: "grid", gap: 16 }}>
+          <h3 style={tituloSecao}>Adicionar ação ao plano</h3>
+          <label className="omni-campo">
+            <span className="omni-campo__rotulo">Tipo de ação</span>
+            <select
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value)}
+              className="omni-entrada"
+            >
+              {Object.entries(TIPOS_ACAO).map(([k, [label]]) => (
+                <option key={k} value={k}>{label}</option>
+              ))}
+            </select>
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 16 }}>
+            <label className="omni-campo" style={{ maxWidth: "none" }}>
+              <span className="omni-campo__rotulo">O que fazer</span>
               <input
                 type="text"
                 value={oQue}
                 onChange={(e) => setOQue(e.target.value)}
-                placeholder="Ex: Contratar mediador / Equipar SRM"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                placeholder="Ex.: contratar mediador, equipar a SRM"
+                aria-required="true"
+                className="omni-entrada"
               />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">POR QUE (Justificativa)</label>
+            </label>
+            <label className="omni-campo" style={{ maxWidth: "none" }}>
+              <span className="omni-campo__rotulo">Por que <span className="omni-campo__opcional">(opcional)</span></span>
               <textarea
                 value={porQue}
                 onChange={(e) => setPorQue(e.target.value)}
                 rows={2}
-                placeholder="Ex: Dimensionamento PGEI"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                placeholder="Ex.: dimensionamento do PGEI"
+                className="omni-entrada"
+                style={{ minHeight: 72 }}
               />
-            </div>
+            </label>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">QUEM (Responsável)</label>
+          <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 16 }}>
+            <label className="omni-campo" style={{ maxWidth: "none" }}>
+              <span className="omni-campo__rotulo">Quem cuida <span className="omni-campo__opcional">(opcional)</span></span>
               <input
                 type="text"
                 value={quem}
                 onChange={(e) => setQuem(e.target.value)}
-                placeholder="Ex: Coordenação pedagógica"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                placeholder="Ex.: coordenação pedagógica"
+                className="omni-entrada"
               />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">ONDE (Local)</label>
+            </label>
+            <label className="omni-campo" style={{ maxWidth: "none" }}>
+              <span className="omni-campo__rotulo">Onde <span className="omni-campo__opcional">(opcional)</span></span>
               <input
                 type="text"
                 value={onde}
                 onChange={(e) => setOnde(e.target.value)}
-                placeholder="Ex: SRM, Bloco A"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                placeholder="Ex.: SRM, bloco A"
+                className="omni-entrada"
               />
-            </div>
+            </label>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">COMO (Método)</label>
+          <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 16 }}>
+            <label className="omni-campo" style={{ maxWidth: "none" }}>
+              <span className="omni-campo__rotulo">Como <span className="omni-campo__opcional">(opcional)</span></span>
               <input
                 type="text"
                 value={como}
                 onChange={(e) => setComo(e.target.value)}
-                placeholder="Ex: Palestra em HTPC"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                placeholder="Ex.: palestra na reunião pedagógica"
+                className="omni-entrada"
               />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">PRAZO</label>
+            </label>
+            <label className="omni-campo" style={{ maxWidth: "none" }}>
+              <span className="omni-campo__rotulo">Prazo</span>
               <input
                 type="date"
                 value={prazo}
                 onChange={(e) => setPrazo(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                className="omni-entrada"
               />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">CUSTO (R$)</label>
+            </label>
+            <label className="omni-campo" style={{ maxWidth: "none" }}>
+              <span className="omni-campo__rotulo">Custo em R$ <span className="omni-campo__opcional">(opcional)</span></span>
               <input
                 type="text"
+                inputMode="decimal"
                 value={custo}
                 onChange={(e) => setCusto(e.target.value)}
-                placeholder="Ex: 5.000,00"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                placeholder="Ex.: 5.000,00"
+                className="omni-entrada"
               />
-            </div>
+            </label>
           </div>
+          <fieldset className="omni-escolhas">
+            <legend>Perfis de atendimento <span className="omni-campo__opcional">(opcional)</span></legend>
+            {PERFIS_ATENDIMENTO.map((p) => (
+              <label key={p} className="omni-chip" title={p === "TEA" ? "Transtorno do Espectro Autista" : undefined}>
+                <input
+                  type="checkbox"
+                  checked={perfil.includes(p)}
+                  onChange={(e) =>
+                    setPerfil((prev) =>
+                      e.target.checked ? [...prev, p] : prev.filter((x) => x !== p)
+                    )
+                  }
+                />
+                {p === "TEA" ? "TEA (autismo)" : p}
+              </label>
+            ))}
+          </fieldset>
           <div>
-            <label className="block text-xs text-slate-600 mb-1">Perfil de atendimento</label>
-            <div className="flex flex-wrap gap-2">
-              {PERFIS_ATENDIMENTO.map((p) => (
-                <label key={p} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={perfil.includes(p)}
-                    onChange={(e) =>
-                      setPerfil((prev) =>
-                        e.target.checked ? [...prev, p] : prev.filter((x) => x !== p)
-                      )
-                    }
-                    className="rounded border-slate-300"
-                  />
-                  {p}
-                </label>
-              ))}
-            </div>
+            <button
+              type="submit"
+              disabled={saving}
+              aria-busy={saving}
+              className="omni-btn omni-btn--primario"
+            >
+              {saving ? "Salvando…" : (
+                <>
+                  <Plus aria-hidden />
+                  Adicionar ação ao plano
+                </>
+              )}
+            </button>
           </div>
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 disabled:opacity-60"
-          >
-            {saving ? "Salvando…" : (
-              <>
-                <Plus className="w-4 h-4 inline mr-1" />
-                Adicionar ação ao plano
-              </>
-            )}
-          </button>
         </form>
-      </Card>
+      </section>
 
       {/* Lista de ações */}
-      <div>
-        <div className="flex justify-between items-center mb-3">
-          <h4 className="font-semibold text-slate-800">O Plano da Escola</h4>
+      <section style={{ display: "grid", gap: 12 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+          <h3 style={tituloSecao}>O plano da escola</h3>
           {acoes.length > 0 && (
             <PdfDownloadButton
               text={formatPGIText(acoes, dimLocal)}
@@ -565,83 +614,72 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
           )}
         </div>
         {loading ? (
-          <p className="text-slate-500">Carregando…</p>
+          <p className="omni-apoio" role="status">Carregando…</p>
         ) : acoes.length === 0 ? (
-          <p className="text-slate-500 p-4 bg-slate-50 rounded-lg">Nenhuma ação cadastrada. Use o formulário ou os botões acima.</p>
+          <div className="omni-cartao omni-cartao--plano">
+            <p className="omni-cartao__titulo" style={{ margin: 0 }}>Nenhuma ação no plano ainda</p>
+            <p className="omni-cartao__texto" style={{ margin: 0 }}>Use o formulário ou as ações prontas acima.</p>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 12 }}>
             {acoes.map((a, i) => {
               const [label] = TIPOS_ACAO[a.tipo] ?? ["—"];
               const prazoFmt = a.prazo
                 ? new Date(a.prazo + "T12:00:00").toLocaleDateString("pt-BR")
                 : "—";
               return (
-                <div
+                <li
                   key={i}
-                  className="p-4 rounded-xl border border-slate-200 bg-white flex gap-4"
+                  className="omni-cartao"
+                  style={{ flexDirection: "row", flexWrap: "wrap", gap: 16, padding: 20 }}
                 >
-                  <div className="flex-1 min-w-0">
-                    <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-800 mb-2">
+                  <div style={{ flex: "1 1 260px", minWidth: 0, display: "grid", gap: 6 }}>
+                    <span className="omni-estado omni-estado--info" style={{ justifySelf: "start" }}>
                       {label.split(" (")[0]}
                     </span>
-                    <p className="font-medium text-slate-800">{a.o_que}</p>
+                    <p style={{ margin: 0, font: "700 16px/22px var(--font-sans)", color: "var(--tinta)" }}>{a.o_que}</p>
                     {a.por_que && (
-                      <p className="text-sm text-slate-500 mt-1">{a.por_que}</p>
+                      <p className="omni-apoio" style={{ margin: 0 }}>{a.por_que}</p>
                     )}
-                    <div className="flex flex-wrap gap-4 mt-2 text-xs text-slate-500">
-                      <span className="flex items-center gap-1">
-                        <User className="w-4 h-4" />
-                        {a.quem || "—"}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
-                        {a.onde || "—"}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        {prazoFmt}
-                      </span>
-                      <span>💰 {a.custo || "—"}</span>
-                    </div>
+                    <dl style={{ display: "flex", flexWrap: "wrap", gap: "6px 16px", margin: "4px 0 0", ...pequeno }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <dt><User aria-hidden style={{ width: 16, height: 16 }} /><span className="omni-so-leitor">Quem cuida</span></dt>
+                        <dd style={{ margin: 0 }}>{a.quem || "—"}</dd>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <dt><MapPin aria-hidden style={{ width: 16, height: 16 }} /><span className="omni-so-leitor">Onde</span></dt>
+                        <dd style={{ margin: 0 }}>{a.onde || "—"}</dd>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <dt><Calendar aria-hidden style={{ width: 16, height: 16 }} /><span className="omni-so-leitor">Prazo</span></dt>
+                        <dd style={{ margin: 0 }}>{prazoFmt}</dd>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <dt><Wallet aria-hidden style={{ width: 16, height: 16 }} /><span className="omni-so-leitor">Custo</span></dt>
+                        <dd style={{ margin: 0 }}>{a.custo || "—"}</dd>
+                      </div>
+                    </dl>
                     {a.perfil?.length ? (
-                      <p className="text-xs text-slate-500 mt-1">Perfis: {a.perfil.join(", ")}</p>
+                      <p style={{ margin: 0, ...pequeno }}>Perfis: {a.perfil.join(", ")}</p>
                     ) : null}
                   </div>
-                  <div className="shrink-0">
-                    {confirmDel === i ? (
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => remover(i)}
-                          className="px-2 py-1 text-xs bg-red-600 text-white rounded"
-                        >
-                          Sim
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setConfirmDel(null)}
-                          className="px-2 py-1 text-xs border border-slate-200 rounded"
-                        >
-                          Não
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDel(i)}
-                        className="text-red-600 hover:underline text-sm"
-                      >
-                        <Trash2 className="w-4 h-4 inline mr-1" />
-                        Remover
-                      </button>
-                    )}
+                  <div style={{ flex: "none", alignSelf: "flex-start" }}>
+                    <button
+                      type="button"
+                      onClick={() => pedirRemocao(i)}
+                      className="omni-btn omni-btn--perigo omni-btn--pequeno"
+                      aria-label={`Tirar do plano: ${a.o_que}`}
+                    >
+                      <Trash2 aria-hidden />
+                      Tirar
+                    </button>
                   </div>
-                </div>
+                </li>
               );
             })}
-          </div>
+          </ul>
         )}
-      </div>
+      </section>
     </div>
   );
 }

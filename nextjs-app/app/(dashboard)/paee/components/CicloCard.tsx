@@ -1,20 +1,7 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { Save, Plus, Trash2, Edit2, Play, Pause, FileText, Download, Target, Calendar, CheckCircle2, ChevronDown, ChevronRight, MessageSquare, AlertTriangle, Users, BookOpen, Layout, Settings, Sparkles, Loader2, ArrowRight, Map, Search } from 'lucide-react';
-import type { StudentFull } from "../lib/paee-types";
-import type { CicloPAEE, MetaPei } from "@/lib/paee";
-import { getSupabase } from "@/lib/supabase";
-import { LottieIcon } from "@/components/LottieIcon";
-
-import { Card, Button } from "@omni/ds";
-import { EngineSelector } from "@/components/EngineSelector";
-import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
-import { PdfDownloadButton } from "@/components/PdfDownloadButton";
-import { DocxDownloadButton } from "@/components/DocxDownloadButton";
-import type { EngineId } from "@/lib/ai-engines";
-import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
+import React from "react";
+import type { CicloPAEE } from "@/lib/paee";
 import { fmtDataIso, badgeStatus } from "@/lib/paee";
-import { OmniLoader } from "@/components/OmniLoader";
 export function CicloCard({
   ciclo,
   onSalvar,
@@ -27,59 +14,60 @@ export function CicloCard({
   onLimpar: () => void;
 }) {
   const cfg = ciclo.config_ciclo || {};
-  const [ic, cor] = badgeStatus(ciclo.status || "rascunho");
+  const [estado, tom] = badgeStatus(ciclo.status || "rascunho");
   const cron = ciclo.cronograma;
+  const resumo: React.CSSProperties = { fontWeight: 700, color: "var(--tinta)", cursor: "pointer" };
+  const item: React.CSSProperties = { padding: 10, borderRadius: "var(--o-radius-md)", background: "var(--superficie-2)", border: "1px solid var(--borda)" };
+  const sub: React.CSSProperties = { margin: "4px 0 0", fontSize: 13, lineHeight: "18px", color: "var(--tinta-2)" };
 
   return (
-    <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
-      <div className="p-4 border-b border-slate-200 flex justify-between items-center" style={{ borderLeft: `4px solid ${cor}` }}>
-        <div>
-          <div className="font-bold text-slate-800">{ic} {cfg.foco_principal || "Ciclo AEE"}</div>
-          <div className="text-sm text-slate-500">
-            {fmtDataIso(cfg.data_inicio)} → {fmtDataIso(cfg.data_fim)}
-            {cfg.duracao_semanas && ` • ${cfg.duracao_semanas} sem`}
-            {cfg.frequencia && ` • ${String(cfg.frequencia).replace("_", " ")}`}
+    <div className="omni-cartao" style={{ padding: 0, gap: 0, overflow: "hidden" }}>
+      <div style={{ padding: 16, borderBottom: "1px solid var(--borda)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>{cfg.foco_principal || "Ciclo do AEE"}</div>
+          <div className="omni-apoio">
+            {fmtDataIso(cfg.data_inicio)} a {fmtDataIso(cfg.data_fim)}
+            {cfg.duracao_semanas && ` · ${cfg.duracao_semanas} semanas`}
+            {cfg.frequencia && ` · ${String(cfg.frequencia).replace("_", " ")}`}
           </div>
         </div>
-        <span className="text-xs font-bold uppercase" style={{ color: cor }}>
-          {ciclo.status || "rascunho"}
-        </span>
+        <span className={`omni-estado omni-estado--${tom}`}>{estado}</span>
       </div>
-      <div className="p-4 space-y-3">
+      <div style={{ padding: 16, display: "grid", gap: 12 }}>
         <details open>
-          <summary className="font-medium text-slate-700 cursor-pointer">Metas</summary>
-          <ul className="mt-2 space-y-1 text-sm text-slate-600">
+          <summary style={resumo}>Metas</summary>
+          <ul style={{ margin: "8px 0 0", paddingLeft: 20, listStyle: "disc", display: "grid", gap: 4, fontSize: 14, color: "var(--tinta-2)" }}>
             {(cfg.metas_selecionadas || []).map((m: any) => (
-              <li key={m.id}>• {m.tipo}: {m.descricao}</li>
+              <li key={m.id}>{m.tipo}: {m.descricao}</li>
             ))}
           </ul>
         </details>
         {cron && (cron.fases?.length > 0 || cron.semanas?.length > 0) && (
           <details>
-            <summary className="font-medium text-slate-700 cursor-pointer">
-              {ciclo.tipo === "planejamento_aee" ? "🗓️ Cronograma (Fases)" : "📅 Cronograma (Semanas)"}
+            <summary style={resumo}>
+              {ciclo.tipo === "planejamento_aee" ? "Cronograma por fases" : "Cronograma por semanas"}
             </summary>
-            <div className="mt-2 text-sm text-slate-600 space-y-2">
+            <div style={{ marginTop: 8, display: "grid", gap: 8 }}>
               {ciclo.tipo === "planejamento_aee" && cron.fases && cron.fases.length > 0 ? (
                 <>
-                  <p className="text-xs text-slate-500 mb-2">Visão macro em fases (documento de referência)</p>
+                  <p className="omni-apoio" style={{ margin: 0 }}>Visão geral em fases (documento de referência)</p>
                   {cron.fases.map((f: any, i: number) => (
-                    <div key={i} className="p-2 rounded bg-slate-50 border border-slate-200">
-                      <strong className="text-slate-800">{f.nome}</strong>
-                      <p className="text-xs text-slate-600 mt-1">{f.objetivo_geral}</p>
-                      {f.descricao && <p className="text-xs text-slate-500 mt-1">{f.descricao}</p>}
+                    <div key={i} style={item}>
+                      <strong style={{ color: "var(--tinta)" }}>{f.nome}</strong>
+                      <p style={sub}>{f.objetivo_geral}</p>
+                      {f.descricao && <p style={sub}>{f.descricao}</p>}
                     </div>
                   ))}
                 </>
               ) : cron.semanas && cron.semanas.length > 0 ? (
                 <>
-                  <p className="text-xs text-slate-500 mb-2">Planejamento por semanas (norteador operacional)</p>
+                  <p className="omni-apoio" style={{ margin: 0 }}>Planejamento semana a semana (guia prático)</p>
                   {cron.semanas.slice(0, 6).map((s: any) => (
-                    <div key={s.numero} className="p-2 rounded bg-slate-50 border border-slate-200">
-                      <strong className="text-slate-800">Semana {s.numero} — {s.tema}</strong>
-                      <p className="text-xs text-slate-600 mt-1">{s.objetivo}</p>
+                    <div key={s.numero} style={item}>
+                      <strong style={{ color: "var(--tinta)" }}>Semana {s.numero}: {s.tema}</strong>
+                      <p style={sub}>{s.objetivo}</p>
                       {s.atividades && s.atividades.length > 0 && (
-                        <ul className="text-xs text-slate-500 mt-1 list-disc list-inside">
+                        <ul style={{ ...sub, paddingLeft: 18, listStyle: "disc" }}>
                           {s.atividades.slice(0, 3).map((a: any, idx: number) => (
                             <li key={idx}>{a}</li>
                           ))}
@@ -88,7 +76,7 @@ export function CicloCard({
                     </div>
                   ))}
                   {(cron.semanas?.length || 0) > 6 && (
-                    <div className="text-xs text-slate-500 italic">+{(cron.semanas?.length || 0) - 6} semanas</div>
+                    <div className="omni-apoio">E mais {(cron.semanas?.length || 0) - 6} semanas</div>
                   )}
                 </>
               ) : null}
@@ -97,22 +85,13 @@ export function CicloCard({
         )}
       </div>
       {onSalvar && (
-        <div className="p-4 border-t border-slate-200 flex gap-2">
-          <Button
-            type="button"
-            variant="primary"
-            onClick={onSalvar}
-            disabled={saving}
-          >
-            {saving ? "Salvando…" : "Salvar na nuvem"}
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={onLimpar}
-          >
+        <div style={{ padding: 16, borderTop: "1px solid var(--borda)", display: "flex", flexWrap: "wrap", gap: 8 }}>
+          <button type="button" className="omni-btn omni-btn--primario" onClick={onSalvar} disabled={saving} aria-busy={saving}>
+            {saving ? "Salvando…" : "Salvar ciclo"}
+          </button>
+          <button type="button" className="omni-btn omni-btn--discreto" onClick={onLimpar}>
             Limpar
-          </Button>
+          </button>
         </div>
       )}
     </div>

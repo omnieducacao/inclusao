@@ -192,15 +192,18 @@ export function fmtDataIso(d: string | undefined): string {
   }
 }
 
+export type TomEstado = "atencao" | "sucesso" | "info" | "neutro";
+
+/** Rótulo do estado do ciclo e o tom para o selo `omni-estado--{tom}`. */
 export function badgeStatus(
   status: string
-): [string, string] {
+): [string, TomEstado] {
   const s = (status || "rascunho").toLowerCase();
-  const map: Record<string, [string, string]> = {
-    rascunho: ["🟡", "#F59E0B"],
-    ativo: ["🟢", "#10B981"],
-    concluido: ["🔵", "#3B82F6"],
-    arquivado: ["⚫", "#64748B"],
+  const map: Record<string, [string, TomEstado]> = {
+    rascunho: ["Rascunho", "atencao"],
+    ativo: ["Ativo", "sucesso"],
+    concluido: ["Concluído", "info"],
+    arquivado: ["Arquivado", "neutro"],
   };
-  return map[s] ?? ["⚪", "#94A3B8"];
+  return map[s] ?? [status || "Sem estado", "neutro"];
 }

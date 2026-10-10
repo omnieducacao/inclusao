@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { KeyRound } from "lucide-react";
 
 export function MasterSetupForm({
     onSuccess,
@@ -19,11 +20,11 @@ export function MasterSetupForm({
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         if (!nome.trim() || !email.trim() || !password) {
-            onError("Nome, email e senha são obrigatórios.");
+            onError("Nome, e-mail e senha são obrigatórios.");
             return;
         }
         if (password.length < 4) {
-            onError("Senha deve ter no mínimo 4 caracteres.");
+            onError("A senha precisa ter pelo menos 4 caracteres.");
             return;
         }
         setSaving(true);
@@ -42,7 +43,7 @@ export function MasterSetupForm({
             });
             const data = await res.json();
             if (!res.ok) {
-                onError(data.error || "Erro ao cadastrar master.");
+                onError(data.error || "Não foi possível criar a conta da coordenação.");
                 return;
             }
             onSuccess();
@@ -53,56 +54,39 @@ export function MasterSetupForm({
         }
     }
 
+    const campo = (rotulo: string, opcional: boolean, el: React.ReactNode, ajuda?: string) => (
+        <label className="omni-campo">
+            <span className="omni-campo__rotulo">
+                {rotulo}
+                {opcional && <span className="omni-campo__opcional"> (opcional)</span>}
+            </span>
+            {el}
+            {ajuda && <span className="omni-campo__ajuda">{ajuda}</span>}
+        </label>
+    );
+
     return (
-        <div className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-4">
-            <h3 className="font-semibold text-indigo-900 mb-2">🔐 Configurar usuário master</h3>
-            <p className="text-sm text-indigo-800 mb-4">
-                Seu workspace usa login com PIN. Configure o master para ativar a Gestão de Usuários. Depois disso, o login exigirá email + senha.
+        <section className="omni-cartao" aria-labelledby="master-t">
+            <h2 id="master-t" className="omni-cartao__titulo" style={{ margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                <KeyRound aria-hidden style={{ width: 20, height: 20, color: "var(--acao)" }} />
+                Criar a conta da coordenação
+            </h2>
+            <p className="omni-cartao__texto" style={{ margin: 0 }}>
+                Hoje a escola entra na Omnisfera com um código numérico (PIN). Crie a conta principal da coordenação
+                para liberar a gestão da equipe. Depois disso, a entrada passa a ser com e-mail e senha.
             </p>
-            <form onSubmit={handleSubmit} className="space-y-3 max-w-md">
-                <input
-                    type="text"
-                    placeholder="Nome completo *"
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                />
-                <input
-                    type="email"
-                    placeholder="Email *"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                />
-                <input
-                    type="password"
-                    placeholder="Senha * (mín. 4 caracteres)"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                />
-                <input
-                    type="text"
-                    placeholder="Telefone"
-                    value={telefone}
-                    onChange={(e) => setTelefone(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                />
-                <input
-                    type="text"
-                    placeholder="Cargo *"
-                    value={cargo}
-                    onChange={(e) => setCargo(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                />
-                <button
-                    type="submit"
-                    disabled={saving}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 disabled:opacity-60"
-                >
-                    {saving ? "Cadastrando…" : "Cadastrar master"}
-                </button>
+            <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12, maxWidth: 480 }} noValidate>
+                {campo("Nome completo", false, <input type="text" autoComplete="name" value={nome} onChange={(e) => setNome(e.target.value)} className="omni-entrada" aria-required="true" />)}
+                {campo("E-mail", false, <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="omni-entrada" aria-required="true" />)}
+                {campo("Senha", false, <input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} className="omni-entrada" aria-required="true" />, "Pelo menos 4 caracteres.")}
+                {campo("Telefone", true, <input type="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="omni-entrada" />)}
+                {campo("Cargo", true, <input type="text" value={cargo} onChange={(e) => setCargo(e.target.value)} className="omni-entrada" />, "Ex.: coordenadora pedagógica.")}
+                <div>
+                    <button type="submit" disabled={saving} aria-busy={saving} className="omni-btn omni-btn--primario">
+                        {saving ? "Criando…" : "Criar conta da coordenação"}
+                    </button>
+                </div>
             </form>
-        </div>
+        </section>
     );
 }

@@ -37,7 +37,7 @@ export default async function MonitoramentoPage({ searchParams }: Props) {
       <div className="space-y-6">
         <PageHero moduleKey="monitoramento" serverConfig={adminConfig}
           title="Evolução e dados"
-          desc={studentId ? "O que o PEI, o PAEE e o diário já registraram sobre o estudante, e a avaliação do progresso." : "Onde a escola está com os PEIs e o AEE, e quem precisa de atenção agora."}
+          desc={studentId ? "A evolução por descritor, da diagnóstica aos períodos da processual, e o resumo do diário de bordo." : "Onde a escola está com os PEIs e o AEE, e quem precisa de atenção agora."}
         />
 
         {!studentId && students.length > 0 && <VisaoEscola linhas={linhas} podeAgir={{ pei: podeVer({ permissao: "can_pei" }, session || {}), paee: podeVer({ permissao: "can_paee" }, session || {}) }} />}

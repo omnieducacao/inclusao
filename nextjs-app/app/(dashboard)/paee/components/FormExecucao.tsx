@@ -1,20 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { Save, Plus, Trash2, Edit2, Play, Pause, FileText, Download, Target, Calendar, CheckCircle2, ChevronDown, ChevronRight, MessageSquare, AlertTriangle, Users, BookOpen, Layout, Settings, Sparkles, Loader2, ArrowRight, Map, Search } from 'lucide-react';
-import type { StudentFull } from "../lib/paee-types";
-import type { CicloPAEE, MetaPei } from "@/lib/paee";
-import { getSupabase } from "@/lib/supabase";
-import { LottieIcon } from "@/components/LottieIcon";
-
-import { Card, Input, Textarea, Button, Checkbox } from "@omni/ds";
-import { EngineSelector } from "@/components/EngineSelector";
-import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
-import { PdfDownloadButton } from "@/components/PdfDownloadButton";
-import { DocxDownloadButton } from "@/components/DocxDownloadButton";
-import type { EngineId } from "@/lib/ai-engines";
-import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
-import { fmtDataIso, badgeStatus } from "@/lib/paee";
-import { OmniLoader } from "@/components/OmniLoader";
+import React, { useState } from "react";
+import type { MetaPei } from "@/lib/paee";
 export function FormExecucao({
   metasPei,
   onGerar,
@@ -49,42 +35,48 @@ export function FormExecucao({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Metas do PEI</label>
-        <div className="space-y-2 max-h-32 overflow-y-auto border border-slate-200 rounded-lg p-2">
-          {metasPei.map((m: any) => (
-            <label key={m.id} className="flex items-start gap-2">
-              <Checkbox
-                checked={metasSel[m.id] ?? true}
-                onChange={(e) => setMetasSel((s: any) => ({ ...s, [m.id]: e.target.checked }))}
-              />
-              <span className="text-sm cursor-pointer">{m.tipo}: {m.descricao.slice(0, 60)}…</span>
-            </label>
-          ))}
-        </div>
+    <form onSubmit={handleSubmit} style={{ display: "grid", gap: 16 }}>
+      <fieldset className="omni-campo" style={{ border: 0, padding: 0, margin: 0, maxWidth: "none" }}>
+        <legend className="omni-campo__rotulo">Metas do PEI</legend>
+        {metasPei.length === 0 ? (
+          <p className="omni-apoio" style={{ margin: 0 }}>O PEI ainda não tem metas. Escreva as metas no PEI para montar o ciclo.</p>
+        ) : (
+          <div style={{ display: "grid", gap: 8, maxHeight: 160, overflowY: "auto", padding: 8, border: "1px solid var(--borda)", borderRadius: "var(--o-radius-md)", background: "var(--superficie)" }}>
+            {metasPei.map((m: any) => (
+              <label key={m.id} style={{ display: "flex", alignItems: "flex-start", gap: 8, cursor: "pointer", color: "var(--tinta)", fontSize: 14, lineHeight: "20px" }}>
+                <input
+                  type="checkbox"
+                  style={{ marginTop: 3 }}
+                  checked={metasSel[m.id] ?? true}
+                  onChange={(e) => setMetasSel((s: any) => ({ ...s, [m.id]: e.target.checked }))}
+                />
+                <span>{m.tipo}: {m.descricao.slice(0, 60)}…</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </fieldset>
+      <div className="grid grid-cols-2" style={{ gap: 12 }}>
+        <label className="omni-campo">
+          <span className="omni-campo__rotulo">Início</span>
+          <input type="date" className="omni-entrada" style={{ maxWidth: "none" }} value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
+        </label>
+        <label className="omni-campo">
+          <span className="omni-campo__rotulo">Fim</span>
+          <input type="date" className="omni-entrada" style={{ maxWidth: "none" }} value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+        </label>
       </div>
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Data início</label>
-          <Input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} className="w-full" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Data fim</label>
-          <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} className="w-full" />
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Foco</label>
-        <Input type="text" value={foco} onChange={(e) => setFoco(e.target.value)} className="w-full" />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Descrição</label>
-        <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} rows={3} className="w-full" />
-      </div>
-      <Button type="submit" variant="primary" disabled={metasSelecionadas.length === 0} className="w-full sm:w-auto">
-        Gerar preview
-      </Button>
+      <label className="omni-campo">
+        <span className="omni-campo__rotulo">Foco</span>
+        <input type="text" className="omni-entrada" style={{ maxWidth: "none" }} value={foco} onChange={(e) => setFoco(e.target.value)} />
+      </label>
+      <label className="omni-campo">
+        <span className="omni-campo__rotulo">Descrição <span className="omni-campo__opcional">(opcional)</span></span>
+        <textarea className="omni-entrada" style={{ maxWidth: "none" }} value={descricao} onChange={(e) => setDescricao(e.target.value)} rows={3} />
+      </label>
+      <button type="submit" className="omni-btn omni-btn--primario" style={{ justifySelf: "start" }} disabled={metasSelecionadas.length === 0}>
+        Ver prévia do ciclo
+      </button>
     </form>
   );
 }

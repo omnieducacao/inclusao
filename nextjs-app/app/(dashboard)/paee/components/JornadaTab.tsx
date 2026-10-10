@@ -1,21 +1,16 @@
 "use client";
 import { useConfirmar } from "@/components/Confirmar";
 import React, { useState, useEffect } from "react";
-import { Save, Plus, Trash2, Edit2, Play, Pause, FileText, Download, Target, Calendar, CheckCircle2, ChevronDown, ChevronRight, MessageSquare, AlertTriangle, Users, BookOpen, Layout, Settings, Sparkles, Loader2, ArrowRight, Map, Search } from 'lucide-react';
+import { Trash2, Edit2, FileText, Download, CheckCircle2, AlertTriangle, Sparkles, Loader2, Map, Info } from "lucide-react";
 import type { StudentFull } from "../lib/paee-types";
-import type { CicloPAEE, MetaPei } from "@/lib/paee";
-import { LottieIcon } from "@/components/LottieIcon";
-
-import { Card, Input, Textarea, Select, Button, Checkbox } from "@omni/ds";
+import type { CicloPAEE } from "@/lib/paee";
 import { EngineSelector } from "@/components/EngineSelector";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { gerarPdfJornada } from "@/lib/paee-pdf-export";
-import { PdfDownloadButton } from "@/components/PdfDownloadButton";
-import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import type { EngineId } from "@/lib/ai-engines";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
-import { fmtDataIso, badgeStatus } from "@/lib/paee";
-import { OmniLoader } from "@/components/OmniLoader";
+import { fmtDataIso } from "@/lib/paee";
+
 export function JornadaTab({
   student,
   ciclos,
@@ -43,10 +38,10 @@ export function JornadaTab({
 
   // Opções de origem
   const opcoesOrigem = [
-    { value: "ciclo", label: "Execução e Metas SMART (ciclo)" },
-    { value: "barreiras", label: "Mapear Barreiras" },
-    { value: "plano-habilidades", label: "Plano de Habilidades" },
-    { value: "tecnologia-assistiva", label: "Tecnologia Assistiva" },
+    { value: "ciclo", label: "Execução e metas (ciclo)" },
+    { value: "barreiras", label: "Barreiras" },
+    { value: "plano-habilidades", label: "Plano de habilidades" },
+    { value: "tecnologia-assistiva", label: "Recursos de acessibilidade" },
   ];
 
   const [origemSelecionada, setOrigemSelecionada] = useState("ciclo");
@@ -61,6 +56,7 @@ export function JornadaTab({
   const [mapaErro, setMapaErro] = useState<string | null>(null);
   const [usarHiperfocoTema, setUsarHiperfocoTema] = useState(true);
   const [temaMapa, setTemaMapa] = useState(hiperfoco);
+  const [erroArquivo, setErroArquivo] = useState<string | null>(null);
 
   // Ciclo de execução para usar na jornada
   const cicloExecucao = cicloSelecionadoExecucao || (cicloAtivo?.tipo === "execucao_smart" ? cicloAtivo : ciclos.find((c: any) => c.tipo === "execucao_smart"));
@@ -69,10 +65,6 @@ export function JornadaTab({
   const conteudoBarreiras = (paeeData.conteudo_diagnostico_barreiras as string) || "";
   const conteudoPlano = (paeeData.conteudo_plano_habilidades as string) || "";
   const conteudoTec = (paeeData.conteudo_tecnologia_assistiva as string) || "";
-
-  // Log para debug
-  useEffect(() => {
-  }, [conteudoBarreiras, conteudoPlano, conteudoTec]);
 
   // Chave única para esta jornada (por origem)
   const chaveJornada = origemSelecionada === "ciclo"
@@ -144,16 +136,16 @@ export function JornadaTab({
         let nomeFonte = "";
         if (origemSelecionada === "barreiras") {
           textoFonte = conteudoBarreiras;
-          nomeFonte = "Mapear Barreiras";
+          nomeFonte = "Barreiras";
         } else if (origemSelecionada === "plano-habilidades") {
           textoFonte = conteudoPlano;
-          nomeFonte = "Plano de Habilidades";
+          nomeFonte = "Plano de habilidades";
         } else if (origemSelecionada === "tecnologia-assistiva") {
           textoFonte = conteudoTec;
-          nomeFonte = "Tecnologia Assistiva";
+          nomeFonte = "Recursos de acessibilidade";
         }
         if (!textoFonte || !textoFonte.trim()) {
-          /* client-side */ console.error(`❌ Conteúdo não encontrado para ${nomeFonte}:`, {
+          /* client-side */ console.error(`Conteúdo não encontrado para ${nomeFonte}:`, {
             origem: origemSelecionada,
             conteudoPlano: conteudoPlano ? `${conteudoPlano.length} chars` : "vazio",
             conteudoBarreiras: conteudoBarreiras ? `${conteudoBarreiras.length} chars` : "vazio",
@@ -173,12 +165,12 @@ export function JornadaTab({
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao gerar jornada.");
+      if (!res.ok) throw new Error(data.error || "Não conseguimos gerar a jornada. Tente de novo.");
       setTexto(data.texto || "");
       setStatus("revisao");
       updateFields({ texto: data.texto, status: "revisao", origem: origemSelecionada });
     } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro ao gerar.");
+      setErro(e instanceof Error ? e.message : "Não conseguimos gerar a jornada. Tente de novo.");
     } finally {
       setLoading(false);
       aiLoadingStop();
@@ -188,8 +180,8 @@ export function JornadaTab({
   const { confirmar, dialogo } = useConfirmar();
   const limpar = async () => {
     const ok = await confirmar({
-      titulo: "Descartar o roteiro gamificado?",
-      texto: "O texto gerado e as observações desta aba serão apagados. Isso não pode ser desfeito.",
+      titulo: "Descartar o roteiro da jornada?",
+      texto: "O texto gerado e as observações desta parte serão apagados. Isso não pode ser desfeito.",
       acao: "Descartar",
       cancelar: "Manter",
       perigo: true,
@@ -217,11 +209,11 @@ export function JornadaTab({
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao gerar mapa mental.");
+      if (!res.ok) throw new Error(data.error || "Não conseguimos gerar o mapa mental. Tente de novo.");
       setMapaMental(data.image || null);
       updateField("imagem_bytes", data.image);
     } catch (e) {
-      setMapaErro(e instanceof Error ? e.message : "Erro ao gerar mapa mental.");
+      setMapaErro(e instanceof Error ? e.message : "Não conseguimos gerar o mapa mental. Tente de novo.");
     } finally {
       setMapaLoading(false);
       aiLoadingStop();
@@ -268,7 +260,7 @@ export function JornadaTab({
         })
         .catch((err) => {
           /* client-side */ console.error("Erro ao baixar mapa mental:", err);
-          alert("Erro ao baixar imagem. Tente novamente.");
+          setErroArquivo("Não conseguimos baixar a imagem agora. Tente de novo.");
         });
       return;
     }
@@ -281,329 +273,295 @@ export function JornadaTab({
     URL.revokeObjectURL(url);
   };
 
-  return (
-    <Card padding="none" className="p-6">
-      {dialogo}
-      {/* Header da aba */}
-      <div className="flex items-start gap-4 mb-6">
-        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-(--module-primary-soft) to-(--module-primary)/10 flex items-center justify-center shrink-0">
-          <Map className="w-6 h-6 text-(--module-primary)" />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-2xl font-black text-slate-900 mb-2">Jornada Gamificada</h3>
-          <p className="text-sm text-slate-600 leading-relaxed mb-3">
-            <strong className="text-(--module-primary)">Missão do(a) {student.name}:</strong> Transforme o planejamento do AEE em uma
-            jornada gamificada motivadora para o estudante e a família. A IA cria um roteiro com linguagem de conquistas, missões
-            e recompensas, sem incluir diagnósticos ou informações clínicas.
-          </p>
-          <div className="p-3 bg-linear-to-r from-(--module-primary-soft) to-(--module-primary)/5 border border-(--module-primary)/20 rounded-lg">
-            <p className="text-sm text-(--module-text)">
-              Cada aba do PAEE pode virar uma <strong>jornada gamificada</strong>. Escolha a <strong>origem</strong> na lista abaixo.
-              ⚠️ O material gerado será entregue ao estudante — diagnósticos e dados clínicos não são incluídos.
-            </p>
+  const baixarPdf = async () => {
+    setErroArquivo(null);
+    try {
+      await gerarPdfJornada(texto, student.name);
+    } catch (e) {
+      setErroArquivo(e instanceof Error ? e.message : "Não conseguimos gerar o PDF agora. Tente de novo.");
+    }
+  };
+
+  const tituloSecao: React.CSSProperties = { margin: 0, font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" };
+
+  const avisoErro = (msg: string | null) =>
+    msg ? (
+      <div className="omni-aviso omni-aviso--erro" role="alert">
+        <AlertTriangle className="omni-aviso__icone" aria-hidden />
+        <div><div className="omni-aviso__titulo">{msg}</div></div>
+        <span />
+      </div>
+    ) : null;
+
+  const blocoMapaMental = (mostrarExplicacao: boolean) => (
+    <div style={{ display: "grid", gap: 12 }}>
+      <h4 style={tituloSecao}>Mapa mental do roteiro</h4>
+      {mostrarExplicacao && (
+        <p className="omni-apoio" style={{ margin: 0 }}>
+          Gere um mapa mental a partir do roteiro: tema no centro, depois as missões e as etapas. O mapa não traz informações clínicas.
+        </p>
+      )}
+      <label className="omni-chip" style={{ alignSelf: "flex-start" }}>
+        <input
+          type="checkbox"
+          checked={usarHiperfocoTema}
+          onChange={(e) => {
+            setUsarHiperfocoTema(e.target.checked);
+            if (e.target.checked) setTemaMapa(hiperfoco);
+          }}
+        />
+        Usar o hiperfoco do estudante como tema central do mapa
+      </label>
+      {usarHiperfocoTema && (
+        <label className="omni-campo">
+          <span className="omni-campo__rotulo">Tema central do mapa</span>
+          <input
+            type="text"
+            className="omni-entrada"
+            style={{ maxWidth: "none" }}
+            value={temaMapa}
+            onChange={(e) => setTemaMapa(e.target.value)}
+            placeholder="Ex.: dinossauros, espaço, música…"
+          />
+        </label>
+      )}
+      {mapaMental && (
+        <div style={{ display: "grid", gap: 12 }}>
+          <div style={{ border: "1px solid var(--borda)", borderRadius: "var(--o-radius-md)", padding: 8, background: "var(--superficie)" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={mapaMental} alt="Mapa mental da jornada" style={{ maxWidth: "100%", borderRadius: "var(--o-radius-md)" }} />
           </div>
+          <button type="button" className="omni-btn omni-btn--secundario omni-btn--pequeno" style={{ justifySelf: "start" }} onClick={downloadMapaPNG}>
+            <Download aria-hidden /> Baixar imagem do mapa
+          </button>
+        </div>
+      )}
+      <button
+        type="button"
+        className="omni-btn omni-btn--secundario"
+        style={{ justifySelf: "start" }}
+        onClick={gerarMapaMental}
+        disabled={mapaLoading || !texto.trim()}
+        aria-busy={mapaLoading}
+      >
+        {mapaLoading ? <Loader2 aria-hidden className="animate-spin" /> : <Map aria-hidden />}
+        {mapaLoading ? "Gerando o mapa…" : "Gerar mapa mental do roteiro"}
+      </button>
+      {avisoErro(mapaErro)}
+      {avisoErro(erroArquivo)}
+    </div>
+  );
+
+  return (
+    <section className="omni-cartao" aria-labelledby="paee-jornada-titulo">
+      {dialogo}
+      <div className="omni-aviso omni-aviso--info" role="status">
+        <Info className="omni-aviso__icone" aria-hidden />
+        <div>
+          <div className="omni-aviso__texto">
+            As missões que o estudante faz com a família ficam na ficha do estudante, em Missões.
+          </div>
+          <div className="omni-aviso__acoes">
+            <a href={`/estudantes/${student.id}`} className="omni-btn omni-btn--discreto omni-btn--pequeno">
+              Abrir a ficha do estudante
+            </a>
+          </div>
+        </div>
+        <span />
+      </div>
+
+      <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <Map aria-hidden style={{ width: 22, height: 22, color: "var(--acao)", flexShrink: 0, marginTop: 2 }} />
+        <div style={{ display: "grid", gap: 6 }}>
+          <h2 id="paee-jornada-titulo" className="omni-cartao__titulo" style={{ margin: 0, font: "800 18px/24px var(--font-sans)" }}>Jornada do estudante</h2>
+          <p className="omni-cartao__texto" style={{ margin: 0 }}>
+            Transforme o planejamento do AEE em uma jornada com missões e conquistas para {student.name} e a família.
+            O assistente escreve um roteiro com linguagem de jogo, sem diagnósticos nem informações clínicas.
+          </p>
+          <p className="omni-apoio" style={{ margin: 0 }}>
+            Cada parte do PAEE pode virar uma jornada: escolha a origem abaixo. O material vai para o estudante, por isso não traz dados clínicos.
+          </p>
         </div>
       </div>
 
       {status !== "rascunho" && (
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={limpar}
-        >
-          Descartar
-        </Button>
+        <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" style={{ alignSelf: "flex-start" }} onClick={limpar}>
+          <Trash2 aria-hidden /> Descartar roteiro
+        </button>
       )}
 
       {status === "rascunho" ? (
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Gerar jornada a partir de:</label>
-            <Select
+        <div style={{ display: "grid", gap: 16 }}>
+          <label className="omni-campo">
+            <span className="omni-campo__rotulo">Gerar a jornada a partir de</span>
+            <select
+              className="omni-entrada"
+              style={{ maxWidth: "none" }}
               value={origemSelecionada}
               onChange={(e) => setOrigemSelecionada(e.target.value)}
-              className="w-full"
-              options={opcoesOrigem}
-            />
-          </div>
+            >
+              {opcoesOrigem.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </label>
 
           {origemSelecionada === "ciclo" && cicloExecucao && (
-            <div className="p-3 border border-slate-200 rounded-lg bg-slate-50">
-              <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="omni-cartao omni-cartao--plano" style={{ padding: 16 }}>
+              <div className="grid grid-cols-2" style={{ gap: 16 }}>
                 <div>
-                  <div className="font-semibold text-slate-700">Foco do ciclo</div>
-                  <div className="text-slate-600">{cicloExecucao.config_ciclo?.foco_principal || "—"}</div>
+                  <div className="omni-rotulo">Foco do ciclo</div>
+                  <div style={{ color: "var(--tinta)" }}>{cicloExecucao.config_ciclo?.foco_principal || "—"}</div>
                 </div>
                 <div>
-                  <div className="font-semibold text-slate-700">Período</div>
-                  <div className="text-slate-600">
-                    {cicloExecucao.config_ciclo?.data_inicio || "—"} → {cicloExecucao.config_ciclo?.data_fim || "—"}
+                  <div className="omni-rotulo">Período</div>
+                  <div style={{ color: "var(--tinta)" }}>
+                    {fmtDataIso(cicloExecucao.config_ciclo?.data_inicio)} a {fmtDataIso(cicloExecucao.config_ciclo?.data_fim)}
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Preferência de estilo (opcional)
-            </label>
-            <Input
+          <label className="omni-campo">
+            <span className="omni-campo__rotulo">Estilo da jornada <span className="omni-campo__opcional">(opcional)</span></span>
+            <input
               type="text"
+              className="omni-entrada"
+              style={{ maxWidth: "none" }}
               value={estilo}
               onChange={(e) => setEstilo(e.target.value)}
-              placeholder="Ex: super-heróis, exploração, futebol..."
-              className="w-full"
+              placeholder="Ex.: super-heróis, exploração, futebol…"
             />
-          </div>
+          </label>
 
           <EngineSelector value={engine} onChange={onEngineChange} />
 
-          <p className="text-sm text-slate-600">
-            <strong>Como funciona:</strong> O assistente transforma o conteúdo da aba escolhida em uma missão gamificada para o estudante e a família. O texto final não inclui diagnósticos — apenas desafios e conquistas.
+          <p className="omni-apoio" style={{ margin: 0 }}>
+            O assistente transforma o conteúdo escolhido em missões para o estudante e a família. O texto final traz só desafios e conquistas, sem diagnósticos.
           </p>
 
-          <Button
+          <button
             type="button"
-            variant="primary"
+            className="omni-btn omni-btn--primario"
             onClick={() => gerar()}
             disabled={loading || (origemSelecionada === "ciclo" && !cicloExecucao)}
-            className="w-full"
+            aria-busy={loading}
           >
-            {loading ? "⏳ Criando missão..." : "✨ Criar Roteiro Gamificado"}
-          </Button>
-          {erro && <p className="text-red-600 text-sm">{erro}</p>}
+            {loading ? <Loader2 aria-hidden className="animate-spin" /> : <Sparkles aria-hidden />}
+            {loading ? "Criando o roteiro…" : "Criar roteiro da jornada"}
+          </button>
+          {avisoErro(erro)}
         </div>
       ) : status === "revisao" ? (
-        <div className="space-y-4">
-          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm font-semibold text-green-800">✅ Missão gerada! Revise abaixo e aprove ou solicite ajustes.</p>
+        <div style={{ display: "grid", gap: 16 }}>
+          <div className="omni-aviso omni-aviso--sucesso" role="status">
+            <CheckCircle2 className="omni-aviso__icone" aria-hidden />
+            <div><div className="omni-aviso__titulo">Roteiro pronto. Leia e aprove, ou peça ajustes.</div></div>
+            <span />
           </div>
 
-          <div className="p-4 border border-slate-200 rounded-lg bg-white">
-            <h4 className="font-semibold text-slate-800 mb-2">Missão (prévia)</h4>
-            <FormattedTextDisplay texto={texto} titulo="" />
-          </div>
-
-          <div className="space-y-3">
-            <div className="text-sm font-semibold text-slate-700">Mapa mental do roteiro</div>
-            <p className="text-xs text-slate-600">
-              Gere um mapa mental visual a partir do roteiro gamificado. Estrutura: nó central → missões → etapas. O mapa não inclui informações clínicas.
-            </p>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm">
-                <Checkbox
-                  checked={usarHiperfocoTema}
-                  onChange={(e) => {
-                    setUsarHiperfocoTema(e.target.checked);
-                    if (e.target.checked) setTemaMapa(hiperfoco);
-                  }}
-                />
-                <span>Usar hiperfoco do estudante como tema do mapa mental (nó central)</span>
-              </label>
-              {usarHiperfocoTema && (
-                <Input
-                  type="text"
-                  value={temaMapa}
-                  onChange={(e) => setTemaMapa(e.target.value)}
-                  placeholder="Ex: dinossauros, espaço, música..."
-                  className="w-full"
-                />
-              )}
+          <div className="omni-resultado">
+            <h4 style={tituloSecao}>Roteiro (prévia)</h4>
+            <div className="omni-resultado__texto">
+              <FormattedTextDisplay texto={texto} titulo="" />
             </div>
-            {mapaMental && (
-              <div className="space-y-3">
-                <div className="border-2 border-(--module-primary)/20 rounded-lg p-2 bg-white">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={mapaMental}
-                    alt="Mapa mental da jornada"
-                    className="max-w-full rounded-lg"
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="primary"
-                  onClick={downloadMapaPNG}
-                  className="inline-flex items-center gap-2 text-sm"
-                >
-                  📥 Baixar PNG do Mapa Mental
-                </Button>
-              </div>
-            )}
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={gerarMapaMental}
-              disabled={mapaLoading || !texto.trim()}
-              className="flex items-center gap-2"
-            >
-              {mapaLoading ? "⏳ Gerando ilustração..." : (
-                <>
-                  <Map className="w-4 h-4" />
-                  Gerar mapa mental do roteiro
-                </>
-              )}
-            </Button>
-            {mapaErro && <p className="text-red-600 text-sm">{mapaErro}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <Button
+          {blocoMapaMental(true)}
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <button
               type="button"
-              className="bg-green-600 text-white border-0 hover:bg-green-700"
+              className="omni-btn omni-btn--primario"
               onClick={() => {
                 setStatus("aprovado");
                 updateField("status", "aprovado");
               }}
             >
-              ✅ Aprovar Missão
-            </Button>
-            <Button
-              type="button"
-              className="bg-amber-600 text-white border-0 hover:bg-amber-700"
-              onClick={() => setStatus("ajustando")}
-            >
-              🔄 Solicitar Ajustes
-            </Button>
+              <CheckCircle2 aria-hidden /> Aprovar roteiro
+            </button>
+            <button type="button" className="omni-btn omni-btn--secundario" onClick={() => setStatus("ajustando")}>
+              <Edit2 aria-hidden /> Pedir ajustes
+            </button>
           </div>
         </div>
       ) : status === "ajustando" ? (
-        <div className="space-y-4">
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <p className="text-sm font-semibold text-amber-800">⚠️ Descreva o que ajustar e regenere.</p>
+        <div style={{ display: "grid", gap: 16 }}>
+          <div className="omni-aviso omni-aviso--atencao" role="status">
+            <AlertTriangle className="omni-aviso__icone" aria-hidden />
+            <div><div className="omni-aviso__titulo">Conte o que mudar e gere de novo.</div></div>
+            <span />
           </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">O que ajustar?</label>
-            <Textarea
+          <label className="omni-campo">
+            <span className="omni-campo__rotulo">O que ajustar?</span>
+            <textarea
+              className="omni-entrada"
+              style={{ maxWidth: "none" }}
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
-              placeholder="Ex: mais curto, linguagem infantil..."
+              placeholder="Ex.: mais curto, linguagem para crianças menores…"
               rows={4}
-              className="w-full"
             />
-          </div>
-          <div className="flex gap-2">
-            <Button
+          </label>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <button
               type="button"
-              variant="primary"
+              className="omni-btn omni-btn--primario"
               onClick={() => gerar(feedback)}
               disabled={loading || !feedback.trim()}
+              aria-busy={loading}
             >
-              {loading ? "⏳ Reescrevendo..." : "🔄 Gerar Novamente com Ajustes"}
-            </Button>
-            <Button
+              {loading ? <Loader2 aria-hidden className="animate-spin" /> : <Sparkles aria-hidden />}
+              {loading ? "Reescrevendo…" : "Gerar de novo com os ajustes"}
+            </button>
+            <button
               type="button"
-              variant="secondary"
+              className="omni-btn omni-btn--discreto"
               onClick={() => {
                 setStatus("revisao");
                 setFeedback("");
               }}
             >
-              ↩️ Voltar
-            </Button>
+              Voltar
+            </button>
           </div>
-          {erro && <p className="text-red-600 text-sm">{erro}</p>}
+          {avisoErro(erro)}
         </div>
       ) : (
-        <div className="space-y-4">
-          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm font-semibold text-green-800">✅ Missão aprovada! Edite se quiser e exporte em PDF ou CSV.</p>
+        <div style={{ display: "grid", gap: 16 }}>
+          <div className="omni-aviso omni-aviso--sucesso" role="status">
+            <CheckCircle2 className="omni-aviso__icone" aria-hidden />
+            <div><div className="omni-aviso__titulo">Roteiro aprovado. Edite se quiser e baixe em PDF ou planilha.</div></div>
+            <span />
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Edição final (opcional)</label>
-            <Textarea
+          <label className="omni-campo">
+            <span className="omni-campo__rotulo">Edição final <span className="omni-campo__opcional">(opcional)</span></span>
+            <textarea
+              className="omni-entrada"
+              style={{ maxWidth: "none" }}
               value={texto}
               onChange={(e) => {
                 setTexto(e.target.value);
                 updateField("texto", e.target.value);
               }}
               rows={12}
-              className="w-full font-mono"
             />
-          </div>
+          </label>
 
-          <div className="space-y-3">
-            <div className="text-sm font-semibold text-slate-700">Mapa mental do roteiro</div>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm">
-                <Checkbox
-                  checked={usarHiperfocoTema}
-                  onChange={(e) => {
-                    setUsarHiperfocoTema(e.target.checked);
-                    if (e.target.checked) setTemaMapa(hiperfoco);
-                  }}
-                />
-                <span>Usar hiperfoco do estudante como tema do mapa mental (nó central)</span>
-              </label>
-              {usarHiperfocoTema && (
-                <Input
-                  type="text"
-                  value={temaMapa}
-                  onChange={(e) => setTemaMapa(e.target.value)}
-                  placeholder="Ex: dinossauros, espaço, música..."
-                  className="w-full"
-                />
-              )}
-            </div>
-            {mapaMental && (
-              <div className="space-y-3">
-                <div className="border-2 border-(--module-primary)/20 rounded-lg p-2 bg-white">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={mapaMental}
-                    alt="Mapa mental da jornada"
-                    className="max-w-full rounded-lg"
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="primary"
-                  onClick={downloadMapaPNG}
-                  className="inline-flex items-center gap-2 text-sm"
-                >
-                  📥 Baixar PNG do Mapa Mental
-                </Button>
-              </div>
-            )}
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={gerarMapaMental}
-              disabled={mapaLoading || !texto.trim()}
-              className="flex items-center gap-2"
-            >
-              {mapaLoading ? "⏳ Gerando ilustração..." : (
-                <>
-                  <Map className="w-4 h-4" />
-                  Gerar mapa mental do roteiro
-                </>
-              )}
-            </Button>
-            {mapaErro && <p className="text-red-600 text-sm">{mapaErro}</p>}
-          </div>
+          {blocoMapaMental(false)}
 
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="button"
-              variant="primary"
-              onClick={() => gerarPdfJornada(texto, student.name)}
-              className="flex items-center justify-center gap-2"
-            >
-              📄 Baixar PDF da Jornada
-            </Button>
-            <Button
-              type="button"
-              className="bg-slate-600 text-white border-0 hover:bg-slate-700 flex items-center justify-center gap-2"
-              onClick={downloadCSV}
-            >
-              📊 Baixar CSV (importar no Sheets)
-            </Button>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <button type="button" className="omni-btn omni-btn--primario" onClick={baixarPdf}>
+              <FileText aria-hidden /> Baixar PDF da jornada
+            </button>
+            <button type="button" className="omni-btn omni-btn--secundario" onClick={downloadCSV}>
+              <Download aria-hidden /> Baixar planilha (CSV)
+            </button>
           </div>
         </div>
       )}
-    </Card>
+    </section>
   );
 }

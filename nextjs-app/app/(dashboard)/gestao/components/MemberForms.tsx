@@ -1,28 +1,123 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Edit, User, Heart, AlertTriangle } from "lucide-react";
+import { Edit, User, Heart, AlertTriangle, Check, Plus, X } from "lucide-react";
 import type { WorkspaceMember } from "../types";
 import { PERM_LABELS, LINK_OPTIONS } from "../types";
 import { PAPEIS, papelPadrao, type Papel } from "@/lib/papeis";
 
 /** Papel na escola: ao trocar, sugere as permissões e o vínculo daquele papel (onda 1). */
-function SeletorPapel({ valor, onEscolher }: { valor: Papel; onEscolher: (p: Papel) => void }) {
+function SeletorPapel({ valor, onEscolher, id = "papel-membro" }: { valor: Papel; onEscolher: (p: Papel) => void; id?: string }) {
     const atual = papelPadrao(valor);
     return (
-        <div className="space-y-1">
-            <label className="text-sm font-medium text-slate-700" htmlFor="papel-membro">Papel na escola</label>
+        <div className="omni-campo" style={{ maxWidth: "none" }}>
+            <label className="omni-campo__rotulo" htmlFor={id}>Papel na escola</label>
             <select
-                id="papel-membro"
+                id={id}
                 value={valor}
                 onChange={(e) => onEscolher(e.target.value as Papel)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                className="omni-entrada"
+                aria-describedby={`${id}-ajuda`}
             >
                 {PAPEIS.map((p) => (
                     <option key={p.id} value={p.id}>{p.nome}</option>
                 ))}
             </select>
-            <p className="text-xs text-slate-500">{atual.descricao} As permissões abaixo foram sugeridas para o papel e podem ser ajustadas.</p>
+            <p id={`${id}-ajuda`} className="omni-campo__ajuda" style={{ margin: 0 }}>{atual.descricao} As permissões abaixo foram sugeridas para o papel e podem ser ajustadas.</p>
+        </div>
+    );
+}
+
+/** Campo com rótulo visível (antes os campos só tinham placeholder). */
+function Campo({ rotulo, opcional, ajuda, children }: { rotulo: string; opcional?: boolean; ajuda?: string; children: React.ReactNode }) {
+    return (
+        <label className="omni-campo" style={{ maxWidth: "none" }}>
+            <span className="omni-campo__rotulo">
+                {rotulo}
+                {opcional && <span className="omni-campo__opcional"> (opcional)</span>}
+            </span>
+            {children}
+            {ajuda && <span className="omni-campo__ajuda">{ajuda}</span>}
+        </label>
+    );
+}
+
+/** Páginas que a pessoa pode abrir (as chaves de PERM_LABELS não mudam). */
+function EscolhaPermissoes({ marcadas, onMudar }: { marcadas: Record<string, boolean | undefined>; onMudar: (chave: string, valor: boolean) => void }) {
+    return (
+        <fieldset className="omni-escolhas">
+            <legend>Páginas que pode abrir</legend>
+            {Object.entries(PERM_LABELS).map(([key, label]) => (
+                <label key={key} className="omni-chip">
+                    <input
+                        type="checkbox"
+                        checked={marcadas[key] ?? false}
+                        onChange={(e) => onMudar(key, e.target.checked)}
+                    />
+                    <Check className="omni-chip__marca" aria-hidden />
+                    {label}
+                </label>
+            ))}
+            <p className="omni-campo__ajuda" style={{ margin: "4px 0 0", flexBasis: "100%" }}>
+                PEI: Plano Educacional Individualizado. PAEE: Plano de Atendimento Educacional Especializado.
+            </p>
+        </fieldset>
+    );
+}
+
+type Opcao = { id: string; label: string };
+type Atribuicao = { class_id: string; component_id: string };
+type EstudanteOpcao = { id: string; name: string; grade?: string; class_group?: string };
+
+/** Turmas e componentes de quem tem vínculo "por turma". */
+function VinculosTurma({ atribuicoes, setAtribuicoes, turmas, componentes }: { atribuicoes: Atribuicao[]; setAtribuicoes: (a: Atribuicao[]) => void; turmas: Opcao[]; componentes: Opcao[] }) {
+    return (
+        <div style={{ display: "grid", gap: 8, marginTop: 12 }}>
+            <p className="omni-campo__rotulo" style={{ margin: 0 }}>Turmas e componentes curriculares</p>
+            {atribuicoes.map((assignment, idx) => (
+                <div key={idx} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) auto", gap: 8, alignItems: "center" }}>
+                    <select aria-label={`Turma do vínculo ${idx + 1}`} value={assignment.class_id} onChange={(e) => { const updated = [...atribuicoes]; updated[idx] = { ...updated[idx], class_id: e.target.value }; setAtribuicoes(updated); }} className="omni-entrada">
+                        <option value="">Escolha a turma</option>
+                        {turmas.map((c) => (<option key={c.id} value={c.id}>{c.label}</option>))}
+                    </select>
+                    <select aria-label={`Componente do vínculo ${idx + 1}`} value={assignment.component_id} onChange={(e) => { const updated = [...atribuicoes]; updated[idx] = { ...updated[idx], component_id: e.target.value }; setAtribuicoes(updated); }} className="omni-entrada">
+                        <option value="">Escolha o componente</option>
+                        {componentes.map((comp) => (<option key={comp.id} value={comp.id}>{comp.label}</option>))}
+                    </select>
+                    <button type="button" aria-label={`Tirar o vínculo ${idx + 1}`} onClick={() => { setAtribuicoes(atribuicoes.filter((_, i) => i !== idx)); }} className="omni-btn omni-btn--discreto omni-btn--icone">
+                        <X aria-hidden />
+                    </button>
+                </div>
+            ))}
+            <div>
+                <button type="button" onClick={() => { setAtribuicoes([...atribuicoes, { class_id: "", component_id: "" }]); }} className="omni-btn omni-btn--discreto omni-btn--pequeno">
+                    <Plus aria-hidden /> Adicionar turma e componente
+                </button>
+            </div>
+            {turmas.length === 0 && (<p className="omni-campo__ajuda" style={{ margin: 0 }}>Primeiro, cadastre o ano letivo e as turmas em Configuração da escola.</p>)}
+        </div>
+    );
+}
+
+/** Lista de estudantes para escolher vários (tutor ou família). */
+function EscolhaEstudantes({ id, rotulo, escolhidos, setEscolhidos, estudantes }: { id: string; rotulo: string; escolhidos: string[]; setEscolhidos: (ids: string[]) => void; estudantes: EstudanteOpcao[] }) {
+    return (
+        <div className="omni-campo" style={{ maxWidth: "none", marginTop: 12 }}>
+            <label className="omni-campo__rotulo" htmlFor={id}>{rotulo}</label>
+            <select
+                id={id}
+                multiple
+                value={escolhidos}
+                onChange={(e) => { const selected = Array.from(e.target.selectedOptions, (opt) => opt.value); setEscolhidos(selected); }}
+                size={Math.min(estudantes.length || 1, 8)}
+                className="omni-entrada"
+                style={{ backgroundImage: "none", paddingRight: 12, height: "auto" }}
+                aria-describedby={`${id}-ajuda`}
+            >
+                {estudantes.map((s) => (<option key={s.id} value={s.id}>{s.name} ({s.grade || "—"} - {s.class_group || "—"})</option>))}
+            </select>
+            <p id={`${id}-ajuda`} className="omni-campo__ajuda" style={{ margin: 0 }}>{escolhidos.length > 0 ? `${escolhidos.length} estudante(s) escolhido(s)` : "Para escolher mais de um, segure Ctrl (ou Cmd no Mac) e clique."}</p>
+            {estudantes.length === 0 && (<p className="omni-campo__ajuda" style={{ margin: 0 }}>Ainda não há estudantes. Cadastre primeiro em Estudantes.</p>)}
         </div>
     );
 }
@@ -100,11 +195,11 @@ export function NovoUsuarioForm({
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         if (!nome.trim() || !email.trim()) {
-            onError("Nome e email são obrigatórios.");
+            onError("Nome e e-mail são obrigatórios.");
             return;
         }
         if (!password || password.length < 4) {
-            onError("Senha obrigatória com no mínimo 4 caracteres.");
+            onError("A senha precisa ter pelo menos 4 caracteres.");
             return;
         }
         setSaving(true);
@@ -139,78 +234,44 @@ export function NovoUsuarioForm({
     }
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <input type="text" placeholder="Nome *" value={nome} onChange={(e) => setNome(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-                    <input type="email" placeholder="Email *" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-                    <input type="password" placeholder="Senha * (mín. 4 caracteres)" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-                    <input type="text" placeholder="Telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-                    <input type="text" placeholder="Cargo (como a escola chama, ex.: Professora de Matemática)" value={cargo} onChange={(e) => setCargo(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-                    <SeletorPapel valor={papel} onEscolher={escolherPapel} />
+        <form onSubmit={handleSubmit} style={{ display: "grid", gap: 20 }} noValidate>
+            <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 20 }}>
+                <div style={{ display: "grid", gap: 12, alignContent: "start" }}>
+                    <Campo rotulo="Nome"><input type="text" autoComplete="off" value={nome} onChange={(e) => setNome(e.target.value)} className="omni-entrada" aria-required="true" /></Campo>
+                    <Campo rotulo="E-mail"><input type="email" autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} className="omni-entrada" aria-required="true" /></Campo>
+                    <Campo rotulo="Senha" ajuda="Pelo menos 4 caracteres."><input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} className="omni-entrada" aria-required="true" /></Campo>
+                    <Campo rotulo="Telefone" opcional><input type="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="omni-entrada" /></Campo>
+                    <Campo rotulo="Cargo" opcional ajuda="Como a escola chama. Ex.: Professora de Matemática."><input type="text" value={cargo} onChange={(e) => setCargo(e.target.value)} className="omni-entrada" /></Campo>
+                    <SeletorPapel valor={papel} onEscolher={escolherPapel} id="papel-novo" />
                 </div>
-                <div>
-                    <p className="text-sm font-medium text-slate-700 mb-2">Páginas que pode acessar</p>
-                    <div className="grid grid-cols-2 gap-2">
-                        {Object.entries(PERM_LABELS).map(([key, label]) => (
-                            <label key={key} className="flex items-center gap-2 text-sm">
-                                <input
-                                    type="checkbox"
-                                    checked={perms[key] ?? false}
-                                    onChange={(e) => setPerms((p) => ({ ...p, [key]: e.target.checked }))}
-                                    className="rounded border-slate-300"
-                                />
-                                {label}
-                            </label>
-                        ))}
-                    </div>
-                    <p className="text-sm font-medium text-slate-700 mt-4 mb-2">Vínculo com estudantes</p>
-                    <select
-                        value={linkType}
-                        onChange={(e) => setLinkType(e.target.value as "todos" | "turma" | "tutor")}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                    >
-                        {LINK_OPTIONS.map((o) => (
-                            <option key={o.value} value={o.value}>{o.label}</option>
-                        ))}
-                    </select>
-                    {linkType === "turma" && (
-                        <div className="mt-3 space-y-2">
-                            <p className="text-xs font-medium text-slate-700">Turmas e componentes curriculares</p>
-                            {teacherAssignments.map((assignment, idx) => (
-                                <div key={idx} className="grid grid-cols-2 gap-2">
-                                    <select value={assignment.class_id} onChange={(e) => { const updated = [...teacherAssignments]; updated[idx] = { ...updated[idx], class_id: e.target.value }; setTeacherAssignments(updated); }} className="px-2 py-1.5 border border-slate-200 rounded text-sm">
-                                        <option value="">Selecione turma</option>
-                                        {classes.map((c) => (<option key={c.id} value={c.id}>{c.label}</option>))}
-                                    </select>
-                                    <div className="flex gap-1">
-                                        <select value={assignment.component_id} onChange={(e) => { const updated = [...teacherAssignments]; updated[idx] = { ...updated[idx], component_id: e.target.value }; setTeacherAssignments(updated); }} className="flex-1 px-2 py-1.5 border border-slate-200 rounded text-sm">
-                                            <option value="">Selecione componente</option>
-                                            {components.map((comp) => (<option key={comp.id} value={comp.id}>{comp.label}</option>))}
-                                        </select>
-                                        <button type="button" onClick={() => { setTeacherAssignments(teacherAssignments.filter((_, i) => i !== idx)); }} className="px-2 py-1.5 text-red-600 hover:bg-red-50 rounded text-sm">×</button>
-                                    </div>
-                                </div>
-                            ))}
-                            <button type="button" onClick={() => { setTeacherAssignments([...teacherAssignments, { class_id: "", component_id: "" }]); }} className="text-xs text-sky-600 hover:underline">+ Adicionar vínculo turma + componente</button>
-                            {classes.length === 0 && (<p className="text-xs text-amber-600">Configure ano letivo e turmas em Configuração Escola primeiro.</p>)}
-                        </div>
-                    )}
-                    {linkType === "tutor" && (
-                        <div className="mt-3 space-y-2">
-                            <p className="text-xs font-medium text-slate-700">Estudantes de que é tutor</p>
-                            <select multiple value={studentIds} onChange={(e) => { const selected = Array.from(e.target.selectedOptions, (opt) => opt.value); setStudentIds(selected); }} size={Math.min(students.length || 1, 8)} className="w-full px-2 py-1.5 border border-slate-200 rounded text-sm">
-                                {students.map((s) => (<option key={s.id} value={s.id}>{s.name} ({s.grade || "—"} - {s.class_group || "—"})</option>))}
+                <div style={{ display: "grid", gap: 16, alignContent: "start" }}>
+                    <EscolhaPermissoes marcadas={perms} onMudar={(k, v) => setPerms((p) => ({ ...p, [k]: v }))} />
+                    <div>
+                        <Campo rotulo="Vínculo com estudantes">
+                            <select
+                                value={linkType}
+                                onChange={(e) => setLinkType(e.target.value as "todos" | "turma" | "tutor")}
+                                className="omni-entrada"
+                            >
+                                {LINK_OPTIONS.map((o) => (
+                                    <option key={o.value} value={o.value}>{o.label}</option>
+                                ))}
                             </select>
-                            <p className="text-xs text-slate-500">{studentIds.length > 0 ? `${studentIds.length} estudante(s) selecionado(s)` : "Selecione os estudantes (segure Ctrl/Cmd para múltiplos)"}</p>
-                            {students.length === 0 && (<p className="text-xs text-amber-600">Cadastre estudantes primeiro no módulo PEI ou Estudantes.</p>)}
-                        </div>
-                    )}
+                        </Campo>
+                        {linkType === "turma" && (
+                            <VinculosTurma atribuicoes={teacherAssignments} setAtribuicoes={setTeacherAssignments} turmas={classes} componentes={components} />
+                        )}
+                        {linkType === "tutor" && (
+                            <EscolhaEstudantes id="tutor-novo" rotulo="Estudantes que acompanha como tutor" escolhidos={studentIds} setEscolhidos={setStudentIds} estudantes={students} />
+                        )}
+                    </div>
                 </div>
             </div>
-            <button type="submit" disabled={saving} className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700 disabled:opacity-60">
-                {saving ? "Salvando…" : "Salvar"}
-            </button>
+            <div>
+                <button type="submit" disabled={saving} aria-busy={saving} className="omni-btn omni-btn--primario">
+                    {saving ? "Salvando…" : "Cadastrar pessoa"}
+                </button>
+            </div>
         </form>
     );
 }
@@ -307,7 +368,7 @@ export function EditarUsuarioForm({
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         if (!nome.trim() || !email.trim()) {
-            onError("Nome e email são obrigatórios.");
+            onError("Nome e e-mail são obrigatórios.");
             return;
         }
         setSaving(true);
@@ -344,75 +405,44 @@ export function EditarUsuarioForm({
     }
 
     return (
-        <div className="p-4 rounded-xl border border-sky-200 bg-sky-50/50">
-            <h4 className="font-medium text-slate-800 mb-3 flex items-center gap-2">
-                <Edit className="w-5 h-5" />
-                Editar: {member.nome}
-            </h4>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <input type="text" placeholder="Nome *" value={nome} onChange={(e) => setNome(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-                        <input type="email" placeholder="Email *" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-                        <input type="password" placeholder="Nova senha (deixe em branco para manter)" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-                        <input type="text" placeholder="Telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-                        <input type="text" placeholder="Cargo (como a escola chama)" value={cargo} onChange={(e) => setCargo(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-                        <SeletorPapel valor={papel} onEscolher={escolherPapel} />
+        <section className="omni-cartao omni-cartao--plano" aria-labelledby={`editar-${member.id}-t`} style={{ margin: 8 }}>
+            <h3 id={`editar-${member.id}-t`} className="omni-cartao__titulo" style={{ margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                <Edit aria-hidden style={{ width: 20, height: 20 }} />
+                Editar {member.nome}
+            </h3>
+            <form onSubmit={handleSubmit} style={{ display: "grid", gap: 20 }} noValidate>
+                <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 20 }}>
+                    <div style={{ display: "grid", gap: 12, alignContent: "start" }}>
+                        <Campo rotulo="Nome"><input type="text" value={nome} onChange={(e) => setNome(e.target.value)} className="omni-entrada" aria-required="true" /></Campo>
+                        <Campo rotulo="E-mail"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="omni-entrada" aria-required="true" /></Campo>
+                        <Campo rotulo="Nova senha" opcional ajuda="Deixe em branco para manter a senha atual."><input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} className="omni-entrada" /></Campo>
+                        <Campo rotulo="Telefone" opcional><input type="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="omni-entrada" /></Campo>
+                        <Campo rotulo="Cargo" opcional ajuda="Como a escola chama."><input type="text" value={cargo} onChange={(e) => setCargo(e.target.value)} className="omni-entrada" /></Campo>
+                        <SeletorPapel valor={papel} onEscolher={escolherPapel} id={`papel-${member.id}`} />
                     </div>
-                    <div>
-                        <p className="text-sm font-medium text-slate-700 mb-2">Páginas que pode acessar</p>
-                        <div className="grid grid-cols-2 gap-2">
-                            {Object.entries(PERM_LABELS).map(([key, label]) => (
-                                <label key={key} className="flex items-center gap-2 text-sm">
-                                    <input type="checkbox" checked={perms[key as keyof typeof perms]} onChange={(e) => setPerms((p) => ({ ...p, [key]: e.target.checked }))} className="rounded border-slate-300" />
-                                    {label}
-                                </label>
-                            ))}
-                        </div>
-                        <p className="text-sm font-medium text-slate-700 mt-4 mb-2">Vínculo</p>
-                        <select value={linkType} onChange={(e) => { setLinkType(e.target.value as "todos" | "turma" | "tutor"); setTeacherAssignments([]); setStudentIds([]); }} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
-                            {LINK_OPTIONS.map((o) => (<option key={o.value} value={o.value}>{o.label}</option>))}
-                        </select>
-                        {linkType === "turma" && (
-                            <div className="mt-3 space-y-2">
-                                <p className="text-xs font-medium text-slate-700">Turmas e componentes curriculares</p>
-                                {teacherAssignments.map((assignment, idx) => (
-                                    <div key={idx} className="grid grid-cols-2 gap-2">
-                                        <select value={assignment.class_id} onChange={(e) => { const updated = [...teacherAssignments]; updated[idx] = { ...updated[idx], class_id: e.target.value }; setTeacherAssignments(updated); }} className="px-2 py-1.5 border border-slate-200 rounded text-sm">
-                                            <option value="">Selecione turma</option>
-                                            {classes.map((c) => (<option key={c.id} value={c.id}>{c.label}</option>))}
-                                        </select>
-                                        <div className="flex gap-1">
-                                            <select value={assignment.component_id} onChange={(e) => { const updated = [...teacherAssignments]; updated[idx] = { ...updated[idx], component_id: e.target.value }; setTeacherAssignments(updated); }} className="flex-1 px-2 py-1.5 border border-slate-200 rounded text-sm">
-                                                <option value="">Selecione componente</option>
-                                                {components.map((comp) => (<option key={comp.id} value={comp.id}>{comp.label}</option>))}
-                                            </select>
-                                            <button type="button" onClick={() => { setTeacherAssignments(teacherAssignments.filter((_, i) => i !== idx)); }} className="px-2 py-1.5 text-red-600 hover:bg-red-50 rounded text-sm">×</button>
-                                        </div>
-                                    </div>
-                                ))}
-                                <button type="button" onClick={() => { setTeacherAssignments([...teacherAssignments, { class_id: "", component_id: "" }]); }} className="text-xs text-sky-600 hover:underline">+ Adicionar vínculo turma + componente</button>
-                                {classes.length === 0 && (<p className="text-xs text-amber-600">Configure ano letivo e turmas em Configuração Escola primeiro.</p>)}
-                            </div>
-                        )}
-                        {linkType === "tutor" && (
-                            <div className="mt-3 space-y-2">
-                                <p className="text-xs font-medium text-slate-700">Estudantes de que é tutor</p>
-                                <select multiple value={studentIds} onChange={(e) => { const selected = Array.from(e.target.selectedOptions, (opt) => opt.value); setStudentIds(selected); }} size={Math.min(students.length || 1, 8)} className="w-full px-2 py-1.5 border border-slate-200 rounded text-sm">
-                                    {students.map((s) => (<option key={s.id} value={s.id}>{s.name} ({s.grade || "—"} - {s.class_group || "—"})</option>))}
+                    <div style={{ display: "grid", gap: 16, alignContent: "start" }}>
+                        <EscolhaPermissoes marcadas={perms} onMudar={(k, v) => setPerms((p) => ({ ...p, [k]: v }))} />
+                        <div>
+                            <Campo rotulo="Vínculo com estudantes">
+                                <select value={linkType} onChange={(e) => { setLinkType(e.target.value as "todos" | "turma" | "tutor"); setTeacherAssignments([]); setStudentIds([]); }} className="omni-entrada">
+                                    {LINK_OPTIONS.map((o) => (<option key={o.value} value={o.value}>{o.label}</option>))}
                                 </select>
-                                <p className="text-xs text-slate-500">{studentIds.length > 0 ? `${studentIds.length} estudante(s) selecionado(s)` : "Selecione os estudantes (segure Ctrl/Cmd para múltiplos)"}</p>
-                                {students.length === 0 && (<p className="text-xs text-amber-600">Cadastre estudantes primeiro no módulo PEI ou Estudantes.</p>)}
-                            </div>
-                        )}
+                            </Campo>
+                            {linkType === "turma" && (
+                                <VinculosTurma atribuicoes={teacherAssignments} setAtribuicoes={setTeacherAssignments} turmas={classes} componentes={components} />
+                            )}
+                            {linkType === "tutor" && (
+                                <EscolhaEstudantes id={`tutor-${member.id}`} rotulo="Estudantes que acompanha como tutor" escolhidos={studentIds} setEscolhidos={setStudentIds} estudantes={students} />
+                            )}
+                        </div>
                     </div>
                 </div>
-                <div className="flex gap-2">
-                    <button type="submit" disabled={saving} className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm hover:bg-sky-700 disabled:opacity-60">{saving ? "Salvando…" : "Salvar alterações"}</button>
-                    <button type="button" onClick={onCancel} className="px-4 py-2 border border-slate-200 rounded-lg text-sm hover:bg-slate-50">Cancelar</button>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    <button type="submit" disabled={saving} aria-busy={saving} className="omni-btn omni-btn--primario">{saving ? "Salvando…" : "Salvar alterações"}</button>
+                    <button type="button" onClick={onCancel} className="omni-btn omni-btn--secundario">Cancelar</button>
                 </div>
             </form>
-        </div>
+        </section>
     );
 }
 
@@ -426,30 +456,18 @@ export function NovoUsuarioUnificado({
     const [tipo, setTipo] = useState<"membro" | "familia">("membro");
 
     return (
-        <div className="space-y-4">
-            <div className="flex gap-2">
-                <button
-                    type="button"
-                    onClick={() => setTipo("membro")}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tipo === "membro"
-                        ? "bg-sky-600 text-white"
-                        : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-                        }`}
-                >
-                    <User className="w-4 h-4 inline mr-1.5" />
-                    Membro / Professor
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setTipo("familia")}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tipo === "familia"
-                        ? "bg-amber-600 text-white"
-                        : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-                        }`}
-                >
-                    <Heart className="w-4 h-4 inline mr-1.5" />
-                    Família / Responsável
-                </button>
+        <div style={{ display: "grid", gap: 16 }}>
+            <div className="omni-segmentado" role="radiogroup" aria-label="Quem você vai cadastrar" style={{ justifySelf: "start" }}>
+                <label>
+                    <input type="radio" name="tipo-cadastro" value="membro" checked={tipo === "membro"} onChange={() => setTipo("membro")} />
+                    <User aria-hidden style={{ width: 16, height: 16, marginRight: 6 }} />
+                    Equipe da escola
+                </label>
+                <label>
+                    <input type="radio" name="tipo-cadastro" value="familia" checked={tipo === "familia"} onChange={() => setTipo("familia")} />
+                    <Heart aria-hidden style={{ width: 16, height: 16, marginRight: 6 }} />
+                    Família
+                </label>
             </div>
 
             {tipo === "membro" ? (
@@ -501,7 +519,7 @@ export function NovoFamiliaForm({
             return;
         }
         if (senha.length < 4) {
-            onError("Senha deve ter no mínimo 4 caracteres.");
+            onError("A senha precisa ter pelo menos 4 caracteres.");
             return;
         }
         setSaving(true);
@@ -532,38 +550,31 @@ export function NovoFamiliaForm({
     }
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <input type="text" placeholder="Nome completo *" value={nome} onChange={(e) => setNome(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-                    <input type="email" placeholder="Email *" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-                    <input type="password" placeholder="Senha * (mín. 4 caracteres)" value={senha} onChange={(e) => setSenha(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-                    <input type="text" placeholder="Telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
-                    <input type="text" placeholder="Parentesco (Mãe, Pai, Avó, Tutor...)" value={parentesco} onChange={(e) => setParentesco(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+        <form onSubmit={handleSubmit} style={{ display: "grid", gap: 20 }} noValidate>
+            <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 20 }}>
+                <div style={{ display: "grid", gap: 12, alignContent: "start" }}>
+                    <Campo rotulo="Nome completo"><input type="text" autoComplete="off" value={nome} onChange={(e) => setNome(e.target.value)} className="omni-entrada" aria-required="true" /></Campo>
+                    <Campo rotulo="E-mail"><input type="email" autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} className="omni-entrada" aria-required="true" /></Campo>
+                    <Campo rotulo="Senha" ajuda="Pelo menos 4 caracteres."><input type="password" autoComplete="new-password" value={senha} onChange={(e) => setSenha(e.target.value)} className="omni-entrada" aria-required="true" /></Campo>
+                    <Campo rotulo="Telefone" opcional><input type="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="omni-entrada" /></Campo>
+                    <Campo rotulo="Parentesco" opcional ajuda="Ex.: mãe, pai, avó, tutor."><input type="text" value={parentesco} onChange={(e) => setParentesco(e.target.value)} className="omni-entrada" /></Campo>
                 </div>
-                <div>
-                    <p className="text-sm font-medium text-slate-700 mb-2">Vincular a estudante(s)</p>
-                    <select
-                        multiple
-                        value={studentIds}
-                        onChange={(e) => { const selected = Array.from(e.target.selectedOptions, (opt) => opt.value); setStudentIds(selected); }}
-                        size={Math.min(students.length || 1, 8)}
-                        className="w-full px-2 py-1.5 border border-slate-200 rounded text-sm"
-                    >
-                        {students.map((s) => (<option key={s.id} value={s.id}>{s.name} ({s.grade || "—"} - {s.class_group || "—"})</option>))}
-                    </select>
-                    <p className="text-xs text-slate-500 mt-1">{studentIds.length > 0 ? `${studentIds.length} estudante(s) selecionado(s)` : "Selecione os estudantes (segure Ctrl/Cmd para múltiplos)"}</p>
-                    {students.length === 0 && (<p className="text-xs text-amber-600 mt-1">Cadastre estudantes primeiro no módulo PEI ou Estudantes.</p>)}
-                    <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                        <p className="text-xs text-amber-800">
-                            <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
-                            O responsável poderá acessar a área <strong>Família</strong> usando este e-mail e senha.
-                            Envie as credenciais por canal seguro.
-                        </p>
+                <div style={{ display: "grid", gap: 16, alignContent: "start" }}>
+                    <EscolhaEstudantes id="familia-estudantes" rotulo="Estudantes desta família" escolhidos={studentIds} setEscolhidos={setStudentIds} estudantes={students} />
+                    <div className="omni-aviso omni-aviso--atencao" role="note" style={{ maxWidth: "none" }}>
+                        <AlertTriangle className="omni-aviso__icone" aria-hidden />
+                        <div>
+                            <div className="omni-aviso__texto" style={{ marginTop: 0 }}>
+                                O responsável entra na área <strong>Família</strong> com este e-mail e esta senha.
+                                Envie os dados de acesso por um canal seguro.
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <button type="submit" disabled={saving} className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm hover:bg-amber-700 disabled:opacity-60">{saving ? "Cadastrando…" : "Cadastrar responsável"}</button>
+            <div>
+                <button type="submit" disabled={saving} aria-busy={saving} className="omni-btn omni-btn--primario">{saving ? "Cadastrando…" : "Cadastrar responsável"}</button>
+            </div>
         </form>
     );
 }

@@ -11,6 +11,7 @@ import Link from "next/link";
 import { Check } from "lucide-react";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 import { componenteOficial, lerSerie, type DescritorAvaliado } from "@/lib/matriz-avaliacao";
+import { EvolucaoDescritores, NOME_PERIODO } from "@/components/avaliacao/EvolucaoDescritores";
 
 type Estudante = { id: string; name: string; grade?: string | null };
 type Diagnostica = { id: string; disciplina: string; matriz: string; matriz_versao: string | null; descritores: DescritorAvaliado[]; nivel: number | null; concluida_em: string | null };
@@ -18,9 +19,7 @@ type Hab = { codigo_omni?: string; codigo_bncc?: string; descricao?: string; niv
 type Registro = { id: string; disciplina: string; bimestre: number; tipo_periodo: string; ano_letivo: number; habilidades: Hab[]; observacao_geral?: string; matriz?: string };
 
 const NIVEIS = [0, 1, 2, 3, 4] as const;
-const NOME_PERIODO: Record<string, string> = { bimestral: "bimestre", trimestral: "trimestre", semestral: "semestre" };
 const MAX: Record<string, number> = { bimestral: 4, trimestral: 3, semestral: 2 };
-const tom = (n: number | null | undefined) => (n == null ? "neutro" : n <= 1 ? "erro" : n === 2 ? "atencao" : "sucesso");
 
 export default function ProcessualOmni({ estudantes, inicial }: { estudantes: Estudante[]; inicial?: { student?: string | null; disciplina?: string | null } }) {
   const [studentId, setStudentId] = useState(inicial?.student || "");
@@ -86,43 +85,11 @@ export default function ProcessualOmni({ estudantes, inicial }: { estudantes: Es
 
       {estudante && diag && (
         <>
-          <Evolucao diag={diag} registros={registros} />
+          <EvolucaoDescritores diag={diag} registros={registros} />
           <Registrar estudante={estudante} diag={diag} registros={registros} onSalvo={carregarRegistros} />
         </>
       )}
     </div>
-  );
-}
-
-/** Tabela descritor × período: diagnóstica e cada registro, com o nível em chip. */
-function Evolucao({ diag, registros }: { diag: Diagnostica; registros: Registro[] }) {
-  const colunas = registros.map((r) => ({ chave: r.id, rotulo: `${r.bimestre}º ${NOME_PERIODO[r.tipo_periodo] || "período"} ${r.ano_letivo}`, mapa: new Map(r.habilidades.map((h) => [String(h.codigo_omni || h.codigo_bncc), h.nivel_atual])) }));
-  return (
-    <section style={{ display: "grid", gap: 8 }} aria-labelledby="proc-evolucao">
-      <h2 id="proc-evolucao" style={{ margin: 0, font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" }}>Evolução em {diag.disciplina}</h2>
-      <p className="omni-apoio" style={{ margin: 0 }}>Da diagnóstica ({new Date(diag.concluida_em!).toLocaleDateString("pt-BR")}) até o último registro. Subir na escala = precisar de menos apoio.</p>
-      <div className="omni-tabela-caixa">
-        <table className="omni-tabela">
-          <thead><tr><th>Descritor</th><th>Diagnóstica</th>{colunas.map((c) => <th key={c.chave}>{c.rotulo}</th>)}</tr></thead>
-          <tbody>
-            {diag.descritores.map((d) => {
-              const ultimo = [...colunas].reverse().map((c) => c.mapa.get(d.codigo)).find((n) => typeof n === "number");
-              const delta = typeof ultimo === "number" && typeof d.nivel === "number" ? ultimo - d.nivel : null;
-              return (
-                <tr key={d.codigo}>
-                  <td><span style={{ fontWeight: 600 }}>{d.descritor}</span><span className="omni-tabela__sub">{d.codigo}{delta !== null && delta !== 0 ? ` · ${delta > 0 ? `subiu ${delta}` : `caiu ${-delta}`}` : ""}</span></td>
-                  <td><span className={`omni-estado omni-estado--${tom(d.nivel)}`}>{d.nivel ?? "—"}</span></td>
-                  {colunas.map((c) => {
-                    const n = c.mapa.get(d.codigo);
-                    return <td key={c.chave}><span className={`omni-estado omni-estado--${tom(n)}`}>{n ?? "—"}</span></td>;
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </section>
   );
 }
 

@@ -79,7 +79,8 @@ export async function POST(req: Request) {
   const registro = {
     workspace_id: session!.workspace_id,
     student_id: r.estudante.id,
-    professor_id: memberIdDaSessao(session) || null,
+    // a coluna é obrigatória: sem membro (conta da coordenação), usa a escola, como a rota antiga
+    professor_id: memberIdDaSessao(session) || session!.workspace_id,
     disciplina,
     bimestre: periodo,
     tipo_periodo: tipo,

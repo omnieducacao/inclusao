@@ -28,7 +28,7 @@ export default async function PAEEPage({ searchParams }: Props) {
       <div className="space-y-6">
         <PageHero moduleKey="paee" serverConfig={adminConfig}
           title="PAEE"
-          desc="Atendimento Educacional Especializado — Planeje e implemente estratégias de AEE para eliminação de barreiras"
+          desc="Plano de Atendimento Educacional Especializado: o ciclo do AEE (Atendimento Educacional Especializado) para tirar as barreiras do estudante."
         />
 
         <PAEEClient

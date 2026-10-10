@@ -11,7 +11,7 @@ export default async function PGIPage() {
       <div className="space-y-6">
         <PageHero moduleKey="pgi" serverConfig={adminConfig}
           title="PGI"
-          desc="Estruture o acolhimento antes da matrícula. Organize sua escola nos eixos de Infraestrutura, Equipe e Cultura."
+          desc="Plano de Gestão Inclusiva: o acolhimento antes da matrícula e o plano da escola nos eixos de infraestrutura, equipe e cultura."
         />
         <PGIClient />
       </div>

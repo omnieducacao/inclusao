@@ -4,26 +4,18 @@ import { useState, useCallback, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { CabecalhoEstudante, EscolherEstudante } from "@/components/estudante/CabecalhoEstudante";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
-import { EngineSelector } from "@/components/EngineSelector";
-import { PdfDownloadButton } from "@/components/PdfDownloadButton";
-import { DocxDownloadButton } from "@/components/DocxDownloadButton";
-import { getColorClasses } from "@/lib/colors";
-import { gerarPdfJornada } from "@/lib/paee-pdf-export";
-import type { CicloPAEE, MetaPei, ConfigCiclo } from "@/lib/paee";
+import type { CicloPAEE, MetaPei } from "@/lib/paee";
 import type { EngineId } from "@/lib/ai-engines";
 import {
   extrairMetasDoPei,
   criarCronogramaBasico,
   fmtDataIso,
   badgeStatus,
-  FREQUENCIAS,
 } from "@/lib/paee";
-import { LISTAS_BARREIRAS, NIVEIS_SUPORTE } from "@/lib/pei";
-import { Map, AlertTriangle, Target, Puzzle, Users, Search, FileText, ExternalLink } from "lucide-react";
+import { AlertTriangle, Target, Search, FileText } from "lucide-react";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { ResumoAnexosEstudante } from "@/components/ResumoAnexosEstudante";
-import { OmniLoader } from "@/components/OmniLoader";
 import { JornadaTab } from "./components/JornadaTab";
 import { FormPlanejamento } from "./components/FormPlanejamento";
 import { FormExecucao } from "./components/FormExecucao";
@@ -32,11 +24,9 @@ import { MapearBarreirasTab } from "./components/MapearBarreirasTab";
 import { PlanoHabilidadesTab } from "./components/PlanoHabilidadesTab";
 import { TecAssistivaTab } from "./components/TecAssistivaTab";
 import { ArticulacaoTab } from "./components/ArticulacaoTab";
-import { NivelSuporteRange } from "./components/NivelSuporteRange";
 
 import { useStudentMutation } from "@/hooks/useStudentMutation";
 import { useStudentRealtime } from "@/hooks/useStudentRealtime";
-import { Card, Button, Select } from "@omni/ds";
 
 type Student = { id: string; name: string; grade?: string | null; class_group?: string | null };
 type StudentFull = Student & {
@@ -114,8 +104,6 @@ function PAEEClientInner({ students, studentId, student }: Props) {
     }
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const ciclos = (student?.paee_ciclos || []) as CicloPAEE[];
 
   // Carregar dados do PAEE quando o estudante mudar
@@ -331,6 +319,9 @@ function PAEEClientInner({ students, studentId, student }: Props) {
         };
         return (
           <>
+            <p className="omni-apoio" style={{ margin: 0 }}>
+              O PAEE (Plano de Atendimento Educacional Especializado) organiza o AEE (Atendimento Educacional Especializado) do estudante em quatro fases.
+            </p>
             <nav aria-label="Ciclo do AEE">
               <ol className="omni-passos">
                 {FASES_AEE.map((f) => {
@@ -422,78 +413,74 @@ function PAEEClientInner({ students, studentId, student }: Props) {
       )}
 
       {student && activeTab === "planejamento" && (
-        <Card padding="none" className="p-6">
-          {/* Header da aba */}
-          <div className="flex items-start gap-4 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-linear-to-br from-(--module-primary-soft) to-(--module-primary)/10 flex items-center justify-center shrink-0">
-              <Search className="w-6 h-6 text-(--module-primary)" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-2xl font-black text-slate-900 mb-2">Planejamento AEE</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                <strong className="text-(--module-primary)">Documento de referência:</strong> Registro pedagógico do ciclo de atendimento
-                com objetivos, período, recursos e cronograma geral em <strong>fases</strong> (visão macro). Este documento serve
-                {/* eslint-disable-next-line react/no-unescaped-entities */}
-                {/* eslint-disable-next-line react/no-unescaped-entities */}
-                como referência para o planejamento geral do AEE. Use "Definir como ciclo ativo" para referência em outras abas.
+        <section className="omni-cartao" aria-labelledby="paee-ciclo-titulo">
+          <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+            <Search aria-hidden style={{ width: 22, height: 22, color: "var(--acao)", flexShrink: 0, marginTop: 2 }} />
+            <div style={{ display: "grid", gap: 6 }}>
+              <h2 id="paee-ciclo-titulo" className="omni-cartao__titulo" style={{ margin: 0, font: "800 18px/24px var(--font-sans)" }}>Ciclo do AEE</h2>
+              <p className="omni-cartao__texto" style={{ margin: 0 }}>
+                O documento de referência do atendimento: objetivos, período, recursos e cronograma em fases (visão geral).
+                Use &quot;Definir como ativo&quot; para que as outras partes do PAEE usem este ciclo.
               </p>
-              <p className="text-xs text-(--module-primary) mt-3 font-medium bg-(--module-primary-soft) px-3 py-2 rounded-lg border border-(--module-primary)/20">
-                💡 Para metas SMART, acompanhamento por semanas e Jornada Gamificada, use a aba <strong>Execução e Metas SMART</strong>.
+              <p className="omni-apoio" style={{ margin: 0 }}>
+                Para metas semana a semana e a jornada do estudante, use a parte <strong>Execução e metas</strong>.
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-emerald-500 rounded-full"></span>
-                Histórico de ciclos de planejamento
-              </h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: 24 }}>
+            <div style={{ display: "grid", gap: 16, alignContent: "start" }}>
+              <h3 style={{ margin: 0, font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>Ciclos já feitos</h3>
               {cicloAtivoPlanejamento && (
-                <div className="p-4 rounded-lg border border-emerald-200 bg-emerald-50">
-                  <div className="text-sm font-semibold text-emerald-800">Ciclo ativo</div>
-                  <div className="text-slate-700 mt-1">
+                <div className="omni-cartao omni-cartao--plano" style={{ padding: 16, gap: 4 }}>
+                  <span className="omni-estado omni-estado--sucesso" style={{ alignSelf: "flex-start" }}>Ciclo ativo</span>
+                  <div style={{ color: "var(--tinta)" }}>
                     Foco: {cicloAtivoPlanejamento.config_ciclo?.foco_principal || "—"}
                   </div>
-                  <div className="text-slate-600 text-sm">
-                    {fmtDataIso(cicloAtivoPlanejamento.config_ciclo?.data_inicio)} → {fmtDataIso(cicloAtivoPlanejamento.config_ciclo?.data_fim)}
+                  <div className="omni-apoio">
+                    {fmtDataIso(cicloAtivoPlanejamento.config_ciclo?.data_inicio)} a {fmtDataIso(cicloAtivoPlanejamento.config_ciclo?.data_fim)}
                   </div>
                 </div>
               )}
               {ciclosPlanejamento.length > 0 && (
-                <Select
-                  value={cicloSelecionadoPlanejamento?.ciclo_id || ""}
-                  onChange={(e) => {
-                    const c = ciclosPlanejamento.find((x) => x.ciclo_id === e.target.value);
-                    setCicloSelecionadoPlanejamento(c || null);
-                    setCicloPreview(null);
-                  }}
-                  className="w-full"
-                  options={[
-                    { value: "", label: "Selecione um ciclo" },
-                    ...ciclosPlanejamento.map((c) => {
-                      const [ic] = badgeStatus(c.status || "rascunho");
+                <label className="omni-campo">
+                  <span className="omni-campo__rotulo">Escolher um ciclo</span>
+                  <select
+                    className="omni-entrada"
+                    style={{ maxWidth: "none" }}
+                    value={cicloSelecionadoPlanejamento?.ciclo_id || ""}
+                    onChange={(e) => {
+                      const c = ciclosPlanejamento.find((x) => x.ciclo_id === e.target.value);
+                      setCicloSelecionadoPlanejamento(c || null);
+                      setCicloPreview(null);
+                    }}
+                  >
+                    <option value="">Selecione um ciclo</option>
+                    {ciclosPlanejamento.map((c) => {
+                      const [estado] = badgeStatus(c.status || "rascunho");
                       const cfg = c.config_ciclo || {};
-                      return {
-                        value: String(c.ciclo_id),
-                        label: `${ic} ${cfg.foco_principal || "Ciclo"} • ${fmtDataIso(cfg.data_inicio)} • v${c.versao || 1}`
-                      };
-                    })
-                  ]}
-                />
+                      return (
+                        <option key={String(c.ciclo_id)} value={String(c.ciclo_id)}>
+                          {`${cfg.foco_principal || "Ciclo"} · ${fmtDataIso(cfg.data_inicio)} · versão ${c.versao || 1} · ${estado}`}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </label>
               )}
               {ciclosPlanejamento.length > 0 && cicloSelecionadoPlanejamento?.ciclo_id && (
-                <div className="flex gap-2">
-                  <Button
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  <button
                     type="button"
-                    className="text-white border-0 bg-emerald-600 hover:bg-emerald-700 text-sm"
-                    size="sm"
+                    className="omni-btn omni-btn--secundario omni-btn--pequeno"
                     onClick={() => definirCicloAtivo(cicloSelecionadoPlanejamento.ciclo_id!)}
                   >
                     Definir como ativo
-                  </Button>
-                  <Button
+                  </button>
+                  <button
                     type="button"
+                    className="omni-btn omni-btn--primario omni-btn--pequeno"
                     disabled={relLoading}
+                    aria-busy={relLoading}
                     onClick={async () => {
                       setRelLoading(true);
                       setRelErro(null);
@@ -519,11 +506,9 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                         aiLoadingStop();
                       }
                     }}
-                    className="text-white border-0 bg-(--module-primary) hover:brightness-110 flex items-center gap-1.5 text-sm"
-                    size="sm"
                   >
-                    {relLoading ? "Gerando..." : "📊 Relatório do Ciclo"}
-                  </Button>
+                    <FileText aria-hidden /> {relLoading ? "Gerando…" : "Relatório do ciclo"}
+                  </button>
                 </div>
               )}
               {relErro && (
@@ -534,20 +519,19 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                 </div>
               )}
               {relatorio && (
-                <div className="mt-4 p-5 rounded-xl bg-(--module-primary-soft) border border-(--module-primary)/20">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-bold text-(--module-text) flex items-center gap-2">📊 Relatório do Ciclo</h4>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => setRelatorio(null)} className="text-(--module-primary)/70 hover:text-(--module-primary) hover:bg-(--module-primary-soft)">Fechar</Button>
+                <div className="omni-resultado">
+                  <div className="omni-resultado__topo">
+                    <h4 style={{ margin: 0, font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>Relatório do ciclo</h4>
+                    <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" onClick={() => setRelatorio(null)}>Fechar</button>
                   </div>
-                  <div className="prose prose-sm max-w-none text-slate-700 whitespace-pre-wrap">{relatorio}</div>
+                  <div className="omni-resultado__texto">
+                    <FormattedTextDisplay texto={relatorio} />
+                  </div>
                 </div>
               )}
 
-              <div className="pt-4 border-t border-(--module-primary)/20">
-                <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <span className="w-1 h-6 bg-emerald-500 rounded-full"></span>
-                  Gerar novo ciclo
-                </h3>
+              <div style={{ display: "grid", gap: 12, paddingTop: 16, borderTop: "1px solid var(--borda)" }}>
+                <h3 style={{ margin: 0, font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>Gerar novo ciclo</h3>
                 <FormPlanejamento
                   metasPei={metasPei}
                   hiperfoco={hiperfoco}
@@ -556,106 +540,93 @@ function PAEEClientInner({ students, studentId, student }: Props) {
               </div>
             </div>
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-emerald-500 rounded-full"></span>
-                Visualização
-              </h3>
+            <div style={{ display: "grid", gap: 16, alignContent: "start" }}>
+              <h3 style={{ margin: 0, font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>Prévia do ciclo</h3>
               {cicloParaVerPlanejamento ? (
                 <CicloCard ciclo={cicloParaVerPlanejamento} onSalvar={cicloPreview?.tipo === "planejamento_aee" ? () => saveCiclo(cicloParaVerPlanejamento) : undefined} saving={savingCiclo} onLimpar={() => setCicloPreview(null)} />
               ) : (
-                <div className="p-6 rounded-lg border border-slate-200 bg-slate-50 text-slate-500">
-                  Selecione um ciclo ou gere um novo.
+                <div className="omni-vazio">
+                  <div className="omni-vazio__texto">Escolha um ciclo ou gere um novo.</div>
                 </div>
               )}
             </div>
           </div>
-        </Card>
+        </section>
       )}
 
       {student && activeTab === "execucao" && (
-        <Card padding="none" className="p-6">
-          {/* Header da aba */}
-          <div className="flex items-start gap-4 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-linear-to-br from-(--module-primary-soft) to-(--module-primary)/10 flex items-center justify-center shrink-0">
-              <Target className="w-6 h-6 text-(--module-primary)" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-2xl font-black text-slate-900 mb-2">Execução e Metas SMART</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                <strong className="text-(--module-primary)">Norteador operacional:</strong> Plano de execução e acompanhamento com metas
-                desdobradas em SMART, ações por <strong>semana</strong> e registro do que foi cumprido. Este ciclo alimenta a
-                <strong> Jornada Gamificada</strong> do estudante e serve como guia prático para a execução do trabalho no AEE.
+        <section className="omni-cartao" aria-labelledby="paee-execucao-titulo">
+          <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+            <Target aria-hidden style={{ width: 22, height: 22, color: "var(--acao)", flexShrink: 0, marginTop: 2 }} />
+            <div style={{ display: "grid", gap: 6 }}>
+              <h2 id="paee-execucao-titulo" className="omni-cartao__titulo" style={{ margin: 0, font: "800 18px/24px var(--font-sans)" }}>Execução e metas</h2>
+              <p className="omni-cartao__texto" style={{ margin: 0 }}>
+                O guia prático do atendimento: metas SMART (específicas, mensuráveis, alcançáveis, relevantes e com prazo),
+                ações por <strong>semana</strong> e registro do que foi feito. Este ciclo alimenta a jornada do estudante.
               </p>
-              <p className="text-xs text-(--module-primary) mt-3 font-medium bg-(--module-primary-soft) px-3 py-2 rounded-lg border border-(--module-primary)/20">
-                💡 Para documento de planejamento geral (objetivos, período, recursos, cronograma em fases), use a aba <strong>Planejamento AEE</strong>.
+              <p className="omni-apoio" style={{ margin: 0 }}>
+                Para o planejamento geral (objetivos, período, recursos e cronograma em fases), use a parte <strong>Ciclo do AEE</strong>.
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-emerald-500 rounded-full"></span>
-                Histórico de ciclos de execução
-              </h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: 24 }}>
+            <div style={{ display: "grid", gap: 16, alignContent: "start" }}>
+              <h3 style={{ margin: 0, font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>Ciclos de execução já feitos</h3>
               {ciclosExecucao.length > 0 && (
                 <>
-                  <Select
-                    value={cicloSelecionadoExecucao?.ciclo_id || ""}
-                    onChange={(e) => {
-                      const c = ciclosExecucao.find((x) => x.ciclo_id === e.target.value);
-                      setCicloSelecionadoExecucao(c || null);
-                      setCicloPreview(null);
-                    }}
-                    className="w-full"
-                    options={[
-                      { value: "", label: "Selecione um ciclo" },
-                      ...ciclosExecucao.map((c) => {
+                  <label className="omni-campo">
+                    <span className="omni-campo__rotulo">Escolher um ciclo</span>
+                    <select
+                      className="omni-entrada"
+                      style={{ maxWidth: "none" }}
+                      value={cicloSelecionadoExecucao?.ciclo_id || ""}
+                      onChange={(e) => {
+                        const c = ciclosExecucao.find((x) => x.ciclo_id === e.target.value);
+                        setCicloSelecionadoExecucao(c || null);
+                        setCicloPreview(null);
+                      }}
+                    >
+                      <option value="">Selecione um ciclo</option>
+                      {ciclosExecucao.map((c) => {
                         const cfg = c.config_ciclo || {};
-                        return {
-                          value: String(c.ciclo_id),
-                          label: `${cfg.foco_principal || "Ciclo"} • ${fmtDataIso(cfg.data_inicio)}`
-                        };
-                      })
-                    ]}
-                  />
+                        return (
+                          <option key={String(c.ciclo_id)} value={String(c.ciclo_id)}>
+                            {`${cfg.foco_principal || "Ciclo"} · ${fmtDataIso(cfg.data_inicio)}`}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </label>
                   {cicloSelecionadoExecucao?.ciclo_id && (
-                    <div className="flex gap-2 mt-2">
-                      <Button
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
                         type="button"
-                        className="text-white border-0 bg-emerald-600 hover:bg-emerald-700 text-sm"
-                        size="sm"
+                        className="omni-btn omni-btn--secundario omni-btn--pequeno"
                         onClick={() => definirCicloAtivo(cicloSelecionadoExecucao.ciclo_id!)}
                       >
                         Definir como ativo
-                      </Button>
+                      </button>
                     </div>
                   )}
                 </>
               )}
-              <div className="pt-4 border-t border-(--module-primary)/20">
-                <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <span className="w-1 h-6 bg-emerald-500 rounded-full"></span>
-                  Gerar ciclo de execução
-                </h3>
+              <div style={{ display: "grid", gap: 12, paddingTop: 16, borderTop: "1px solid var(--borda)" }}>
+                <h3 style={{ margin: 0, font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>Gerar ciclo de execução</h3>
                 <FormExecucao metasPei={metasPei} onGerar={gerarPreviewExecucao} />
               </div>
             </div>
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-emerald-500 rounded-full"></span>
-                Visualização
-              </h3>
+            <div style={{ display: "grid", gap: 16, alignContent: "start" }}>
+              <h3 style={{ margin: 0, font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>Prévia do ciclo</h3>
               {cicloParaVerExecucao ? (
                 <CicloCard ciclo={cicloParaVerExecucao} onSalvar={cicloPreview?.tipo === "execucao_smart" ? () => saveCiclo(cicloParaVerExecucao) : undefined} saving={savingCiclo} onLimpar={() => setCicloPreview(null)} />
               ) : (
-                <div className="p-6 rounded-lg border border-slate-200 bg-slate-50 text-slate-500">
-                  Gere um ciclo de execução à esquerda.
+                <div className="omni-vazio">
+                  <div className="omni-vazio__texto">Gere um ciclo de execução para ver a prévia aqui.</div>
                 </div>
               )}
             </div>
           </div>
-        </Card>
+        </section>
       )}
 
       {student && activeTab === "jornada" && (
@@ -695,10 +666,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
 export function PAEEClient({ students, studentId, student }: Props) {
   return (
     <Suspense fallback={
-      <div className="space-y-4">
-        <div className="h-10 bg-slate-100 rounded-lg animate-pulse" />
-        <div className="text-slate-500 text-center py-8">Carregando...</div>
-      </div>
+      <p className="omni-apoio" role="status" style={{ textAlign: "center", padding: "32px 0" }}>Carregando…</p>
     }>
       <PAEEClientInner key={studentId ?? "nenhum"} students={students} studentId={studentId} student={student} />
     </Suspense>

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent, Button } from "@omni/ds";
-import { BarChart3, Download, FileText, Sparkles } from "lucide-react";
+import { BarChart3, Copy, Download, FileText, Sparkles } from "lucide-react";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
+import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
+import { baixarPdfDiario, calcularResumoDiario } from "@/lib/diario-pdf";
 import {
     BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar, ResponsiveContainer,
     PieChart, Pie, Cell, LineChart, Line
@@ -51,6 +52,7 @@ function AnaliseIADiario({ registros, student }: { registros: RegistroDiario[]; 
     const [loading, setLoading] = useState(false);
     const [resultado, setResultado] = useState<string | null>(null);
     const [erro, setErro] = useState<string | null>(null);
+    const [copiado, setCopiado] = useState(false);
 
     const gerar = async () => {
         setLoading(true); setErro(null); setResultado(null);
@@ -90,59 +92,86 @@ function AnaliseIADiario({ registros, student }: { registros: RegistroDiario[]; 
         }
     };
 
+    const copiar = async () => {
+        if (!resultado) return;
+        try {
+            await navigator.clipboard.writeText(resultado);
+            setCopiado(true);
+            setTimeout(() => setCopiado(false), 2000);
+        } catch { /* sem permissão para copiar: o texto continua na tela */ }
+    };
+
     if (registros.length < 2) return null;
 
     return (
-        <Card variant="premium">
-            <CardHeader className="pb-2">
-                <div className="flex justify-between items-center">
-                    <CardTitle className="text-xl flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-violet-600" />
-                        Análise IA dos Registros
-                    </CardTitle>
-                    <Button
-                        type="button"
-                        onClick={gerar}
-                        disabled={loading}
-                        loading={loading}
-                        variant="module"
-                        moduleColor="violet"
-                        size="sm"
-                        className="flex items-center gap-2"
-                    >
-                        {!loading && <Sparkles className="w-4 h-4" />}
-                        {loading ? "Analisando..." : "Analisar com IA"}
-                    </Button>
-                </div>
-            </CardHeader>
-            <CardContent>
-                <p className="text-sm text-slate-500 mb-4 mt-2">
-                    A IA analisa os registros e identifica tendências de engajamento, competências em progresso, alertas e recomendações práticas.
-                </p>
-                {erro && <p className="text-red-600 text-sm mb-3">❌ {erro}</p>}
-                {resultado && (
-                    <div className="p-5 rounded-xl bg-linear-to-br from-violet-50 to-slate-50 border border-violet-200">
-                        <div className="flex justify-end mb-2">
-                            <button
-                                type="button"
-                                onClick={() => navigator.clipboard.writeText(resultado)}
-                                className="px-3 py-1 text-xs bg-violet-100 text-violet-700 rounded hover:bg-violet-200 transition-colors"
-                            >
-                                📋 Copiar
-                            </button>
-                        </div>
-                        <div className="prose prose-sm prose-violet max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap">
-                            {resultado}
-                        </div>
+        <section className="omni-cartao" aria-labelledby="diario-analise">
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+                <h2 id="diario-analise" className="omni-cartao__titulo" style={{ margin: 0 }}>Análise da IA</h2>
+                <button type="button" className="omni-btn omni-btn--secundario omni-btn--pequeno" onClick={gerar} disabled={loading} aria-busy={loading}>
+                    <Sparkles className="w-4 h-4" aria-hidden />
+                    {loading ? "Analisando…" : resultado ? "Analisar de novo" : "Analisar os registros"}
+                </button>
+            </div>
+            <p className="omni-apoio">
+                A IA lê os últimos registros e aponta como o engajamento está mudando, o que avançou, pontos de atenção e sugestões práticas.
+            </p>
+            {erro && (
+                <div className="omni-aviso omni-aviso--erro" role="alert" style={{ maxWidth: "none", marginTop: 12 }}>
+                    <div>
+                        <div className="omni-aviso__titulo">Não deu para analisar agora</div>
+                        <div className="omni-aviso__texto">{erro}</div>
                     </div>
-                )}
-            </CardContent>
-        </Card>
+                </div>
+            )}
+            {resultado && (
+                <div className="omni-cartao omni-cartao--plano" style={{ marginTop: 12 }}>
+                    <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+                        <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" onClick={copiar}>
+                            <Copy className="w-4 h-4" aria-hidden />
+                            {copiado ? "Copiado" : "Copiar texto"}
+                        </button>
+                    </div>
+                    <FormattedTextDisplay texto={resultado} />
+                </div>
+            )}
+        </section>
+    );
+}
+
+const CORES_MODALIDADE = ["var(--acao)", "var(--sucesso)", "var(--atencao)", "var(--erro)", "var(--tinta-2)"];
+const ESTILO_DICA = {
+    backgroundColor: "var(--superficie)",
+    border: "1px solid var(--borda)",
+    borderRadius: "8px",
+    padding: "8px 12px",
+    color: "var(--tinta)",
+};
+const EIXO = { fontSize: 12, fill: "var(--tinta-2)" };
+
+function hojeIso(): string {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function fmtDia(iso: string): string {
+    const d = new Date(`${iso}T12:00:00`);
+    return isNaN(d.getTime()) ? iso : d.toLocaleDateString("pt-BR");
+}
+
+function Grafico({ id, titulo, children }: { id: string; titulo: string; children: React.ReactNode }) {
+    return (
+        <section className="omni-cartao" aria-labelledby={id}>
+            <h2 id={id} className="omni-cartao__titulo" style={{ marginTop: 0 }}>{titulo}</h2>
+            <div style={{ height: 300, paddingTop: 8 }}>{children}</div>
+        </section>
     );
 }
 
 export default function RelatoriosTab({ registros, student }: { registros: RegistroDiario[]; student: StudentFull }) {
     const [selectedStudent] = useState<string>(student.id);
+    const [de, setDe] = useState("");
+    const [ate, setAte] = useState("");
+    const [avisoPdf, setAvisoPdf] = useState<{ tipo: "sucesso" | "erro"; texto: string } | null>(null);
 
     const registrosComData = registros
         .filter((r) => r.data_sessao)
@@ -227,47 +256,47 @@ export default function RelatoriosTab({ registros, student }: { registros: Regis
         document.body.removeChild(link);
     };
 
+    // Onda 19: o relatório sai em PDF, só com os atendimentos do período escolhido (antes baixava um JSON)
+    const registrosPeriodo = registros.filter((r) => {
+        const dia = (r.data_sessao || "").slice(0, 10);
+        if (!de && !ate) return true;
+        if (!dia) return false;
+        if (de && dia < de) return false;
+        if (ate && dia > ate) return false;
+        return true;
+    });
+    const periodoInvalido = !!de && !!ate && de > ate;
+
+    const textoPeriodo = (): string => {
+        if (de && ate) return `${fmtDia(de)} a ${fmtDia(ate)}`;
+        if (de) return `a partir de ${fmtDia(de)}`;
+        if (ate) return `até ${fmtDia(ate)}`;
+        const dias = registrosPeriodo.map((r) => (r.data_sessao || "").slice(0, 10)).filter(Boolean).sort();
+        return dias.length ? `Todos os atendimentos (${fmtDia(dias[0])} a ${fmtDia(dias[dias.length - 1])})` : "Todos os atendimentos";
+    };
+
     const gerarRelatorio = () => {
-        const totalHoras = Math.round(registros.reduce((acc, r) => acc + (r.duracao_minutos || 0), 0) / 60);
-        const engajamentoMedio =
-            registros.length > 0
-                ? registros.reduce((acc, r) => acc + (r.engajamento_aluno || 0), 0) / registros.length
-                : 0;
-
-        const relatorio = {
-            data_geracao: new Date().toISOString(),
-            total_registros: registros.length,
-            periodo_analisado: registrosComData.length > 0
-                ? `${registrosComData[registrosComData.length - 1].data.toLocaleDateString("pt-BR")} a ${registrosComData[0].data.toLocaleDateString("pt-BR")}`
-                : "N/A",
-            total_horas: totalHoras,
-            engajamento_medio: engajamentoMedio.toFixed(1),
-            modalidades: porModalidade,
-            top_competencias: topCompetencias.map(([c, count]) => ({ competencia: c, count })),
-        };
-
-        const json = JSON.stringify(relatorio, null, 2);
-        const blob = new Blob([json], { type: "application/json" });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", `relatorio_diario_${new Date().toISOString().split("T")[0]}.json`);
-        link.style.visibility = "hidden";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        setAvisoPdf(null);
+        try {
+            const ordenados = [...registrosPeriodo].sort((a, b) => (a.data_sessao || "").localeCompare(b.data_sessao || ""));
+            baixarPdfDiario({
+                estudante: student.name,
+                periodo: textoPeriodo(),
+                registros: ordenados,
+                resumo: calcularResumoDiario(ordenados),
+            });
+            setAvisoPdf({ tipo: "sucesso", texto: `Relatório baixado com ${ordenados.length} ${ordenados.length === 1 ? "atendimento" : "atendimentos"}.` });
+        } catch {
+            setAvisoPdf({ tipo: "erro", texto: "Não conseguimos montar o PDF agora. Tente de novo em instantes." });
+        }
     };
 
     if (registros.length === 0) {
         return (
-            <Card variant="default">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-xl">📊 Relatórios e Análises</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-slate-600">Nenhum dado disponível para gerar relatórios.</p>
-                </CardContent>
-            </Card>
+            <section className="omni-cartao omni-cartao--plano" aria-labelledby="diario-relatorios-vazio">
+                <h2 id="diario-relatorios-vazio" className="omni-cartao__titulo" style={{ marginTop: 0 }}>Relatórios</h2>
+                <p className="omni-apoio" style={{ margin: 0 }}>Ainda não há atendimentos registrados. Os gráficos e o relatório aparecem depois do primeiro registro.</p>
+            </section>
         );
     }
 
@@ -285,203 +314,130 @@ export default function RelatoriosTab({ registros, student }: { registros: Regis
         quantidade: count,
     }));
 
-    const coresModalidade = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#8b5cf6"];
-
     return (
-        <div className="space-y-6">
-            <Card variant="default">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-xl">📅 Atendimentos por Mês</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="pt-4 h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={dadosPorMes} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                <XAxis
-                                    dataKey="mes"
-                                    angle={-45}
-                                    textAnchor="end"
-                                    height={80}
-                                    tick={{ fontSize: 12, fill: "#64748b" }}
-                                />
-                                <YAxis tick={{ fontSize: 12, fill: "#64748b" }} />
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: "white",
-                                        border: "1px solid #e2e8f0",
-                                        borderRadius: "8px",
-                                        padding: "8px 12px",
-                                    }}
-                                    formatter={(value: number) => [`${value} atendimentos`, "Quantidade"]}
-                                />
-                                <Bar dataKey="atendimentos" fill="#ef4444" radius={[8, 8, 0, 0]} animationDuration={800} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </CardContent>
-            </Card>
+        <div style={{ display: "grid", gap: 24 }}>
+            <Grafico id="diario-graf-mes" titulo="Atendimentos por mês">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={dadosPorMes} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--borda)" />
+                        <XAxis dataKey="mes" angle={-45} textAnchor="end" height={80} tick={EIXO} />
+                        <YAxis tick={EIXO} allowDecimals={false} />
+                        <Tooltip contentStyle={ESTILO_DICA} formatter={(value: number) => [`${value} atendimentos`, "Quantidade"]} />
+                        <Bar dataKey="atendimentos" fill="var(--acao)" radius={[8, 8, 0, 0]} animationDuration={800} />
+                    </BarChart>
+                </ResponsiveContainer>
+            </Grafico>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card variant="default">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-xl">📊 Distribuição por Modalidade</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="pt-4 h-[300px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={dadosPorModalidade}
-                                        cx="50%"
-                                        cy="50%"
-                                        labelLine={false}
-                                        label={({ modalidade, quantidade, percent }) =>
-                                            `${modalidade}: ${quantidade} (${(percent * 100).toFixed(0)}%)`
-                                        }
-                                        outerRadius={100}
-                                        fill="#8884d8"
-                                        dataKey="quantidade"
-                                        animationDuration={800}
-                                    >
-                                        {dadosPorModalidade.map((_, index) => (
-                                            <Cell key={`cell-${index}`} fill={coresModalidade[index % coresModalidade.length]} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: "white",
-                                            border: "1px solid #e2e8f0",
-                                            borderRadius: "8px",
-                                            padding: "8px 12px",
-                                        }}
-                                        formatter={(value: number) => [`${value} atendimentos`, "Quantidade"]}
-                                    />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </CardContent>
-                </Card>
+                <Grafico id="diario-graf-modalidade" titulo="Como foram os atendimentos">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie
+                                data={dadosPorModalidade}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                label={({ modalidade, quantidade, percent }) =>
+                                    `${modalidade}: ${quantidade} (${(percent * 100).toFixed(0)}%)`
+                                }
+                                outerRadius={100}
+                                dataKey="quantidade"
+                                animationDuration={800}
+                            >
+                                {dadosPorModalidade.map((_, index) => (
+                                    <Cell key={`cell-${index}`} fill={CORES_MODALIDADE[index % CORES_MODALIDADE.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip contentStyle={ESTILO_DICA} formatter={(value: number) => [`${value} atendimentos`, "Quantidade"]} />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </Grafico>
 
-                <Card variant="default">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-xl">🎯 Top 10 Competências Trabalhadas</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="pt-4 h-[300px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                    data={dadosTopCompetencias}
-                                    layout="vertical"
-                                    margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
-                                >
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                    <XAxis type="number" tick={{ fontSize: 12, fill: "#64748b" }} />
-                                    <YAxis
-                                        dataKey="competencia"
-                                        type="category"
-                                        width={90}
-                                        tick={{ fontSize: 11, fill: "#64748b" }}
-                                    />
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: "white",
-                                            border: "1px solid #e2e8f0",
-                                            borderRadius: "8px",
-                                            padding: "8px 12px",
-                                        }}
-                                        formatter={(value: number) => [`${value} vezes`, "Frequência"]}
-                                    />
-                                    <Bar dataKey="quantidade" fill="#3b82f6" radius={[0, 8, 8, 0]} animationDuration={800} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </CardContent>
-                </Card>
+                <Grafico id="diario-graf-competencias" titulo="Competências mais trabalhadas">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={dadosTopCompetencias} layout="vertical" margin={{ top: 5, right: 30, left: 100, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--borda)" />
+                            <XAxis type="number" tick={EIXO} allowDecimals={false} />
+                            <YAxis dataKey="competencia" type="category" width={90} tick={{ ...EIXO, fontSize: 11 }} />
+                            <Tooltip contentStyle={ESTILO_DICA} formatter={(value: number) => [`${value} vezes`, "Frequência"]} />
+                            <Bar dataKey="quantidade" fill="var(--acao)" radius={[0, 8, 8, 0]} animationDuration={800} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </Grafico>
             </div>
 
             {engajamentoTempo.length > 1 && (
-                <Card variant="default">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-xl">📈 Evolução do Engajamento</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="pt-4 h-[300px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={engajamentoTempo} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                    <XAxis
-                                        dataKey="data"
-                                        tick={{ fontSize: 12, fill: "#64748b" }}
-                                        angle={-45}
-                                        textAnchor="end"
-                                        height={80}
-                                    />
-                                    <YAxis
-                                        domain={[0, 5]}
-                                        tick={{ fontSize: 12, fill: "#64748b" }}
-                                        label={{ value: "Engajamento (1-5)", angle: -90, position: "insideLeft", style: { fill: "#64748b" } }}
-                                    />
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: "white",
-                                            border: "1px solid #e2e8f0",
-                                            borderRadius: "8px",
-                                            padding: "8px 12px",
-                                        }}
-                                        formatter={(value: number) => [`${value}/5`, "Engajamento"]}
-                                    />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="engajamento"
-                                        stroke="#22c55e"
-                                        strokeWidth={3}
-                                        dot={{ fill: "#22c55e", r: 5 }}
-                                        activeDot={{ r: 7 }}
-                                        animationDuration={800}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </CardContent>
-                </Card>
+                <Grafico id="diario-graf-engajamento" titulo="Engajamento ao longo do tempo">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={engajamentoTempo} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--borda)" />
+                            <XAxis dataKey="data" tick={EIXO} angle={-45} textAnchor="end" height={80} />
+                            <YAxis
+                                domain={[0, 5]}
+                                tick={EIXO}
+                                label={{ value: "Engajamento (1 a 5)", angle: -90, position: "insideLeft", style: { fill: "var(--tinta-2)" } }}
+                            />
+                            <Tooltip contentStyle={ESTILO_DICA} formatter={(value: number) => [`${value} de 5`, "Engajamento"]} />
+                            <Line
+                                type="monotone"
+                                dataKey="engajamento"
+                                stroke="var(--sucesso)"
+                                strokeWidth={3}
+                                dot={{ fill: "var(--sucesso)", r: 5 }}
+                                activeDot={{ r: 7 }}
+                                animationDuration={800}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </Grafico>
             )}
 
             <AnaliseIADiario registros={registros} student={student} />
 
-            <Card variant="default">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-xl">💾 Exportar Dados</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                        <Button
-                            variant="primary"
-                            onClick={exportarCSV}
-                            className="w-full bg-blue-600 hover:bg-blue-700"
-                        >
-                            <Download className="w-4 h-4" />
-                            Exportar CSV
-                        </Button>
-                        <Button
-                            variant="primary"
-                            onClick={exportarJSON}
-                            className="w-full bg-green-600 hover:bg-green-700"
-                        >
-                            <FileText className="w-4 h-4" />
-                            Exportar JSON
-                        </Button>
-                        <Button
-                            variant="primary"
-                            onClick={gerarRelatorio}
-                            className="w-full bg-purple-600 hover:bg-purple-700"
-                        >
-                            <BarChart3 className="w-4 h-4" />
-                            Relatório Resumido
-                        </Button>
+            <section className="omni-cartao" aria-labelledby="diario-relatorio-pdf">
+                <h2 id="diario-relatorio-pdf" className="omni-cartao__titulo" style={{ marginTop: 0 }}>Relatório em PDF</h2>
+                <p className="omni-apoio">
+                    Escolha o período. O PDF traz o total de atendimentos, os minutos somados, o engajamento médio e a lista dos atendimentos. Sem datas, entram todos.
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-end", marginTop: 12 }}>
+                    <div className="omni-campo">
+                        <label className="omni-campo__rotulo" htmlFor="diario-pdf-de">De</label>
+                        <input id="diario-pdf-de" type="date" className="omni-entrada" value={de} max={ate || hojeIso()} onChange={(e) => setDe(e.target.value)} />
                     </div>
-                </CardContent>
-            </Card>
+                    <div className="omni-campo">
+                        <label className="omni-campo__rotulo" htmlFor="diario-pdf-ate">Até</label>
+                        <input id="diario-pdf-ate" type="date" className="omni-entrada" value={ate} min={de || undefined} onChange={(e) => setAte(e.target.value)} />
+                    </div>
+                    {(de || ate) && (
+                        <button type="button" className="omni-btn omni-btn--discreto" onClick={() => { setDe(""); setAte(""); }}>Limpar datas</button>
+                    )}
+                </div>
+                <p className="omni-apoio" role="status" style={{ marginTop: 8 }}>
+                    {periodoInvalido
+                        ? "A data inicial está depois da final. Ajuste o período."
+                        : `${registrosPeriodo.length} ${registrosPeriodo.length === 1 ? "atendimento" : "atendimentos"} no período.`}
+                </p>
+                {avisoPdf && (
+                    <div className={`omni-aviso omni-aviso--${avisoPdf.tipo}`} role={avisoPdf.tipo === "erro" ? "alert" : "status"} style={{ maxWidth: "none", marginTop: 8 }}>
+                        <div><div className="omni-aviso__texto">{avisoPdf.texto}</div></div>
+                    </div>
+                )}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 16 }}>
+                    <button type="button" className="omni-btn omni-btn--primario" onClick={gerarRelatorio} disabled={periodoInvalido || registrosPeriodo.length === 0}>
+                        <BarChart3 className="w-4 h-4" aria-hidden />
+                        Gerar relatório em PDF
+                    </button>
+                    <button type="button" className="omni-btn omni-btn--secundario" onClick={exportarCSV}>
+                        <Download className="w-4 h-4" aria-hidden />
+                        Baixar planilha (CSV)
+                    </button>
+                    <button type="button" className="omni-btn omni-btn--discreto" onClick={exportarJSON}>
+                        <FileText className="w-4 h-4" aria-hidden />
+                        Baixar cópia dos dados (JSON)
+                    </button>
+                </div>
+                <p className="omni-apoio" style={{ marginTop: 8 }}>A planilha e a cópia dos dados trazem todos os atendimentos, sem o filtro de datas.</p>
+            </section>
         </div>
     );
 }

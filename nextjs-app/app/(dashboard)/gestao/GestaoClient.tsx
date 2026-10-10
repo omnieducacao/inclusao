@@ -3,15 +3,13 @@
 import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import {
-  Users,
   Settings,
-  Trash2,
   Plus,
   CheckCircle2,
+  AlertTriangle,
   Heart,
 } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell, Badge, Card } from "@omni/ds";
 import type { WorkspaceMember, FamilyResponsavel, WorkspaceMaster } from "./types";
 import { MasterSetupForm } from "./components/MasterSetupForm";
 import { NovoUsuarioUnificado } from "./components/MemberForms";
@@ -84,13 +82,13 @@ export function GestaoClient({
   const inactiveFamily = familyResponsaveis.filter((f) => f.active === false);
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: "grid", gap: 24 }}>
       {/* Configurar master (se não existir) */}
       {!loading && !master && (
         <MasterSetupForm
           onSuccess={() => {
             loadData();
-            setMessage({ type: "ok", text: "Usuário master cadastrado!" });
+            setMessage({ type: "ok", text: "Conta da coordenação criada." });
           }}
           onError={(err) => setMessage({ type: "err", text: err })}
         />
@@ -108,11 +106,11 @@ export function GestaoClient({
       </div>
 
       {showForm && (
-        <section className="omni-cartao omni-cartao--plano space-y-3" aria-labelledby="novo-usuario-t">
+        <section className="omni-cartao omni-cartao--plano" aria-labelledby="novo-usuario-t">
           <div className="flex items-start justify-between gap-3">
             <div>
               <h2 id="novo-usuario-t" className="omni-cartao__titulo" style={{ margin: 0 }}>Convidar pessoa</h2>
-              <p className="omni-apoio" style={{ margin: 0 }}>Professor, AEE, coordenação ou responsável da família. As permissões definem o que ela vê no menu.</p>
+              <p className="omni-apoio" style={{ margin: 0 }}>Professor, professor do AEE (Atendimento Educacional Especializado), coordenação ou responsável da família. As permissões definem o que a pessoa vê no menu.</p>
             </div>
             <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" onClick={() => setShowForm(false)}>Fechar</button>
           </div>
@@ -129,8 +127,8 @@ export function GestaoClient({
 
       {message && (
         <div className={`omni-aviso omni-aviso--${message.type === "ok" ? "sucesso" : "erro"}`} role={message.type === "ok" ? "status" : "alert"} style={{ maxWidth: "none" }}>
-          <div><div className="omni-aviso__texto">{message.text}</div></div>
-          <span />
+          {message.type === "ok" ? <CheckCircle2 className="omni-aviso__icone" aria-hidden /> : <AlertTriangle className="omni-aviso__icone" aria-hidden />}
+          <div><div className="omni-aviso__texto" style={{ marginTop: 0 }}>{message.text}</div></div>
         </div>
       )}
 
@@ -140,45 +138,46 @@ export function GestaoClient({
           { id: "familias", nome: `Famílias (${activeFamily.length})` },
           ...(inactiveMembers.length + inactiveFamily.length > 0 ? [{ id: "desativados", nome: `Desativados (${inactiveMembers.length + inactiveFamily.length})` }] : []),
         ] as Array<{ id: typeof aba; nome: string }>).map((t) => (
-          <button key={t.id} type="button" role="tab" aria-selected={aba === t.id} className="omni-aba" onClick={() => setAba(t.id)}>{t.nome}</button>
+          <button key={t.id} type="button" role="tab" id={`gestao-aba-${t.id}`} aria-selected={aba === t.id} aria-controls={`gestao-painel-${t.id}`} className="omni-aba" onClick={() => setAba(t.id)}>{t.nome}</button>
         ))}
       </div>
 
       {/* Onda 5: saiu o gráfico "Demografia de Estudantes", que mostrava números fixos (340 e 45) e não os da escola */}
 
       {/* Lista de membros ativos */}
-      <div hidden={aba !== "equipe"}>
+      <div hidden={aba !== "equipe"} id="gestao-painel-equipe" role="tabpanel" aria-labelledby="gestao-aba-equipe">
         {loading ? (
-          <p className="text-slate-500">Carregando…</p>
+          <p className="omni-apoio" role="status">Carregando…</p>
         ) : activeMembers.length === 0 ? (
-          <div className="p-4 bg-slate-50 rounded-lg space-y-2">
-            <p className="text-slate-600">
-              Ninguém da equipe ainda. Use “Convidar pessoa” para cadastrar professores e AEE. As turmas vêm antes, em Configuração da escola.
+          <div className="omni-cartao omni-cartao--plano">
+            <p className="omni-cartao__titulo" style={{ margin: 0 }}>Ninguém da equipe ainda</p>
+            <p className="omni-cartao__texto" style={{ margin: 0 }}>
+              Use “Convidar pessoa” para cadastrar professores e professores do AEE. As turmas vêm antes, em Configuração da escola.
             </p>
-            <Link
-              href="/config-escola"
-              className="inline-flex items-center gap-1 text-sm text-sky-600 hover:underline"
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Ir para Configuração da escola
-            </Link>
+            <div>
+              <Link href="/config-escola" className="omni-btn omni-btn--secundario omni-btn--pequeno">
+                <Settings aria-hidden />
+                Ir para Configuração da escola
+              </Link>
+            </div>
           </div>
         ) : (
-          <div ref={membersParentRef} className="max-h-[500px] overflow-auto rounded-xl border border-(--omni-border-default) bg-white">
-            <Table>
-              <TableHeader className="sticky top-0 bg-white z-10 shadow-sm">
-                <TableRow>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Permissões</TableHead>
-                  <TableHead>Vínculo</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+          <div ref={membersParentRef} className="omni-tabela-caixa" style={{ maxHeight: 500, overflow: "auto" }}>
+            <table className="omni-tabela">
+              <caption className="omni-so-leitor">Equipe da escola</caption>
+              <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
+                <tr>
+                  <th scope="col">Pessoa</th>
+                  <th scope="col">Permissões</th>
+                  <th scope="col">Vínculo</th>
+                  <th scope="col" style={{ textAlign: "right" }}>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
                 {membersVirtualizer.getVirtualItems().length > 0 && membersVirtualizer.getVirtualItems()[0].start > 0 && (
-                  <TableRow>
-                    <TableCell colSpan={4} style={{ height: `${membersVirtualizer.getVirtualItems()[0].start}px`, padding: 0, border: 0 }} />
-                  </TableRow>
+                  <tr aria-hidden>
+                    <td colSpan={4} style={{ height: `${membersVirtualizer.getVirtualItems()[0].start}px`, padding: 0, border: 0 }} />
+                  </tr>
                 )}
                 {membersVirtualizer.getVirtualItems().map((vRow) => {
                   const m = activeMembers[vRow.index];
@@ -197,46 +196,50 @@ export function GestaoClient({
                   );
                 })}
                 {membersVirtualizer.getVirtualItems().length > 0 && (
-                  <TableRow>
-                    <TableCell
+                  <tr aria-hidden>
+                    <td
                       colSpan={4}
                       style={{
                         height: `${membersVirtualizer.getTotalSize() - membersVirtualizer.getVirtualItems()[membersVirtualizer.getVirtualItems().length - 1].end}px`,
                         padding: 0, border: 0
                       }}
                     />
-                  </TableRow>
+                  </tr>
                 )}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           </div>
         )}
       </div>
 
       {/* Responsáveis / Família */}
-      <div hidden={aba !== "familias"}>
+      <div hidden={aba !== "familias"} id="gestao-painel-familias" role="tabpanel" aria-labelledby="gestao-aba-familias">
         {loading ? (
-          <p className="text-slate-500">Carregando…</p>
+          <p className="omni-apoio" role="status">Carregando…</p>
         ) : activeFamily.length === 0 ? (
-          <p className="text-sm text-slate-500 italic p-4 bg-slate-50 rounded-lg">
-            Nenhum responsável cadastrado. Use “Convidar pessoa” e escolha Família. A área da família precisa estar ligada em Configuração da escola.
-          </p>
+          <div className="omni-cartao omni-cartao--plano">
+            <p className="omni-cartao__titulo" style={{ margin: 0 }}>Nenhum responsável cadastrado</p>
+            <p className="omni-cartao__texto" style={{ margin: 0 }}>
+              Use “Convidar pessoa” e escolha Família. A área da família precisa estar ligada em Configuração da escola.
+            </p>
+          </div>
         ) : (
-          <div ref={familyParentRef} className="max-h-[500px] overflow-auto rounded-xl border border-(--omni-border-default) bg-white">
-            <Table>
-              <TableHeader className="sticky top-0 bg-white z-10 shadow-sm">
-                <TableRow>
-                  <TableHead>Responsável</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Parentesco</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+          <div ref={familyParentRef} className="omni-tabela-caixa" style={{ maxHeight: 500, overflow: "auto" }}>
+            <table className="omni-tabela">
+              <caption className="omni-so-leitor">Responsáveis das famílias</caption>
+              <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
+                <tr>
+                  <th scope="col">Responsável</th>
+                  <th scope="col">Tipo</th>
+                  <th scope="col">Parentesco</th>
+                  <th scope="col" style={{ textAlign: "right" }}>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
                 {familyVirtualizer.getVirtualItems().length > 0 && familyVirtualizer.getVirtualItems()[0].start > 0 && (
-                  <TableRow>
-                    <TableCell colSpan={4} style={{ height: `${familyVirtualizer.getVirtualItems()[0].start}px`, padding: 0, border: 0 }} />
-                  </TableRow>
+                  <tr aria-hidden>
+                    <td colSpan={4} style={{ height: `${familyVirtualizer.getVirtualItems()[0].start}px`, padding: 0, border: 0 }} />
+                  </tr>
                 )}
                 {familyVirtualizer.getVirtualItems().map((vRow) => {
                   const f = activeFamily[vRow.index];
@@ -251,18 +254,18 @@ export function GestaoClient({
                   );
                 })}
                 {familyVirtualizer.getVirtualItems().length > 0 && (
-                  <TableRow>
-                    <TableCell
+                  <tr aria-hidden>
+                    <td
                       colSpan={4}
                       style={{
                         height: `${familyVirtualizer.getTotalSize() - familyVirtualizer.getVirtualItems()[familyVirtualizer.getVirtualItems().length - 1].end}px`,
                         padding: 0, border: 0
                       }}
                     />
-                  </TableRow>
+                  </tr>
                 )}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           </div>
         )}
       </div>
@@ -270,18 +273,19 @@ export function GestaoClient({
       {/* Usuários desativados */}
       {
         (inactiveMembers.length > 0 || inactiveFamily.length > 0) && (
-          <div hidden={aba !== "desativados"}>
+          <div hidden={aba !== "desativados"} id="gestao-painel-desativados" role="tabpanel" aria-labelledby="gestao-aba-desativados">
             <p className="omni-apoio" style={{ marginTop: 0 }}>Quem foi desativado não entra mais. Excluir de vez libera o e-mail para um novo cadastro.</p>
-            <div className="rounded-xl border border-(--omni-border-default) overflow-hidden bg-white">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Usuário/Responsável</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+            <div className="omni-tabela-caixa">
+              <table className="omni-tabela">
+                <caption className="omni-so-leitor">Pessoas desativadas</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Pessoa</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col" style={{ textAlign: "right" }}>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {inactiveMembers.map((m, idx) => (
                     <InactiveMemberCard
                       key={m.id}
@@ -294,24 +298,24 @@ export function GestaoClient({
                     />
                   ))}
                   {inactiveFamily.map((f, idx) => (
-                    <TableRow key={f.id} className="bg-slate-50/50 animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both" style={{ animationDelay: `${Math.min(idx * 40, 400)}ms` }}>
-                      <TableCell>
-                        <p className="font-medium text-(--omni-text-primary)">
-                          <Heart className="w-4 h-4 inline mr-1 text-amber-500" />
+                    <tr key={f.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both" style={{ animationDelay: `${Math.min(idx * 40, 400)}ms` }}>
+                      <td style={{ verticalAlign: "top" }}>
+                        <p style={{ margin: 0, display: "flex", alignItems: "center", gap: 6, font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>
+                          <Heart aria-hidden style={{ width: 16, height: 16, color: "var(--tinta-3)" }} />
                           {f.nome}
                         </p>
-                        <p className="text-xs text-(--omni-text-muted) mt-0.5">{f.email}</p>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="default" className="bg-amber-100 text-amber-700 font-medium text-[10px]">Família (inativo)</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <p className="text-xs text-(--omni-text-muted)">Nenhuma ação disponível</p>
-                      </TableCell>
-                    </TableRow>
+                        <p style={{ margin: "2px 0 0", font: "400 13px/18px var(--font-sans)", color: "var(--tinta-2)" }}>{f.email}</p>
+                      </td>
+                      <td style={{ verticalAlign: "top" }}>
+                        <span className="omni-estado omni-estado--neutro">Família · desativado</span>
+                      </td>
+                      <td style={{ verticalAlign: "top", textAlign: "right" }}>
+                        <p className="omni-apoio" style={{ margin: 0 }}>Nenhuma ação</p>
+                      </td>
+                    </tr>
                   ))}
-                </TableBody>
-              </Table>
+                </tbody>
+              </table>
             </div>
           </div>
         )

@@ -1,8 +1,49 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Users, Plus, Link2, Unlink, Loader2, X } from "lucide-react";
-import { Button, Input, Card, CardHeader, CardContent, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Badge } from "@omni/ds";
+import { useState, useEffect, useRef } from "react";
+import { Users, Plus, Link2, Unlink, Loader2, X, AlertTriangle } from "lucide-react";
+import { useConfirmar } from "@/components/Confirmar";
+
+/** Janela do design system (dialog nativo com showModal: prende o foco e fecha com Esc). */
+function Janela({ id, titulo, aoFechar, children, acoes }: { id: string; titulo: string; aoFechar: () => void; children: React.ReactNode; acoes: React.ReactNode }) {
+  const ref = useRef<HTMLDialogElement | null>(null);
+  useEffect(() => {
+    const d = ref.current;
+    if (d && !d.open) {
+      try { d.showModal(); } catch { d.setAttribute("open", ""); }
+    }
+    return () => { try { d?.close(); } catch { /* já fechado */ } };
+  }, []);
+  return (
+    <dialog
+      ref={ref}
+      className="omni-dialogo"
+      aria-labelledby={`${id}-titulo`}
+      onCancel={(e) => { e.preventDefault(); aoFechar(); }}
+      onClick={(e) => { if (e.target === e.currentTarget) aoFechar(); }}
+    >
+      <div className="omni-dialogo__corpo">
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+          <h2 className="omni-dialogo__titulo" id={`${id}-titulo`}>{titulo}</h2>
+          <button type="button" className="omni-btn omni-btn--discreto omni-btn--icone" onClick={aoFechar} aria-label="Fechar">
+            <X aria-hidden />
+          </button>
+        </div>
+        {children}
+      </div>
+      <div className="omni-dialogo__acoes">{acoes}</div>
+    </dialog>
+  );
+}
+
+function AvisoErro({ texto }: { texto: string }) {
+  return (
+    <div className="omni-aviso omni-aviso--erro" role="alert" style={{ maxWidth: "none" }}>
+      <AlertTriangle className="omni-aviso__icone" aria-hidden />
+      <div><div className="omni-aviso__texto" style={{ marginTop: 0 }}>{texto}</div></div>
+    </div>
+  );
+}
 
 type Responsavel = {
   id: string;
@@ -25,6 +66,8 @@ export function ResponsaveisSection({ studentId, studentName, onRefresh }: Props
   const [showModal, setShowModal] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const { confirmar, dialogo } = useConfirmar();
   const [form, setForm] = useState({
     nome: "",
     email: "",
@@ -57,9 +100,10 @@ export function ResponsaveisSection({ studentId, studentName, onRefresh }: Props
 
   async function handleCriar() {
     if (!form.nome.trim() || !form.email.trim() || !form.senha.trim()) {
-      alert("Nome, e-mail e senha são obrigatórios.");
+      setErro("Nome, e-mail e senha são obrigatórios.");
       return;
     }
+    setErro(null);
     setSubmitting(true);
     try {
       const res = await fetch("/api/familia/responsaveis", {
@@ -76,7 +120,7 @@ export function ResponsaveisSection({ studentId, studentName, onRefresh }: Props
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || "Erro ao cadastrar responsável.");
+        setErro(data.error || "Erro ao cadastrar responsável.");
         return;
       }
       setForm({ nome: "", email: "", telefone: "", parentesco: "", senha: "" });
@@ -86,7 +130,7 @@ export function ResponsaveisSection({ studentId, studentName, onRefresh }: Props
       setResponsaveis(refetchData.responsaveis || []);
       onRefresh?.();
     } catch (err) {
-      alert("Erro ao cadastrar. Tente novamente.");
+      setErro("Erro ao cadastrar. Tente novamente.");
       console.error(err);
     } finally {
       setSubmitting(false);
@@ -94,6 +138,7 @@ export function ResponsaveisSection({ studentId, studentName, onRefresh }: Props
   }
 
   async function handleVincular(responsavelId: string) {
+    setErro(null);
     setSubmitting(true);
     try {
       const res = await fetch("/api/familia/vincular", {
@@ -107,7 +152,7 @@ export function ResponsaveisSection({ studentId, studentName, onRefresh }: Props
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || "Erro ao vincular.");
+        setErro(data.error || "Erro ao vincular.");
         return;
       }
       setShowLinkModal(false);
@@ -116,7 +161,7 @@ export function ResponsaveisSection({ studentId, studentName, onRefresh }: Props
       setResponsaveis(refetchData.responsaveis || []);
       onRefresh?.();
     } catch (err) {
-      alert("Erro ao vincular. Tente novamente.");
+      setErro("Erro ao vincular. Tente novamente.");
       console.error(err);
     } finally {
       setSubmitting(false);
@@ -124,7 +169,16 @@ export function ResponsaveisSection({ studentId, studentName, onRefresh }: Props
   }
 
   async function handleDesvincular(responsavelId: string) {
-    if (!confirm("Desvincular este responsável do estudante?")) return;
+    const responsavel = responsaveis.find((r) => r.id === responsavelId);
+    const ok = await confirmar({
+      titulo: `Desvincular ${responsavel?.nome ?? "este responsável"}?`,
+      texto: `Essa pessoa deixa de ver ${studentName} na área Família. O cadastro dela continua, e você pode vincular de novo depois.`,
+      acao: "Desvincular",
+      cancelar: "Manter vínculo",
+      perigo: true,
+    });
+    if (!ok) return;
+    setErro(null);
     setSubmitting(true);
     try {
       const res = await fetch("/api/familia/vincular", {
@@ -138,7 +192,7 @@ export function ResponsaveisSection({ studentId, studentName, onRefresh }: Props
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || "Erro ao desvincular.");
+        setErro(data.error || "Erro ao desvincular.");
         return;
       }
       const refetch = await fetch(`/api/familia/responsaveis?studentId=${studentId}`);
@@ -146,240 +200,226 @@ export function ResponsaveisSection({ studentId, studentName, onRefresh }: Props
       setResponsaveis(refetchData.responsaveis || []);
       onRefresh?.();
     } catch (err) {
-      alert("Erro ao desvincular. Tente novamente.");
+      setErro("Erro ao desvincular. Tente novamente.");
       console.error(err);
     } finally {
       setSubmitting(false);
     }
   }
 
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <h4 className="text-sm font-semibold text-(--omni-text-primary) flex items-center gap-2">
-          <Users className="w-4 h-4 text-(--omni-module-familia)" />
-          Responsáveis / Família
-        </h4>
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setShowLinkModal(true)}
-            disabled={notLinked.length === 0 || submitting}
-            className="text-(--omni-text-secondary)"
-          >
-            <Link2 className="w-3.5 h-3.5" />
-            Vincular existente
-          </Button>
-          <Button
-            variant="module"
-            moduleColor="var(--omni-module-familia)"
-            size="sm"
-            onClick={() => setShowModal(true)}
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Adicionar responsável
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
+  const fecharNovo = () => { if (!submitting) { setShowModal(false); setErro(null); } };
+  const fecharVincular = () => { if (!submitting) { setShowLinkModal(false); setErro(null); } };
+  const algumaJanela = showModal || showLinkModal;
 
-        {loading ? (
-          <div className="flex items-center gap-2 text-sm text-(--omni-text-muted) py-4">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            Carregando...
-          </div>
-        ) : linked.length === 0 ? (
-          <p className="text-sm text-(--omni-text-muted) italic py-4">
-            Nenhum responsável vinculado a {studentName}. Adicione ou vincule um responsável para que a família possa acessar a plataforma.
-          </p>
-        ) : (
-          <Table className="mt-2">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Contato</TableHead>
-                <TableHead>Parentesco</TableHead>
-                <TableHead className="text-right">Ação</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+  return (
+    <section className="omni-cartao" aria-labelledby={`responsaveis-${studentId}-t`}>
+      {dialogo}
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <h4 id={`responsaveis-${studentId}-t`} className="omni-cartao__titulo" style={{ margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+          <Users aria-hidden style={{ width: 18, height: 18, color: "var(--acao)" }} />
+          Responsáveis da família
+        </h4>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          <button
+            type="button"
+            className="omni-btn omni-btn--secundario omni-btn--pequeno"
+            onClick={() => { setErro(null); setShowLinkModal(true); }}
+            disabled={notLinked.length === 0 || submitting}
+          >
+            <Link2 aria-hidden />
+            Vincular quem já tem cadastro
+          </button>
+          <button
+            type="button"
+            className="omni-btn omni-btn--primario omni-btn--pequeno"
+            onClick={() => { setErro(null); setShowModal(true); }}
+          >
+            <Plus aria-hidden />
+            Adicionar responsável
+          </button>
+        </div>
+      </div>
+
+      {erro && !algumaJanela && <AvisoErro texto={erro} />}
+
+      {loading ? (
+        <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, margin: 0, padding: "12px 0" }}>
+          <Loader2 aria-hidden className="animate-spin" style={{ width: 16, height: 16 }} />
+          Carregando…
+        </p>
+      ) : linked.length === 0 ? (
+        <p className="omni-apoio" style={{ margin: 0, padding: "12px 0" }}>
+          Nenhum responsável vinculado a {studentName}. Adicione ou vincule alguém para que a família possa entrar na plataforma.
+        </p>
+      ) : (
+        <div className="omni-tabela-caixa">
+          <table className="omni-tabela">
+            <caption className="omni-so-leitor">Responsáveis vinculados a {studentName}</caption>
+            <thead>
+              <tr>
+                <th scope="col">Nome</th>
+                <th scope="col">Contato</th>
+                <th scope="col">Parentesco</th>
+                <th scope="col" style={{ textAlign: "right" }}>Ação</th>
+              </tr>
+            </thead>
+            <tbody>
               {linked.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell className="font-medium">{r.nome}</TableCell>
-                  <TableCell className="text-(--omni-text-secondary) text-sm">{r.email}</TableCell>
-                  <TableCell>
+                <tr key={r.id}>
+                  <td className="omni-tabela__nome">{r.nome}</td>
+                  <td style={{ color: "var(--tinta-2)" }}>{r.email}</td>
+                  <td>
                     {r.parentesco ? (
-                      <Badge variant="default" className="font-medium text-[10px]">{r.parentesco}</Badge>
+                      <span className="omni-estado omni-estado--neutro">{r.parentesco}</span>
                     ) : (
-                      <span className="text-(--omni-text-muted) text-sm">—</span>
+                      <span style={{ color: "var(--tinta-3)" }}>—</span>
                     )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                  </td>
+                  <td style={{ textAlign: "right" }}>
+                    <button
+                      type="button"
+                      className="omni-btn omni-btn--discreto omni-btn--pequeno"
+                      style={{ color: "var(--erro)" }}
                       onClick={() => handleDesvincular(r.id)}
                       disabled={submitting}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      aria-label={`Desvincular ${r.nome}`}
                     >
-                      <Unlink className="w-4 h-4" />
+                      <Unlink aria-hidden />
                       Desvincular
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                    </button>
+                  </td>
+                </tr>
               ))}
-            </TableBody>
-          </Table>
-        )}
-      </CardContent>
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      {/* Modal: Novo responsável */}
+      {/* Janela: novo responsável */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => !submitting && setShowModal(false)}>
-          <div
-            className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-800">Adicionar responsável</h3>
-              <button
-                type="button"
-                onClick={() => !submitting && setShowModal(false)}
-                className="p-1 text-slate-400 hover:text-slate-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <p className="text-sm text-slate-600 mb-4">
-              O responsável será vinculado a <strong>{studentName}</strong> e poderá acessar a área Família com e-mail e senha.
-            </p>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-(--omni-text-secondary) mb-1">Nome *</label>
-                <Input
-                  value={form.nome}
-                  onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
-                  placeholder="Nome completo"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-(--omni-text-secondary) mb-1">E-mail *</label>
-                <Input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                  placeholder="email@exemplo.com"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-(--omni-text-secondary) mb-1">Telefone</label>
-                <Input
-                  type="text"
-                  value={form.telefone}
-                  onChange={(e) => setForm((f) => ({ ...f, telefone: e.target.value }))}
-                  placeholder="(11) 99999-9999"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-(--omni-text-secondary) mb-1">Parentesco</label>
-                <Input
-                  type="text"
-                  value={form.parentesco}
-                  onChange={(e) => setForm((f) => ({ ...f, parentesco: e.target.value }))}
-                  placeholder="Mãe, Pai, Avó, Tutor..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-(--omni-text-secondary) mb-1">Senha de acesso *</label>
-                <Input
-                  type="password"
-                  value={form.senha}
-                  onChange={(e) => setForm((f) => ({ ...f, senha: e.target.value }))}
-                  placeholder="Mín. 6 caracteres"
-                />
-                <p className="text-xs text-(--omni-text-muted) mt-1.5">Envie a senha ao responsável por canal seguro.</p>
-              </div>
-            </div>
-            <div className="flex gap-2 mt-6">
-              <Button
-                variant="module"
-                moduleColor="var(--omni-module-familia)"
-                onClick={handleCriar}
-                disabled={submitting}
-              >
-                {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                Cadastrar e vincular
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => !submitting && setShowModal(false)}
-              >
+        <Janela
+          id={`novo-resp-${studentId}`}
+          titulo="Adicionar responsável"
+          aoFechar={fecharNovo}
+          acoes={
+            <>
+              <button type="button" className="omni-btn omni-btn--discreto" onClick={fecharNovo}>
                 Cancelar
-              </Button>
-            </div>
+              </button>
+              <button type="button" className="omni-btn omni-btn--primario" onClick={handleCriar} disabled={submitting} aria-busy={submitting}>
+                {submitting && <Loader2 aria-hidden className="animate-spin" />}
+                Cadastrar e vincular
+              </button>
+            </>
+          }
+        >
+          <p className="omni-apoio" style={{ margin: 0 }}>
+            A pessoa fica ligada a <strong>{studentName}</strong> e entra na área Família com e-mail e senha.
+          </p>
+          {erro && <AvisoErro texto={erro} />}
+          <div style={{ display: "grid", gap: 12 }}>
+            <label className="omni-campo" style={{ maxWidth: "none" }}>
+              <span className="omni-campo__rotulo">Nome completo</span>
+              <input
+                className="omni-entrada"
+                value={form.nome}
+                onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
+                aria-required="true"
+                autoComplete="off"
+              />
+            </label>
+            <label className="omni-campo" style={{ maxWidth: "none" }}>
+              <span className="omni-campo__rotulo">E-mail</span>
+              <input
+                className="omni-entrada"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                placeholder="nome@exemplo.com"
+                aria-required="true"
+                autoComplete="off"
+              />
+            </label>
+            <label className="omni-campo" style={{ maxWidth: "none" }}>
+              <span className="omni-campo__rotulo">Telefone <span className="omni-campo__opcional">(opcional)</span></span>
+              <input
+                className="omni-entrada"
+                type="tel"
+                value={form.telefone}
+                onChange={(e) => setForm((f) => ({ ...f, telefone: e.target.value }))}
+                placeholder="(11) 99999-9999"
+              />
+            </label>
+            <label className="omni-campo" style={{ maxWidth: "none" }}>
+              <span className="omni-campo__rotulo">Parentesco <span className="omni-campo__opcional">(opcional)</span></span>
+              <input
+                className="omni-entrada"
+                type="text"
+                value={form.parentesco}
+                onChange={(e) => setForm((f) => ({ ...f, parentesco: e.target.value }))}
+                placeholder="Ex.: mãe, pai, avó, tutor"
+              />
+            </label>
+            <label className="omni-campo" style={{ maxWidth: "none" }}>
+              <span className="omni-campo__rotulo">Senha de acesso</span>
+              <input
+                className="omni-entrada"
+                type="password"
+                value={form.senha}
+                onChange={(e) => setForm((f) => ({ ...f, senha: e.target.value }))}
+                aria-required="true"
+                autoComplete="new-password"
+              />
+              <span className="omni-campo__ajuda">Pelo menos 6 caracteres. Envie a senha ao responsável por um canal seguro.</span>
+            </label>
           </div>
-        </div>
+        </Janela>
       )}
 
-      {/* Modal: Vincular existente */}
+      {/* Janela: vincular quem já tem cadastro */}
       {showLinkModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => !submitting && setShowLinkModal(false)}>
-          <div
-            className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-800">Vincular responsável existente</h3>
-              <button
-                type="button"
-                onClick={() => !submitting && setShowLinkModal(false)}
-                className="p-1 text-slate-400 hover:text-slate-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <p className="text-sm text-slate-600 mb-4">
-              Vincular a <strong>{studentName}</strong>:
-            </p>
-            {notLinked.length === 0 ? (
-              <p className="text-sm text-slate-500 italic">Todos os responsáveis já estão vinculados a este estudante.</p>
-            ) : (
-              <ul className="space-y-2 max-h-60 overflow-y-auto">
-                {notLinked.map((r) => (
-                  <li
-                    key={r.id}
-                    className="flex items-center justify-between py-2.5 px-3 bg-(--omni-bg-tertiary) rounded-xl border border-(--omni-border-default)"
+        <Janela
+          id={`vincular-resp-${studentId}`}
+          titulo="Vincular responsável já cadastrado"
+          aoFechar={fecharVincular}
+          acoes={
+            <button type="button" className="omni-btn omni-btn--secundario" onClick={fecharVincular}>
+              Fechar
+            </button>
+          }
+        >
+          <p className="omni-apoio" style={{ margin: 0 }}>
+            Escolha quem vai ficar ligado a <strong>{studentName}</strong>.
+          </p>
+          {erro && <AvisoErro texto={erro} />}
+          {notLinked.length === 0 ? (
+            <p className="omni-apoio" style={{ margin: 0 }}>Todos os responsáveis já estão vinculados a este estudante.</p>
+          ) : (
+            <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8, maxHeight: 240, overflowY: "auto" }}>
+              {notLinked.map((r) => (
+                <li
+                  key={r.id}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 12px", background: "var(--superficie-2)", border: "1px solid var(--borda)", borderRadius: "var(--o-radius-md)" }}
+                >
+                  <div style={{ minWidth: 0 }}>
+                    <span style={{ font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>{r.nome}</span>
+                    <span style={{ display: "block", font: "400 13px/18px var(--font-sans)", color: "var(--tinta-2)", overflowWrap: "anywhere" }}>{r.email}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="omni-btn omni-btn--primario omni-btn--pequeno"
+                    onClick={() => handleVincular(r.id)}
+                    disabled={submitting}
+                    aria-label={`Vincular ${r.nome}`}
                   >
-                    <div>
-                      <span className="font-medium text-(--omni-text-primary)">{r.nome}</span>
-                      <span className="text-(--omni-text-secondary) text-sm ml-2">({r.email})</span>
-                    </div>
-                    <Button
-                      variant="module"
-                      moduleColor="var(--omni-module-familia)"
-                      size="sm"
-                      onClick={() => handleVincular(r.id)}
-                      disabled={submitting}
-                    >
-                      Vincular
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div className="mt-6">
-              <Button
-                variant="secondary"
-                onClick={() => !submitting && setShowLinkModal(false)}
-                className="w-full"
-              >
-                Fechar
-              </Button>
-            </div>
-          </div>
-        </div>
+                    Vincular
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Janela>
       )}
-    </Card>
+    </section>
   );
 }

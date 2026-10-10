@@ -1,10 +1,10 @@
 /**
  * Gera PDF da Jornada Gamificada do PAEE (compatível com Streamlit _gerar_pdf_jornada_simples)
  */
-export function gerarPdfJornada(texto: string, nomeEstudante: string): void {
-  if (typeof window === "undefined") return;
+export function gerarPdfJornada(texto: string, nomeEstudante: string): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
 
-  import("jspdf").then(({ jsPDF }) => {
+  return import("jspdf").then(({ jsPDF }) => {
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 20;
@@ -94,6 +94,6 @@ export function gerarPdfJornada(texto: string, nomeEstudante: string): void {
     doc.save(nomeArquivo);
   }).catch((err) => {
     console.error("Erro ao gerar PDF da jornada:", err);
-    alert("Erro ao gerar PDF. Tente novamente.");
+    throw new Error("Não conseguimos gerar o PDF agora. Tente de novo.");
   });
 }
