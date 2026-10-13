@@ -10,7 +10,7 @@ import { OmniEducacaoSignature } from "@/components/Footer";
 
 export const metadata = {
     title: "Segurança e transparência | Omnisfera",
-    description: "Como a Omnisfera protege os dados, garante acessibilidade e usa inteligência artificial com transparência.",
+    description: "Como a Omnisfera protege os dados, cuida da acessibilidade e usa inteligência artificial com transparência.",
 };
 
 const PILARES = [
@@ -18,22 +18,22 @@ const PILARES = [
         Icone: Lock,
         modulo: "pei",
         titulo: "Proteção de dados (LGPD)",
-        texto: "Os laudos e os dados sensíveis dos estudantes ficam protegidos na nuvem (Supabase), com criptografia de ponta a ponta.",
-        itens: ["Registros de auditoria rigorosos", "Banco de dados isolado"],
+        texto: "Os laudos e os dados sensíveis dos estudantes ficam guardados na nuvem (Supabase), criptografados no armazenamento e na transmissão (conexão segura, HTTPS). Cada escola só enxerga os próprios estudantes.",
+        itens: ["Registro de quem acessou, exportou ou apagou dados", "Exportar e apagar dados de um membro a pedido (direitos da LGPD)"],
     },
     {
         Icone: Server,
         modulo: "diario",
-        titulo: "Desempenho de nível empresarial",
-        texto: "Construída com tecnologia atual (Next.js 16), a Omnisfera abre módulos institucionais complexos em menos de 1 segundo: o primeiro conteúdo aparece em 1,1 s (medida conhecida como FCP).",
-        itens: ["Nota 100/100 em boas práticas", "Sem carregamentos lentos"],
+        titulo: "Rápida e estável",
+        texto: "Construída com tecnologia atual (Next.js), a Omnisfera é pensada para abrir rápido mesmo em conexões de escola, com o conteúdo principal carregado primeiro.",
+        itens: ["Testes automáticos a cada atualização", "Funciona no computador, no tablet e no celular"],
     },
     {
         Icone: Baseline,
         modulo: "hub",
-        titulo: "100% acessível (WCAG AAA)",
-        texto: "Design aprovado nas métricas internacionais de acessibilidade na web (WCAG, as diretrizes de acessibilidade para conteúdo web, no nível mais alto, AAA). Contraste perfeito e navegação inclusiva para diretores e professores.",
-        itens: ["Contraste aprovado (nota 100/100 em acessibilidade)", "Sistema de design inclusivo"],
+        titulo: "Acessibilidade como regra",
+        texto: "O design segue as diretrizes internacionais de acessibilidade na web (WCAG, as diretrizes de acessibilidade para conteúdo web), com meta no nível AA: contraste adequado, navegação por teclado e leitores de tela.",
+        itens: ["Menu de acessibilidade: alto contraste e fonte mais legível", "Sistema de design inclusivo"],
     },
 ] as const;
 
@@ -104,7 +104,7 @@ export default function SegurancaPage() {
                         Transparência é inclusão
                     </h2>
                     <p style={{ margin: 0, font: "400 17px/28px var(--font-sans)", color: "var(--tinta-2)" }}>
-                        Nossos modelos de inteligência artificial (DeepSeek, Kimi, Claude, Gemini e OpenAI) passam por uma barreira de proteção rígida (um <em>firewall</em>). Os pedidos que você escreve ao construir o PEI (Plano Educacional Individualizado) não são usados para treinar IAs públicas. O foco é só o estudante.
+                        A Omnisfera usa modelos de inteligência artificial (IA) de vários fornecedores (DeepSeek, Kimi, Claude, Gemini e OpenAI). Antes de cada pedido sair para a IA, o nome do estudante é trocado por um apelido e volta só na resposta, dentro da plataforma. Diagnóstico não entra nos textos gerados. E todo conteúdo da IA é uma sugestão: a professora revisa antes de usar.
                     </p>
                     <Link href="/landing" className="omni-btn omni-btn--secundario omni-btn--grande" style={{ marginTop: 16 }}>
                         <ArrowLeft aria-hidden /> Voltar para a página inicial

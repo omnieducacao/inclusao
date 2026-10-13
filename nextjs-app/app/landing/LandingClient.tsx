@@ -302,14 +302,14 @@ export default function LandingClient({ stats }: LandingProps) {
                                     <span className="omni-modulo__selo" aria-hidden><Lock /></span>
                                     <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Conformidade com a LGPD</h3>
                                     <p className="omni-cartao__texto" style={{ margin: 0 }}>
-                                        LGPD é a Lei Geral de Proteção de Dados. Laudos médicos e PDIs (Planos de Desenvolvimento Individual) ficam totalmente resguardados no Supabase, com registros de auditoria contínuos.
+                                        LGPD é a Lei Geral de Proteção de Dados. Laudos médicos e PDIs (Planos de Desenvolvimento Individual) ficam guardados no Supabase, criptografados, separados por escola e com registro de quem acessou, exportou ou apagou dados.
                                     </p>
                                 </div>
                             </Reveal>
                             <Reveal>
                                 <div className="omni-cartao omni-modulo omni-modulo--pei" style={{ height: "100%", alignItems: "center", textAlign: "center" }}>
                                     <span className="omni-modulo__selo" aria-hidden><Accessibility /></span>
-                                    <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Acessibilidade 100/100 (WCAG)</h3>
+                                    <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Acessibilidade como regra (WCAG)</h3>
                                     <p className="omni-cartao__texto" style={{ margin: 0 }}>
                                         Segue as WCAG, diretrizes internacionais de acessibilidade na web. Design pensado desde o início para navegação por teclado e adaptado para pessoas com TDAH (Transtorno do Déficit de Atenção com Hiperatividade) e outras pessoas neurodivergentes.
                                     </p>
@@ -318,9 +318,9 @@ export default function LandingClient({ stats }: LandingProps) {
                             <Reveal>
                                 <div className="omni-cartao omni-modulo omni-modulo--monitoramento" style={{ height: "100%", alignItems: "center", textAlign: "center" }}>
                                     <span className="omni-modulo__selo" aria-hidden><Zap /></span>
-                                    <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Alto desempenho (1,1 s)</h3>
+                                    <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Rápida na escola</h3>
                                     <p className="omni-cartao__texto" style={{ margin: 0 }}>
-                                        Avaliação máxima (AAA) em desempenho. Sistemas pesados que funcionam na hora, mesmo nos computadores da escola.
+                                        Pensada para abrir rápido mesmo em computadores e conexões de escola, no computador, no tablet ou no celular.
                                     </p>
                                 </div>
                             </Reveal>

@@ -207,3 +207,51 @@ export function badgeStatus(
   };
   return map[s] ?? [status || "Sem estado", "neutro"];
 }
+
+export type ResumoPaee = {
+  total: number;
+  concluidos: number;
+  /** O ciclo em andamento (ativo); se não houver, o rascunho mais recente. */
+  atual: null | {
+    status: CicloPAEE["status"];
+    foco: string | null;
+    frequencia: string | null;
+    inicio: string | null;
+    fim: string | null;
+    semanas: number | null;
+    /** Semana em que o ciclo está hoje (1…semanas), ou null se não deu para calcular. */
+    semanaAtual: number | null;
+    metas: number;
+  };
+};
+
+/** Resumo do PAEE para "Evolução e dados": ciclo em andamento, semana atual e quantos já terminaram. */
+export function resumoPaee(ciclos: unknown[] | null | undefined, hoje: Date = new Date()): ResumoPaee {
+  const lista = (Array.isArray(ciclos) ? ciclos : []).filter((c): c is CicloPAEE => !!c && typeof c === "object") as CicloPAEE[];
+  const recente = (a: CicloPAEE, b: CicloPAEE) => String(b.atualizado_em || b.criado_em || "").localeCompare(String(a.atualizado_em || a.criado_em || ""));
+  const ativo = lista.filter((c) => c.status === "ativo").sort(recente)[0] || lista.filter((c) => c.status === "rascunho").sort(recente)[0] || null;
+  let atual: ResumoPaee["atual"] = null;
+  if (ativo) {
+    const cfg = ativo.config_ciclo || {};
+    const semanas = Number(cfg.duracao_semanas) || (ativo.cronograma?.semanas?.length ?? 0) || null;
+    let semanaAtual: number | null = null;
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(cfg.data_inicio || "");
+    if (m && ativo.status === "ativo") {
+      const ini = Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      const dia = Date.UTC(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+      const n = Math.floor((dia - ini) / (7 * 86400000)) + 1;
+      if (n >= 1) semanaAtual = semanas ? Math.min(n, semanas) : n;
+    }
+    atual = {
+      status: ativo.status,
+      foco: (cfg.foco_principal || "").trim() || null,
+      frequencia: (cfg.frequencia || "").trim() || null,
+      inicio: cfg.data_inicio || null,
+      fim: cfg.data_fim || null,
+      semanas,
+      semanaAtual,
+      metas: (cfg.metas_selecionadas || []).filter((x) => x.selecionada !== false).length,
+    };
+  }
+  return { total: lista.length, concluidos: lista.filter((c) => c.status === "concluido").length, atual };
+}

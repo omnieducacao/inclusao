@@ -11,11 +11,12 @@ import TelaCarregando from "@/components/brand/TelaCarregando";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ClipboardList, NotebookPen, Plus } from "lucide-react";
+import { ClipboardList, NotebookPen, Plus, Puzzle } from "lucide-react";
 import { CabecalhoEstudante, EscolherEstudante } from "@/components/estudante/CabecalhoEstudante";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { EvolucaoDescritores, type DiagnosticaEvolucao, type RegistroEvolucao } from "@/components/avaliacao/EvolucaoDescritores";
 import { lerSerie } from "@/lib/matriz-avaliacao";
+import { resumoPaee, badgeStatus } from "@/lib/paee";
 
 type Student = { id: string; name: string; grade?: string | null; class_group?: string | null };
 type RegistroDiario = {
@@ -129,6 +130,7 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
 
   const peiData = student.pei_data || {};
   const diario = resumoDoDiario((student.daily_logs || []) as RegistroDiario[]);
+  const paee = resumoPaee(student.paee_ciclos);
   const ehInfantil = lerSerie(student.grade).etapa === "EI";
 
   return (
@@ -212,9 +214,39 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
         )}
       </section>
 
+      {/* PAEE: o ciclo do AEE em andamento */}
+      <section className="omni-cartao" style={{ display: "grid", gap: 12 }} aria-labelledby="evo-paee">
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <h2 id="evo-paee" style={{ margin: 0, font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" }}>PAEE (Plano de Atendimento Educacional Especializado)</h2>
+            <p className="omni-apoio" style={{ margin: "4px 0 0" }}>
+              {paee.total === 0 ? "Nenhum ciclo do AEE (Atendimento Educacional Especializado) ainda." : `${paee.total} ${paee.total === 1 ? "ciclo" : "ciclos"} no total · ${paee.concluidos} ${paee.concluidos === 1 ? "concluído" : "concluídos"}.`}
+            </p>
+          </div>
+          <Link href={`/paee?student=${student.id}`} className="omni-btn omni-btn--secundario omni-btn--pequeno">
+            <Puzzle aria-hidden /> {paee.total === 0 ? "Planejar o PAEE" : "Abrir o PAEE"}
+          </Link>
+        </div>
+        {paee.atual ? (
+          <>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+              <span className={`omni-estado omni-estado--${badgeStatus(paee.atual.status)[1]}`}>{badgeStatus(paee.atual.status)[0]}</span>
+              {paee.atual.foco && <span style={{ font: "600 15px/22px var(--font-sans)", color: "var(--tinta)" }}>Foco: {paee.atual.foco}</span>}
+            </div>
+            <dl style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, margin: 0 }}>
+              <Numero rotulo="Semana" valor={paee.atual.semanaAtual && paee.atual.semanas ? `${paee.atual.semanaAtual} de ${paee.atual.semanas}` : paee.atual.semanas ? `${paee.atual.semanas} semanas` : "—"} />
+              <Numero rotulo="Período" valor={paee.atual.inicio ? `${fmtData(paee.atual.inicio)} a ${fmtData(paee.atual.fim)}` : "—"} />
+              <Numero rotulo="Frequência" valor={paee.atual.frequencia || "—"} />
+              <Numero rotulo="Metas do PEI no ciclo" valor={String(paee.atual.metas)} />
+            </dl>
+          </>
+        ) : paee.total > 0 ? (
+          <p className="omni-apoio" style={{ margin: 0 }}>Nenhum ciclo em andamento agora.</p>
+        ) : null}
+      </section>
+
       <nav aria-label="Outros registros do estudante" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
         <Link href={`/pei?student=${student.id}`} className="omni-btn omni-btn--discreto omni-btn--pequeno">Ver PEI</Link>
-        <Link href={`/paee?student=${student.id}`} className="omni-btn omni-btn--discreto omni-btn--pequeno">Ver PAEE</Link>
       </nav>
     </div>
   );

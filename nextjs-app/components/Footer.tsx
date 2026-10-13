@@ -4,7 +4,7 @@
  * Onda 20: levado ao design system (tokens e classes omni-*), sem classes de cor do Tailwind.
  */
 import Link from "next/link";
-import { ExternalLink, ShieldCheck, Accessibility, Gauge } from "lucide-react";
+import { ExternalLink, ShieldCheck, Accessibility, UserX as Gauge } from "lucide-react";
 import SimboloOmnisfera from "@/components/SimboloOmnisfera";
 
 export function OmniEducacaoSignature({ variant = "full" }: { variant?: "full" | "compact" }) {
@@ -55,7 +55,7 @@ export function OmniEducacaoSignature({ variant = "full" }: { variant?: "full" |
               <Accessibility aria-hidden /> Segue as diretrizes de acessibilidade WCAG (padrão internacional para a web)
             </li>
             <li className="omni-estado omni-estado--neutro" style={{ whiteSpace: "normal" }}>
-              <Gauge aria-hidden /> Desempenho 100/100
+              <Gauge aria-hidden /> IA sem o nome do estudante
             </li>
           </ul>
 

@@ -215,7 +215,7 @@ function DiarioClientInner({ students, studentId, student }: Props) {
         </div>
       )}
       {activeTab === "filtros" && (
-        <FiltrosTab students={students} registros={registrosOrdenados} />
+        <FiltrosTab registros={registrosOrdenados} />
       )}
       {activeTab === "relatorios" && (
         <RelatoriosTab registros={registrosOrdenados} student={student} />
@@ -224,14 +224,12 @@ function DiarioClientInner({ students, studentId, student }: Props) {
   );
 }
 
-// Aba: Análise (filtros e números)
-function FiltrosTab({ students, registros }: { students: Student[]; registros: RegistroDiario[] }) {
-  const [filtroAluno, setFiltroAluno] = useState<string>("Todos");
+// Aba: Análise (filtros e números) — os registros já são do estudante aberto no cabeçalho
+function FiltrosTab({ registros }: { registros: RegistroDiario[] }) {
   const [filtroPeriodo, setFiltroPeriodo] = useState<string>("Todos");
   const [filtroModalidade, setFiltroModalidade] = useState<string[]>([]);
 
   const registrosFiltrados = registros.filter((r) => {
-    if (filtroAluno !== "Todos" && r.student_id !== filtroAluno) return false;
     if (filtroPeriodo !== "Todos") {
       const data = lerData(r.data_sessao);
       if (!data) return false;
@@ -259,21 +257,13 @@ function FiltrosTab({ students, registros }: { students: Student[]; registros: R
     { valor: String(registrosFiltrados.length), rotulo: registrosFiltrados.length === 1 ? "Atendimento" : "Atendimentos" },
     { valor: String(horas), rotulo: "Horas de atendimento" },
     { valor: engajamentoMedio, rotulo: "Engajamento médio (1 a 5)" },
-    { valor: String(new Set(registrosFiltrados.map((r) => r.student_id).filter(Boolean)).size), rotulo: "Estudantes" },
   ];
 
   return (
     <div style={{ display: "grid", gap: 24 }}>
       <section className="omni-cartao" aria-labelledby="diario-filtros">
         <h2 id="diario-filtros" className="omni-cartao__titulo" style={{ marginTop: 0 }}>Filtrar atendimentos</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{ marginTop: 12 }}>
-          <div className="omni-campo">
-            <label className="omni-campo__rotulo" htmlFor="diario-filtro-estudante">Estudante</label>
-            <select id="diario-filtro-estudante" className="omni-entrada" value={filtroAluno} onChange={(e) => setFiltroAluno(e.target.value)}>
-              <option value="Todos">Todos</option>
-              {students.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ marginTop: 12 }}>
           <div className="omni-campo">
             <label className="omni-campo__rotulo" htmlFor="diario-filtro-periodo">Período</label>
             <select id="diario-filtro-periodo" className="omni-entrada" value={filtroPeriodo} onChange={(e) => setFiltroPeriodo(e.target.value)}>
@@ -309,7 +299,7 @@ function FiltrosTab({ students, registros }: { students: Student[]; registros: R
 
       <section className="omni-cartao" aria-labelledby="diario-numeros">
         <h2 id="diario-numeros" className="omni-cartao__titulo" style={{ marginTop: 0 }}>Números do período</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4" style={{ marginTop: 12 }} role="status">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" style={{ marginTop: 12 }} role="status">
           {numeros.map((n) => (
             <div key={n.rotulo} className="omni-cartao omni-cartao--plano" style={{ textAlign: "center", padding: 16 }}>
               <div style={{ font: "800 26px/32px var(--font-sans)", color: "var(--acao)", fontVariantNumeric: "tabular-nums" }}>{n.valor}</div>
