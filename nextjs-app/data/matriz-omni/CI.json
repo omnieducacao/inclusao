@@ -194,7 +194,9 @@
    "habilidades_bncc": [
     "EF01CI05"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A3.1"
+   ],
    "evidencia": "Diz que a cena com o Sol nascendo e a família tomando café é de manhã."
   },
   {
@@ -246,7 +248,9 @@
    "habilidades_bncc": [
     "EF01CI06"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B3.1"
+   ],
    "evidencia": "Separa a coruja e o morcego como animais que saem à noite e a borboleta como animal do dia."
   },
   {
@@ -299,7 +303,9 @@
    "habilidades_bncc": [
     "EF02CI03"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A1.8"
+   ],
    "evidencia": "Aponta, entre rótulos, o símbolo que indica produto inflamável."
   },
   {
@@ -325,7 +331,9 @@
    "habilidades_bncc": [
     "EF02CI01"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5C1.1"
+   ],
    "evidencia": "Compara um ferro de passar a carvão com um ferro elétrico, dizendo de que material é feito cada um."
   },
   {
@@ -377,7 +385,9 @@
    "habilidades_bncc": [
     "EF02CI03"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5C1.9"
+   ],
    "evidencia": "Explica por que remédios e produtos de limpeza devem ficar em armário alto e fechado."
   },
   {
@@ -390,7 +400,9 @@
    "habilidades_bncc": [
     "EF02CI04"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A2.3"
+   ],
    "evidencia": "Descreve um cachorro e um ipê citando tamanho, cor e cobertura (pelos ou folhas)."
   },
   {
@@ -416,7 +428,9 @@
    "habilidades_bncc": [
     "EF02CI06"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A2.4"
+   ],
    "evidencia": "Liga a raiz a \"absorve água\" e a flor a \"dá origem ao fruto\"."
   },
   {
@@ -442,7 +456,10 @@
    "habilidades_bncc": [
     "EF02CI04"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B2.4",
+    "CN-5B2.6"
+   ],
    "evidencia": "Explica que o cacto tem caule grosso, que guarda água, porque vive em lugar seco."
   },
   {
@@ -468,7 +485,9 @@
    "habilidades_bncc": [
     "EF02CI05"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B2.5"
+   ],
    "evidencia": "Compara três vasos (com água e luz, sem água, sem luz) e diz qual condição deixou a planta mais saudável."
   },
   {
@@ -494,7 +513,10 @@
    "habilidades_bncc": [
     "EF02CI05"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5C1.10",
+    "CN-5C2.1"
+   ],
    "evidencia": "Propõe colocar dois vasos iguais, um ao sol e outro no escuro, regando os dois do mesmo jeito."
   },
   {
@@ -520,7 +542,9 @@
    "habilidades_bncc": [
     "EF02CI08"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A3.7"
+   ],
    "evidencia": "Indica que a areia da praia fica quente e que o espelho reflete a luz do Sol."
   },
   {
@@ -533,7 +557,9 @@
    "habilidades_bncc": [
     "EF02CI07"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B3.4"
+   ],
    "evidencia": "Diz que a sombra do poste é mais curta ao meio-dia, quando o Sol está alto."
   },
   {
@@ -559,7 +585,9 @@
    "habilidades_bncc": [
     "EF02CI08"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B3.6"
+   ],
    "evidencia": "Indica, numa tabela de temperaturas, que a camiseta preta esquentou mais que a branca."
   },
   {
@@ -598,7 +626,9 @@
    "habilidades_bncc": [
     "EF03CI01"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A1.7"
+   ],
    "evidencia": "Indica que garrafas com quantidades diferentes de água produzem sons diferentes ao serem batidas."
   },
   {
@@ -611,7 +641,9 @@
    "habilidades_bncc": [
     "EF03CI02"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B1.9"
+   ],
    "evidencia": "Diz que a luz atravessa o copo de vidro, é refletida pelo espelho e forma sombra atrás de uma parede."
   },
   {
@@ -664,7 +696,9 @@
     "EF03CI01",
     "EF03CI02"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B1.10"
+   ],
    "evidencia": "Lê uma tabela com o som de copos com diferentes quantidades de água e diz o que fez o som mudar."
   },
   {
@@ -677,7 +711,9 @@
    "habilidades_bncc": [
     "EF03CI03"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5C1.8"
+   ],
    "evidencia": "Explica por que trabalhadores de obra usam protetor de ouvido e por que não se deve olhar diretamente para o Sol."
   },
   {
@@ -703,7 +739,9 @@
    "habilidades_bncc": [
     "EF03CI04"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A2.5"
+   ],
    "evidencia": "Indica, a partir de um texto curto, que a galinha come grãos, põe ovos e anda sobre duas patas."
   },
   {
@@ -716,7 +754,9 @@
    "habilidades_bncc": [
     "EF03CI05"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A2.6"
+   ],
    "evidencia": "Coloca em ordem figuras do ovo, da lagarta, do casulo e da borboleta."
   },
   {
@@ -742,7 +782,9 @@
    "habilidades_bncc": [
     "EF03CI05"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B2.7"
+   ],
    "evidencia": "Diz que o bebê humano nasce parecido com o adulto, enquanto o girino muda muito até virar sapo."
   },
   {
@@ -755,7 +797,10 @@
    "habilidades_bncc": [
     "EF03CI06"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A2.7",
+    "CN-5B2.8"
+   ],
    "evidencia": "Separa, entre figuras, os animais com penas, os com pelos e os com escamas."
   },
   {
@@ -795,7 +840,9 @@
    "habilidades_bncc": [
     "EF03CI07"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A3.4"
+   ],
    "evidencia": "Indica, numa foto da Terra vista do espaço, que o azul representa a água."
   },
   {
@@ -808,7 +855,9 @@
    "habilidades_bncc": [
     "EF03CI08"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A3.2"
+   ],
    "evidencia": "Diz que o Sol só aparece de dia e que a Lua pode ser vista às vezes de dia e às vezes à noite."
   },
   {
@@ -821,7 +870,10 @@
    "habilidades_bncc": [
     "EF03CI09"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A3.9",
+    "CN-5B3.8"
+   ],
    "evidencia": "Descreve uma amostra de areia como clara, áspera e de grãos soltos."
   },
   {
@@ -834,7 +886,9 @@
    "habilidades_bncc": [
     "EF03CI10"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A3.10"
+   ],
    "evidencia": "Classifica fotos de uma lavoura, de uma olaria e de uma mina como diferentes usos do solo."
   },
   {
@@ -873,7 +927,9 @@
    "habilidades_bncc": [
     "EF03CI09"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B3.11"
+   ],
    "evidencia": "Lê os resultados de um teste com funis e diz que a água passou mais rápido pela areia do que pela argila."
   },
   {
@@ -886,7 +942,9 @@
    "habilidades_bncc": [
     "EF03CI10"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B3.9"
+   ],
    "evidencia": "Explica que as plantas que comemos retiram do solo a água e os nutrientes de que precisam."
   },
   {
@@ -926,7 +984,9 @@
    "habilidades_bncc": [
     "EF04CI01"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A1.5"
+   ],
    "evidencia": "Reconhece que água com areia é uma mistura porque dá para ver os grãos no fundo do copo."
   },
   {
@@ -939,7 +999,9 @@
    "habilidades_bncc": [
     "EF04CI01"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B1.7"
+   ],
    "evidencia": "Diz que o soro caseiro é feito de água, sal e açúcar."
   },
   {
@@ -965,7 +1027,9 @@
    "habilidades_bncc": [
     "EF04CI02"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B1.8"
+   ],
    "evidencia": "Lê a tabela de um teste com chocolate, gelo e manteiga e conclui que o calor causou o derretimento dos três."
   },
   {
@@ -978,7 +1042,9 @@
    "habilidades_bncc": [
     "EF04CI03"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A1.6"
+   ],
    "evidencia": "Separa \"derreter gelo\" como reversível e \"queimar papel\" como irreversível."
   },
   {
@@ -991,7 +1057,9 @@
    "habilidades_bncc": [
     "EF04CI03"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5C1.7"
+   ],
    "evidencia": "Depois de ver a água congelar e derreter de novo, conclui que essa mudança é reversível, ao contrário do ovo cozido."
   },
   {
@@ -1017,7 +1085,9 @@
    "habilidades_bncc": [
     "EF04CI04"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A2.8"
+   ],
    "evidencia": "Indica que, na cadeia capim → gafanhoto → sapo, o capim é o produtor."
   },
   {
@@ -1030,7 +1100,9 @@
    "habilidades_bncc": [
     "EF04CI04"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A2.9"
+   ],
    "evidencia": "Responde que a energia obtida pelo sapo veio, no início, da luz do Sol captada pelo capim."
   },
   {
@@ -1043,7 +1115,9 @@
    "habilidades_bncc": [
     "EF04CI06"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A2.10"
+   ],
    "evidencia": "Indica que o bolor que cresce na laranja estragada é um fungo que decompõe a fruta."
   },
   {
@@ -1056,7 +1130,9 @@
    "habilidades_bncc": [
     "EF04CI07"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B2.11"
+   ],
    "evidencia": "Liga o iogurte às bactérias e o pão ao fermento biológico (levedura)."
   },
   {
@@ -1069,7 +1145,9 @@
    "habilidades_bncc": [
     "EF04CI08"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B2.12"
+   ],
    "evidencia": "Indica que a gripe passa de uma pessoa a outra pelas gotículas da tosse e do espirro."
   },
   {
@@ -1082,7 +1160,9 @@
    "habilidades_bncc": [
     "EF04CI04"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B2.9"
+   ],
    "evidencia": "Explica que o sapo depende do capim, mesmo sem comê-lo, porque se alimenta do gafanhoto que come o capim."
   },
   {
@@ -1095,7 +1175,9 @@
    "habilidades_bncc": [
     "EF04CI05"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B2.10"
+   ],
    "evidencia": "Explica, num esquema de ecossistema, que os nutrientes voltam ao solo pela decomposição, mas a energia do Sol não volta."
   },
   {
@@ -1121,7 +1203,9 @@
    "habilidades_bncc": [
     "EF04CI07"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B2.2"
+   ],
    "evidencia": "Compara duas massas e conclui que só a que tinha fermento cresceu, por causa do gás produzido pelas leveduras."
   },
   {
@@ -1147,7 +1231,9 @@
    "habilidades_bncc": [
     "EF04CI04"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5C2.3"
+   ],
    "evidencia": "Organiza com setas, a partir de um texto sobre o Cerrado, a cadeia capim → preá → cobra → gavião."
   },
   {
@@ -1160,7 +1246,9 @@
    "habilidades_bncc": [
     "EF04CI04"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5C2.4"
+   ],
    "evidencia": "Diz que, se as cobras forem caçadas, o número de preás tende a aumentar e o capim a diminuir."
   },
   {
@@ -1173,7 +1261,9 @@
    "habilidades_bncc": [
     "EF04CI08"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5C2.5"
+   ],
    "evidencia": "Propõe ferver ou filtrar a água e lavar os alimentos para evitar diarreia causada por bactérias."
   },
   {
@@ -1186,7 +1276,9 @@
    "habilidades_bncc": [
     "EF04CI09"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5A3.8"
+   ],
    "evidencia": "Marca o leste no esquema, sabendo que é o lado onde o Sol nasce."
   },
   {
@@ -1212,7 +1304,9 @@
    "habilidades_bncc": [
     "EF04CI09"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B3.7"
+   ],
    "evidencia": "Usa a sombra mais curta do dia para traçar a linha norte–sul num esquema."
   },
   {
@@ -1238,7 +1332,9 @@
    "habilidades_bncc": [
     "EF04CI11"
    ],
-   "saeb": [],
+   "saeb": [
+    "CN-5B3.2"
+   ],
    "evidencia": "Explica que alguns calendários marcam os meses pelas fases da Lua e outros, o ano pela volta da Terra em torno do Sol."
   },
   {
@@ -1434,7 +1530,8 @@
    ],
    "saeb": [
     "CN-5C1.5",
-    "CN-5C1.2"
+    "CN-5C1.2",
+    "CN-5C1.6"
    ],
    "evidencia": "Projeta um ponto de coleta de pilhas e tampinhas na escola, explicando para onde vai cada material."
   },
@@ -1686,7 +1783,8 @@
     "EF05CI12"
    ],
    "saeb": [
-    "CN-5B3.10"
+    "CN-5B3.10",
+    "CN-5B3.5"
    ],
    "evidencia": "Conta, num calendário com desenhos da Lua, que se passaram cerca de 29 dias entre duas Luas cheias."
   },
@@ -1934,7 +2032,7 @@
    "eixo": "Vida e evolução",
    "eixo_cognitivo": 1,
    "bloom": "entender",
-   "descritor": "Identificar efeitos de substâncias psicoativas, como álcool, nicotina OU outras drogas, sobre o sistema nervoso.",
+   "descritor": "Explicar como substâncias psicoativas podem afetar o funcionamento do sistema nervoso.",
    "habilidades_bncc": [
     "EF06CI10"
    ],
