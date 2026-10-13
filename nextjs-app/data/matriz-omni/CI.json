@@ -1,1 +1,4995 @@
-{"componente": "Ciências", "sigla": "CI", "descritores": [{"codigo": "OMNI-CI1-D01", "ano": "1º ano", "eixo": "Matéria e energia", "descritor": "Identificar o material (plástico, papel, vidro, metal ou madeira) de que são feitos objetos do dia a dia mostrados em imagens.", "habilidades_bncc": ["EF01CI01"], "saeb": [], "evidencia": "Liga cada objeto ilustrado ao material que o compõe."}, {"codigo": "OMNI-CI1-D02", "ano": "1º ano", "eixo": "Matéria e energia", "descritor": "Indicar o destino mais adequado para objetos usados, como reutilizar, separar para coleta seletiva ou jogar no lixo comum.", "habilidades_bncc": ["EF01CI01"], "saeb": [], "evidencia": "Escolhe, entre opções ilustradas, o destino correto para um objeto descartado."}, {"codigo": "OMNI-CI1-D03", "ano": "1º ano", "eixo": "Vida e evolução", "descritor": "Nomear partes externas do corpo humano (cabeça, tronco, braços, pernas, mãos, pés) apontadas em uma ilustração.", "habilidades_bncc": ["EF01CI02"], "saeb": [], "evidencia": "Escreve ou marca o nome da parte do corpo indicada na figura."}, {"codigo": "OMNI-CI1-D04", "ano": "1º ano", "eixo": "Vida e evolução", "descritor": "Relacionar partes e órgãos dos sentidos do corpo à sua função, como olhos para enxergar e pernas para andar.", "habilidades_bncc": ["EF01CI02"], "saeb": [], "evidencia": "Associa cada parte do corpo à ação que ela permite realizar."}, {"codigo": "OMNI-CI1-D05", "ano": "1º ano", "eixo": "Vida e evolução", "descritor": "Indicar, em cenas do cotidiano, qual cuidado com a higiene (mãos limpas, dentes escovados, banho) protege a criança de adoecer.", "habilidades_bncc": ["EF01CI03"], "saeb": [], "evidencia": "Aponta, numa cena do cotidiano, o hábito de higiene que evita adoecer."}, {"codigo": "OMNI-CI1-D06", "ano": "1º ano", "eixo": "Vida e evolução", "descritor": "Comparar características físicas de crianças retratadas (altura, cor dos olhos, tipo de cabelo), apontando semelhanças e diferenças entre elas.", "habilidades_bncc": ["EF01CI04"], "saeb": [], "evidencia": "Marca, em imagens de crianças, uma semelhança e uma diferença física."}, {"codigo": "OMNI-CI1-D07", "ano": "1º ano", "eixo": "Terra e Universo", "descritor": "Ordenar os períodos do dia (manhã, tarde e noite) e a sequência dos dias da semana em atividades com imagens.", "habilidades_bncc": ["EF01CI05"], "saeb": [], "evidencia": "Coloca em ordem cenas ou nomes de períodos e dias da semana."}, {"codigo": "OMNI-CI1-D08", "ano": "1º ano", "eixo": "Terra e Universo", "descritor": "Associar atividades de pessoas e de outros animais ao período (dia ou noite) em que costumam acontecer.", "habilidades_bncc": ["EF01CI06"], "saeb": [], "evidencia": "Classifica cenas ilustradas como atividades típicas do dia ou da noite."}, {"codigo": "OMNI-CI2-D01", "ano": "2º ano", "eixo": "Matéria e energia", "descritor": "Identificar os materiais (metal, madeira, vidro, plástico, tecido) que compõem objetos de uso diário apresentados em imagens.", "habilidades_bncc": ["EF02CI01"], "saeb": [], "evidencia": "Indica de que material é feito cada objeto mostrado."}, {"codigo": "OMNI-CI2-D02", "ano": "2º ano", "eixo": "Matéria e energia", "descritor": "Comparar objetos antigos e atuais com a mesma função quanto aos materiais usados para fabricá-los.", "habilidades_bncc": ["EF02CI01"], "saeb": [], "evidencia": "Aponta a diferença de material entre a versão antiga e a atual de um objeto."}, {"codigo": "OMNI-CI2-D03", "ano": "2º ano", "eixo": "Matéria e energia", "descritor": "Escolher o material mais adequado para fabricar um objeto considerando propriedades como dureza, flexibilidade e transparência.", "habilidades_bncc": ["EF02CI02"], "saeb": [], "evidencia": "Justifica, entre opções, qual material serve melhor para um objeto descrito."}, {"codigo": "OMNI-CI2-D04", "ano": "2º ano", "eixo": "Matéria e energia", "descritor": "Reconhecer situações de risco de acidente em casa (facas, tomadas, produtos de limpeza, remédios) e a atitude que o previne.", "habilidades_bncc": ["EF02CI03"], "saeb": [], "evidencia": "Identifica o perigo numa cena doméstica e marca o comportamento seguro."}, {"codigo": "OMNI-CI2-D05", "ano": "2º ano", "eixo": "Vida e evolução", "descritor": "Relacionar características de plantas e animais do entorno, como tamanho, forma e cobertura do corpo, ao ambiente onde vivem.", "habilidades_bncc": ["EF02CI04"], "saeb": [], "evidencia": "Associa cada ser vivo ilustrado ao ambiente compatível com suas características."}, {"codigo": "OMNI-CI2-D06", "ano": "2º ano", "eixo": "Vida e evolução", "descritor": "Prever o que acontece com uma planta mantida sem água ou sem luz, a partir da descrição de um experimento.", "habilidades_bncc": ["EF02CI05"], "saeb": [], "evidencia": "Escolhe a imagem que mostra o resultado esperado para a planta privada de água ou luz."}, {"codigo": "OMNI-CI2-D07", "ano": "2º ano", "eixo": "Vida e evolução", "descritor": "Identificar raiz, caule, folha, flor e fruto em uma planta e associar cada parte à sua função.", "habilidades_bncc": ["EF02CI06"], "saeb": [], "evidencia": "Nomeia a parte da planta indicada e marca a função correspondente."}, {"codigo": "OMNI-CI2-D08", "ano": "2º ano", "eixo": "Terra e Universo", "descritor": "Prever se a sombra de um poste fica curta ou comprida conforme o Sol esteja alto (meio-dia) ou baixo (manhã e tarde).", "habilidades_bncc": ["EF02CI07"], "saeb": [], "evidencia": "Indica em qual horário a sombra de um poste fica mais curta ou mais longa."}, {"codigo": "OMNI-CI2-D09", "ano": "2º ano", "eixo": "Terra e Universo", "descritor": "Comparar o aquecimento de superfícies diferentes (água, areia, chão claro e escuro, metal) expostas à luz do Sol.", "habilidades_bncc": ["EF02CI08"], "saeb": [], "evidencia": "Aponta qual superfície ficará mais quente após o mesmo tempo ao Sol."}, {"codigo": "OMNI-CI3-D01", "ano": "3º ano", "eixo": "Matéria e energia", "descritor": "Relacionar a produção de som à vibração de objetos e indicar fatores que mudam o som, como material, tamanho e força.", "habilidades_bncc": ["EF03CI01"], "saeb": [], "evidencia": "Explica por que dois objetos que vibram de modo diferente produzem sons diferentes."}, {"codigo": "OMNI-CI3-D02", "ano": "3º ano", "eixo": "Matéria e energia", "descritor": "Prever o comportamento da luz ao atingir objetos transparentes, opacos ou espelhos: atravessar, formar sombra ou refletir.", "habilidades_bncc": ["EF03CI02"], "saeb": [], "evidencia": "Escolhe o que acontece com a luz em cada situação ilustrada."}, {"codigo": "OMNI-CI3-D03", "ano": "3º ano", "eixo": "Matéria e energia", "descritor": "Identificar atitudes que protegem a audição e a visão, como evitar som muito alto e ler em local bem iluminado.", "habilidades_bncc": ["EF03CI03"], "saeb": [], "evidencia": "Marca a atitude que preserva olhos ou ouvidos numa situação descrita."}, {"codigo": "OMNI-CI3-D04", "ano": "3º ano", "eixo": "Vida e evolução", "descritor": "Identificar o modo de vida de animais comuns, como alimentação, forma de reprodução e locomoção, a partir de textos ou imagens.", "habilidades_bncc": ["EF03CI04"], "saeb": [], "evidencia": "Localiza no texto ou na imagem o que o animal come e como se desloca."}, {"codigo": "OMNI-CI3-D05", "ano": "3º ano", "eixo": "Vida e evolução", "descritor": "Ordenar fases do desenvolvimento de animais, incluindo o ser humano, desde o nascimento até a fase adulta.", "habilidades_bncc": ["EF03CI05"], "saeb": [], "evidencia": "Numera em sequência imagens do ciclo de vida de um animal."}, {"codigo": "OMNI-CI3-D06", "ano": "3º ano", "eixo": "Vida e evolução", "descritor": "Agrupar animais ilustrados segundo um critério visível no corpo (cobertura de penas, pelos ou escamas; quantidade de patas) e nomear esse critério.", "habilidades_bncc": ["EF03CI06"], "saeb": [], "evidencia": "Agrupa animais ilustrados e indica a característica usada no critério."}, {"codigo": "OMNI-CI3-D07", "ano": "3º ano", "eixo": "Terra e Universo", "descritor": "Identificar características do planeta Terra, como formato esférico e predomínio de água, em globos, mapas e fotografias.", "habilidades_bncc": ["EF03CI07"], "saeb": [], "evidencia": "Aponta, numa representação da Terra, onde há água e onde há terra firme."}, {"codigo": "OMNI-CI3-D08", "ano": "3º ano", "eixo": "Terra e Universo", "descritor": "Relacionar Sol, Lua, estrelas e planetas aos períodos (dia ou noite) em que podem ser vistos no céu.", "habilidades_bncc": ["EF03CI08"], "saeb": [], "evidencia": "Indica quais astros aparecem numa cena de céu diurno ou noturno."}, {"codigo": "OMNI-CI3-D09", "ano": "3º ano", "eixo": "Terra e Universo", "descritor": "Comparar amostras de solo quanto à cor, textura, tamanho dos grãos e capacidade de deixar a água passar.", "habilidades_bncc": ["EF03CI09"], "saeb": [], "evidencia": "Interpreta o resultado de um teste de permeabilidade com dois tipos de solo."}, {"codigo": "OMNI-CI3-D10", "ano": "3º ano", "eixo": "Terra e Universo", "descritor": "Relacionar diferentes usos do solo, como plantio, criação de animais e extração de materiais, às necessidades humanas.", "habilidades_bncc": ["EF03CI10"], "saeb": [], "evidencia": "Associa cada uso do solo ilustrado ao produto ou benefício obtido."}, {"codigo": "OMNI-CI4-D01", "ano": "4º ano", "eixo": "Matéria e energia", "descritor": "Identificar os componentes de misturas do cotidiano, como água com areia ou café com leite, a partir de propriedades observáveis.", "habilidades_bncc": ["EF04CI01"], "saeb": [], "evidencia": "Nomeia os materiais que formam uma mistura apresentada em imagem ou texto."}, {"codigo": "OMNI-CI4-D02", "ano": "4º ano", "eixo": "Matéria e energia", "descritor": "Descrever a mudança sofrida por um material exposto a aquecimento, resfriamento, luz ou umidade, a partir do relato de um teste.", "habilidades_bncc": ["EF04CI02"], "saeb": [], "evidencia": "Indica o que aconteceu com o material após a condição testada."}, {"codigo": "OMNI-CI4-D03", "ano": "4º ano", "eixo": "Matéria e energia", "descritor": "Classificar transformações do dia a dia como reversíveis, como derreter gelo, ou irreversíveis, como queimar papel e cozinhar ovo.", "habilidades_bncc": ["EF04CI03"], "saeb": [], "evidencia": "Separa exemplos em transformações que podem ou não ser desfeitas."}, {"codigo": "OMNI-CI4-D04", "ano": "4º ano", "eixo": "Vida e evolução", "descritor": "Interpretar uma cadeia alimentar simples, identificando produtores, consumidores e o Sol como fonte inicial de energia.", "habilidades_bncc": ["EF04CI04"], "saeb": [], "evidencia": "Indica o nível ocupado por cada ser vivo numa cadeia representada por setas."}, {"codigo": "OMNI-CI4-D05", "ano": "4º ano", "eixo": "Vida e evolução", "descritor": "Diferenciar o ciclo da matéria, que é reaproveitada, do fluxo de energia, que segue um único sentido no ecossistema.", "habilidades_bncc": ["EF04CI05"], "saeb": [], "evidencia": "Distingue, num esquema de ecossistema, o que circula e o que não retorna."}, {"codigo": "OMNI-CI4-D06", "ano": "4º ano", "eixo": "Vida e evolução", "descritor": "Explicar o papel de fungos e bactérias na decomposição de restos de seres vivos e na devolução de nutrientes ao solo.", "habilidades_bncc": ["EF04CI06"], "saeb": [], "evidencia": "Justifica o que ocorreria com o solo sem a ação dos decompositores."}, {"codigo": "OMNI-CI4-D07", "ano": "4º ano", "eixo": "Vida e evolução", "descritor": "Associar produtos como pão, iogurte, queijo, álcool combustível e antibióticos à ação de fungos ou bactérias em sua fabricação.", "habilidades_bncc": ["EF04CI07"], "saeb": [], "evidencia": "Associa um produto ao microrganismo ou processo envolvido em sua produção."}, {"codigo": "OMNI-CI4-D08", "ano": "4º ano", "eixo": "Vida e evolução", "descritor": "Escolher a medida que bloqueia o contágio de uma doença infecciosa, como gripe ou diarreia, a partir do modo como ela se espalha.", "habilidades_bncc": ["EF04CI08"], "saeb": [], "evidencia": "Escolhe a medida que interrompe a transmissão de uma doença descrita."}, {"codigo": "OMNI-CI4-D09", "ano": "4º ano", "eixo": "Terra e Universo", "descritor": "Localizar norte, sul, leste e oeste num esquema que mostra a sombra de uma haste em horários diferentes, conferindo com a agulha da bússola.", "habilidades_bncc": ["EF04CI09", "EF04CI10"], "saeb": [], "evidencia": "Indica a direção norte, sul, leste ou oeste num esquema de sombras."}, {"codigo": "OMNI-CI4-D10", "ano": "4º ano", "eixo": "Terra e Universo", "descritor": "Relacionar a volta da Terra ao redor do Sol ao ano e o ciclo lunar ao mês, em calendários usados por povos diversos.", "habilidades_bncc": ["EF04CI11"], "saeb": [], "evidencia": "Relaciona um ciclo natural ao período de tempo do calendário que ele define."}, {"codigo": "OMNI-CI5-D01", "ano": "5º ano", "eixo": "Matéria e energia", "descritor": "Relacionar situações do cotidiano a propriedades físicas dos materiais, como densidade, condução de calor e eletricidade, magnetismo e solubilidade.", "habilidades_bncc": ["EF05CI01"], "saeb": [], "evidencia": "Indica qual propriedade explica o fenômeno descrito, como um objeto boiar."}, {"codigo": "OMNI-CI5-D02", "ano": "5º ano", "eixo": "Matéria e energia", "descritor": "Explicar as etapas do ciclo da água por meio das mudanças de estado físico: evaporação, condensação e precipitação.", "habilidades_bncc": ["EF05CI02"], "saeb": [], "evidencia": "Nomeia a mudança de estado que ocorre em cada etapa de um esquema."}, {"codigo": "OMNI-CI5-D03", "ano": "5º ano", "eixo": "Matéria e energia", "descritor": "Inferir consequências da retirada da vegetação para o ciclo da água, a erosão do solo e os rios.", "habilidades_bncc": ["EF05CI03"], "saeb": [], "evidencia": "Prevê o efeito do desmatamento sobre o solo ou um rio numa situação dada."}, {"codigo": "OMNI-CI5-D04", "ano": "5º ano", "eixo": "Matéria e energia", "descritor": "Identificar práticas sustentáveis de uso da água e de materiais, como reduzir o consumo, reutilizar e reciclar.", "habilidades_bncc": ["EF05CI04", "EF05CI05"], "saeb": [], "evidencia": "Escolhe, entre atitudes descritas, a que diminui desperdício ou lixo."}, {"codigo": "OMNI-CI5-D05", "ano": "5º ano", "eixo": "Vida e evolução", "descritor": "Relacionar os sistemas digestório, respiratório e circulatório à obtenção e ao transporte de nutrientes e oxigênio e à remoção de resíduos.", "habilidades_bncc": ["EF05CI06", "EF05CI07"], "saeb": [], "evidencia": "Indica qual sistema atua em cada etapa do caminho de um nutriente até a célula."}, {"codigo": "OMNI-CI5-D06", "ano": "5º ano", "eixo": "Vida e evolução", "descritor": "Analisar um cardápio quanto ao equilíbrio entre grupos alimentares, relacionando excessos e carências a distúrbios como obesidade e desnutrição.", "habilidades_bncc": ["EF05CI08", "EF05CI09"], "saeb": [], "evidencia": "Aponta o que falta ou sobra num cardápio e o risco para a saúde."}, {"codigo": "OMNI-CI5-D07", "ano": "5º ano", "eixo": "Terra e Universo", "descritor": "Localizar constelações em um mapa celeste e indicar a época do ano em que aparecem no início da noite.", "habilidades_bncc": ["EF05CI10"], "saeb": [], "evidencia": "Usa um mapa celeste para dizer quando uma constelação é visível."}, {"codigo": "OMNI-CI5-D08", "ano": "5º ano", "eixo": "Terra e Universo", "descritor": "Explicar o nascer e o pôr do Sol e o deslocamento noturno das estrelas como efeito do giro da Terra em torno de si.", "habilidades_bncc": ["EF05CI11"], "saeb": [], "evidencia": "Explica por que o Sol parece nascer a leste e se pôr a oeste."}, {"codigo": "OMNI-CI5-D09", "ano": "5º ano", "eixo": "Terra e Universo", "descritor": "Ordenar desenhos das formas aparentes da Lua registradas noite a noite e estimar em quantos dias o ciclo se repete.", "habilidades_bncc": ["EF05CI12"], "saeb": [], "evidencia": "Completa uma sequência de fases lunares e estima o tempo do ciclo."}, {"codigo": "OMNI-CI5-D10", "ano": "5º ano", "eixo": "Terra e Universo", "descritor": "Associar instrumentos ópticos, como lupa, microscópio, luneta e periscópio, à finalidade de observação de cada um.", "habilidades_bncc": ["EF05CI13"], "saeb": [], "evidencia": "Escolhe o instrumento adequado para observar o objeto descrito."}, {"codigo": "OMNI-CI6-D01", "ano": "6º ano", "eixo": "Matéria e energia", "descritor": "Classificar misturas como homogêneas ou heterogêneas pelo número de fases observadas.", "habilidades_bncc": ["EF06CI01"], "saeb": [], "evidencia": "Classifica exemplos como água e óleo ou água e sal pelo aspecto visual."}, {"codigo": "OMNI-CI6-D02", "ano": "6º ano", "eixo": "Matéria e energia", "descritor": "Identificar sinais de transformação química, como liberação de gás, mudança de cor e formação de novo material, em situações cotidianas.", "habilidades_bncc": ["EF06CI02"], "saeb": [], "evidencia": "Aponta a evidência de que um novo material se formou numa reação descrita."}, {"codigo": "OMNI-CI6-D03", "ano": "6º ano", "eixo": "Matéria e energia", "descritor": "Indicar o processo adequado (filtração, decantação, evaporação, destilação) para separar os componentes de uma mistura descrita.", "habilidades_bncc": ["EF06CI03"], "saeb": [], "evidencia": "Escolhe e justifica o método de separação para a mistura apresentada."}, {"codigo": "OMNI-CI6-D04", "ano": "6º ano", "eixo": "Matéria e energia", "descritor": "Apontar benefícios e impactos ambientais da produção de materiais sintéticos, como plásticos e medicamentos.", "habilidades_bncc": ["EF06CI04"], "saeb": [], "evidencia": "Identifica, num texto curto, uma vantagem e um prejuízo de um material sintético."}, {"codigo": "OMNI-CI6-D05", "ano": "6º ano", "eixo": "Vida e evolução", "descritor": "Ordenar os níveis de organização dos seres vivos (célula, tecido, órgão, sistema, organismo) e identificar partes básicas da célula.", "habilidades_bncc": ["EF06CI05", "EF06CI06"], "saeb": [], "evidencia": "Coloca os níveis em ordem crescente e nomeia estruturas de uma célula ilustrada."}, {"codigo": "OMNI-CI6-D06", "ano": "6º ano", "eixo": "Vida e evolução", "descritor": "Explicar como os sistemas nervoso, muscular e esquelético atuam juntos para produzir movimentos e respostas a estímulos.", "habilidades_bncc": ["EF06CI07", "EF06CI09"], "saeb": [], "evidencia": "Descreve a sequência estímulo, nervo, músculo e osso num movimento dado."}, {"codigo": "OMNI-CI6-D07", "ano": "6º ano", "eixo": "Vida e evolução", "descritor": "Relacionar defeitos da visão, como miopia e hipermetropia, ao tipo de lente que os corrige.", "habilidades_bncc": ["EF06CI08"], "saeb": [], "evidencia": "Indica a lente corretiva adequada a partir de um esquema do olho."}, {"codigo": "OMNI-CI6-D08", "ano": "6º ano", "eixo": "Vida e evolução", "descritor": "Identificar efeitos de álcool, tabaco e outras substâncias psicoativas sobre o funcionamento do sistema nervoso.", "habilidades_bncc": ["EF06CI10"], "saeb": [], "evidencia": "Relaciona uma substância a uma alteração de reflexo, atenção ou humor."}, {"codigo": "OMNI-CI6-D09", "ano": "6º ano", "eixo": "Terra e Universo", "descritor": "Identificar as camadas da Terra, do núcleo à atmosfera, e associar fósseis à formação de rochas sedimentares.", "habilidades_bncc": ["EF06CI11", "EF06CI12"], "saeb": [], "evidencia": "Nomeia camadas num corte da Terra e indica em que rocha um fóssil se forma."}, {"codigo": "OMNI-CI6-D10", "ano": "6º ano", "eixo": "Terra e Universo", "descritor": "Interpretar evidências da forma esférica da Terra e da variação da sombra de um gnômon como efeito da rotação e da translação.", "habilidades_bncc": ["EF06CI13", "EF06CI14"], "saeb": [], "evidencia": "Explica uma observação, como o casco do navio sumir primeiro no horizonte."}, {"codigo": "OMNI-CI7-D01", "ano": "7º ano", "eixo": "Matéria e energia", "descritor": "Identificar o tipo de máquina simples (alavanca, roldana, plano inclinado) presente em ferramentas e explicar a vantagem que oferece.", "habilidades_bncc": ["EF07CI01"], "saeb": [], "evidencia": "Classifica uma ferramenta ilustrada e indica como ela reduz o esforço."}, {"codigo": "OMNI-CI7-D02", "ano": "7º ano", "eixo": "Matéria e energia", "descritor": "Distinguir, em situações do dia a dia, a medida de temperatura, a energia transferida como calor e a sensação de quente ou frio.", "habilidades_bncc": ["EF07CI02"], "saeb": [], "evidencia": "Explica por que o metal parece mais frio que a madeira à mesma temperatura."}, {"codigo": "OMNI-CI7-D03", "ano": "7º ano", "eixo": "Matéria e energia", "descritor": "Relacionar condução, convecção e irradiação ao uso de materiais condutores e isolantes e ao funcionamento de garrafa térmica e coletor solar.", "habilidades_bncc": ["EF07CI03"], "saeb": [], "evidencia": "Identifica a forma de propagação do calor que um equipamento evita ou aproveita."}, {"codigo": "OMNI-CI7-D04", "ano": "7º ano", "eixo": "Matéria e energia", "descritor": "Comparar combustíveis e máquinas térmicas usados ao longo do tempo quanto a vantagens econômicas e impactos ambientais.", "habilidades_bncc": ["EF07CI05"], "saeb": [], "evidencia": "Aponta, numa tabela, o combustível de menor impacto e justifica a escolha."}, {"codigo": "OMNI-CI7-D05", "ano": "7º ano", "eixo": "Vida e evolução", "descritor": "Relacionar características dos ecossistemas brasileiros, como clima, solo, água e luz, à flora e à fauna típicas de cada um.", "habilidades_bncc": ["EF07CI07"], "saeb": [], "evidencia": "Associa a descrição de um ambiente ao ecossistema e a um ser vivo adaptado a ele."}, {"codigo": "OMNI-CI7-D06", "ano": "7º ano", "eixo": "Vida e evolução", "descritor": "Inferir efeitos de catástrofes naturais ou alterações ambientais sobre populações de um ecossistema, como migração e extinção.", "habilidades_bncc": ["EF07CI08"], "saeb": [], "evidencia": "Prevê o que ocorre com uma espécie após a alteração ambiental descrita."}, {"codigo": "OMNI-CI7-D07", "ano": "7º ano", "eixo": "Vida e evolução", "descritor": "Interpretar indicadores de saúde, como mortalidade infantil, saneamento e doenças de veiculação hídrica, apresentados em tabelas ou gráficos.", "habilidades_bncc": ["EF07CI09"], "saeb": [], "evidencia": "Compara localidades a partir dos dados e relaciona saneamento e doenças."}, {"codigo": "OMNI-CI7-D08", "ano": "7º ano", "eixo": "Vida e evolução", "descritor": "Explicar como a vacina estimula a defesa do organismo e por que a vacinação em massa pode eliminar doenças.", "habilidades_bncc": ["EF07CI10"], "saeb": [], "evidencia": "Descreve a resposta do corpo à vacina e o efeito da cobertura vacinal."}, {"codigo": "OMNI-CI7-D09", "ano": "7º ano", "eixo": "Terra e Universo", "descritor": "Relacionar a composição do ar ao efeito estufa e à camada de ozônio, identificando ações humanas que alteram esses fenômenos.", "habilidades_bncc": ["EF07CI12", "EF07CI13", "EF07CI14"], "saeb": [], "evidencia": "Indica o gás e a atividade humana envolvidos num problema atmosférico descrito."}, {"codigo": "OMNI-CI7-D10", "ano": "7º ano", "eixo": "Terra e Universo", "descritor": "Explicar terremotos, vulcões e o encaixe das costas da América do Sul e da África pelo modelo das placas tectônicas.", "habilidades_bncc": ["EF07CI15", "EF07CI16"], "saeb": [], "evidencia": "Usa um mapa de placas para justificar onde há mais terremotos."}, {"codigo": "OMNI-CI8-D01", "ano": "8º ano", "eixo": "Matéria e energia", "descritor": "Comparar usinas de energia elétrica (hidrelétrica, termelétrica, eólica, solar) quanto à fonte renovável ou não e aos impactos socioambientais.", "habilidades_bncc": ["EF08CI01", "EF08CI06"], "saeb": [], "evidencia": "Classifica a fonte de cada usina e aponta um impacto de sua instalação."}, {"codigo": "OMNI-CI8-D02", "ano": "8º ano", "eixo": "Matéria e energia", "descritor": "Prever, em esquemas de circuitos com pilha, fios e lâmpadas, se as lâmpadas acendem em ligações em série ou em paralelo.", "habilidades_bncc": ["EF08CI02"], "saeb": [], "evidencia": "Indica quais lâmpadas permanecem acesas quando uma delas é retirada."}, {"codigo": "OMNI-CI8-D03", "ano": "8º ano", "eixo": "Matéria e energia", "descritor": "Classificar eletrodomésticos pela transformação de energia elétrica que realizam: em térmica, luminosa, sonora ou mecânica.", "habilidades_bncc": ["EF08CI03"], "saeb": [], "evidencia": "Associa cada aparelho ao tipo principal de energia que produz."}, {"codigo": "OMNI-CI8-D04", "ano": "8º ano", "eixo": "Matéria e energia", "descritor": "Calcular o consumo mensal de energia de um aparelho a partir da potência e do tempo de uso, em quilowatt-hora.", "habilidades_bncc": ["EF08CI04", "EF08CI05"], "saeb": [], "evidencia": "Faz o cálculo e identifica o aparelho que mais pesa na conta de luz."}, {"codigo": "OMNI-CI8-D05", "ano": "8º ano", "eixo": "Vida e evolução", "descritor": "Comparar reprodução sexuada e assexuada em plantas e animais quanto à variabilidade dos descendentes e à vantagem adaptativa.", "habilidades_bncc": ["EF08CI07"], "saeb": [], "evidencia": "Indica qual tipo de reprodução gera mais variação e por que isso importa."}, {"codigo": "OMNI-CI8-D06", "ano": "8º ano", "eixo": "Vida e evolução", "descritor": "Associar mudanças do corpo na adolescência, como pelos, voz e menstruação, aos hormônios produzidos por testículos e ovários.", "habilidades_bncc": ["EF08CI08"], "saeb": [], "evidencia": "Associa uma mudança do corpo ao hormônio responsável por ela."}, {"codigo": "OMNI-CI8-D07", "ano": "8º ano", "eixo": "Vida e evolução", "descritor": "Comparar métodos contraceptivos quanto ao modo de ação e à proteção contra gravidez e infecções sexualmente transmissíveis.", "habilidades_bncc": ["EF08CI09", "EF08CI10"], "saeb": [], "evidencia": "Indica, numa tabela, o método que também previne infecções."}, {"codigo": "OMNI-CI8-D08", "ano": "8º ano", "eixo": "Terra e Universo", "descritor": "Explicar as fases da Lua e os eclipses a partir das posições relativas do Sol, da Terra e da Lua.", "habilidades_bncc": ["EF08CI12"], "saeb": [], "evidencia": "Identifica, num esquema de posições, a fase lunar ou o tipo de eclipse."}, {"codigo": "OMNI-CI8-D09", "ano": "8º ano", "eixo": "Terra e Universo", "descritor": "Relacionar a inclinação do eixo da Terra e o movimento de translação à ocorrência das estações do ano.", "habilidades_bncc": ["EF08CI13"], "saeb": [], "evidencia": "Explica por que é verão num hemisfério e inverno no outro ao mesmo tempo."}, {"codigo": "OMNI-CI8-D10", "ano": "8º ano", "eixo": "Terra e Universo", "descritor": "Interpretar dados de previsão do tempo, como temperatura, umidade, pressão e ventos, apresentados em boletins ou gráficos.", "habilidades_bncc": ["EF08CI15", "EF08CI14"], "saeb": [], "evidencia": "Lê um boletim meteorológico e prevê a condição do tempo indicada."}, {"codigo": "OMNI-CI9-D01", "ano": "9º ano", "eixo": "Matéria e energia", "descritor": "Explicar mudanças de estado físico pelo modelo de partículas, relacionando temperatura à agitação e à distância entre elas.", "habilidades_bncc": ["EF09CI01"], "saeb": [], "evidencia": "Associa cada representação de partículas ao estado físico correspondente."}, {"codigo": "OMNI-CI9-D02", "ano": "9º ano", "eixo": "Matéria e energia", "descritor": "Calcular massas de reagentes ou produtos usando a conservação da massa e a proporção fixa entre as massas numa reação.", "habilidades_bncc": ["EF09CI02"], "saeb": [], "evidencia": "Completa uma tabela de massas de uma reação química."}, {"codigo": "OMNI-CI9-D03", "ano": "9º ano", "eixo": "Matéria e energia", "descritor": "Diferenciar os modelos atômicos de Dalton, Thomson e Rutherford-Bohr e ordená-los historicamente.", "habilidades_bncc": ["EF09CI03"], "saeb": [], "evidencia": "Associa cada desenho de átomo ao modelo e coloca-os em ordem cronológica."}, {"codigo": "OMNI-CI9-D04", "ano": "9º ano", "eixo": "Matéria e energia", "descritor": "Classificar radiações eletromagnéticas pela frequência e relacioná-las a usos como rádio, micro-ondas, raio X e radioterapia.", "habilidades_bncc": ["EF09CI06", "EF09CI07"], "saeb": [], "evidencia": "Localiza uma radiação no espectro e indica sua aplicação."}, {"codigo": "OMNI-CI9-D05", "ano": "9º ano", "eixo": "Vida e evolução", "descritor": "Resolver problema de herança de uma característica aplicando as ideias de Mendel sobre fatores, segregação e gametas.", "habilidades_bncc": ["EF09CI08", "EF09CI09"], "saeb": [], "evidencia": "Monta o cruzamento e calcula a proporção esperada dos descendentes."}, {"codigo": "OMNI-CI9-D06", "ano": "9º ano", "eixo": "Vida e evolução", "descritor": "Explicar a adaptação de uma espécie pela seleção natural, distinguindo essa explicação da proposta por Lamarck.", "habilidades_bncc": ["EF09CI10", "EF09CI11"], "saeb": [], "evidencia": "Identifica qual explicação de um caso é darwinista e qual é lamarckista."}, {"codigo": "OMNI-CI9-D07", "ano": "9º ano", "eixo": "Vida e evolução", "descritor": "Relacionar tipos de unidades de conservação à proteção da biodiversidade e às atividades humanas permitidas em cada uma.", "habilidades_bncc": ["EF09CI12"], "saeb": [], "evidencia": "Indica se a atividade descrita é compatível com a unidade de conservação."}, {"codigo": "OMNI-CI9-D08", "ano": "9º ano", "eixo": "Terra e Universo", "descritor": "Agrupar astros do nosso sistema planetário em estrela, planetas rochosos, gigantes gasosos e corpos menores, e situar esse sistema na Via Láctea.", "habilidades_bncc": ["EF09CI14"], "saeb": [], "evidencia": "Agrupa astros listados e indica a posição do Sistema Solar na galáxia."}, {"codigo": "OMNI-CI9-D09", "ano": "9º ano", "eixo": "Terra e Universo", "descritor": "Analisar a viabilidade da vida humana fora da Terra considerando condições ambientais dos planetas e distâncias das viagens espaciais.", "habilidades_bncc": ["EF09CI16"], "saeb": [], "evidencia": "Escolhe, a partir de dados de planetas, o argumento mais consistente."}, {"codigo": "OMNI-CI9-D10", "ano": "9º ano", "eixo": "Terra e Universo", "descritor": "Relacionar as etapas do ciclo de vida das estrelas à sua massa e prever efeitos futuros da evolução do Sol sobre a Terra.", "habilidades_bncc": ["EF09CI17"], "saeb": [], "evidencia": "Indica a etapa final de uma estrela de massa dada e seu efeito."}]}
+{
+ "componente": "Ciências",
+ "sigla": "CI",
+ "descritores": [
+  {
+   "codigo": "OMNI-CI1-M1.1",
+   "ano": "1º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar o material (plástico, papel, vidro, metal ou madeira) de que é feito um objeto do dia a dia.",
+   "habilidades_bncc": [
+    "EF01CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta, entre figuras de uma colher de pau, uma lata e um copo de vidro, qual objeto é feito de madeira."
+  },
+  {
+   "codigo": "OMNI-CI1-M1.2",
+   "ano": "1º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Associar materiais comuns à sua origem, como a madeira às árvores e a lã às ovelhas.",
+   "habilidades_bncc": [
+    "EF01CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Liga a figura de um casaco de lã à figura de uma ovelha."
+  },
+  {
+   "codigo": "OMNI-CI1-M2.1",
+   "ano": "1º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Comparar objetos feitos de materiais diferentes quanto a características como dureza, peso OU transparência.",
+   "habilidades_bncc": [
+    "EF01CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que o copo de vidro deixa ver o suco e a caneca de plástico colorido não."
+  },
+  {
+   "codigo": "OMNI-CI1-M2.2",
+   "ano": "1º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "aplicar",
+   "descritor": "Classificar objetos usados em reutilizáveis, recicláveis ou de lixo comum, conforme o material de que são feitos.",
+   "habilidades_bncc": [
+    "EF01CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Separa, numa cena de lanche, a garrafa PET e a lata para a coleta seletiva e o guardanapo sujo para o lixo comum."
+  },
+  {
+   "codigo": "OMNI-CI1-M3.1",
+   "ano": "1º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Propor uma forma de reaproveitar um objeto usado em vez de jogá-lo fora.",
+   "habilidades_bncc": [
+    "EF01CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Sugere transformar uma lata vazia em porta-lápis e diz para que ela passaria a servir."
+  },
+  {
+   "codigo": "OMNI-CI1-V1.1",
+   "ano": "1º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Nomear partes externas do corpo humano (cabeça, tronco, braços, pernas, mãos e pés) indicadas em uma ilustração.",
+   "habilidades_bncc": [
+    "EF01CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Diz o nome da parte do corpo apontada pela seta no desenho de uma criança."
+  },
+  {
+   "codigo": "OMNI-CI1-V1.2",
+   "ano": "1º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Representar partes do corpo humano em um desenho, posicionando-as no lugar correto.",
+   "habilidades_bncc": [
+    "EF01CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Completa o desenho de uma pessoa acrescentando braços, mãos e pés nos lugares certos."
+  },
+  {
+   "codigo": "OMNI-CI1-V1.3",
+   "ano": "1º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Associar os órgãos dos sentidos às sensações que permitem perceber, como os olhos à visão e o nariz ao olfato.",
+   "habilidades_bncc": [
+    "EF01CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Liga o nariz à figura de uma criança cheirando uma flor."
+  },
+  {
+   "codigo": "OMNI-CI1-V1.4",
+   "ano": "1º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar hábitos de higiene do corpo em cenas do cotidiano, como lavar as mãos antes de comer OU escovar os dentes.",
+   "habilidades_bncc": [
+    "EF01CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Marca, entre quatro cenas, aquelas em que a criança cuida da higiene do corpo."
+  },
+  {
+   "codigo": "OMNI-CI1-V2.1",
+   "ano": "1º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar a função de partes do corpo em uma ação do dia a dia, como chutar uma bola ou desenhar.",
+   "habilidades_bncc": [
+    "EF01CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que, para chutar a bola, a criança usa as pernas e os pés, e os olhos para mirar."
+  },
+  {
+   "codigo": "OMNI-CI1-V2.2",
+   "ano": "1º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar por que um hábito de higiene protege a saúde.",
+   "habilidades_bncc": [
+    "EF01CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que lavar as mãos antes de comer evita levar sujeira e micróbios à boca."
+  },
+  {
+   "codigo": "OMNI-CI1-V2.3",
+   "ano": "1º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Comparar características físicas de pessoas, como altura, cor dos olhos, cor da pele OU tipo de cabelo, apontando semelhanças e diferenças.",
+   "habilidades_bncc": [
+    "EF01CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta, numa foto da turma, duas crianças com cabelos diferentes e uma característica que elas têm em comum."
+  },
+  {
+   "codigo": "OMNI-CI1-V3.1",
+   "ano": "1º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar que diferenças físicas entre as pessoas não tornam ninguém melhor ou pior, a partir de situações de convivência.",
+   "habilidades_bncc": [
+    "EF01CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Diante de uma cena em que uma criança é deixada de lado por usar óculos, explica por que a atitude é injusta e como o grupo poderia agir."
+  },
+  {
+   "codigo": "OMNI-CI1-V3.2",
+   "ano": "1º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar se uma atitude do dia a dia cuida da saúde do corpo, com base nos hábitos de higiene.",
+   "habilidades_bncc": [
+    "EF01CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Diz se está certo comer uma fruta sem lavar e explica o risco."
+  },
+  {
+   "codigo": "OMNI-CI1-T1.1",
+   "ano": "1º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Nomear os períodos do dia (manhã, tarde e noite) representados em cenas do cotidiano.",
+   "habilidades_bncc": [
+    "EF01CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que a cena com o Sol nascendo e a família tomando café é de manhã."
+  },
+  {
+   "codigo": "OMNI-CI1-T1.2",
+   "ano": "1º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Ordenar os dias da semana OU os meses do ano.",
+   "habilidades_bncc": [
+    "EF01CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Completa o calendário escrevendo o dia que vem depois de quarta-feira."
+  },
+  {
+   "codigo": "OMNI-CI1-T1.3",
+   "ano": "1º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar a escala de tempo (dia, semana, mês ou ano) adequada para indicar a duração de um acontecimento.",
+   "habilidades_bncc": [
+    "EF01CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que o tempo entre um aniversário e o seguinte é de um ano."
+  },
+  {
+   "codigo": "OMNI-CI1-T2.1",
+   "ano": "1º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Relacionar atividades das pessoas ao período do dia ou da noite em que costumam acontecer.",
+   "habilidades_bncc": [
+    "EF01CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Liga \"dormir\" à noite e \"ir à escola\" ao dia, numa rotina ilustrada."
+  },
+  {
+   "codigo": "OMNI-CI1-T2.2",
+   "ano": "1º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Classificar animais em ativos de dia OU ativos à noite, a partir de informações sobre seus hábitos.",
+   "habilidades_bncc": [
+    "EF01CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Separa a coruja e o morcego como animais que saem à noite e a borboleta como animal do dia."
+  },
+  {
+   "codigo": "OMNI-CI1-T3.1",
+   "ano": "1º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Organizar a própria rotina em uma linha do tempo, distribuindo as atividades entre manhã, tarde e noite.",
+   "habilidades_bncc": [
+    "EF01CI05",
+    "EF01CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Monta uma linha do tempo do seu dia com desenhos de acordar, almoçar, brincar e dormir nos períodos certos."
+  },
+  {
+   "codigo": "OMNI-CI2-M1.1",
+   "ano": "2º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar os materiais (metal, madeira, vidro, plástico ou tecido) de que são feitos objetos de uso diário.",
+   "habilidades_bncc": [
+    "EF02CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Indica, numa cena de cozinha, que a panela é de metal, a janela de vidro e a cadeira de madeira."
+  },
+  {
+   "codigo": "OMNI-CI2-M1.2",
+   "ano": "2º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar materiais usados no passado para fabricar objetos que hoje são feitos de outros materiais.",
+   "habilidades_bncc": [
+    "EF02CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Reconhece, em fotos antigas, que os brinquedos eram de madeira e lata e que hoje muitos são de plástico."
+  },
+  {
+   "codigo": "OMNI-CI2-M1.3",
+   "ano": "2º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer símbolos de alerta em embalagens e aparelhos, como os de produto tóxico, inflamável OU risco de choque elétrico.",
+   "habilidades_bncc": [
+    "EF02CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta, entre rótulos, o símbolo que indica produto inflamável."
+  },
+  {
+   "codigo": "OMNI-CI2-M1.4",
+   "ano": "2º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar situações de risco de acidente em casa, como objetos cortantes, tomadas, produtos de limpeza OU remédios ao alcance de crianças.",
+   "habilidades_bncc": [
+    "EF02CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Circula, na ilustração de uma casa, três situações que podem causar acidente."
+  },
+  {
+   "codigo": "OMNI-CI2-M2.1",
+   "ano": "2º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Comparar objetos antigos e atuais que têm a mesma função quanto aos materiais de que são feitos.",
+   "habilidades_bncc": [
+    "EF02CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Compara um ferro de passar a carvão com um ferro elétrico, dizendo de que material é feito cada um."
+  },
+  {
+   "codigo": "OMNI-CI2-M2.2",
+   "ano": "2º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar a escolha do material de um objeto pelas suas propriedades, como dureza, flexibilidade OU transparência.",
+   "habilidades_bncc": [
+    "EF02CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que a janela é de vidro porque ele é transparente e deixa a luz entrar."
+  },
+  {
+   "codigo": "OMNI-CI2-M2.3",
+   "ano": "2º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Classificar materiais em flexíveis ou rígidos, transparentes ou opacos, a partir de testes simples.",
+   "habilidades_bncc": [
+    "EF02CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Separa, depois de testar, os objetos que dobram sem quebrar (borracha, tecido) dos que não dobram (vidro, madeira)."
+  },
+  {
+   "codigo": "OMNI-CI2-M3.1",
+   "ano": "2º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Propor o material mais adequado para construir um objeto, considerando a função dele e as propriedades necessárias.",
+   "habilidades_bncc": [
+    "EF02CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe um tecido impermeável para uma capa de chuva e justifica que ele não deixa a água passar."
+  },
+  {
+   "codigo": "OMNI-CI2-M3.2",
+   "ano": "2º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar cuidados para prevenir acidentes domésticos com objetos cortantes, inflamáveis, eletricidade, produtos de limpeza OU medicamentos.",
+   "habilidades_bncc": [
+    "EF02CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que remédios e produtos de limpeza devem ficar em armário alto e fechado."
+  },
+  {
+   "codigo": "OMNI-CI2-V1.1",
+   "ano": "2º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Descrever características de plantas e animais do entorno, como tamanho, forma, cor OU cobertura do corpo.",
+   "habilidades_bncc": [
+    "EF02CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Descreve um cachorro e um ipê citando tamanho, cor e cobertura (pelos ou folhas)."
+  },
+  {
+   "codigo": "OMNI-CI2-V1.2",
+   "ano": "2º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Nomear as partes principais de uma planta (raiz, caule, folhas, flores e frutos).",
+   "habilidades_bncc": [
+    "EF02CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Escreve o nome das partes indicadas no desenho de um pé de feijão."
+  },
+  {
+   "codigo": "OMNI-CI2-V1.3",
+   "ano": "2º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar a função de cada parte de uma planta, como a raiz, que absorve água e fixa a planta ao solo.",
+   "habilidades_bncc": [
+    "EF02CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Liga a raiz a \"absorve água\" e a flor a \"dá origem ao fruto\"."
+  },
+  {
+   "codigo": "OMNI-CI2-V1.4",
+   "ano": "2º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar a fase da vida de plantas e animais (filhote ou adulto, muda ou planta adulta) em imagens.",
+   "habilidades_bncc": [
+    "EF02CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Indica, entre fotos, qual é o girino e qual é o sapo adulto."
+  },
+  {
+   "codigo": "OMNI-CI2-V2.1",
+   "ano": "2º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Relacionar características de plantas e animais ao ambiente em que vivem.",
+   "habilidades_bncc": [
+    "EF02CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que o cacto tem caule grosso, que guarda água, porque vive em lugar seco."
+  },
+  {
+   "codigo": "OMNI-CI2-V2.2",
+   "ano": "2º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "aplicar",
+   "descritor": "Prever o que acontece com uma planta mantida sem água OU sem luz, a partir da descrição de um experimento.",
+   "habilidades_bncc": [
+    "EF02CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Prevê que o feijão guardado num armário escuro fica amarelado e fraco."
+  },
+  {
+   "codigo": "OMNI-CI2-V2.3",
+   "ano": "2º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar os resultados de um experimento sobre a necessidade de água e de luz para as plantas, apresentados em desenhos OU tabela.",
+   "habilidades_bncc": [
+    "EF02CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Compara três vasos (com água e luz, sem água, sem luz) e diz qual condição deixou a planta mais saudável."
+  },
+  {
+   "codigo": "OMNI-CI2-V2.4",
+   "ano": "2º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Relacionar as plantas aos animais que dependem delas para alimento OU abrigo.",
+   "habilidades_bncc": [
+    "EF02CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que a abelha visita a flor para pegar néctar e que o passarinho faz ninho na árvore."
+  },
+  {
+   "codigo": "OMNI-CI2-V3.1",
+   "ano": "2º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Planejar um experimento simples para testar se uma planta precisa de luz para se manter viva.",
+   "habilidades_bncc": [
+    "EF02CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Propõe colocar dois vasos iguais, um ao sol e outro no escuro, regando os dois do mesmo jeito."
+  },
+  {
+   "codigo": "OMNI-CI2-T1.1",
+   "ano": "2º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Descrever a posição do Sol no céu em diferentes horários do dia.",
+   "habilidades_bncc": [
+    "EF02CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Desenha o Sol baixo de manhã, alto ao meio-dia e baixo do lado oposto no fim da tarde."
+  },
+  {
+   "codigo": "OMNI-CI2-T1.2",
+   "ano": "2º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar efeitos da luz do Sol, como aquecer, iluminar OU refletir.",
+   "habilidades_bncc": [
+    "EF02CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que a areia da praia fica quente e que o espelho reflete a luz do Sol."
+  },
+  {
+   "codigo": "OMNI-CI2-T2.1",
+   "ano": "2º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Relacionar a posição do Sol no céu ao tamanho da sombra de um objeto.",
+   "habilidades_bncc": [
+    "EF02CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que a sombra do poste é mais curta ao meio-dia, quando o Sol está alto."
+  },
+  {
+   "codigo": "OMNI-CI2-T2.2",
+   "ano": "2º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "aplicar",
+   "descritor": "Prever o tamanho da sombra de um objeto em um horário dado, a partir da posição do Sol.",
+   "habilidades_bncc": [
+    "EF02CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe, entre três desenhos, a sombra de uma árvore às 8 horas da manhã."
+  },
+  {
+   "codigo": "OMNI-CI2-T2.3",
+   "ano": "2º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Comparar o aquecimento de superfícies diferentes (água, areia, solo, superfícies claras, escuras ou metálicas) expostas ao Sol.",
+   "habilidades_bncc": [
+    "EF02CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Indica, numa tabela de temperaturas, que a camiseta preta esquentou mais que a branca."
+  },
+  {
+   "codigo": "OMNI-CI2-T3.1",
+   "ano": "2º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar escolhas do dia a dia com base no aquecimento de superfícies pelo Sol.",
+   "habilidades_bncc": [
+    "EF02CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que é melhor usar chinelo para andar na areia da praia ao meio-dia."
+  },
+  {
+   "codigo": "OMNI-CI3-M1.1",
+   "ano": "3º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar a vibração dos objetos como a origem dos sons.",
+   "habilidades_bncc": [
+    "EF03CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que o som do violão vem da vibração das cordas."
+  },
+  {
+   "codigo": "OMNI-CI3-M1.2",
+   "ano": "3º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar fatores que alteram o som produzido por um objeto, como o material, o tamanho OU a força da batida.",
+   "habilidades_bncc": [
+    "EF03CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que garrafas com quantidades diferentes de água produzem sons diferentes ao serem batidas."
+  },
+  {
+   "codigo": "OMNI-CI3-M1.3",
+   "ano": "3º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Descrever o que acontece com a luz ao atingir objetos transparentes, superfícies polidas OU objetos opacos.",
+   "habilidades_bncc": [
+    "EF03CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que a luz atravessa o copo de vidro, é refletida pelo espelho e forma sombra atrás de uma parede."
+  },
+  {
+   "codigo": "OMNI-CI3-M1.4",
+   "ano": "3º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar hábitos que protegem a audição OU a visão.",
+   "habilidades_bncc": [
+    "EF03CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Marca, entre cenas, a criança que usa fone em volume baixo e a que lê em lugar bem iluminado."
+  },
+  {
+   "codigo": "OMNI-CI3-M2.1",
+   "ano": "3º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Relacionar características de um objeto que vibra, como tamanho ou tensão, ao som mais grave ou mais agudo que ele produz.",
+   "habilidades_bncc": [
+    "EF03CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que o elástico mais esticado produz um som mais agudo."
+  },
+  {
+   "codigo": "OMNI-CI3-M2.2",
+   "ano": "3º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "aplicar",
+   "descritor": "Prever se a luz vai atravessar o objeto, ser refletida OU formar sombra, conforme o material sobre o qual incide.",
+   "habilidades_bncc": [
+    "EF03CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Prevê que a lanterna apontada para um prato forma sombra e, apontada para um espelho, ilumina outra parede."
+  },
+  {
+   "codigo": "OMNI-CI3-M2.3",
+   "ano": "3º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar o registro de um experimento simples com som OU com luz, identificando o que causou a mudança observada.",
+   "habilidades_bncc": [
+    "EF03CI01",
+    "EF03CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Lê uma tabela com o som de copos com diferentes quantidades de água e diz o que fez o som mudar."
+  },
+  {
+   "codigo": "OMNI-CI3-M3.1",
+   "ano": "3º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar hábitos de cuidado com a audição e a visão, considerando as condições de som e de luz do ambiente.",
+   "habilidades_bncc": [
+    "EF03CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que trabalhadores de obra usam protetor de ouvido e por que não se deve olhar diretamente para o Sol."
+  },
+  {
+   "codigo": "OMNI-CI3-M3.2",
+   "ano": "3º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Propor uma forma de reduzir o barulho OU de melhorar a iluminação de um ambiente da escola.",
+   "habilidades_bncc": [
+    "EF03CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Sugere colocar cortinas e cartazes de tecido na sala para diminuir o eco e explica o motivo."
+  },
+  {
+   "codigo": "OMNI-CI3-V1.1",
+   "ano": "3º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar o modo de vida de animais comuns, como alimentação, reprodução OU locomoção.",
+   "habilidades_bncc": [
+    "EF03CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Indica, a partir de um texto curto, que a galinha come grãos, põe ovos e anda sobre duas patas."
+  },
+  {
+   "codigo": "OMNI-CI3-V1.2",
+   "ano": "3º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Ordenar as fases do desenvolvimento de um animal, do nascimento à fase adulta.",
+   "habilidades_bncc": [
+    "EF03CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Coloca em ordem figuras do ovo, da lagarta, do casulo e da borboleta."
+  },
+  {
+   "codigo": "OMNI-CI3-V1.3",
+   "ano": "3º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar características externas de animais, como penas, pelos, escamas, bico, garras OU antenas.",
+   "habilidades_bncc": [
+    "EF03CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta que o pinguim tem penas e bico, mesmo sem voar."
+  },
+  {
+   "codigo": "OMNI-CI3-V2.1",
+   "ano": "3º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Comparar as mudanças que ocorrem desde o nascimento em animais terrestres e aquáticos, incluindo o ser humano.",
+   "habilidades_bncc": [
+    "EF03CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que o bebê humano nasce parecido com o adulto, enquanto o girino muda muito até virar sapo."
+  },
+  {
+   "codigo": "OMNI-CI3-V2.2",
+   "ano": "3º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Classificar animais em grupos com base em características externas comuns.",
+   "habilidades_bncc": [
+    "EF03CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Separa, entre figuras, os animais com penas, os com pelos e os com escamas."
+  },
+  {
+   "codigo": "OMNI-CI3-V2.3",
+   "ano": "3º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar o modo de vida de um animal a características do seu corpo, como o bico à alimentação OU as patas à locomoção.",
+   "habilidades_bncc": [
+    "EF03CI04",
+    "EF03CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que o pica-pau tem bico forte para furar troncos e encontrar insetos."
+  },
+  {
+   "codigo": "OMNI-CI3-V3.1",
+   "ano": "3º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar o critério usado para formar um grupo de animais, apontando um animal que não pertence a ele.",
+   "habilidades_bncc": [
+    "EF03CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que o morcego não entra no grupo das aves, mesmo voando."
+  },
+  {
+   "codigo": "OMNI-CI3-T1.1",
+   "ano": "3º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar características da Terra, como o formato esférico e a presença de água e de solo, em globos, mapas OU fotografias.",
+   "habilidades_bncc": [
+    "EF03CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Indica, numa foto da Terra vista do espaço, que o azul representa a água."
+  },
+  {
+   "codigo": "OMNI-CI3-T1.2",
+   "ano": "3º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar os períodos (dia ou noite) em que o Sol, a Lua, as estrelas OU os planetas podem ser vistos no céu.",
+   "habilidades_bncc": [
+    "EF03CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que o Sol só aparece de dia e que a Lua pode ser vista às vezes de dia e às vezes à noite."
+  },
+  {
+   "codigo": "OMNI-CI3-T1.3",
+   "ano": "3º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Descrever amostras de solo quanto à cor, à textura OU ao cheiro.",
+   "habilidades_bncc": [
+    "EF03CI09"
+   ],
+   "saeb": [],
+   "evidencia": "Descreve uma amostra de areia como clara, áspera e de grãos soltos."
+  },
+  {
+   "codigo": "OMNI-CI3-T1.4",
+   "ano": "3º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar usos do solo, como plantação, criação de animais, construção OU extração de materiais.",
+   "habilidades_bncc": [
+    "EF03CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Classifica fotos de uma lavoura, de uma olaria e de uma mina como diferentes usos do solo."
+  },
+  {
+   "codigo": "OMNI-CI3-T2.1",
+   "ano": "3º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Comparar representações da Terra (globo, mapa e fotografia) quanto às informações que cada uma mostra.",
+   "habilidades_bncc": [
+    "EF03CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que o globo mostra a forma redonda da Terra e o mapa mostra toda a superfície de uma só vez."
+  },
+  {
+   "codigo": "OMNI-CI3-T2.2",
+   "ano": "3º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar registros de observação do céu feitos em diferentes horários.",
+   "habilidades_bncc": [
+    "EF03CI08"
+   ],
+   "saeb": [],
+   "evidencia": "A partir de uma tabela de observações da turma, diz em quais horários a Lua foi vista."
+  },
+  {
+   "codigo": "OMNI-CI3-T2.3",
+   "ano": "3º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Comparar a permeabilidade de amostras de solo a partir dos resultados de um experimento.",
+   "habilidades_bncc": [
+    "EF03CI09"
+   ],
+   "saeb": [],
+   "evidencia": "Lê os resultados de um teste com funis e diz que a água passou mais rápido pela areia do que pela argila."
+  },
+  {
+   "codigo": "OMNI-CI3-T2.4",
+   "ano": "3º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar a importância do solo para a agricultura e para a vida.",
+   "habilidades_bncc": [
+    "EF03CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que as plantas que comemos retiram do solo a água e os nutrientes de que precisam."
+  },
+  {
+   "codigo": "OMNI-CI3-T3.1",
+   "ano": "3º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar qual tipo de solo é mais adequado para um uso, como plantar uma horta ou fazer tijolos, com base em suas características.",
+   "habilidades_bncc": [
+    "EF03CI09",
+    "EF03CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe o solo escuro e úmido para a horta, justificando que ele retém água e tem restos de seres vivos."
+  },
+  {
+   "codigo": "OMNI-CI3-T3.2",
+   "ano": "3º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar a escolha de uma representação da Terra (globo, mapa OU fotografia) para responder a uma pergunta.",
+   "habilidades_bncc": [
+    "EF03CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe o globo para mostrar que a Terra é redonda e explica por que o mapa não serve para isso."
+  },
+  {
+   "codigo": "OMNI-CI4-M1.1",
+   "ano": "4º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar misturas do dia a dia pelas propriedades físicas observáveis dos seus componentes.",
+   "habilidades_bncc": [
+    "EF04CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Reconhece que água com areia é uma mistura porque dá para ver os grãos no fundo do copo."
+  },
+  {
+   "codigo": "OMNI-CI4-M1.2",
+   "ano": "4º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar os componentes de misturas comuns, como café com leite, salada de frutas OU soro caseiro.",
+   "habilidades_bncc": [
+    "EF04CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que o soro caseiro é feito de água, sal e açúcar."
+  },
+  {
+   "codigo": "OMNI-CI4-M1.3",
+   "ano": "4º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Descrever a mudança que ocorre em um material exposto a aquecimento, resfriamento, luz OU umidade.",
+   "habilidades_bncc": [
+    "EF04CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Descreve que o papel colorido deixado ao sol por vários dias desbotou."
+  },
+  {
+   "codigo": "OMNI-CI4-M2.1",
+   "ano": "4º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar os resultados de um teste com materiais expostos a diferentes condições, apontando a condição que causou cada mudança.",
+   "habilidades_bncc": [
+    "EF04CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Lê a tabela de um teste com chocolate, gelo e manteiga e conclui que o calor causou o derretimento dos três."
+  },
+  {
+   "codigo": "OMNI-CI4-M2.2",
+   "ano": "4º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Classificar transformações do dia a dia em reversíveis OU irreversíveis.",
+   "habilidades_bncc": [
+    "EF04CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Separa \"derreter gelo\" como reversível e \"queimar papel\" como irreversível."
+  },
+  {
+   "codigo": "OMNI-CI4-M3.1",
+   "ano": "4º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Concluir, a partir de evidências de um experimento, se uma mudança causada por aquecimento OU resfriamento pode ser desfeita.",
+   "habilidades_bncc": [
+    "EF04CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Depois de ver a água congelar e derreter de novo, conclui que essa mudança é reversível, ao contrário do ovo cozido."
+  },
+  {
+   "codigo": "OMNI-CI4-M3.2",
+   "ano": "4º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Planejar um teste para verificar o efeito do calor OU da umidade sobre um material do dia a dia.",
+   "habilidades_bncc": [
+    "EF04CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Propõe deixar dois pedaços iguais de pão, um em pote seco e outro em pote úmido, e observá-los por uma semana."
+  },
+  {
+   "codigo": "OMNI-CI4-V1.1",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar produtores, consumidores e decompositores em uma cadeia alimentar simples.",
+   "habilidades_bncc": [
+    "EF04CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que, na cadeia capim → gafanhoto → sapo, o capim é o produtor."
+  },
+  {
+   "codigo": "OMNI-CI4-V1.2",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer o Sol como fonte primária da energia que circula nas cadeias alimentares.",
+   "habilidades_bncc": [
+    "EF04CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Responde que a energia obtida pelo sapo veio, no início, da luz do Sol captada pelo capim."
+  },
+  {
+   "codigo": "OMNI-CI4-V1.3",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar fungos e bactérias como decompositores de restos de seres vivos.",
+   "habilidades_bncc": [
+    "EF04CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que o bolor que cresce na laranja estragada é um fungo que decompõe a fruta."
+  },
+  {
+   "codigo": "OMNI-CI4-V1.4",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Associar alimentos, combustíveis OU medicamentos aos microrganismos que participam da sua produção.",
+   "habilidades_bncc": [
+    "EF04CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Liga o iogurte às bactérias e o pão ao fermento biológico (levedura)."
+  },
+  {
+   "codigo": "OMNI-CI4-V1.5",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar formas de transmissão de doenças causadas por vírus, bactérias OU protozoários, como ar, água, alimentos ou picada de insetos.",
+   "habilidades_bncc": [
+    "EF04CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que a gripe passa de uma pessoa a outra pelas gotículas da tosse e do espirro."
+  },
+  {
+   "codigo": "OMNI-CI4-V2.1",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar a dependência entre os seres vivos de uma cadeia alimentar simples.",
+   "habilidades_bncc": [
+    "EF04CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que o sapo depende do capim, mesmo sem comê-lo, porque se alimenta do gafanhoto que come o capim."
+  },
+  {
+   "codigo": "OMNI-CI4-V2.2",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Diferenciar o ciclo da matéria, que se repete, do fluxo de energia, que segue um só sentido no ecossistema.",
+   "habilidades_bncc": [
+    "EF04CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Explica, num esquema de ecossistema, que os nutrientes voltam ao solo pela decomposição, mas a energia do Sol não volta."
+  },
+  {
+   "codigo": "OMNI-CI4-V2.3",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar a importância ambiental da decomposição para a devolução de nutrientes ao solo.",
+   "habilidades_bncc": [
+    "EF04CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que as folhas caídas viram adubo porque fungos e bactérias as decompõem."
+  },
+  {
+   "codigo": "OMNI-CI4-V2.4",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar os resultados de um experimento sobre a ação de microrganismos, como a massa de pão com e sem fermento.",
+   "habilidades_bncc": [
+    "EF04CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Compara duas massas e conclui que só a que tinha fermento cresceu, por causa do gás produzido pelas leveduras."
+  },
+  {
+   "codigo": "OMNI-CI4-V2.5",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Relacionar a forma de transmissão de uma doença à medida que impede o contágio.",
+   "habilidades_bncc": [
+    "EF04CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Associa a dengue ao mosquito e a prevenção à eliminação de água parada."
+  },
+  {
+   "codigo": "OMNI-CI4-V3.1",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Montar uma cadeia alimentar simples com seres vivos de um ambiente descrito.",
+   "habilidades_bncc": [
+    "EF04CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Organiza com setas, a partir de um texto sobre o Cerrado, a cadeia capim → preá → cobra → gavião."
+  },
+  {
+   "codigo": "OMNI-CI4-V3.2",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Prever as consequências da retirada OU do aumento de um ser vivo em uma cadeia alimentar simples.",
+   "habilidades_bncc": [
+    "EF04CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que, se as cobras forem caçadas, o número de preás tende a aumentar e o capim a diminuir."
+  },
+  {
+   "codigo": "OMNI-CI4-V3.3",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Propor medidas de prevenção de uma doença causada por vírus, bactéria OU protozoário, com base no seu modo de transmissão.",
+   "habilidades_bncc": [
+    "EF04CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Propõe ferver ou filtrar a água e lavar os alimentos para evitar diarreia causada por bactérias."
+  },
+  {
+   "codigo": "OMNI-CI4-T1.1",
+   "ano": "4º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar os pontos cardeais a partir da posição do Sol OU da sombra de uma vara (gnômon).",
+   "habilidades_bncc": [
+    "EF04CI09"
+   ],
+   "saeb": [],
+   "evidencia": "Marca o leste no esquema, sabendo que é o lado onde o Sol nasce."
+  },
+  {
+   "codigo": "OMNI-CI4-T1.2",
+   "ano": "4º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Associar os movimentos cíclicos da Terra e da Lua a períodos regulares de tempo, como o dia, o mês e o ano.",
+   "habilidades_bncc": [
+    "EF04CI11"
+   ],
+   "saeb": [],
+   "evidencia": "Liga \"uma volta da Terra em torno de si mesma\" ao dia e \"uma volta da Terra em torno do Sol\" ao ano."
+  },
+  {
+   "codigo": "OMNI-CI4-T2.1",
+   "ano": "4º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "aplicar",
+   "descritor": "Determinar os pontos cardeais a partir do registro das sombras de um gnômon em diferentes horários.",
+   "habilidades_bncc": [
+    "EF04CI09"
+   ],
+   "saeb": [],
+   "evidencia": "Usa a sombra mais curta do dia para traçar a linha norte–sul num esquema."
+  },
+  {
+   "codigo": "OMNI-CI4-T2.2",
+   "ano": "4º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Comparar as direções indicadas pelas sombras de um gnômon com as indicadas por uma bússola.",
+   "habilidades_bncc": [
+    "EF04CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Verifica que o norte encontrado pela sombra coincide com o indicado pela agulha da bússola."
+  },
+  {
+   "codigo": "OMNI-CI4-T2.3",
+   "ano": "4º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Relacionar calendários de diferentes culturas aos movimentos da Lua OU do Sol usados para construí-los.",
+   "habilidades_bncc": [
+    "EF04CI11"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que alguns calendários marcam os meses pelas fases da Lua e outros, o ano pela volta da Terra em torno do Sol."
+  },
+  {
+   "codigo": "OMNI-CI4-T3.1",
+   "ano": "4º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar a escolha de um método de orientação (Sol, sombra do gnômon OU bússola) para uma situação dada.",
+   "habilidades_bncc": [
+    "EF04CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que, num dia nublado, a bússola é melhor que a sombra para encontrar o norte."
+  },
+  {
+   "codigo": "OMNI-CI5-M1.1",
+   "ano": "5º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar propriedades físicas dos materiais, como densidade, condutibilidade térmica ou elétrica, magnetismo, solubilidade OU dureza, em situações do cotidiano.",
+   "habilidades_bncc": [
+    "EF05CI01"
+   ],
+   "saeb": [
+    "CN-5A1.2"
+   ],
+   "evidencia": "Indica que a colher de metal esquenta mais rápido que a de madeira dentro da panela quente."
+  },
+  {
+   "codigo": "OMNI-CI5-M1.2",
+   "ano": "5º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer as mudanças de estado físico da água (evaporação, condensação, solidificação e fusão) no ciclo da água.",
+   "habilidades_bncc": [
+    "EF05CI02"
+   ],
+   "saeb": [
+    "CN-5A1.3"
+   ],
+   "evidencia": "Nomeia como condensação a formação de gotas na tampa de uma panela com água fervendo."
+  },
+  {
+   "codigo": "OMNI-CI5-M1.3",
+   "ano": "5º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar os principais usos da água em casa, na agricultura, na indústria OU na geração de energia.",
+   "habilidades_bncc": [
+    "EF05CI04"
+   ],
+   "saeb": [
+    "CN-5A1.4"
+   ],
+   "evidencia": "Aponta, num gráfico, que a irrigação na agricultura é o uso que mais consome água no Brasil."
+  },
+  {
+   "codigo": "OMNI-CI5-M1.4",
+   "ano": "5º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar materiais recicláveis, reutilizáveis OU de descarte comum pelo material de que são feitos.",
+   "habilidades_bncc": [
+    "EF05CI05"
+   ],
+   "saeb": [
+    "CN-5A1.1"
+   ],
+   "evidencia": "Separa vidro, papel, metal e plástico nas lixeiras da coleta seletiva."
+  },
+  {
+   "codigo": "OMNI-CI5-M2.1",
+   "ano": "5º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar fenômenos do cotidiano a partir de propriedades físicas dos materiais, como a flutuação de um objeto OU a condução de eletricidade por um fio.",
+   "habilidades_bncc": [
+    "EF05CI01"
+   ],
+   "saeb": [
+    "CN-5B1.3"
+   ],
+   "evidencia": "Explica que a rolha flutua porque é menos densa que a água."
+  },
+  {
+   "codigo": "OMNI-CI5-M2.2",
+   "ano": "5º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Relacionar a escolha do material de um objeto às propriedades físicas desse material.",
+   "habilidades_bncc": [
+    "EF05CI01"
+   ],
+   "saeb": [
+    "CN-5B1.2",
+    "CN-5B1.1"
+   ],
+   "evidencia": "Explica que o cabo da panela é de plástico ou de madeira porque esses materiais conduzem mal o calor."
+  },
+  {
+   "codigo": "OMNI-CI5-M2.3",
+   "ano": "5º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar o ciclo da água a partir das mudanças de estado físico.",
+   "habilidades_bncc": [
+    "EF05CI02"
+   ],
+   "saeb": [
+    "CN-5B1.4",
+    "CN-5B1.5"
+   ],
+   "evidencia": "Explica, num esquema, como a água do rio evapora, forma nuvens e volta como chuva."
+  },
+  {
+   "codigo": "OMNI-CI5-M2.4",
+   "ano": "5º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar implicações do ciclo da água na agricultura, no clima, na geração de energia elétrica OU no abastecimento de água potável.",
+   "habilidades_bncc": [
+    "EF05CI02"
+   ],
+   "saeb": [
+    "CN-5B1.6"
+   ],
+   "evidencia": "Explica por que uma seca prolongada reduz a produção de energia de uma hidrelétrica."
+  },
+  {
+   "codigo": "OMNI-CI5-M2.5",
+   "ano": "5º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar os dados de uma investigação sobre propriedades dos materiais, identificando a conclusão que eles sustentam.",
+   "habilidades_bncc": [
+    "EF05CI01"
+   ],
+   "saeb": [
+    "CN-5B1.11",
+    "CN-5B1.12"
+   ],
+   "evidencia": "Lê a tabela de um teste de dissolução e conclui que o açúcar se dissolve mais rápido em água quente."
+  },
+  {
+   "codigo": "OMNI-CI5-M3.1",
+   "ano": "5º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar a importância da cobertura vegetal para o ciclo da água, a conservação do solo e dos rios OU a qualidade do ar.",
+   "habilidades_bncc": [
+    "EF05CI03"
+   ],
+   "saeb": [
+    "CN-5C1.3"
+   ],
+   "evidencia": "Explica por que um morro desmatado sofre mais erosão e deixa assoreado o rio que corre abaixo dele."
+  },
+  {
+   "codigo": "OMNI-CI5-M3.2",
+   "ano": "5º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Propor formas sustentáveis de uso da água OU de outros recursos na escola e em casa.",
+   "habilidades_bncc": [
+    "EF05CI04"
+   ],
+   "saeb": [
+    "CN-5C1.4"
+   ],
+   "evidencia": "Propõe reaproveitar a água da máquina de lavar para limpar o quintal, estimando a economia."
+  },
+  {
+   "codigo": "OMNI-CI5-M3.3",
+   "ano": "5º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Criar uma solução para o descarte adequado, a reutilização OU a reciclagem de materiais consumidos na escola.",
+   "habilidades_bncc": [
+    "EF05CI05"
+   ],
+   "saeb": [
+    "CN-5C1.5",
+    "CN-5C1.2"
+   ],
+   "evidencia": "Projeta um ponto de coleta de pilhas e tampinhas na escola, explicando para onde vai cada material."
+  },
+  {
+   "codigo": "OMNI-CI5-V1.1",
+   "ano": "5º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar as funções dos sistemas digestório, respiratório OU circulatório.",
+   "habilidades_bncc": [
+    "EF05CI06",
+    "EF05CI07"
+   ],
+   "saeb": [
+    "CN-5A2.11",
+    "CN-5A2.2"
+   ],
+   "evidencia": "Liga os pulmões à troca de gases e o estômago à digestão dos alimentos."
+  },
+  {
+   "codigo": "OMNI-CI5-V1.2",
+   "ano": "5º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer órgãos dos sistemas digestório, respiratório OU circulatório em esquemas do corpo humano.",
+   "habilidades_bncc": [
+    "EF05CI06",
+    "EF05CI07"
+   ],
+   "saeb": [
+    "CN-5A2.1"
+   ],
+   "evidencia": "Nomeia o coração, os pulmões e o intestino num esquema do corpo."
+  },
+  {
+   "codigo": "OMNI-CI5-V1.3",
+   "ano": "5º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar os grupos de alimentos (fontes de carboidratos, proteínas, gorduras, vitaminas e sais minerais) em refeições do dia a dia.",
+   "habilidades_bncc": [
+    "EF05CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Classifica o arroz como fonte de carboidrato e o feijão como fonte de proteína num prato feito."
+  },
+  {
+   "codigo": "OMNI-CI5-V2.1",
+   "ano": "5º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Relacionar o sistema circulatório à distribuição de nutrientes e de gás oxigênio pelo corpo OU à eliminação de resíduos.",
+   "habilidades_bncc": [
+    "EF05CI07"
+   ],
+   "saeb": [
+    "CN-5B2.13"
+   ],
+   "evidencia": "Explica que o sangue leva ao músculo da perna os nutrientes absorvidos no intestino."
+  },
+  {
+   "codigo": "OMNI-CI5-V2.2",
+   "ano": "5º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar a ingestão de diferentes grupos de alimentos à manutenção da saúde OU a distúrbios nutricionais, como obesidade e desnutrição.",
+   "habilidades_bncc": [
+    "EF05CI08",
+    "EF05CI09"
+   ],
+   "saeb": [
+    "CN-5B2.14",
+    "CN-5B2.3"
+   ],
+   "evidencia": "Explica, a partir de um registro alimentar, por que tomar refrigerante e comer salgadinho todos os dias aumenta o risco de obesidade."
+  },
+  {
+   "codigo": "OMNI-CI5-V2.3",
+   "ano": "5º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar dados sobre hábitos de alimentação OU de atividade física de crianças e jovens, apresentados em tabelas ou gráficos.",
+   "habilidades_bncc": [
+    "EF05CI09"
+   ],
+   "saeb": [
+    "CN-5B2.1"
+   ],
+   "evidencia": "Lê um gráfico com o tempo diário de tela e de exercício da turma e diz que a maioria se exercita menos que o recomendado."
+  },
+  {
+   "codigo": "OMNI-CI5-V2.4",
+   "ano": "5º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Comparar as necessidades alimentares de pessoas diferentes conforme a idade OU a atividade física.",
+   "habilidades_bncc": [
+    "EF05CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que um atleta precisa de mais energia dos alimentos que uma pessoa sedentária da mesma idade."
+  },
+  {
+   "codigo": "OMNI-CI5-V3.1",
+   "ano": "5º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar, com base nas funções dos sistemas digestório e respiratório, por que ambos participam da nutrição do organismo.",
+   "habilidades_bncc": [
+    "EF05CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que as células precisam tanto dos nutrientes vindos da digestão quanto do gás oxigênio vindo da respiração."
+  },
+  {
+   "codigo": "OMNI-CI5-V3.2",
+   "ano": "5º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Organizar um cardápio equilibrado para uma pessoa, considerando os grupos alimentares e as necessidades dela.",
+   "habilidades_bncc": [
+    "EF05CI08"
+   ],
+   "saeb": [
+    "CN-5C2.6"
+   ],
+   "evidencia": "Monta o almoço de um estudante que treina natação, com arroz, feijão, carne, salada e fruta, e explica as escolhas."
+  },
+  {
+   "codigo": "OMNI-CI5-V3.3",
+   "ano": "5º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar hábitos de alimentação e de atividade física quanto à manutenção da saúde e à prevenção de distúrbios nutricionais.",
+   "habilidades_bncc": [
+    "EF05CI09"
+   ],
+   "saeb": [
+    "CN-5C2.2"
+   ],
+   "evidencia": "Analisa a rotina de uma criança que pula o café da manhã e só come lanches e aponta os riscos para a saúde dela."
+  },
+  {
+   "codigo": "OMNI-CI5-T1.1",
+   "ano": "5º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Localizar constelações em um mapa celeste OU em um aplicativo de observação do céu.",
+   "habilidades_bncc": [
+    "EF05CI10"
+   ],
+   "saeb": [
+    "CN-5A3.6"
+   ],
+   "evidencia": "Encontra o Cruzeiro do Sul num mapa celeste do mês de maio."
+  },
+  {
+   "codigo": "OMNI-CI5-T1.2",
+   "ano": "5º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar os meses do ano em que uma constelação é visível no início da noite, a partir de um mapa celeste OU de uma tabela.",
+   "habilidades_bncc": [
+    "EF05CI10"
+   ],
+   "saeb": [
+    "CN-5A3.6"
+   ],
+   "evidencia": "Lê numa tabela que Órion aparece no início da noite entre dezembro e março."
+  },
+  {
+   "codigo": "OMNI-CI5-T1.3",
+   "ano": "5º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer a rotação da Terra como o movimento que produz a sucessão dos dias e das noites.",
+   "habilidades_bncc": [
+    "EF05CI11"
+   ],
+   "saeb": [
+    "CN-5A3.3"
+   ],
+   "evidencia": "Indica que a Terra leva cerca de 24 horas para dar uma volta em torno do próprio eixo."
+  },
+  {
+   "codigo": "OMNI-CI5-T1.4",
+   "ano": "5º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Ordenar as fases da Lua a partir de registros das formas aparentes da Lua no céu.",
+   "habilidades_bncc": [
+    "EF05CI12"
+   ],
+   "saeb": [
+    "CN-5A3.5"
+   ],
+   "evidencia": "Coloca em ordem desenhos da Lua cheia, minguante, nova e crescente feitos ao longo de um mês."
+  },
+  {
+   "codigo": "OMNI-CI5-T1.5",
+   "ano": "5º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar a finalidade de instrumentos ópticos, como lupa, microscópio, luneta, periscópio OU câmera fotográfica.",
+   "habilidades_bncc": [
+    "EF05CI13"
+   ],
+   "saeb": [],
+   "evidencia": "Associa o microscópio à observação de seres muito pequenos e a luneta à observação da Lua."
+  },
+  {
+   "codigo": "OMNI-CI5-T2.1",
+   "ano": "5º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Relacionar o movimento aparente diário do Sol e das estrelas à rotação da Terra.",
+   "habilidades_bncc": [
+    "EF05CI11"
+   ],
+   "saeb": [
+    "CN-5B3.3"
+   ],
+   "evidencia": "Explica que o Sol parece se mover de leste para oeste porque a Terra gira de oeste para leste."
+  },
+  {
+   "codigo": "OMNI-CI5-T2.2",
+   "ano": "5º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "aplicar",
+   "descritor": "Estimar a duração do ciclo das fases da Lua a partir de registros de observação feitos durante dois meses.",
+   "habilidades_bncc": [
+    "EF05CI12"
+   ],
+   "saeb": [
+    "CN-5B3.10"
+   ],
+   "evidencia": "Conta, num calendário com desenhos da Lua, que se passaram cerca de 29 dias entre duas Luas cheias."
+  },
+  {
+   "codigo": "OMNI-CI5-T2.3",
+   "ano": "5º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar o funcionamento de um instrumento óptico simples pelo caminho que a luz percorre nele.",
+   "habilidades_bncc": [
+    "EF05CI13"
+   ],
+   "saeb": [],
+   "evidencia": "Explica, num esquema, que os dois espelhos do periscópio refletem a luz e permitem ver por cima de um muro."
+  },
+  {
+   "codigo": "OMNI-CI5-T3.1",
+   "ano": "5º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar usos sociais de dispositivos para observação a distância, para ampliação de objetos OU para registro de imagens.",
+   "habilidades_bncc": [
+    "EF05CI13"
+   ],
+   "saeb": [
+    "CN-5C3.1"
+   ],
+   "evidencia": "Explica como o microscópio ajudou a descobrir os micróbios que causam doenças e como imagens de satélite ajudam a vigiar queimadas."
+  },
+  {
+   "codigo": "OMNI-CI5-T3.2",
+   "ano": "5º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Formular uma hipótese, em desenho OU texto, que explique a sucessão de dias e noites pelo movimento da Terra.",
+   "habilidades_bncc": [
+    "EF05CI11"
+   ],
+   "saeb": [
+    "CN-5C3.2"
+   ],
+   "evidencia": "Desenha a Terra girando diante de uma lanterna e explica por que um lado fica iluminado enquanto o outro fica no escuro."
+  },
+  {
+   "codigo": "OMNI-CI6-M1.1",
+   "ano": "6º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar evidências de transformação química, como liberação de gás, mudança de cor OU formação de um novo material.",
+   "habilidades_bncc": [
+    "EF06CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta as bolhas de gás formadas ao misturar vinagre e bicarbonato de sódio como sinal de transformação química."
+  },
+  {
+   "codigo": "OMNI-CI6-M1.2",
+   "ano": "6º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar processos de separação de misturas (catação, filtração, decantação, evaporação OU destilação) em situações do cotidiano ou da indústria.",
+   "habilidades_bncc": [
+    "EF06CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Reconhece que a produção de sal nas salinas usa a evaporação da água do mar."
+  },
+  {
+   "codigo": "OMNI-CI6-M1.3",
+   "ano": "6º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer materiais sintéticos do cotidiano, como plásticos, tecidos sintéticos OU medicamentos industrializados.",
+   "habilidades_bncc": [
+    "EF06CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Indica, entre uma camiseta de algodão e uma de poliéster, qual é feita de material sintético."
+  },
+  {
+   "codigo": "OMNI-CI6-M2.1",
+   "ano": "6º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Classificar misturas de dois ou mais materiais em homogêneas OU heterogêneas pelo número de fases visíveis.",
+   "habilidades_bncc": [
+    "EF06CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Classifica água e óleo como mistura heterogênea e água com sal dissolvido como mistura homogênea."
+  },
+  {
+   "codigo": "OMNI-CI6-M2.2",
+   "ano": "6º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Diferenciar uma transformação química de uma mudança de estado físico OU de uma dissolução, com base em evidências.",
+   "habilidades_bncc": [
+    "EF06CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que o gelo derretendo não forma material novo, enquanto a massa do bolo, ao assar, forma."
+  },
+  {
+   "codigo": "OMNI-CI6-M2.3",
+   "ano": "6º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Relacionar uma propriedade dos componentes de uma mistura, como tamanho das partículas, densidade OU temperatura de ebulição, ao processo usado para separá-los.",
+   "habilidades_bncc": [
+    "EF06CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que a areia fica retida no filtro porque seus grãos são maiores que os poros do papel."
+  },
+  {
+   "codigo": "OMNI-CI6-M2.4",
+   "ano": "6º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Associar a produção de medicamentos OU de materiais sintéticos ao desenvolvimento científico e tecnológico.",
+   "habilidades_bncc": [
+    "EF06CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Relaciona a descoberta da penicilina à produção industrial de antibióticos."
+  },
+  {
+   "codigo": "OMNI-CI6-M3.1",
+   "ano": "6º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Selecionar, com justificativa, o método mais adequado para separar os componentes de uma mistura heterogênea.",
+   "habilidades_bncc": [
+    "EF06CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe a decantação seguida de filtração para limpar água barrenta e explica a ordem das etapas."
+  },
+  {
+   "codigo": "OMNI-CI6-M3.2",
+   "ano": "6º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar benefícios e impactos socioambientais da produção e do uso de materiais sintéticos.",
+   "habilidades_bncc": [
+    "EF06CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Compara a sacola plástica e a de pano quanto à durabilidade e ao tempo de decomposição na natureza."
+  },
+  {
+   "codigo": "OMNI-CI6-M3.3",
+   "ano": "6º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Planejar um experimento para verificar se ocorre transformação química ao misturar dois materiais.",
+   "habilidades_bncc": [
+    "EF06CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Propõe misturar leite e vinagre num copo e comparar com um copo só de leite, observando a formação de grumos."
+  },
+  {
+   "codigo": "OMNI-CI6-V1.1",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer a célula como a unidade estrutural e funcional dos seres vivos.",
+   "habilidades_bncc": [
+    "EF06CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Responde que tanto uma folha quanto a pele humana são formadas por células."
+  },
+  {
+   "codigo": "OMNI-CI6-V1.2",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar a membrana, o citoplasma e o núcleo em esquemas OU imagens de células.",
+   "habilidades_bncc": [
+    "EF06CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Indica o núcleo numa imagem de células da mucosa da boca vistas ao microscópio."
+  },
+  {
+   "codigo": "OMNI-CI6-V1.3",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Ordenar os níveis de organização dos seres vivos: célula, tecido, órgão, sistema e organismo.",
+   "habilidades_bncc": [
+    "EF06CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Coloca em ordem: célula muscular, tecido muscular do coração, coração, sistema circulatório e ser humano."
+  },
+  {
+   "codigo": "OMNI-CI6-V1.4",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer as estruturas básicas do sistema nervoso (encéfalo, medula espinal e nervos).",
+   "habilidades_bncc": [
+    "EF06CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Nomeia o encéfalo, a medula espinal e os nervos num esquema do corpo."
+  },
+  {
+   "codigo": "OMNI-CI6-V1.5",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar as partes do olho humano envolvidas na formação da imagem, como córnea, cristalino OU retina.",
+   "habilidades_bncc": [
+    "EF06CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Indica a retina como a parte do olho onde a imagem se forma."
+  },
+  {
+   "codigo": "OMNI-CI6-V1.6",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar efeitos de substâncias psicoativas, como álcool, nicotina OU outras drogas, sobre o sistema nervoso.",
+   "habilidades_bncc": [
+    "EF06CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Indica, entre opções, que a nicotina do cigarro age no sistema nervoso e causa dependência."
+  },
+  {
+   "codigo": "OMNI-CI6-V2.1",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar a função da membrana, do citoplasma e do núcleo na célula.",
+   "habilidades_bncc": [
+    "EF06CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que a membrana controla o que entra e o que sai da célula."
+  },
+  {
+   "codigo": "OMNI-CI6-V2.2",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar um modelo do corpo humano para relacionar células, tecidos, órgãos e sistemas.",
+   "habilidades_bncc": [
+    "EF06CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Explica, num modelo do sistema digestório, que o estômago é um órgão formado por tecidos, que por sua vez são formados por células."
+  },
+  {
+   "codigo": "OMNI-CI6-V2.3",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Relacionar estruturas do sistema nervoso às funções motoras e sensoriais que elas coordenam.",
+   "habilidades_bncc": [
+    "EF06CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que, ao tocar uma panela quente, a mensagem vai pelos nervos até a medula espinal e volta, fazendo a mão se afastar."
+  },
+  {
+   "codigo": "OMNI-CI6-V2.4",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar a formação da imagem no olho humano, da entrada da luz até a interpretação pelo encéfalo.",
+   "habilidades_bncc": [
+    "EF06CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Explica, num esquema, que a luz entra pela pupila, passa pelo cristalino e forma a imagem na retina, que envia o sinal ao encéfalo."
+  },
+  {
+   "codigo": "OMNI-CI6-V2.5",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Explicar como a interação entre os sistemas muscular, ósseo e nervoso produz a sustentação e o movimento do corpo.",
+   "habilidades_bncc": [
+    "EF06CI09"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que, para dobrar o braço, o nervo leva o comando ao músculo, que se contrai e puxa o osso."
+  },
+  {
+   "codigo": "OMNI-CI6-V2.6",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar os efeitos de substâncias psicoativas no sistema nervoso a riscos para a saúde OU para a segurança.",
+   "habilidades_bncc": [
+    "EF06CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que dirigir depois de beber aumenta o risco de acidentes, citando o efeito do álcool sobre os reflexos."
+  },
+  {
+   "codigo": "OMNI-CI6-V3.1",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar o papel do sistema nervoso na coordenação das ações motoras e sensoriais a partir de uma situação concreta.",
+   "habilidades_bncc": [
+    "EF06CI07",
+    "EF06CI09"
+   ],
+   "saeb": [],
+   "evidencia": "Justifica, a partir do caso de uma lesão na medula espinal, por que a pessoa perdeu a sensibilidade e o movimento das pernas."
+  },
+  {
+   "codigo": "OMNI-CI6-V3.2",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Selecionar a lente adequada para corrigir um defeito da visão, com base no funcionamento do olho.",
+   "habilidades_bncc": [
+    "EF06CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe a lente divergente para uma pessoa que enxerga mal de longe, explicando que nela a imagem se forma antes da retina."
+  },
+  {
+   "codigo": "OMNI-CI6-V3.3",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Propor ações de prevenção ao uso de substâncias psicoativas entre adolescentes, com base nos efeitos delas sobre o sistema nervoso.",
+   "habilidades_bncc": [
+    "EF06CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Propõe uma campanha para a escola explicando como o álcool prejudica a memória e a atenção."
+  },
+  {
+   "codigo": "OMNI-CI6-T1.1",
+   "ano": "6º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar as camadas da Terra, do núcleo à atmosfera, em esquemas OU modelos.",
+   "habilidades_bncc": [
+    "EF06CI11"
+   ],
+   "saeb": [],
+   "evidencia": "Indica, num corte da Terra, que a crosta é a camada mais fina e o núcleo a mais quente."
+  },
+  {
+   "codigo": "OMNI-CI6-T1.2",
+   "ano": "6º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar tipos de rocha (magmática, sedimentar OU metamórfica) por suas características ou pelo modo de formação.",
+   "habilidades_bncc": [
+    "EF06CI12"
+   ],
+   "saeb": [],
+   "evidencia": "Reconhece o arenito, formado por grãos de areia compactados, como rocha sedimentar."
+  },
+  {
+   "codigo": "OMNI-CI6-T1.3",
+   "ano": "6º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Descrever a variação da sombra de um gnômon ao longo de um dia.",
+   "habilidades_bncc": [
+    "EF06CI14"
+   ],
+   "saeb": [],
+   "evidencia": "Descreve que a sombra é longa de manhã, encurta até perto do meio-dia e volta a crescer para o lado oposto."
+  },
+  {
+   "codigo": "OMNI-CI6-T2.1",
+   "ano": "6º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Comparar as camadas da Terra quanto ao estado físico, à temperatura OU à composição.",
+   "habilidades_bncc": [
+    "EF06CI11"
+   ],
+   "saeb": [],
+   "evidencia": "Compara a crosta, sólida e fina, com o manto, pastoso e muito mais quente."
+  },
+  {
+   "codigo": "OMNI-CI6-T2.2",
+   "ano": "6º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Relacionar a formação de fósseis às rochas sedimentares e aos períodos geológicos.",
+   "habilidades_bncc": [
+    "EF06CI12"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que há fósseis de peixes em camadas de rocha sedimentar de uma região que hoje é seca."
+  },
+  {
+   "codigo": "OMNI-CI6-T2.3",
+   "ano": "6º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar registros da sombra de um gnômon feitos ao meio-dia em diferentes meses do ano.",
+   "habilidades_bncc": [
+    "EF06CI14"
+   ],
+   "saeb": [],
+   "evidencia": "Lê uma tabela de registros e diz em que mês a sombra do meio-dia foi mais longa."
+  },
+  {
+   "codigo": "OMNI-CI6-T3.1",
+   "ano": "6º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Selecionar evidências que demonstrem o formato esférico da Terra, como imagens de satélite, a sombra da Terra na Lua durante um eclipse OU o navio que some aos poucos no horizonte.",
+   "habilidades_bncc": [
+    "EF06CI13"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que a sombra sempre arredondada da Terra nos eclipses da Lua é uma evidência de que ela é esférica."
+  },
+  {
+   "codigo": "OMNI-CI6-T3.2",
+   "ano": "6º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Inferir que as mudanças da sombra de um gnômon ao longo do ano são evidência dos movimentos da Terra e da inclinação do seu eixo.",
+   "habilidades_bncc": [
+    "EF06CI14"
+   ],
+   "saeb": [],
+   "evidencia": "Conclui, a partir de registros de um ano, que a sombra do meio-dia muda de tamanho porque a Terra gira em torno do Sol com o eixo inclinado."
+  },
+  {
+   "codigo": "OMNI-CI7-M1.1",
+   "ano": "7º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar o tipo de máquina simples (alavanca, roldana, plano inclinado, roda e eixo OU cunha) presente em ferramentas do cotidiano.",
+   "habilidades_bncc": [
+    "EF07CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Reconhece que a tesoura é formada por duas alavancas."
+  },
+  {
+   "codigo": "OMNI-CI7-M1.2",
+   "ano": "7º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar a forma de propagação do calor (condução, convecção OU irradiação) em situações do cotidiano.",
+   "habilidades_bncc": [
+    "EF07CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que o calor da fogueira chega às mãos por irradiação."
+  },
+  {
+   "codigo": "OMNI-CI7-M1.3",
+   "ano": "7º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar materiais condutores e isolantes térmicos em objetos do dia a dia.",
+   "habilidades_bncc": [
+    "EF07CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que o isopor da caixa térmica é isolante e que a panela de alumínio é condutora."
+  },
+  {
+   "codigo": "OMNI-CI7-M2.1",
+   "ano": "7º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Diferenciar temperatura, calor e sensação térmica em situações do cotidiano.",
+   "habilidades_bncc": [
+    "EF07CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que o piso de cerâmica parece mais frio que o tapete, embora os dois estejam à mesma temperatura."
+  },
+  {
+   "codigo": "OMNI-CI7-M2.2",
+   "ano": "7º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar como uma máquina simples reduz a força necessária para realizar uma tarefa.",
+   "habilidades_bncc": [
+    "EF07CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que, com uma rampa, é preciso menos força para subir um carrinho, embora o caminho seja mais longo."
+  },
+  {
+   "codigo": "OMNI-CI7-M2.3",
+   "ano": "7º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar o funcionamento de equipamentos como a garrafa térmica OU o coletor solar pelas formas de propagação do calor.",
+   "habilidades_bncc": [
+    "EF07CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que a parede espelhada da garrafa térmica reflete o calor e que o vácuo entre as paredes dificulta a condução."
+  },
+  {
+   "codigo": "OMNI-CI7-M2.4",
+   "ano": "7º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar o desenvolvimento de novos materiais e tecnologias, como a automação, a mudanças no trabalho e na vida cotidiana.",
+   "habilidades_bncc": [
+    "EF07CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Explica como os caixas eletrônicos e os aplicativos mudaram o trabalho nas agências bancárias."
+  },
+  {
+   "codigo": "OMNI-CI7-M3.1",
+   "ano": "7º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Propor uma solução com máquinas simples para uma tarefa mecânica do cotidiano.",
+   "habilidades_bncc": [
+    "EF07CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Desenha um sistema de roldanas para levantar baldes de areia até a laje de uma obra."
+  },
+  {
+   "codigo": "OMNI-CI7-M3.2",
+   "ano": "7º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar o uso de materiais condutores OU isolantes em um objeto, com base nas formas de propagação do calor.",
+   "habilidades_bncc": [
+    "EF07CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Justifica por que o fundo da panela é de metal e o cabo é de material isolante."
+  },
+  {
+   "codigo": "OMNI-CI7-M3.3",
+   "ano": "7º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar a importância do equilíbrio termodinâmico em situações como a regulação da temperatura do corpo, o funcionamento de um motor OU o clima da Terra.",
+   "habilidades_bncc": [
+    "EF07CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que o sistema de arrefecimento do carro é necessário para o motor não superaquecer."
+  },
+  {
+   "codigo": "OMNI-CI7-M3.4",
+   "ano": "7º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar avanços e problemas socioambientais causados pela produção e pelo uso de combustíveis e máquinas térmicas ao longo do tempo.",
+   "habilidades_bncc": [
+    "EF07CI05",
+    "EF07CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Pondera vantagens e desvantagens da troca da locomotiva a vapor pelo motor a diesel e da expansão da cana para etanol."
+  },
+  {
+   "codigo": "OMNI-CI7-V1.1",
+   "ano": "7º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar características de clima, paisagem, solo OU fauna e flora típicas dos principais ecossistemas brasileiros.",
+   "habilidades_bncc": [
+    "EF07CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Reconhece a Caatinga pela vegetação com espinhos e pelas folhas que caem na estação seca."
+  },
+  {
+   "codigo": "OMNI-CI7-V1.2",
+   "ano": "7º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Localizar os principais ecossistemas brasileiros em um mapa.",
+   "habilidades_bncc": [
+    "EF07CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Indica no mapa a área ocupada pelo Pantanal e pela Mata Atlântica."
+  },
+  {
+   "codigo": "OMNI-CI7-V1.3",
+   "ano": "7º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar indicadores de saúde, como mortalidade infantil, cobertura de saneamento OU incidência de doenças, em tabelas e gráficos.",
+   "habilidades_bncc": [
+    "EF07CI09"
+   ],
+   "saeb": [],
+   "evidencia": "Localiza num gráfico o município com a maior taxa de mortalidade infantil."
+  },
+  {
+   "codigo": "OMNI-CI7-V1.4",
+   "ano": "7º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar como a vacina atua no organismo, estimulando a produção de defesas.",
+   "habilidades_bncc": [
+    "EF07CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que a vacina apresenta ao corpo um agente enfraquecido, inativado ou parte dele, para que o organismo produza anticorpos."
+  },
+  {
+   "codigo": "OMNI-CI7-V2.1",
+   "ano": "7º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar as características físicas de um ecossistema brasileiro (água, solo, luz e temperatura) à flora e à fauna que nele vivem.",
+   "habilidades_bncc": [
+    "EF07CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que no Pantanal há tantas aves aquáticas, relacionando-as às cheias periódicas."
+  },
+  {
+   "codigo": "OMNI-CI7-V2.2",
+   "ano": "7º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Explicar como catástrofes naturais OU mudanças ambientais afetam as populações de um ecossistema.",
+   "habilidades_bncc": [
+    "EF07CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que, depois de uma queimada, alguns animais migram e outros desaparecem da área."
+  },
+  {
+   "codigo": "OMNI-CI7-V2.3",
+   "ano": "7º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Comparar as condições de saúde de diferentes locais a partir de indicadores como saneamento OU incidência de doenças de veiculação hídrica.",
+   "habilidades_bncc": [
+    "EF07CI09"
+   ],
+   "saeb": [],
+   "evidencia": "Relaciona, numa tabela de dois bairros, a menor cobertura de esgoto ao maior número de casos de diarreia."
+  },
+  {
+   "codigo": "OMNI-CI7-V2.4",
+   "ano": "7º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar a relação entre a vacinação em massa e a proteção da saúde individual e coletiva.",
+   "habilidades_bncc": [
+    "EF07CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que, quando a maioria está vacinada, até quem não pode tomar a vacina fica mais protegido."
+  },
+  {
+   "codigo": "OMNI-CI7-V2.5",
+   "ano": "7º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar mudanças na qualidade de vida OU no ambiente associadas ao uso de uma tecnologia ao longo do tempo.",
+   "habilidades_bncc": [
+    "EF07CI11"
+   ],
+   "saeb": [],
+   "evidencia": "Analisa um gráfico do aumento do lixo eletrônico desde 2000 e o relaciona à troca frequente de celulares."
+  },
+  {
+   "codigo": "OMNI-CI7-V3.1",
+   "ano": "7º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar o impacto de uma alteração ambiental sobre as populações de um ecossistema, como risco de extinção, mudança de hábitos OU migração.",
+   "habilidades_bncc": [
+    "EF07CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Avalia se a construção de uma barragem ameaça os peixes que sobem o rio para se reproduzir."
+  },
+  {
+   "codigo": "OMNI-CI7-V3.2",
+   "ano": "7º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Argumentar sobre a importância da vacinação para a saúde pública, com base no papel histórico das vacinas na erradicação de doenças.",
+   "habilidades_bncc": [
+    "EF07CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Defende a vacinação contra o sarampo citando a volta de casos quando a cobertura vacinal caiu."
+  },
+  {
+   "codigo": "OMNI-CI7-V3.3",
+   "ano": "7º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Propor ações OU políticas públicas para melhorar as condições de saúde de uma comunidade, com base em indicadores.",
+   "habilidades_bncc": [
+    "EF07CI09"
+   ],
+   "saeb": [],
+   "evidencia": "Propõe ampliar a rede de esgoto de um bairro depois de analisar os casos de doenças de veiculação hídrica."
+  },
+  {
+   "codigo": "OMNI-CI7-T1.1",
+   "ano": "7º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar os gases que compõem o ar atmosférico e suas proporções aproximadas.",
+   "habilidades_bncc": [
+    "EF07CI12"
+   ],
+   "saeb": [],
+   "evidencia": "Indica, num gráfico de setores, que o nitrogênio é o gás mais abundante do ar."
+  },
+  {
+   "codigo": "OMNI-CI7-T1.2",
+   "ano": "7º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer o efeito estufa como fenômeno natural necessário à vida na Terra.",
+   "habilidades_bncc": [
+    "EF07CI13"
+   ],
+   "saeb": [],
+   "evidencia": "Responde que, sem efeito estufa, a Terra seria fria demais para a maior parte dos seres vivos."
+  },
+  {
+   "codigo": "OMNI-CI7-T1.3",
+   "ano": "7º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer a função da camada de ozônio na filtragem da radiação ultravioleta do Sol.",
+   "habilidades_bncc": [
+    "EF07CI14"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que a camada de ozônio retém boa parte da radiação ultravioleta que chega do Sol."
+  },
+  {
+   "codigo": "OMNI-CI7-T2.1",
+   "ano": "7º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar como o efeito estufa retém parte do calor na atmosfera.",
+   "habilidades_bncc": [
+    "EF07CI13"
+   ],
+   "saeb": [],
+   "evidencia": "Explica, num esquema, que gases como o gás carbônico absorvem parte do calor emitido pela superfície da Terra."
+  },
+  {
+   "codigo": "OMNI-CI7-T2.2",
+   "ano": "7º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar ações humanas, como a queima de combustíveis fósseis, o desmatamento OU as queimadas, ao aumento do efeito estufa.",
+   "habilidades_bncc": [
+    "EF07CI13"
+   ],
+   "saeb": [],
+   "evidencia": "Relaciona um gráfico do aumento do gás carbônico no ar desde 1950 ao crescimento do uso de petróleo e carvão."
+  },
+  {
+   "codigo": "OMNI-CI7-T2.3",
+   "ano": "7º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar fenômenos naturais OU atividades humanas a alterações na composição do ar.",
+   "habilidades_bncc": [
+    "EF07CI12"
+   ],
+   "saeb": [],
+   "evidencia": "Explica como a erupção de um vulcão e a fumaça das indústrias alteram a composição do ar."
+  },
+  {
+   "codigo": "OMNI-CI7-T2.4",
+   "ano": "7º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar substâncias liberadas por atividades humanas, como os clorofluorcarbonos (CFCs), à redução da camada de ozônio.",
+   "habilidades_bncc": [
+    "EF07CI14"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que a proibição dos CFCs em geladeiras e aerossóis ajudou a camada de ozônio a se recuperar."
+  },
+  {
+   "codigo": "OMNI-CI7-T2.5",
+   "ano": "7º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar a ocorrência de vulcões, terremotos OU tsunamis pelo movimento das placas tectônicas.",
+   "habilidades_bncc": [
+    "EF07CI15"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que o Japão tem muitos terremotos por estar no encontro de placas tectônicas."
+  },
+  {
+   "codigo": "OMNI-CI7-T3.1",
+   "ano": "7º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar, pelo modelo das placas tectônicas, por que o Brasil quase não tem vulcões ativos nem terremotos fortes.",
+   "habilidades_bncc": [
+    "EF07CI15"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que o Brasil fica no interior da placa Sul-Americana, longe das bordas onde ocorrem os grandes tremores."
+  },
+  {
+   "codigo": "OMNI-CI7-T3.2",
+   "ano": "7º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar o encaixe entre as costas da América do Sul e da África com base na teoria da deriva continental.",
+   "habilidades_bncc": [
+    "EF07CI16"
+   ],
+   "saeb": [],
+   "evidencia": "Usa a semelhança de fósseis e de rochas nos dois litorais como evidência de que os continentes já estiveram unidos."
+  },
+  {
+   "codigo": "OMNI-CI7-T3.3",
+   "ano": "7º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Propor medidas individuais OU coletivas para controlar o aumento do efeito estufa.",
+   "habilidades_bncc": [
+    "EF07CI13",
+    "EF07CI14"
+   ],
+   "saeb": [],
+   "evidencia": "Propõe trocar viagens de carro por transporte coletivo e plantar árvores, explicando o efeito de cada medida."
+  },
+  {
+   "codigo": "OMNI-CI8-M1.1",
+   "ano": "8º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar fontes de energia renováveis OU não renováveis usadas em residências e cidades.",
+   "habilidades_bncc": [
+    "EF08CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Classifica a energia dos ventos como renovável e o gás de cozinha como não renovável."
+  },
+  {
+   "codigo": "OMNI-CI8-M1.2",
+   "ano": "8º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar a função dos componentes de um circuito elétrico simples, como pilha, fios, interruptor OU lâmpada.",
+   "habilidades_bncc": [
+    "EF08CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que o interruptor abre e fecha o caminho da corrente elétrica."
+  },
+  {
+   "codigo": "OMNI-CI8-M1.3",
+   "ano": "8º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar a transformação de energia realizada por aparelhos elétricos (em energia térmica, luminosa, sonora OU mecânica).",
+   "habilidades_bncc": [
+    "EF08CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que o chuveiro transforma energia elétrica principalmente em energia térmica."
+  },
+  {
+   "codigo": "OMNI-CI8-M1.4",
+   "ano": "8º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer as etapas do percurso da energia elétrica, da usina até as residências.",
+   "habilidades_bncc": [
+    "EF08CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Ordena: usina, linhas de transmissão, subestação, rede de distribuição e casa."
+  },
+  {
+   "codigo": "OMNI-CI8-M2.1",
+   "ano": "8º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Classificar equipamentos elétricos residenciais pelo principal tipo de transformação de energia que realizam.",
+   "habilidades_bncc": [
+    "EF08CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Agrupa ferro de passar e chuveiro (térmica), lâmpada (luminosa) e liquidificador (mecânica)."
+  },
+  {
+   "codigo": "OMNI-CI8-M2.2",
+   "ano": "8º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Comparar um circuito montado com pilha, fios e lâmpada a um circuito elétrico residencial.",
+   "habilidades_bncc": [
+    "EF08CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta que a instalação da casa tem disjuntores e tomadas, componentes que não aparecem no circuito da pilha."
+  },
+  {
+   "codigo": "OMNI-CI8-M2.3",
+   "ano": "8º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "aplicar",
+   "descritor": "Prever se as lâmpadas de um circuito acendem, a partir do esquema da ligação.",
+   "habilidades_bncc": [
+    "EF08CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Prevê que, num circuito em série, se uma lâmpada queimar a outra também apaga."
+  },
+  {
+   "codigo": "OMNI-CI8-M2.4",
+   "ano": "8º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "aplicar",
+   "descritor": "Calcular o consumo de energia elétrica de um aparelho a partir da potência e do tempo de uso.",
+   "habilidades_bncc": [
+    "EF08CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Calcula que um chuveiro de 5 000 W usado 30 minutos por dia consome 75 quilowatts-hora (kWh) em um mês."
+  },
+  {
+   "codigo": "OMNI-CI8-M2.5",
+   "ano": "8º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar o peso de cada aparelho no consumo mensal de uma residência, a partir de dados de potência e tempo de uso.",
+   "habilidades_bncc": [
+    "EF08CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Indica, numa tabela de consumo, que o chuveiro e a geladeira respondem pela maior parte da conta de luz."
+  },
+  {
+   "codigo": "OMNI-CI8-M2.6",
+   "ano": "8º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Comparar usinas de geração de energia elétrica (hidrelétrica, termelétrica, eólica, solar OU nuclear) quanto à fonte e à transformação de energia.",
+   "habilidades_bncc": [
+    "EF08CI06",
+    "EF08CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que na hidrelétrica a energia do movimento da água vira energia elétrica e na termelétrica é a queima de combustível que a produz."
+  },
+  {
+   "codigo": "OMNI-CI8-M3.1",
+   "ano": "8º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Propor ações coletivas para reduzir o consumo de energia elétrica na escola OU na comunidade.",
+   "habilidades_bncc": [
+    "EF08CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Propõe trocar lâmpadas antigas por lâmpadas de LED e desligar o ar-condicionado com a sala vazia, estimando a economia."
+  },
+  {
+   "codigo": "OMNI-CI8-M3.2",
+   "ano": "8º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Selecionar equipamentos elétricos com base em critérios de eficiência energética.",
+   "habilidades_bncc": [
+    "EF08CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe, entre duas geladeiras, a de selo A de eficiência, justificando com o consumo mensal informado na etiqueta."
+  },
+  {
+   "codigo": "OMNI-CI8-M3.3",
+   "ano": "8º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar impactos socioambientais de diferentes usinas de geração de energia elétrica.",
+   "habilidades_bncc": [
+    "EF08CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Avalia a construção de uma hidrelétrica na Amazônia considerando a área alagada e as populações atingidas."
+  },
+  {
+   "codigo": "OMNI-CI8-V1.1",
+   "ano": "8º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar processos de reprodução sexuada OU assexuada em plantas e animais.",
+   "habilidades_bncc": [
+    "EF08CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Reconhece o brotamento de uma batata como reprodução assexuada."
+  },
+  {
+   "codigo": "OMNI-CI8-V1.2",
+   "ano": "8º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar os hormônios sexuais (testosterona, estrogênio e progesterona) e as glândulas que os produzem.",
+   "habilidades_bncc": [
+    "EF08CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que a testosterona é produzida nos testículos e o estrogênio, nos ovários."
+  },
+  {
+   "codigo": "OMNI-CI8-V1.3",
+   "ano": "8º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar o modo de ação de métodos contraceptivos, como preservativo, pílula OU dispositivo intrauterino (DIU).",
+   "habilidades_bncc": [
+    "EF08CI09"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que o preservativo impede o encontro dos espermatozoides com o ovócito."
+  },
+  {
+   "codigo": "OMNI-CI8-V1.4",
+   "ano": "8º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar sintomas, formas de transmissão OU tratamentos de algumas infecções sexualmente transmissíveis (IST), com destaque para a aids.",
+   "habilidades_bncc": [
+    "EF08CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que o HIV, vírus causador da aids, pode ser transmitido por relação sexual sem preservativo e pelo compartilhamento de seringas."
+  },
+  {
+   "codigo": "OMNI-CI8-V2.1",
+   "ano": "8º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Comparar a reprodução sexuada e a assexuada quanto à variabilidade dos descendentes e às vantagens adaptativas.",
+   "habilidades_bncc": [
+    "EF08CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que plantas obtidas de mudas de uma mesma planta podem ser todas destruídas pela mesma praga."
+  },
+  {
+   "codigo": "OMNI-CI8-V2.2",
+   "ano": "8º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar a ação dos hormônios sexuais e do sistema nervoso às transformações da puberdade.",
+   "habilidades_bncc": [
+    "EF08CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que o hipotálamo e a hipófise estimulam as gônadas a produzir hormônios que provocam o crescimento de pelos e a mudança da voz."
+  },
+  {
+   "codigo": "OMNI-CI8-V2.3",
+   "ano": "8º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Comparar métodos contraceptivos quanto à eficácia na prevenção da gravidez OU das IST.",
+   "habilidades_bncc": [
+    "EF08CI09"
+   ],
+   "saeb": [],
+   "evidencia": "Explica, com uma tabela de eficácia, que a pílula previne a gravidez mas não protege contra IST, ao contrário do preservativo."
+  },
+  {
+   "codigo": "OMNI-CI8-V3.1",
+   "ano": "8º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar por que a escolha e o uso do método contraceptivo são responsabilidade compartilhada entre as pessoas envolvidas.",
+   "habilidades_bncc": [
+    "EF08CI09"
+   ],
+   "saeb": [],
+   "evidencia": "Argumenta, num caso apresentado, por que as duas pessoas devem conversar e decidir juntas sobre a prevenção."
+  },
+  {
+   "codigo": "OMNI-CI8-V3.2",
+   "ano": "8º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar estratégias de prevenção das IST quanto à eficácia.",
+   "habilidades_bncc": [
+    "EF08CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Avalia uma campanha que fala só da pílula e aponta que ela não previne IST, sugerindo incluir o preservativo e a testagem."
+  },
+  {
+   "codigo": "OMNI-CI8-V3.3",
+   "ano": "8º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Selecionar argumentos que mostrem que a sexualidade humana envolve dimensões biológicas, socioculturais, afetivas e éticas.",
+   "habilidades_bncc": [
+    "EF08CI11"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe, entre frases, as que mostram que a sexualidade envolve afeto, respeito e consentimento, e não só o corpo."
+  },
+  {
+   "codigo": "OMNI-CI8-T1.1",
+   "ano": "8º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar as fases da Lua OU os tipos de eclipse em imagens e esquemas.",
+   "habilidades_bncc": [
+    "EF08CI12"
+   ],
+   "saeb": [],
+   "evidencia": "Reconhece, numa foto, a Lua em quarto crescente."
+  },
+  {
+   "codigo": "OMNI-CI8-T1.2",
+   "ano": "8º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Representar os movimentos de rotação e de translação da Terra em esquemas OU modelos.",
+   "habilidades_bncc": [
+    "EF08CI13"
+   ],
+   "saeb": [],
+   "evidencia": "Desenha a Terra girando em torno do próprio eixo e percorrendo a órbita em torno do Sol, indicando o sentido dos dois movimentos."
+  },
+  {
+   "codigo": "OMNI-CI8-T1.3",
+   "ano": "8º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar instrumentos que medem variáveis da previsão do tempo, como termômetro, higrômetro, barômetro OU pluviômetro.",
+   "habilidades_bncc": [
+    "EF08CI15"
+   ],
+   "saeb": [],
+   "evidencia": "Associa o pluviômetro à medida da quantidade de chuva."
+  },
+  {
+   "codigo": "OMNI-CI8-T1.4",
+   "ano": "8º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar alterações climáticas regionais OU globais provocadas pela ação humana.",
+   "habilidades_bncc": [
+    "EF08CI16"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta o aumento da temperatura nas áreas centrais das cidades (ilhas de calor) como alteração provocada pela ação humana."
+  },
+  {
+   "codigo": "OMNI-CI8-T2.1",
+   "ano": "8º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar as fases da Lua pelas posições relativas do Sol, da Terra e da Lua.",
+   "habilidades_bncc": [
+    "EF08CI12"
+   ],
+   "saeb": [],
+   "evidencia": "Explica, num esquema, que na Lua nova a face iluminada está voltada para o Sol e não para a Terra."
+  },
+  {
+   "codigo": "OMNI-CI8-T2.2",
+   "ano": "8º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar a inclinação do eixo de rotação da Terra à ocorrência das estações do ano.",
+   "habilidades_bncc": [
+    "EF08CI13"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que é verão no Brasil quando é inverno na Europa, usando a inclinação do eixo da Terra."
+  },
+  {
+   "codigo": "OMNI-CI8-T2.3",
+   "ano": "8º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar os climas regionais à circulação atmosférica e oceânica OU ao aquecimento desigual da superfície da Terra.",
+   "habilidades_bncc": [
+    "EF08CI14"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que as regiões próximas à linha do Equador são mais quentes porque recebem os raios solares de forma mais direta."
+  },
+  {
+   "codigo": "OMNI-CI8-T2.4",
+   "ano": "8º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "aplicar",
+   "descritor": "Prever mudanças no tempo a partir de dados de temperatura, umidade, pressão OU vento apresentados em boletins ou gráficos.",
+   "habilidades_bncc": [
+    "EF08CI15",
+    "EF08CI14"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que a chance de chuva aumenta ao ver, num boletim, a queda da pressão atmosférica e a umidade alta."
+  },
+  {
+   "codigo": "OMNI-CI8-T3.1",
+   "ano": "8º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar a ocorrência dos eclipses solar e lunar com base no alinhamento entre o Sol, a Terra e a Lua.",
+   "habilidades_bncc": [
+    "EF08CI12"
+   ],
+   "saeb": [],
+   "evidencia": "Justifica, com um modelo de lanterna e bolas, por que o eclipse lunar só acontece na fase de Lua cheia."
+  },
+  {
+   "codigo": "OMNI-CI8-T3.2",
+   "ano": "8º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Planejar a medição de uma variável do tempo com um instrumento simples, como um pluviômetro feito com garrafa.",
+   "habilidades_bncc": [
+    "EF08CI15"
+   ],
+   "saeb": [],
+   "evidencia": "Planeja onde instalar um pluviômetro de garrafa PET e como registrar os dados durante uma semana."
+  },
+  {
+   "codigo": "OMNI-CI8-T3.3",
+   "ano": "8º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Propor iniciativas para restabelecer o equilíbrio ambiental diante de alterações climáticas provocadas pela ação humana.",
+   "habilidades_bncc": [
+    "EF08CI16"
+   ],
+   "saeb": [],
+   "evidencia": "Propõe arborizar ruas e criar áreas verdes para reduzir a ilha de calor do bairro."
+  },
+  {
+   "codigo": "OMNI-CI9-M1.1",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar modelos que representam a estrutura da matéria, como os de átomo OU de moléculas simples.",
+   "habilidades_bncc": [
+    "EF09CI03"
+   ],
+   "saeb": [
+    "CN-9A1.2"
+   ],
+   "evidencia": "Reconhece, entre desenhos, o que representa uma molécula de água."
+  },
+  {
+   "codigo": "OMNI-CI9-M1.2",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer as mudanças de estado físico pelo modelo de partículas.",
+   "habilidades_bncc": [
+    "EF09CI01"
+   ],
+   "saeb": [
+    "CN-9A1.3"
+   ],
+   "evidencia": "Escolhe o desenho com as partículas mais afastadas e agitadas como o que representa o estado gasoso."
+  },
+  {
+   "codigo": "OMNI-CI9-M1.3",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar cores de luz formadas pela composição das três cores primárias (vermelho, verde e azul).",
+   "habilidades_bncc": [
+    "EF09CI04"
+   ],
+   "saeb": [
+    "CN-9A1.8"
+   ],
+   "evidencia": "Indica que a luz vermelha somada à verde forma a luz amarela."
+  },
+  {
+   "codigo": "OMNI-CI9-M1.4",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar usos das radiações eletromagnéticas no cotidiano, como em rádio, forno de micro-ondas, controle remoto OU raio X.",
+   "habilidades_bncc": [
+    "EF09CI06"
+   ],
+   "saeb": [
+    "CN-9A1.6"
+   ],
+   "evidencia": "Associa o controle remoto à radiação infravermelha."
+  },
+  {
+   "codigo": "OMNI-CI9-M1.5",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar os mecanismos de transmissão e de recepção de som e imagem em meios de comunicação, como rádio, televisão OU celular.",
+   "habilidades_bncc": [
+    "EF09CI05"
+   ],
+   "saeb": [
+    "CN-9A1.7"
+   ],
+   "evidencia": "Indica que a antena do celular recebe ondas de rádio que o aparelho transforma em som."
+  },
+  {
+   "codigo": "OMNI-CI9-M2.1",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar as mudanças de estado físico pelo modelo de constituição submicroscópica da matéria.",
+   "habilidades_bncc": [
+    "EF09CI01"
+   ],
+   "saeb": [
+    "CN-9B1.5"
+   ],
+   "evidencia": "Explica que, ao aquecer o gelo, as partículas se agitam mais e se afastam, até a água ficar líquida."
+  },
+  {
+   "codigo": "OMNI-CI9-M2.2",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "aplicar",
+   "descritor": "Comparar as massas de reagentes e de produtos de uma transformação química, com base na conservação da massa OU na proporção fixa entre elas.",
+   "habilidades_bncc": [
+    "EF09CI02"
+   ],
+   "saeb": [
+    "CN-9B1.2"
+   ],
+   "evidencia": "Calcula que, se 12 g de carbono reagem com 32 g de oxigênio, 24 g de carbono reagem com 64 g de oxigênio."
+  },
+  {
+   "codigo": "OMNI-CI9-M2.3",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Comparar os modelos atômicos de Dalton, Thomson e Rutherford-Bohr quanto à estrutura que cada um propõe.",
+   "habilidades_bncc": [
+    "EF09CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta que só o modelo de Rutherford-Bohr tem um núcleo com elétrons em órbitas ao redor."
+  },
+  {
+   "codigo": "OMNI-CI9-M2.4",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Relacionar a cor de um objeto à cor da luz que o ilumina.",
+   "habilidades_bncc": [
+    "EF09CI04"
+   ],
+   "saeb": [
+    "CN-9B1.13"
+   ],
+   "evidencia": "Explica por que uma camiseta vermelha parece preta sob luz azul."
+  },
+  {
+   "codigo": "OMNI-CI9-M2.5",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Classificar radiações eletromagnéticas pela frequência, pela fonte OU pela aplicação.",
+   "habilidades_bncc": [
+    "EF09CI06"
+   ],
+   "saeb": [
+    "CN-9B1.11"
+   ],
+   "evidencia": "Ordena ondas de rádio, micro-ondas, luz visível e raio X da menor para a maior frequência."
+  },
+  {
+   "codigo": "OMNI-CI9-M2.6",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar os dados de um experimento sobre transformações químicas, identificando a conclusão que eles sustentam.",
+   "habilidades_bncc": [
+    "EF09CI02"
+   ],
+   "saeb": [
+    "CN-9B1.16",
+    "CN-9B1.17"
+   ],
+   "evidencia": "Lê a tabela de massas antes e depois de uma reação em frasco fechado e conclui que a massa total se conservou."
+  },
+  {
+   "codigo": "OMNI-CI9-M3.1",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Planejar um experimento que mostre a composição das cores da luz OU a mudança de cor de objetos sob luzes diferentes.",
+   "habilidades_bncc": [
+    "EF09CI04"
+   ],
+   "saeb": [
+    "CN-9C1.11"
+   ],
+   "evidencia": "Planeja iluminar uma folha branca com lanternas cobertas de papel celofane vermelho, verde e azul e registrar as cores formadas."
+  },
+  {
+   "codigo": "OMNI-CI9-M3.2",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar as implicações do uso de radiações eletromagnéticas em aparelhos como celular, forno de micro-ondas OU raio X.",
+   "habilidades_bncc": [
+    "EF09CI06"
+   ],
+   "saeb": [
+    "CN-9C1.7"
+   ],
+   "evidencia": "Avalia os cuidados necessários num exame de raio X, como o avental de chumbo, e por que eles não são exigidos ao usar o celular."
+  },
+  {
+   "codigo": "OMNI-CI9-M3.3",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar o papel do avanço tecnológico das radiações no diagnóstico OU no tratamento de doenças.",
+   "habilidades_bncc": [
+    "EF09CI07"
+   ],
+   "saeb": [
+    "CN-9C1.8"
+   ],
+   "evidencia": "Compara raio X e ultrassom para examinar um bebê na barriga da mãe e justifica qual é mais seguro."
+  },
+  {
+   "codigo": "OMNI-CI9-V1.1",
+   "ano": "9º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Reconhecer o papel dos gametas na transmissão das características hereditárias de pais para filhos.",
+   "habilidades_bncc": [
+    "EF09CI08"
+   ],
+   "saeb": [
+    "CN-9A2.11"
+   ],
+   "evidencia": "Indica que cada filho recebe metade dos fatores hereditários pelo espermatozoide e metade pelo ovócito."
+  },
+  {
+   "codigo": "OMNI-CI9-V1.2",
+   "ano": "9º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar as ideias principais de Lamarck OU de Darwin sobre a evolução.",
+   "habilidades_bncc": [
+    "EF09CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Reconhece \"uso e desuso\" como ideia de Lamarck e \"seleção natural\" como ideia de Darwin."
+  },
+  {
+   "codigo": "OMNI-CI9-V1.3",
+   "ano": "9º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar tipos de unidades de conservação, como parques, reservas OU florestas nacionais.",
+   "habilidades_bncc": [
+    "EF09CI12"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que o Parque Nacional do Iguaçu é uma unidade de conservação de proteção integral."
+  },
+  {
+   "codigo": "OMNI-CI9-V2.1",
+   "ano": "9º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "aplicar",
+   "descritor": "Resolver problemas de transmissão de uma característica hereditária com base nas ideias de Mendel.",
+   "habilidades_bncc": [
+    "EF09CI09",
+    "EF09CI08"
+   ],
+   "saeb": [
+    "CN-9B2.16"
+   ],
+   "evidencia": "Determina a proporção de sementes amarelas e verdes no cruzamento de duas ervilhas híbridas (Aa × Aa)."
+  },
+  {
+   "codigo": "OMNI-CI9-V2.2",
+   "ano": "9º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Diferenciar as explicações de Lamarck e de Darwin para a evolução das espécies, a partir de textos científicos OU históricos.",
+   "habilidades_bncc": [
+    "EF09CI10"
+   ],
+   "saeb": [
+    "CN-9B2.17"
+   ],
+   "evidencia": "Explica como cada um justificaria o pescoço comprido das girafas."
+  },
+  {
+   "codigo": "OMNI-CI9-V2.3",
+   "ano": "9º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar a evolução e a diversidade das espécies pela seleção natural que atua sobre as variantes de uma mesma espécie.",
+   "habilidades_bncc": [
+    "EF09CI11"
+   ],
+   "saeb": [
+    "CN-9B2.19",
+    "CN-9B2.18"
+   ],
+   "evidencia": "Explica por que, depois de anos de uso de um inseticida, a maior parte dos insetos de uma lavoura passou a ser resistente a ele."
+  },
+  {
+   "codigo": "OMNI-CI9-V2.4",
+   "ano": "9º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar os tipos de unidades de conservação às atividades humanas permitidas OU às populações que vivem nelas.",
+   "habilidades_bncc": [
+    "EF09CI12"
+   ],
+   "saeb": [
+    "CN-9B2.21"
+   ],
+   "evidencia": "Explica por que numa reserva extrativista as comunidades podem coletar castanhas e num parque nacional não."
+  },
+  {
+   "codigo": "OMNI-CI9-V2.5",
+   "ano": "9º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar ações de consumo consciente bem-sucedidas quanto aos efeitos sobre a qualidade de vida e o ambiente.",
+   "habilidades_bncc": [
+    "EF09CI13"
+   ],
+   "saeb": [
+    "CN-9B2.22"
+   ],
+   "evidencia": "Analisa os dados de uma cidade que reduziu o lixo com coleta seletiva e identifica os benefícios para os rios."
+  },
+  {
+   "codigo": "OMNI-CI9-V3.1",
+   "ano": "9º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar a importância das unidades de conservação para a biodiversidade e o patrimônio nacional, considerando as populações humanas envolvidas.",
+   "habilidades_bncc": [
+    "EF09CI12"
+   ],
+   "saeb": [
+    "CN-9C2.8"
+   ],
+   "evidencia": "Avalia o conflito entre a criação de um parque e uma comunidade ribeirinha e defende uma solução que proteja a floresta e as famílias."
+  },
+  {
+   "codigo": "OMNI-CI9-V3.2",
+   "ano": "9º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "criar",
+   "descritor": "Propor iniciativas individuais OU coletivas para resolver um problema ambiental da cidade, com base em ações de sustentabilidade bem-sucedidas.",
+   "habilidades_bncc": [
+    "EF09CI13"
+   ],
+   "saeb": [
+    "CN-9C2.9",
+    "CN-9C2.4"
+   ],
+   "evidencia": "Propõe uma composteira na escola inspirada num projeto de bairro que reduziu o lixo orgânico."
+  },
+  {
+   "codigo": "OMNI-CI9-V3.3",
+   "ano": "9º ano",
+   "eixo": "Vida e evolução",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Distinguir argumentos científicos sobre a evolução de explicações baseadas no senso comum.",
+   "habilidades_bncc": [
+    "EF09CI10",
+    "EF09CI11"
+   ],
+   "saeb": [
+    "CN-9C2.7"
+   ],
+   "evidencia": "Separa, entre afirmações, as que se apoiam em evidências, como os fósseis, das que são apenas opiniões."
+  },
+  {
+   "codigo": "OMNI-CI9-T1.1",
+   "ano": "9º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar os componentes do Sistema Solar: o Sol, os planetas rochosos, os planetas gigantes gasosos e os corpos menores.",
+   "habilidades_bncc": [
+    "EF09CI14"
+   ],
+   "saeb": [
+    "CN-9A3.11",
+    "CN-9A3.13"
+   ],
+   "evidencia": "Classifica Marte como planeta rochoso e Júpiter como gigante gasoso."
+  },
+  {
+   "codigo": "OMNI-CI9-T1.2",
+   "ano": "9º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer a localização do Sistema Solar na Via Láctea e da Via Láctea no Universo.",
+   "habilidades_bncc": [
+    "EF09CI14"
+   ],
+   "saeb": [
+    "CN-9A3.12"
+   ],
+   "evidencia": "Indica que o Sistema Solar fica num dos braços da Via Láctea, uma galáxia entre bilhões."
+  },
+  {
+   "codigo": "OMNI-CI9-T1.3",
+   "ano": "9º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Ordenar as etapas do ciclo de vida de uma estrela como o Sol.",
+   "habilidades_bncc": [
+    "EF09CI17"
+   ],
+   "saeb": [],
+   "evidencia": "Ordena nebulosa, estrela, gigante vermelha e anã branca."
+  },
+  {
+   "codigo": "OMNI-CI9-T2.1",
+   "ano": "9º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Comparar planetas do Sistema Solar quanto a características como tamanho, composição OU distância ao Sol.",
+   "habilidades_bncc": [
+    "EF09CI14"
+   ],
+   "saeb": [
+    "CN-9B3.17"
+   ],
+   "evidencia": "Usa uma tabela para dizer que Vênus é mais quente que Mercúrio, apesar de estar mais longe do Sol."
+  },
+  {
+   "codigo": "OMNI-CI9-T2.2",
+   "ano": "9º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Relacionar as escalas de distância e de tempo entre o Sistema Solar, a galáxia e o Universo.",
+   "habilidades_bncc": [
+    "EF09CI14"
+   ],
+   "saeb": [
+    "CN-9B3.13"
+   ],
+   "evidencia": "Explica que a luz do Sol leva cerca de 8 minutos para chegar à Terra e a de outras estrelas leva anos."
+  },
+  {
+   "codigo": "OMNI-CI9-T2.3",
+   "ano": "9º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar diferentes leituras do céu às necessidades de distintas culturas, como agricultura, orientação OU marcação do tempo.",
+   "habilidades_bncc": [
+    "EF09CI15"
+   ],
+   "saeb": [
+    "CN-9B3.14"
+   ],
+   "evidencia": "Explica que, para povos guarani do Sul do Brasil, o aparecimento da constelação da Ema no início da noite marca a chegada do inverno."
+  },
+  {
+   "codigo": "OMNI-CI9-T2.4",
+   "ano": "9º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar as condições necessárias à vida às características dos planetas do Sistema Solar.",
+   "habilidades_bncc": [
+    "EF09CI16"
+   ],
+   "saeb": [
+    "CN-9B3.15"
+   ],
+   "evidencia": "Explica por que Marte, frio e com atmosfera rarefeita, não tem água líquida na superfície."
+  },
+  {
+   "codigo": "OMNI-CI9-T2.5",
+   "ano": "9º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar os efeitos que as próximas etapas da evolução do Sol terão sobre a Terra.",
+   "habilidades_bncc": [
+    "EF09CI17"
+   ],
+   "saeb": [
+    "CN-9B3.16"
+   ],
+   "evidencia": "Explica que, ao virar gigante vermelha, o Sol vai aquecer tanto a Terra que a água dos oceanos vai evaporar."
+  },
+  {
+   "codigo": "OMNI-CI9-T3.1",
+   "ano": "9º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar a viabilidade da sobrevivência humana em outro planeta, considerando as condições para a vida, as distâncias e o tempo de viagem.",
+   "habilidades_bncc": [
+    "EF09CI16"
+   ],
+   "saeb": [
+    "CN-9C3.7"
+   ],
+   "evidencia": "Avalia um plano de colônia em Marte apontando a radiação, a falta de oxigênio e os meses de viagem."
+  },
+  {
+   "codigo": "OMNI-CI9-T3.2",
+   "ano": "9º ano",
+   "eixo": "Terra e Universo",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar, com base no ciclo de vida das estrelas, o destino final previsto para o Sol.",
+   "habilidades_bncc": [
+    "EF09CI17"
+   ],
+   "saeb": [],
+   "evidencia": "Justifica, a partir de um diagrama que relaciona a massa das estrelas ao seu fim, que o Sol vai terminar como anã branca, e não como supernova."
+  }
+ ],
+ "substituidos": [
+  {
+   "codigo": "OMNI-CI1-D01",
+   "ano": "1º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Identificar o material (plástico, papel, vidro, metal ou madeira) de que são feitos objetos do dia a dia mostrados em imagens.",
+   "habilidades_bncc": [
+    "EF01CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Liga cada objeto ilustrado ao material que o compõe.",
+   "substituido_por": [
+    "OMNI-CI1-M1.1",
+    "OMNI-CI1-M1.2",
+    "OMNI-CI1-M2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI1-D02",
+   "ano": "1º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Indicar o destino mais adequado para objetos usados, como reutilizar, separar para coleta seletiva ou jogar no lixo comum.",
+   "habilidades_bncc": [
+    "EF01CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe, entre opções ilustradas, o destino correto para um objeto descartado.",
+   "substituido_por": [
+    "OMNI-CI1-M2.2",
+    "OMNI-CI1-M3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI1-D03",
+   "ano": "1º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Nomear partes externas do corpo humano (cabeça, tronco, braços, pernas, mãos, pés) apontadas em uma ilustração.",
+   "habilidades_bncc": [
+    "EF01CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Escreve ou marca o nome da parte do corpo indicada na figura.",
+   "substituido_por": [
+    "OMNI-CI1-V1.1",
+    "OMNI-CI1-V1.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI1-D04",
+   "ano": "1º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Relacionar partes e órgãos dos sentidos do corpo à sua função, como olhos para enxergar e pernas para andar.",
+   "habilidades_bncc": [
+    "EF01CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Associa cada parte do corpo à ação que ela permite realizar.",
+   "substituido_por": [
+    "OMNI-CI1-V1.3",
+    "OMNI-CI1-V2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI1-D05",
+   "ano": "1º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Indicar, em cenas do cotidiano, qual cuidado com a higiene (mãos limpas, dentes escovados, banho) protege a criança de adoecer.",
+   "habilidades_bncc": [
+    "EF01CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta, numa cena do cotidiano, o hábito de higiene que evita adoecer.",
+   "substituido_por": [
+    "OMNI-CI1-V1.4",
+    "OMNI-CI1-V2.2",
+    "OMNI-CI1-V3.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI1-D06",
+   "ano": "1º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Comparar características físicas de crianças retratadas (altura, cor dos olhos, tipo de cabelo), apontando semelhanças e diferenças entre elas.",
+   "habilidades_bncc": [
+    "EF01CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Marca, em imagens de crianças, uma semelhança e uma diferença física.",
+   "substituido_por": [
+    "OMNI-CI1-V2.3",
+    "OMNI-CI1-V3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI1-D07",
+   "ano": "1º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Ordenar os períodos do dia (manhã, tarde e noite) e a sequência dos dias da semana em atividades com imagens.",
+   "habilidades_bncc": [
+    "EF01CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Coloca em ordem cenas ou nomes de períodos e dias da semana.",
+   "substituido_por": [
+    "OMNI-CI1-T1.1",
+    "OMNI-CI1-T1.2",
+    "OMNI-CI1-T1.3",
+    "OMNI-CI1-T3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI1-D08",
+   "ano": "1º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Associar atividades de pessoas e de outros animais ao período (dia ou noite) em que costumam acontecer.",
+   "habilidades_bncc": [
+    "EF01CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Classifica cenas ilustradas como atividades típicas do dia ou da noite.",
+   "substituido_por": [
+    "OMNI-CI1-T2.1",
+    "OMNI-CI1-T2.2",
+    "OMNI-CI1-T3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI2-D01",
+   "ano": "2º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Identificar os materiais (metal, madeira, vidro, plástico, tecido) que compõem objetos de uso diário apresentados em imagens.",
+   "habilidades_bncc": [
+    "EF02CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Indica de que material é feito cada objeto mostrado.",
+   "substituido_por": [
+    "OMNI-CI2-M1.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI2-D02",
+   "ano": "2º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Comparar objetos antigos e atuais com a mesma função quanto aos materiais usados para fabricá-los.",
+   "habilidades_bncc": [
+    "EF02CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta a diferença de material entre a versão antiga e a atual de um objeto.",
+   "substituido_por": [
+    "OMNI-CI2-M1.2",
+    "OMNI-CI2-M2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI2-D03",
+   "ano": "2º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Escolher o material mais adequado para fabricar um objeto considerando propriedades como dureza, flexibilidade e transparência.",
+   "habilidades_bncc": [
+    "EF02CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Justifica, entre opções, qual material serve melhor para um objeto descrito.",
+   "substituido_por": [
+    "OMNI-CI2-M2.2",
+    "OMNI-CI2-M2.3",
+    "OMNI-CI2-M3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI2-D04",
+   "ano": "2º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Reconhecer situações de risco de acidente em casa (facas, tomadas, produtos de limpeza, remédios) e a atitude que o previne.",
+   "habilidades_bncc": [
+    "EF02CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Identifica o perigo numa cena doméstica e marca o comportamento seguro.",
+   "substituido_por": [
+    "OMNI-CI2-M1.3",
+    "OMNI-CI2-M1.4",
+    "OMNI-CI2-M3.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI2-D05",
+   "ano": "2º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Relacionar características de plantas e animais do entorno, como tamanho, forma e cobertura do corpo, ao ambiente onde vivem.",
+   "habilidades_bncc": [
+    "EF02CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Associa cada ser vivo ilustrado ao ambiente compatível com suas características.",
+   "substituido_por": [
+    "OMNI-CI2-V1.1",
+    "OMNI-CI2-V1.4",
+    "OMNI-CI2-V2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI2-D06",
+   "ano": "2º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Prever o que acontece com uma planta mantida sem água ou sem luz, a partir da descrição de um experimento.",
+   "habilidades_bncc": [
+    "EF02CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe a imagem que mostra o resultado esperado para a planta privada de água ou luz.",
+   "substituido_por": [
+    "OMNI-CI2-V2.2",
+    "OMNI-CI2-V2.3",
+    "OMNI-CI2-V3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI2-D07",
+   "ano": "2º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Identificar raiz, caule, folha, flor e fruto em uma planta e associar cada parte à sua função.",
+   "habilidades_bncc": [
+    "EF02CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Nomeia a parte da planta indicada e marca a função correspondente.",
+   "substituido_por": [
+    "OMNI-CI2-V1.2",
+    "OMNI-CI2-V1.3",
+    "OMNI-CI2-V2.4"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI2-D08",
+   "ano": "2º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Prever se a sombra de um poste fica curta ou comprida conforme o Sol esteja alto (meio-dia) ou baixo (manhã e tarde).",
+   "habilidades_bncc": [
+    "EF02CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Indica em qual horário a sombra de um poste fica mais curta ou mais longa.",
+   "substituido_por": [
+    "OMNI-CI2-T1.1",
+    "OMNI-CI2-T2.1",
+    "OMNI-CI2-T2.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI2-D09",
+   "ano": "2º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Comparar o aquecimento de superfícies diferentes (água, areia, chão claro e escuro, metal) expostas à luz do Sol.",
+   "habilidades_bncc": [
+    "EF02CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta qual superfície ficará mais quente após o mesmo tempo ao Sol.",
+   "substituido_por": [
+    "OMNI-CI2-T1.2",
+    "OMNI-CI2-T2.3",
+    "OMNI-CI2-T3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI3-D01",
+   "ano": "3º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Relacionar a produção de som à vibração de objetos e indicar fatores que mudam o som, como material, tamanho e força.",
+   "habilidades_bncc": [
+    "EF03CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que dois objetos que vibram de modo diferente produzem sons diferentes.",
+   "substituido_por": [
+    "OMNI-CI3-M1.1",
+    "OMNI-CI3-M1.2",
+    "OMNI-CI3-M2.1",
+    "OMNI-CI3-M2.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI3-D02",
+   "ano": "3º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Prever o comportamento da luz ao atingir objetos transparentes, opacos ou espelhos: atravessar, formar sombra ou refletir.",
+   "habilidades_bncc": [
+    "EF03CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe o que acontece com a luz em cada situação ilustrada.",
+   "substituido_por": [
+    "OMNI-CI3-M1.3",
+    "OMNI-CI3-M2.2",
+    "OMNI-CI3-M2.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI3-D03",
+   "ano": "3º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Identificar atitudes que protegem a audição e a visão, como evitar som muito alto e ler em local bem iluminado.",
+   "habilidades_bncc": [
+    "EF03CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Marca a atitude que preserva olhos ou ouvidos numa situação descrita.",
+   "substituido_por": [
+    "OMNI-CI3-M1.4",
+    "OMNI-CI3-M3.1",
+    "OMNI-CI3-M3.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI3-D04",
+   "ano": "3º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Identificar o modo de vida de animais comuns, como alimentação, forma de reprodução e locomoção, a partir de textos ou imagens.",
+   "habilidades_bncc": [
+    "EF03CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Localiza no texto ou na imagem o que o animal come e como se desloca.",
+   "substituido_por": [
+    "OMNI-CI3-V1.1",
+    "OMNI-CI3-V2.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI3-D05",
+   "ano": "3º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Ordenar fases do desenvolvimento de animais, incluindo o ser humano, desde o nascimento até a fase adulta.",
+   "habilidades_bncc": [
+    "EF03CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Numera em sequência imagens do ciclo de vida de um animal.",
+   "substituido_por": [
+    "OMNI-CI3-V1.2",
+    "OMNI-CI3-V2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI3-D06",
+   "ano": "3º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Agrupar animais ilustrados segundo um critério visível no corpo (cobertura de penas, pelos ou escamas; quantidade de patas) e nomear esse critério.",
+   "habilidades_bncc": [
+    "EF03CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Agrupa animais ilustrados e indica a característica usada no critério.",
+   "substituido_por": [
+    "OMNI-CI3-V1.3",
+    "OMNI-CI3-V2.2",
+    "OMNI-CI3-V2.3",
+    "OMNI-CI3-V3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI3-D07",
+   "ano": "3º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Identificar características do planeta Terra, como formato esférico e predomínio de água, em globos, mapas e fotografias.",
+   "habilidades_bncc": [
+    "EF03CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta, numa representação da Terra, onde há água e onde há terra firme.",
+   "substituido_por": [
+    "OMNI-CI3-T1.1",
+    "OMNI-CI3-T2.1",
+    "OMNI-CI3-T3.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI3-D08",
+   "ano": "3º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Relacionar Sol, Lua, estrelas e planetas aos períodos (dia ou noite) em que podem ser vistos no céu.",
+   "habilidades_bncc": [
+    "EF03CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Indica quais astros aparecem numa cena de céu diurno ou noturno.",
+   "substituido_por": [
+    "OMNI-CI3-T1.2",
+    "OMNI-CI3-T2.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI3-D09",
+   "ano": "3º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Comparar amostras de solo quanto à cor, textura, tamanho dos grãos e capacidade de deixar a água passar.",
+   "habilidades_bncc": [
+    "EF03CI09"
+   ],
+   "saeb": [],
+   "evidencia": "Interpreta o resultado de um teste de permeabilidade com dois tipos de solo.",
+   "substituido_por": [
+    "OMNI-CI3-T1.3",
+    "OMNI-CI3-T2.3",
+    "OMNI-CI3-T3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI3-D10",
+   "ano": "3º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Relacionar diferentes usos do solo, como plantio, criação de animais e extração de materiais, às necessidades humanas.",
+   "habilidades_bncc": [
+    "EF03CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Associa cada uso do solo ilustrado ao produto ou benefício obtido.",
+   "substituido_por": [
+    "OMNI-CI3-T1.4",
+    "OMNI-CI3-T2.4",
+    "OMNI-CI3-T3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI4-D01",
+   "ano": "4º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Identificar os componentes de misturas do cotidiano, como água com areia ou café com leite, a partir de propriedades observáveis.",
+   "habilidades_bncc": [
+    "EF04CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Nomeia os materiais que formam uma mistura apresentada em imagem ou texto.",
+   "substituido_por": [
+    "OMNI-CI4-M1.1",
+    "OMNI-CI4-M1.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI4-D02",
+   "ano": "4º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Descrever a mudança sofrida por um material exposto a aquecimento, resfriamento, luz ou umidade, a partir do relato de um teste.",
+   "habilidades_bncc": [
+    "EF04CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Indica o que aconteceu com o material após a condição testada.",
+   "substituido_por": [
+    "OMNI-CI4-M1.3",
+    "OMNI-CI4-M2.1",
+    "OMNI-CI4-M3.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI4-D03",
+   "ano": "4º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Classificar transformações do dia a dia como reversíveis, como derreter gelo, ou irreversíveis, como queimar papel e cozinhar ovo.",
+   "habilidades_bncc": [
+    "EF04CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Separa exemplos em transformações que podem ou não ser desfeitas.",
+   "substituido_por": [
+    "OMNI-CI4-M2.2",
+    "OMNI-CI4-M3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI4-D04",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Interpretar uma cadeia alimentar simples, identificando produtores, consumidores e o Sol como fonte inicial de energia.",
+   "habilidades_bncc": [
+    "EF04CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Indica o nível ocupado por cada ser vivo numa cadeia representada por setas.",
+   "substituido_por": [
+    "OMNI-CI4-V1.1",
+    "OMNI-CI4-V1.2",
+    "OMNI-CI4-V2.1",
+    "OMNI-CI4-V3.1",
+    "OMNI-CI4-V3.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI4-D05",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Diferenciar o ciclo da matéria, que é reaproveitada, do fluxo de energia, que segue um único sentido no ecossistema.",
+   "habilidades_bncc": [
+    "EF04CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Distingue, num esquema de ecossistema, o que circula e o que não retorna.",
+   "substituido_por": [
+    "OMNI-CI4-V2.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI4-D06",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Explicar o papel de fungos e bactérias na decomposição de restos de seres vivos e na devolução de nutrientes ao solo.",
+   "habilidades_bncc": [
+    "EF04CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Justifica o que ocorreria com o solo sem a ação dos decompositores.",
+   "substituido_por": [
+    "OMNI-CI4-V1.3",
+    "OMNI-CI4-V2.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI4-D07",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Associar produtos como pão, iogurte, queijo, álcool combustível e antibióticos à ação de fungos ou bactérias em sua fabricação.",
+   "habilidades_bncc": [
+    "EF04CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Associa um produto ao microrganismo ou processo envolvido em sua produção.",
+   "substituido_por": [
+    "OMNI-CI4-V1.4",
+    "OMNI-CI4-V2.4"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI4-D08",
+   "ano": "4º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Escolher a medida que bloqueia o contágio de uma doença infecciosa, como gripe ou diarreia, a partir do modo como ela se espalha.",
+   "habilidades_bncc": [
+    "EF04CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe a medida que interrompe a transmissão de uma doença descrita.",
+   "substituido_por": [
+    "OMNI-CI4-V1.5",
+    "OMNI-CI4-V2.5",
+    "OMNI-CI4-V3.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI4-D09",
+   "ano": "4º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Localizar norte, sul, leste e oeste num esquema que mostra a sombra de uma haste em horários diferentes, conferindo com a agulha da bússola.",
+   "habilidades_bncc": [
+    "EF04CI09",
+    "EF04CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Indica a direção norte, sul, leste ou oeste num esquema de sombras.",
+   "substituido_por": [
+    "OMNI-CI4-T1.1",
+    "OMNI-CI4-T2.1",
+    "OMNI-CI4-T2.2",
+    "OMNI-CI4-T3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI4-D10",
+   "ano": "4º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Relacionar a volta da Terra ao redor do Sol ao ano e o ciclo lunar ao mês, em calendários usados por povos diversos.",
+   "habilidades_bncc": [
+    "EF04CI11"
+   ],
+   "saeb": [],
+   "evidencia": "Relaciona um ciclo natural ao período de tempo do calendário que ele define.",
+   "substituido_por": [
+    "OMNI-CI4-T1.2",
+    "OMNI-CI4-T2.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI5-D01",
+   "ano": "5º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Relacionar situações do cotidiano a propriedades físicas dos materiais, como densidade, condução de calor e eletricidade, magnetismo e solubilidade.",
+   "habilidades_bncc": [
+    "EF05CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Indica qual propriedade explica o fenômeno descrito, como um objeto boiar.",
+   "substituido_por": [
+    "OMNI-CI5-M1.1",
+    "OMNI-CI5-M2.1",
+    "OMNI-CI5-M2.2",
+    "OMNI-CI5-M2.5"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI5-D02",
+   "ano": "5º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Explicar as etapas do ciclo da água por meio das mudanças de estado físico: evaporação, condensação e precipitação.",
+   "habilidades_bncc": [
+    "EF05CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Nomeia a mudança de estado que ocorre em cada etapa de um esquema.",
+   "substituido_por": [
+    "OMNI-CI5-M1.2",
+    "OMNI-CI5-M2.3",
+    "OMNI-CI5-M2.4"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI5-D03",
+   "ano": "5º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Inferir consequências da retirada da vegetação para o ciclo da água, a erosão do solo e os rios.",
+   "habilidades_bncc": [
+    "EF05CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Prevê o efeito do desmatamento sobre o solo ou um rio numa situação dada.",
+   "substituido_por": [
+    "OMNI-CI5-M3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI5-D04",
+   "ano": "5º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Identificar práticas sustentáveis de uso da água e de materiais, como reduzir o consumo, reutilizar e reciclar.",
+   "habilidades_bncc": [
+    "EF05CI04",
+    "EF05CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe, entre atitudes descritas, a que diminui desperdício ou lixo.",
+   "substituido_por": [
+    "OMNI-CI5-M1.3",
+    "OMNI-CI5-M1.4",
+    "OMNI-CI5-M3.2",
+    "OMNI-CI5-M3.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI5-D05",
+   "ano": "5º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Relacionar os sistemas digestório, respiratório e circulatório à obtenção e ao transporte de nutrientes e oxigênio e à remoção de resíduos.",
+   "habilidades_bncc": [
+    "EF05CI06",
+    "EF05CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Indica qual sistema atua em cada etapa do caminho de um nutriente até a célula.",
+   "substituido_por": [
+    "OMNI-CI5-V1.1",
+    "OMNI-CI5-V1.2",
+    "OMNI-CI5-V2.1",
+    "OMNI-CI5-V3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI5-D06",
+   "ano": "5º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Analisar um cardápio quanto ao equilíbrio entre grupos alimentares, relacionando excessos e carências a distúrbios como obesidade e desnutrição.",
+   "habilidades_bncc": [
+    "EF05CI08",
+    "EF05CI09"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta o que falta ou sobra num cardápio e o risco para a saúde.",
+   "substituido_por": [
+    "OMNI-CI5-V1.3",
+    "OMNI-CI5-V2.2",
+    "OMNI-CI5-V2.3",
+    "OMNI-CI5-V2.4",
+    "OMNI-CI5-V3.2",
+    "OMNI-CI5-V3.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI5-D07",
+   "ano": "5º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Localizar constelações em um mapa celeste e indicar a época do ano em que aparecem no início da noite.",
+   "habilidades_bncc": [
+    "EF05CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Usa um mapa celeste para dizer quando uma constelação é visível.",
+   "substituido_por": [
+    "OMNI-CI5-T1.1",
+    "OMNI-CI5-T1.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI5-D08",
+   "ano": "5º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Explicar o nascer e o pôr do Sol e o deslocamento noturno das estrelas como efeito do giro da Terra em torno de si.",
+   "habilidades_bncc": [
+    "EF05CI11"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que o Sol parece nascer a leste e se pôr a oeste.",
+   "substituido_por": [
+    "OMNI-CI5-T1.3",
+    "OMNI-CI5-T2.1",
+    "OMNI-CI5-T3.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI5-D09",
+   "ano": "5º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Ordenar desenhos das formas aparentes da Lua registradas noite a noite e estimar em quantos dias o ciclo se repete.",
+   "habilidades_bncc": [
+    "EF05CI12"
+   ],
+   "saeb": [],
+   "evidencia": "Completa uma sequência de fases lunares e estima o tempo do ciclo.",
+   "substituido_por": [
+    "OMNI-CI5-T1.4",
+    "OMNI-CI5-T2.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI5-D10",
+   "ano": "5º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Associar instrumentos ópticos, como lupa, microscópio, luneta e periscópio, à finalidade de observação de cada um.",
+   "habilidades_bncc": [
+    "EF05CI13"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe o instrumento adequado para observar o objeto descrito.",
+   "substituido_por": [
+    "OMNI-CI5-T1.5",
+    "OMNI-CI5-T2.3",
+    "OMNI-CI5-T3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI6-D01",
+   "ano": "6º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Classificar misturas como homogêneas ou heterogêneas pelo número de fases observadas.",
+   "habilidades_bncc": [
+    "EF06CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Classifica exemplos como água e óleo ou água e sal pelo aspecto visual.",
+   "substituido_por": [
+    "OMNI-CI6-M2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI6-D02",
+   "ano": "6º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Identificar sinais de transformação química, como liberação de gás, mudança de cor e formação de novo material, em situações cotidianas.",
+   "habilidades_bncc": [
+    "EF06CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta a evidência de que um novo material se formou numa reação descrita.",
+   "substituido_por": [
+    "OMNI-CI6-M1.1",
+    "OMNI-CI6-M2.2",
+    "OMNI-CI6-M3.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI6-D03",
+   "ano": "6º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Indicar o processo adequado (filtração, decantação, evaporação, destilação) para separar os componentes de uma mistura descrita.",
+   "habilidades_bncc": [
+    "EF06CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe e justifica o método de separação para a mistura apresentada.",
+   "substituido_por": [
+    "OMNI-CI6-M1.2",
+    "OMNI-CI6-M2.3",
+    "OMNI-CI6-M3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI6-D04",
+   "ano": "6º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Apontar benefícios e impactos ambientais da produção de materiais sintéticos, como plásticos e medicamentos.",
+   "habilidades_bncc": [
+    "EF06CI04"
+   ],
+   "saeb": [],
+   "evidencia": "Identifica, num texto curto, uma vantagem e um prejuízo de um material sintético.",
+   "substituido_por": [
+    "OMNI-CI6-M1.3",
+    "OMNI-CI6-M2.4",
+    "OMNI-CI6-M3.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI6-D05",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Ordenar os níveis de organização dos seres vivos (célula, tecido, órgão, sistema, organismo) e identificar partes básicas da célula.",
+   "habilidades_bncc": [
+    "EF06CI05",
+    "EF06CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Coloca os níveis em ordem crescente e nomeia estruturas de uma célula ilustrada.",
+   "substituido_por": [
+    "OMNI-CI6-V1.1",
+    "OMNI-CI6-V1.2",
+    "OMNI-CI6-V1.3",
+    "OMNI-CI6-V2.1",
+    "OMNI-CI6-V2.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI6-D06",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Explicar como os sistemas nervoso, muscular e esquelético atuam juntos para produzir movimentos e respostas a estímulos.",
+   "habilidades_bncc": [
+    "EF06CI07",
+    "EF06CI09"
+   ],
+   "saeb": [],
+   "evidencia": "Descreve a sequência estímulo, nervo, músculo e osso num movimento dado.",
+   "substituido_por": [
+    "OMNI-CI6-V1.4",
+    "OMNI-CI6-V2.3",
+    "OMNI-CI6-V2.5",
+    "OMNI-CI6-V3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI6-D07",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Relacionar defeitos da visão, como miopia e hipermetropia, ao tipo de lente que os corrige.",
+   "habilidades_bncc": [
+    "EF06CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Indica a lente corretiva adequada a partir de um esquema do olho.",
+   "substituido_por": [
+    "OMNI-CI6-V1.5",
+    "OMNI-CI6-V2.4",
+    "OMNI-CI6-V3.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI6-D08",
+   "ano": "6º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Identificar efeitos de álcool, tabaco e outras substâncias psicoativas sobre o funcionamento do sistema nervoso.",
+   "habilidades_bncc": [
+    "EF06CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Relaciona uma substância a uma alteração de reflexo, atenção ou humor.",
+   "substituido_por": [
+    "OMNI-CI6-V1.6",
+    "OMNI-CI6-V2.6",
+    "OMNI-CI6-V3.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI6-D09",
+   "ano": "6º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Identificar as camadas da Terra, do núcleo à atmosfera, e associar fósseis à formação de rochas sedimentares.",
+   "habilidades_bncc": [
+    "EF06CI11",
+    "EF06CI12"
+   ],
+   "saeb": [],
+   "evidencia": "Nomeia camadas num corte da Terra e indica em que rocha um fóssil se forma.",
+   "substituido_por": [
+    "OMNI-CI6-T1.1",
+    "OMNI-CI6-T1.2",
+    "OMNI-CI6-T2.1",
+    "OMNI-CI6-T2.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI6-D10",
+   "ano": "6º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Interpretar evidências da forma esférica da Terra e da variação da sombra de um gnômon como efeito da rotação e da translação.",
+   "habilidades_bncc": [
+    "EF06CI13",
+    "EF06CI14"
+   ],
+   "saeb": [],
+   "evidencia": "Explica uma observação, como o casco do navio sumir primeiro no horizonte.",
+   "substituido_por": [
+    "OMNI-CI6-T1.3",
+    "OMNI-CI6-T2.3",
+    "OMNI-CI6-T3.1",
+    "OMNI-CI6-T3.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI7-D01",
+   "ano": "7º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Identificar o tipo de máquina simples (alavanca, roldana, plano inclinado) presente em ferramentas e explicar a vantagem que oferece.",
+   "habilidades_bncc": [
+    "EF07CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Classifica uma ferramenta ilustrada e indica como ela reduz o esforço.",
+   "substituido_por": [
+    "OMNI-CI7-M1.1",
+    "OMNI-CI7-M2.2",
+    "OMNI-CI7-M3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI7-D02",
+   "ano": "7º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Distinguir, em situações do dia a dia, a medida de temperatura, a energia transferida como calor e a sensação de quente ou frio.",
+   "habilidades_bncc": [
+    "EF07CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que o metal parece mais frio que a madeira à mesma temperatura.",
+   "substituido_por": [
+    "OMNI-CI7-M2.1",
+    "OMNI-CI7-M3.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI7-D03",
+   "ano": "7º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Relacionar condução, convecção e irradiação ao uso de materiais condutores e isolantes e ao funcionamento de garrafa térmica e coletor solar.",
+   "habilidades_bncc": [
+    "EF07CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Identifica a forma de propagação do calor que um equipamento evita ou aproveita.",
+   "substituido_por": [
+    "OMNI-CI7-M1.2",
+    "OMNI-CI7-M1.3",
+    "OMNI-CI7-M2.3",
+    "OMNI-CI7-M3.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI7-D04",
+   "ano": "7º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Comparar combustíveis e máquinas térmicas usados ao longo do tempo quanto a vantagens econômicas e impactos ambientais.",
+   "habilidades_bncc": [
+    "EF07CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta, numa tabela, o combustível de menor impacto e justifica a escolha.",
+   "substituido_por": [
+    "OMNI-CI7-M2.4",
+    "OMNI-CI7-M3.4"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI7-D05",
+   "ano": "7º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Relacionar características dos ecossistemas brasileiros, como clima, solo, água e luz, à flora e à fauna típicas de cada um.",
+   "habilidades_bncc": [
+    "EF07CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Associa a descrição de um ambiente ao ecossistema e a um ser vivo adaptado a ele.",
+   "substituido_por": [
+    "OMNI-CI7-V1.1",
+    "OMNI-CI7-V1.2",
+    "OMNI-CI7-V2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI7-D06",
+   "ano": "7º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Inferir efeitos de catástrofes naturais ou alterações ambientais sobre populações de um ecossistema, como migração e extinção.",
+   "habilidades_bncc": [
+    "EF07CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Prevê o que ocorre com uma espécie após a alteração ambiental descrita.",
+   "substituido_por": [
+    "OMNI-CI7-V2.2",
+    "OMNI-CI7-V3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI7-D07",
+   "ano": "7º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Interpretar indicadores de saúde, como mortalidade infantil, saneamento e doenças de veiculação hídrica, apresentados em tabelas ou gráficos.",
+   "habilidades_bncc": [
+    "EF07CI09"
+   ],
+   "saeb": [],
+   "evidencia": "Compara localidades a partir dos dados e relaciona saneamento e doenças.",
+   "substituido_por": [
+    "OMNI-CI7-V1.3",
+    "OMNI-CI7-V2.3",
+    "OMNI-CI7-V2.5",
+    "OMNI-CI7-V3.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI7-D08",
+   "ano": "7º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Explicar como a vacina estimula a defesa do organismo e por que a vacinação em massa pode eliminar doenças.",
+   "habilidades_bncc": [
+    "EF07CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Descreve a resposta do corpo à vacina e o efeito da cobertura vacinal.",
+   "substituido_por": [
+    "OMNI-CI7-V1.4",
+    "OMNI-CI7-V2.4",
+    "OMNI-CI7-V3.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI7-D09",
+   "ano": "7º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Relacionar a composição do ar ao efeito estufa e à camada de ozônio, identificando ações humanas que alteram esses fenômenos.",
+   "habilidades_bncc": [
+    "EF07CI12",
+    "EF07CI13",
+    "EF07CI14"
+   ],
+   "saeb": [],
+   "evidencia": "Indica o gás e a atividade humana envolvidos num problema atmosférico descrito.",
+   "substituido_por": [
+    "OMNI-CI7-T1.1",
+    "OMNI-CI7-T1.2",
+    "OMNI-CI7-T1.3",
+    "OMNI-CI7-T2.1",
+    "OMNI-CI7-T2.2",
+    "OMNI-CI7-T2.3",
+    "OMNI-CI7-T2.4",
+    "OMNI-CI7-T3.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI7-D10",
+   "ano": "7º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Explicar terremotos, vulcões e o encaixe das costas da América do Sul e da África pelo modelo das placas tectônicas.",
+   "habilidades_bncc": [
+    "EF07CI15",
+    "EF07CI16"
+   ],
+   "saeb": [],
+   "evidencia": "Usa um mapa de placas para justificar onde há mais terremotos.",
+   "substituido_por": [
+    "OMNI-CI7-T2.5",
+    "OMNI-CI7-T3.1",
+    "OMNI-CI7-T3.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI8-D01",
+   "ano": "8º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Comparar usinas de energia elétrica (hidrelétrica, termelétrica, eólica, solar) quanto à fonte renovável ou não e aos impactos socioambientais.",
+   "habilidades_bncc": [
+    "EF08CI01",
+    "EF08CI06"
+   ],
+   "saeb": [],
+   "evidencia": "Classifica a fonte de cada usina e aponta um impacto de sua instalação.",
+   "substituido_por": [
+    "OMNI-CI8-M1.1",
+    "OMNI-CI8-M1.4",
+    "OMNI-CI8-M2.6",
+    "OMNI-CI8-M3.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI8-D02",
+   "ano": "8º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Prever, em esquemas de circuitos com pilha, fios e lâmpadas, se as lâmpadas acendem em ligações em série ou em paralelo.",
+   "habilidades_bncc": [
+    "EF08CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Indica quais lâmpadas permanecem acesas quando uma delas é retirada.",
+   "substituido_por": [
+    "OMNI-CI8-M1.2",
+    "OMNI-CI8-M2.2",
+    "OMNI-CI8-M2.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI8-D03",
+   "ano": "8º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Classificar eletrodomésticos pela transformação de energia elétrica que realizam: em térmica, luminosa, sonora ou mecânica.",
+   "habilidades_bncc": [
+    "EF08CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Associa cada aparelho ao tipo principal de energia que produz.",
+   "substituido_por": [
+    "OMNI-CI8-M1.3",
+    "OMNI-CI8-M2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI8-D04",
+   "ano": "8º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Calcular o consumo mensal de energia de um aparelho a partir da potência e do tempo de uso, em quilowatt-hora.",
+   "habilidades_bncc": [
+    "EF08CI04",
+    "EF08CI05"
+   ],
+   "saeb": [],
+   "evidencia": "Faz o cálculo e identifica o aparelho que mais pesa na conta de luz.",
+   "substituido_por": [
+    "OMNI-CI8-M2.4",
+    "OMNI-CI8-M2.5",
+    "OMNI-CI8-M3.1",
+    "OMNI-CI8-M3.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI8-D05",
+   "ano": "8º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Comparar reprodução sexuada e assexuada em plantas e animais quanto à variabilidade dos descendentes e à vantagem adaptativa.",
+   "habilidades_bncc": [
+    "EF08CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Indica qual tipo de reprodução gera mais variação e por que isso importa.",
+   "substituido_por": [
+    "OMNI-CI8-V1.1",
+    "OMNI-CI8-V2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI8-D06",
+   "ano": "8º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Associar mudanças do corpo na adolescência, como pelos, voz e menstruação, aos hormônios produzidos por testículos e ovários.",
+   "habilidades_bncc": [
+    "EF08CI08"
+   ],
+   "saeb": [],
+   "evidencia": "Associa uma mudança do corpo ao hormônio responsável por ela.",
+   "substituido_por": [
+    "OMNI-CI8-V1.2",
+    "OMNI-CI8-V2.2",
+    "OMNI-CI8-V3.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI8-D07",
+   "ano": "8º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Comparar métodos contraceptivos quanto ao modo de ação e à proteção contra gravidez e infecções sexualmente transmissíveis.",
+   "habilidades_bncc": [
+    "EF08CI09",
+    "EF08CI10"
+   ],
+   "saeb": [],
+   "evidencia": "Indica, numa tabela, o método que também previne infecções.",
+   "substituido_por": [
+    "OMNI-CI8-V1.3",
+    "OMNI-CI8-V1.4",
+    "OMNI-CI8-V2.3",
+    "OMNI-CI8-V3.1",
+    "OMNI-CI8-V3.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI8-D08",
+   "ano": "8º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Explicar as fases da Lua e os eclipses a partir das posições relativas do Sol, da Terra e da Lua.",
+   "habilidades_bncc": [
+    "EF08CI12"
+   ],
+   "saeb": [],
+   "evidencia": "Identifica, num esquema de posições, a fase lunar ou o tipo de eclipse.",
+   "substituido_por": [
+    "OMNI-CI8-T1.1",
+    "OMNI-CI8-T2.1",
+    "OMNI-CI8-T3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI8-D09",
+   "ano": "8º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Relacionar a inclinação do eixo da Terra e o movimento de translação à ocorrência das estações do ano.",
+   "habilidades_bncc": [
+    "EF08CI13"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que é verão num hemisfério e inverno no outro ao mesmo tempo.",
+   "substituido_por": [
+    "OMNI-CI8-T1.2",
+    "OMNI-CI8-T2.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI8-D10",
+   "ano": "8º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Interpretar dados de previsão do tempo, como temperatura, umidade, pressão e ventos, apresentados em boletins ou gráficos.",
+   "habilidades_bncc": [
+    "EF08CI15",
+    "EF08CI14"
+   ],
+   "saeb": [],
+   "evidencia": "Lê um boletim meteorológico e prevê a condição do tempo indicada.",
+   "substituido_por": [
+    "OMNI-CI8-T1.3",
+    "OMNI-CI8-T1.4",
+    "OMNI-CI8-T2.3",
+    "OMNI-CI8-T2.4",
+    "OMNI-CI8-T3.2",
+    "OMNI-CI8-T3.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI9-D01",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Explicar mudanças de estado físico pelo modelo de partículas, relacionando temperatura à agitação e à distância entre elas.",
+   "habilidades_bncc": [
+    "EF09CI01"
+   ],
+   "saeb": [],
+   "evidencia": "Associa cada representação de partículas ao estado físico correspondente.",
+   "substituido_por": [
+    "OMNI-CI9-M1.2",
+    "OMNI-CI9-M2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI9-D02",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Calcular massas de reagentes ou produtos usando a conservação da massa e a proporção fixa entre as massas numa reação.",
+   "habilidades_bncc": [
+    "EF09CI02"
+   ],
+   "saeb": [],
+   "evidencia": "Completa uma tabela de massas de uma reação química.",
+   "substituido_por": [
+    "OMNI-CI9-M2.2",
+    "OMNI-CI9-M2.6"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI9-D03",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Diferenciar os modelos atômicos de Dalton, Thomson e Rutherford-Bohr e ordená-los historicamente.",
+   "habilidades_bncc": [
+    "EF09CI03"
+   ],
+   "saeb": [],
+   "evidencia": "Associa cada desenho de átomo ao modelo e coloca-os em ordem cronológica.",
+   "substituido_por": [
+    "OMNI-CI9-M1.1",
+    "OMNI-CI9-M2.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI9-D04",
+   "ano": "9º ano",
+   "eixo": "Matéria e energia",
+   "descritor": "Classificar radiações eletromagnéticas pela frequência e relacioná-las a usos como rádio, micro-ondas, raio X e radioterapia.",
+   "habilidades_bncc": [
+    "EF09CI06",
+    "EF09CI07"
+   ],
+   "saeb": [],
+   "evidencia": "Localiza uma radiação no espectro e indica sua aplicação.",
+   "substituido_por": [
+    "OMNI-CI9-M1.3",
+    "OMNI-CI9-M1.4",
+    "OMNI-CI9-M1.5",
+    "OMNI-CI9-M2.4",
+    "OMNI-CI9-M2.5",
+    "OMNI-CI9-M3.1",
+    "OMNI-CI9-M3.2",
+    "OMNI-CI9-M3.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI9-D05",
+   "ano": "9º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Resolver problema de herança de uma característica aplicando as ideias de Mendel sobre fatores, segregação e gametas.",
+   "habilidades_bncc": [
+    "EF09CI08",
+    "EF09CI09"
+   ],
+   "saeb": [],
+   "evidencia": "Monta o cruzamento e calcula a proporção esperada dos descendentes.",
+   "substituido_por": [
+    "OMNI-CI9-V1.1",
+    "OMNI-CI9-V2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI9-D06",
+   "ano": "9º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Explicar a adaptação de uma espécie pela seleção natural, distinguindo essa explicação da proposta por Lamarck.",
+   "habilidades_bncc": [
+    "EF09CI10",
+    "EF09CI11"
+   ],
+   "saeb": [],
+   "evidencia": "Identifica qual explicação de um caso é darwinista e qual é lamarckista.",
+   "substituido_por": [
+    "OMNI-CI9-V1.2",
+    "OMNI-CI9-V2.2",
+    "OMNI-CI9-V2.3",
+    "OMNI-CI9-V3.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI9-D07",
+   "ano": "9º ano",
+   "eixo": "Vida e evolução",
+   "descritor": "Relacionar tipos de unidades de conservação à proteção da biodiversidade e às atividades humanas permitidas em cada uma.",
+   "habilidades_bncc": [
+    "EF09CI12"
+   ],
+   "saeb": [],
+   "evidencia": "Indica se a atividade descrita é compatível com a unidade de conservação.",
+   "substituido_por": [
+    "OMNI-CI9-V1.3",
+    "OMNI-CI9-V2.4",
+    "OMNI-CI9-V2.5",
+    "OMNI-CI9-V3.1",
+    "OMNI-CI9-V3.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI9-D08",
+   "ano": "9º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Agrupar astros do nosso sistema planetário em estrela, planetas rochosos, gigantes gasosos e corpos menores, e situar esse sistema na Via Láctea.",
+   "habilidades_bncc": [
+    "EF09CI14"
+   ],
+   "saeb": [],
+   "evidencia": "Agrupa astros listados e indica a posição do Sistema Solar na galáxia.",
+   "substituido_por": [
+    "OMNI-CI9-T1.1",
+    "OMNI-CI9-T1.2",
+    "OMNI-CI9-T2.1",
+    "OMNI-CI9-T2.2",
+    "OMNI-CI9-T2.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI9-D09",
+   "ano": "9º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Analisar a viabilidade da vida humana fora da Terra considerando condições ambientais dos planetas e distâncias das viagens espaciais.",
+   "habilidades_bncc": [
+    "EF09CI16"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe, a partir de dados de planetas, o argumento mais consistente.",
+   "substituido_por": [
+    "OMNI-CI9-T2.4",
+    "OMNI-CI9-T3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-CI9-D10",
+   "ano": "9º ano",
+   "eixo": "Terra e Universo",
+   "descritor": "Relacionar as etapas do ciclo de vida das estrelas à sua massa e prever efeitos futuros da evolução do Sol sobre a Terra.",
+   "habilidades_bncc": [
+    "EF09CI17"
+   ],
+   "saeb": [],
+   "evidencia": "Indica a etapa final de uma estrela de massa dada e seu efeito.",
+   "substituido_por": [
+    "OMNI-CI9-T1.3",
+    "OMNI-CI9-T2.5",
+    "OMNI-CI9-T3.2"
+   ]
+  }
+ ]
+}

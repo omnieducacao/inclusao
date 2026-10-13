@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { siglaDoCodigo, siglaOmni, type ComponenteOmni } from "@/lib/matriz-omni";
 import { lerSerie, componenteOficial, matrizDoComponente, nivelDoComponente, sugestoesDeMeta } from "@/lib/matriz-avaliacao";
-import { itensDaMatriz, itensLegado, maisParecido, itemPorCodigo } from "@/lib/matriz-avaliacao-servidor";
+import { itensDaMatriz, itensLegado, maisParecido, itemPorCodigo, saebDoItem } from "@/lib/matriz-avaliacao-servidor";
 import { ESCALA_OMNISFERA } from "@/lib/omnisfera-types";
 import { MATRIZES_SAEB } from "@/lib/matriz-saeb";
 
@@ -101,6 +101,42 @@ describe("Linguagens revisadas (Saeb–BNCC 2022: LP, Arte, Educação Física, 
       for (const m of MATRIZES_SAEB.filter((x) => x.componente === comp.componente)) for (const s of m.descritores) expect(cobertos.has(s.codigo), s.codigo).toBe(true);
     });
   }
+});
+
+describe("Ciências, História e Geografia revisadas (Saeb – Documentos de Referência 2018)", () => {
+  const bloom = ["lembrar", "entender", "aplicar", "analisar", "avaliar", "criar"];
+  const cruzamentos = (comp: string, ano: string) =>
+    new Set(MATRIZES_SAEB.filter((m) => m.componente === comp && m.ano === ano).flatMap((m) => m.descritores.map((d) => d.codigo.slice(4, 6))));
+  for (const sigla of ["CI", "HI", "GE"]) {
+    const comp = comps.find((c) => c.sigla === sigla)!;
+    it(`${sigla}: código no padrão do Saeb, eixo cognitivo 1–3, Bloom, BNCC completa e códigos antigos substituídos`, () => {
+      for (const d of comp.descritores) {
+        const m = new RegExp(`^OMNI-${sigla}(\\d)-[A-Z]([1-3])\\.\\d+$`).exec(d.codigo);
+        expect(m, d.codigo).not.toBeNull();
+        expect(d.ano).toBe(`${m![1]}º ano`);
+        expect(d.eixo_cognitivo).toBe(Number(m![2]));
+        expect(bloom).toContain(d.bloom);
+      }
+      const cobertas = new Set(comp.descritores.flatMap((d) => d.habilidades_bncc));
+      for (const h of bnccEf) if (h.slice(4, 6) === sigla) expect(cobertas.has(h), h).toBe(true);
+      const novos = new Set(comp.descritores.map((d) => d.codigo));
+      for (const d of comp.substituidos!) for (const c of d.substituido_por) expect(novos.has(c), c).toBe(true);
+    });
+  }
+  it("5º e 9º ano: todo cruzamento do Saeb (eixo cognitivo × eixo do conhecimento) aparece na matriz", () => {
+    const ci = comps.find((c) => c.sigla === "CI")!;
+    const ch = comps.filter((c) => c.sigla === "HI" || c.sigla === "GE");
+    for (const ano of ["5º ano", "9º ano"]) {
+      const cn = new Set(ci.descritores.filter((d) => d.ano === ano).flatMap((d) => d.saeb.map((s) => s.slice(4, 6))));
+      for (const x of cruzamentos("Ciências", ano)) expect(cn.has(x), `CN ${ano} ${x}`).toBe(true);
+      const hum = new Set(ch.flatMap((c) => c.descritores).filter((d) => d.ano === ano).flatMap((d) => d.saeb.map((s) => s.slice(4, 6))));
+      for (const x of cruzamentos("Ciências Humanas", ano)) expect(hum.has(x), `CH ${ano} ${x}`).toBe(true);
+    }
+  });
+  it("acha o texto do Saeb ilustrativo pelo código", () => {
+    const item = comps.find((c) => c.sigla === "CI")!.descritores.find((d) => d.saeb.length && d.ano === "5º ano")!;
+    expect(saebDoItem("Ciências", item).length).toBe(item.saeb.length);
+  });
 });
 
 describe("série, componente e matriz", () => {

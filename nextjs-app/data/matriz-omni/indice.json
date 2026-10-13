@@ -1,14 +1,15 @@
 {
  "nome": "Matriz Omni",
- "versao": "2026-10-linguagens-saeb2022",
- "status": "rascunho para revisão do especialista",
+ "versao": "2026-10-revisao-completa",
+ "status": "revisada com base nos documentos oficiais do Inep (out/2026) — em revisão pedagógica",
  "fontes": [
   "BNCC (MEC) — códigos e textos oficiais das habilidades",
   "Matrizes de referência do Saeb – BNCC (Inep, 2022): Matemática (2º, 5º e 9º) e Linguagens — Língua Portuguesa (2º, 5º e 9º), Arte e Educação Física (5º e 9º), Língua Inglesa (9º)",
+  "Saeb: Documentos de Referência, versão 1.0 (Inep, 2018) — Matrizes de Ciências da Natureza e de Ciências Humanas (5º e 9º), com habilidades ilustrativas",
   "Matrizes de Referência do SAEB 2001 (Inep) — só como histórico dos códigos antigos",
   "Guia de Elaboração e Revisão de Itens (Inep, 2010) e taxonomia de Bloom revisada (Anderson e Krathwohl, 2001)"
  ],
- "estrutura": "componente → ano → eixo do conhecimento (unidade temática da BNCC) → descritor Omni → habilidades da BNCC → habilidade do Saeb (quando houver). Em Matemática e Linguagens (LP, Arte, Educação Física, Inglês), cada descritor também traz o eixo cognitivo do Saeb (MA: 1 compreender e aplicar, 2 resolver problemas e argumentar; Linguagens: 1 reconhecer, 2 analisar, 3 avaliar, 4 produzir) e o nível de Bloom, e o código segue a lógica do Saeb: OMNI-MA5-N1.2 = 5º ano, Números, eixo cognitivo 1, descritor 2.",
+ "estrutura": "componente → ano (ou faixa) → eixo do conhecimento → descritor Omni → habilidades da BNCC → habilidade do Saeb (quando houver). Cada descritor traz o eixo cognitivo do Saeb e o nível de Bloom, e o código segue a lógica do Saeb: OMNI-MA5-N1.2 = 5º ano, Números, eixo cognitivo 1, descritor 2. Eixos cognitivos — Matemática: 1 compreender e aplicar, 2 resolver problemas e argumentar; Linguagens (LP, Arte, Educação Física, Inglês): 1 reconhecer, 2 analisar, 3 avaliar, 4 produzir; Ciências, História e Geografia: 1 (A) baixa complexidade / reconhecimento e recuperação, 2 (B) média / compreensão e análise, 3 (C) alta / avaliação e proposição.",
  "escala": [
   {
    "nivel": 0,
@@ -65,17 +66,17 @@
   {
    "componente": "Ciências",
    "sigla": "CI",
-   "total": 87
+   "total": 264
   },
   {
    "componente": "História",
    "sigla": "HI",
-   "total": 84
+   "total": 302
   },
   {
    "componente": "Geografia",
    "sigla": "GE",
-   "total": 89
+   "total": 276
   },
   {
    "componente": "Arte",

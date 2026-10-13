@@ -3,7 +3,7 @@
  * Estrutura: componente → ano → eixo (unidade temática da BNCC) → descritor Omni →
  * habilidades da BNCC (códigos oficiais) → descritor do SAEB, quando existe (LP e MA, 5º e 9º).
  * Texto dos descritores é do OmniProf; fontes públicas: BNCC (MEC), Saeb–BNCC 2022 (Inep, Matemática) e SAEB 2001 (Inep, LP).
- * Revisão de out/2026 (Matemática e Linguagens: LP, Arte, Educação Física, Língua Inglesa): código no padrão do
+ * Revisão de out/2026 (todos os componentes): código no padrão do
  * Saeb — OMNI-MA5-N1.2 = 5º ano, Números, eixo cognitivo 1, descritor 2; OMNI-LP5-L2.3 = 5º ano, Leitura,
  * eixo cognitivo 2 (analisar), descritor 3; nas faixas, OMNI-AR15-M1.2 — com eixo cognitivo e nível de Bloom.
  * Os códigos antigos (OMNI-MA5-D01…) ficam em `substituidos`, para ler avaliações já gravadas.
@@ -19,7 +19,8 @@ export type DescritorOmni = {
     saeb: string[];
     evidencia: string;
     /** Eixo cognitivo do Saeb. Matemática: 1 compreender e aplicar, 2 resolver problemas e argumentar.
-     *  Linguagens (LP, Arte, Educação Física, Inglês): 1 reconhecer, 2 analisar, 3 avaliar, 4 produzir. */
+     *  Linguagens (LP, Arte, Educação Física, Inglês): 1 reconhecer, 2 analisar, 3 avaliar, 4 produzir.
+     *  Ciências, História e Geografia: 1 (A), 2 (B), 3 (C) do Saeb de Ciências da Natureza / Humanas. */
     eixo_cognitivo?: number;
     /** Taxonomia de Bloom revisada: lembrar, entender, aplicar, analisar, avaliar, criar. */
     bloom?: string;
@@ -32,13 +33,18 @@ export type ComponenteOmni = { componente: string; sigla: string; descritores: D
 const EIXOS_COGNITIVOS: Record<string, Record<number, string>> = {
     MA: { 1: "Compreender e aplicar conceitos e procedimentos", 2: "Resolver problemas e argumentar" },
     LINGUAGENS: { 1: "Reconhecer", 2: "Analisar", 3: "Avaliar", 4: "Produzir" },
+    CI: { 1: "A · Baixa complexidade (reconhecer, identificar)", 2: "B · Média complexidade (relacionar, explicar, analisar)", 3: "C · Alta complexidade (avaliar, justificar, propor)" },
+    CH: { 1: "A · Reconhecimento e recuperação", 2: "B · Compreensão e análise", 3: "C · Avaliação e proposição" },
 };
 
 /** Nome do eixo cognitivo do Saeb para o descritor (pelo componente do código). */
 export function nomeEixoCognitivo(codigo: string, n?: number): string | null {
     if (!n) return null;
     const sigla = siglaDoCodigo(codigo);
-    const tabela = sigla === "MA" ? EIXOS_COGNITIVOS.MA : sigla && ["LP", "AR", "EF", "LI"].includes(sigla) ? EIXOS_COGNITIVOS.LINGUAGENS : null;
+    const tabela = sigla === "MA" ? EIXOS_COGNITIVOS.MA
+        : sigla && ["LP", "AR", "EF", "LI"].includes(sigla) ? EIXOS_COGNITIVOS.LINGUAGENS
+        : sigla === "CI" ? EIXOS_COGNITIVOS.CI
+        : sigla && ["HI", "GE"].includes(sigla) ? EIXOS_COGNITIVOS.CH : null;
     return tabela?.[n] ?? null;
 }
 
