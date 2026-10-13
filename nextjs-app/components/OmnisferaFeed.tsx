@@ -111,7 +111,8 @@ function PostCarousel({ images }: { images: string[] }) {
                         </button>
                     )}
 
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+                    {/* a bolinha é pequena, mas a área de toque tem 24 px (WCAG 2.5.8) */}
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center">
                         {images.map((_, i) => (
                             <button
                                 key={i}
@@ -119,14 +120,20 @@ function PostCarousel({ images }: { images: string[] }) {
                                 onClick={() => goTo(i)}
                                 aria-label={`Ir para a imagem ${i + 1}`}
                                 aria-current={i === current ? "true" : undefined}
-                                className="rounded-full transition-all duration-200"
-                                style={{
-                                    width: i === current ? "16px" : "6px",
-                                    height: "6px",
-                                    background: "var(--sobre-noite)",
-                                    opacity: i === current ? 1 : 0.55,
-                                }}
-                            />
+                                style={{ minWidth: 24, height: 24, padding: "0 3px", display: "grid", placeItems: "center", background: "transparent", border: 0, cursor: "pointer" }}
+                            >
+                                <span
+                                    aria-hidden
+                                    className="rounded-full transition-all duration-200"
+                                    style={{
+                                        display: "block",
+                                        width: i === current ? "16px" : "6px",
+                                        height: "6px",
+                                        background: "var(--sobre-noite)",
+                                        opacity: i === current ? 1 : 0.55,
+                                    }}
+                                />
+                            </button>
                         ))}
                     </div>
 

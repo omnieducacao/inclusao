@@ -184,7 +184,7 @@ export default function PerfilClient() {
                             const nome = PERMISSION_LABELS[key];
                             if (!nome) return null;
                             return (
-                                <li key={key} className="omni-estado omni-estado--info">{nome}</li>
+                                <li key={key} className="omni-estado omni-estado--info" style={{ whiteSpace: "normal", maxWidth: "100%" }}>{nome}</li>
                             );
                         })}
                     </ul>

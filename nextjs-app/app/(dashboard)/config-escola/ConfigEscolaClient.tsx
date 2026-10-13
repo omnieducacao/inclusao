@@ -237,7 +237,7 @@ export function ConfigEscolaClient() {
                       <span key={c.id} className="omni-chip" style={{ cursor: "default", paddingRight: 6 }}>
                         {c.class_group}
                         <button type="button" onClick={() => removerTurma(c)} aria-label={`Remover a turma ${serie} ${c.class_group}`}
-                          style={{ border: 0, background: "none", cursor: "pointer", color: "var(--tinta-3)", padding: "0 4px", font: "700 16px/1 var(--font-sans)" }}>×</button>
+                          style={{ border: 0, background: "none", cursor: "pointer", color: "var(--tinta-3)", padding: 0, minWidth: 24, minHeight: 24, display: "inline-grid", placeItems: "center", font: "700 16px/1 var(--font-sans)" }}>×</button>
                       </span>
                     ))}
                   </li>

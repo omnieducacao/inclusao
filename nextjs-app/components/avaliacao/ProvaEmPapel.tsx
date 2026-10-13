@@ -298,10 +298,13 @@ function Revisar({ prova, estudante, adaptacoes, onAdaptacoes, onItens, onTrocad
               <fieldset style={{ border: 0, padding: 0, margin: 0, display: "grid", gap: 6 }}>
                 <legend className="omni-campo__rotulo" style={{ marginBottom: 4 }}>Alternativas (marque o gabarito)</legend>
                 {(item.alternativas || []).map((a, k) => (
-                  <div key={a.letra} style={{ display: "grid", gridTemplateColumns: "auto auto 1fr", gap: 8, alignItems: "center" }}>
-                    <input type="radio" name={`gab-${item.id}`} aria-label={`Gabarito ${a.letra}`} checked={item.gabarito === a.letra} onChange={() => editar(item.id, { gabarito: a.letra })} />
-                    <strong>{a.letra}</strong>
-                    <input className="omni-entrada" value={a.texto} onChange={(e) => editar(item.id, { alternativas: item.alternativas!.map((x, j) => (j === k ? { ...x, texto: e.target.value } : x)) })} />
+                  <div key={a.letra} style={{ display: "grid", gridTemplateColumns: "auto minmax(0, 1fr)", gap: 8, alignItems: "center" }}>
+                    {/* o rótulo inteiro (bolinha + letra) é a área de toque */}
+                    <label className="omni-caixa" style={{ alignItems: "center", fontWeight: 700 }}>
+                      <input type="radio" name={`gab-${item.id}`} aria-label={`Gabarito ${a.letra}`} checked={item.gabarito === a.letra} onChange={() => editar(item.id, { gabarito: a.letra })} />
+                      <span aria-hidden>{a.letra}</span>
+                    </label>
+                    <input className="omni-entrada" aria-label={`Texto da alternativa ${a.letra} da questão ${n + 1}`} value={a.texto} onChange={(e) => editar(item.id, { alternativas: item.alternativas!.map((x, j) => (j === k ? { ...x, texto: e.target.value } : x)) })} />
                   </div>
                 ))}
               </fieldset>
@@ -412,7 +415,7 @@ function SeletorApoio({ valor, onMudar, nome }: { valor: ApoioDado; onMudar: (a:
 function Grade({ prova, marcar }: { prova: Prova; marcar: (id: string, p: Partial<RespostaItem>) => void }) {
   return (
     <div className="omni-tabela-caixa">
-      <table className="omni-tabela">
+      <table className="omni-tabela omni-tabela--empilha">
         <thead><tr><th>Questão</th><th>Resposta</th><th>Apoio que você deu</th></tr></thead>
         <tbody>
           {prova.itens.map((item, n) => {
@@ -420,11 +423,11 @@ function Grade({ prova, marcar }: { prova: Prova; marcar: (id: string, p: Partia
             const certo = itemCerto(item, r);
             return (
               <tr key={item.id} style={r?.conferir ? { background: "var(--atencao-suave)" } : undefined}>
-                <td>
+                <td data-rotulo="Questão">
                   <span className="omni-tabela__nome" style={{ fontWeight: 700 }}>{n + 1} {item.ordem === 1 ? "· com apoio" : "· sem apoio"}</span>
                   <span className="omni-tabela__sub">{item.codigo}{r?.conferir ? " · conferir (foto com dúvida)" : ""}</span>
                 </td>
-                <td>
+                <td data-rotulo="Resposta">
                   <div className="omni-linha__opcoes" role="radiogroup" aria-label={`Resposta da questão ${n + 1}`}>
                     {item.tipo === "objetiva" ? (
                       <>
@@ -442,7 +445,7 @@ function Grade({ prova, marcar }: { prova: Prova; marcar: (id: string, p: Partia
                     {certo === false && item.tipo === "objetiva" && <span className="omni-estado omni-estado--erro"><X aria-hidden /> gabarito {item.gabarito}</span>}
                   </div>
                 </td>
-                <td><SeletorApoio valor={r?.apoio || "nenhum"} nome={`questão ${n + 1}`} onMudar={(a) => marcar(item.id, { apoio: a })} /></td>
+                <td data-rotulo="Apoio que você deu"><SeletorApoio valor={r?.apoio || "nenhum"} nome={`questão ${n + 1}`} onMudar={(a) => marcar(item.id, { apoio: a })} /></td>
               </tr>
             );
           })}
@@ -514,18 +517,18 @@ function Resultado({ resultados, onUsar, onCorrigir }: { resultados: ResultadoDe
   return (
     <div style={{ display: "grid", gap: 14 }}>
       <div className="omni-tabela-caixa">
-        <table className="omni-tabela">
+        <table className="omni-tabela omni-tabela--empilha">
           <thead><tr><th>Descritor</th><th>Nível sugerido</th><th>Por quê</th></tr></thead>
           <tbody>
             {resultados.map((r) => (
               <tr key={r.codigo}>
-                <td><span className="omni-tabela__nome" style={{ fontWeight: 600 }}>{r.descritor}</span><span className="omni-tabela__sub">{r.codigo}</span></td>
-                <td>
+                <td data-rotulo="Descritor"><span className="omni-tabela__nome" style={{ fontWeight: 600 }}>{r.descritor}</span><span className="omni-tabela__sub">{r.codigo}</span></td>
+                <td data-rotulo="Nível sugerido">
                   {r.nivel === null
                     ? <span className="omni-estado omni-estado--neutro">falta corrigir</span>
                     : <span className={`omni-estado omni-estado--${r.nivel <= 1 ? "erro" : r.nivel === 2 ? "atencao" : "sucesso"}`}>{r.nivel} · {ESCALA_OMNISFERA[r.nivel as NivelOmnisfera].label}</span>}
                 </td>
-                <td className="omni-apoio" style={{ fontSize: 14 }}>{r.evidencia}</td>
+                <td data-rotulo="Por quê" className="omni-apoio" style={{ fontSize: 14 }}>{r.evidencia}</td>
               </tr>
             ))}
           </tbody>

@@ -60,9 +60,9 @@ export function OmniEducacaoSignature({ variant = "full" }: { variant?: "full" |
           </ul>
 
           <nav aria-label="Rodapé" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: "8px 16px", font: "400 13px/18px var(--font-sans)", color: "var(--tinta-2)" }}>
-            <Link href="/privacidade" style={{ color: "var(--tinta-2)" }}>Privacidade</Link>
+            <Link href="/privacidade" style={{ color: "var(--tinta-2)", display: "inline-block", padding: "4px 0" }}>Privacidade</Link>
             <span aria-hidden style={{ opacity: 0.4 }}>•</span>
-            <Link href="/seguranca" style={{ color: "var(--tinta-2)", fontWeight: 700 }}>Segurança e transparência</Link>
+            <Link href="/seguranca" style={{ color: "var(--tinta-2)", fontWeight: 700, display: "inline-block", padding: "4px 0" }}>Segurança e transparência</Link>
             <span aria-hidden style={{ opacity: 0.4 }}>•</span>
             <span>© {new Date().getFullYear()} Omnisfera Soluções Educacionais Ltda.</span>
           </nav>

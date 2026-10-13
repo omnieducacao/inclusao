@@ -71,7 +71,7 @@ select.omni-entrada{appearance:none;padding-right:40px;background-image:linear-g
 .omni-segmentado input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
 .omni-segmentado label:has(input:checked){background:var(--superficie);color:var(--tinta);box-shadow:var(--sombra-1);outline:1.5px solid var(--borda-forte)}
 .omni-segmentado label:has(input:focus-visible){outline:3px solid var(--foco)}
-.omni-caixa{display:flex;gap:10px;align-items:flex-start;font:400 16px/24px var(--font-sans);cursor:pointer}
+.omni-caixa{display:flex;gap:10px;align-items:flex-start;font:400 16px/24px var(--font-sans);cursor:pointer;min-height:28px;padding-block:2px}
 .omni-caixa input{appearance:none;flex:none;width:22px;height:22px;margin:1px 0 0;border:1.5px solid var(--borda-forte);border-radius:var(--o-radius-xs);background:var(--superficie);display:grid;place-content:center;cursor:pointer}
 .omni-caixa input[type=radio]{border-radius:50%}
 .omni-caixa input:checked{background:var(--acao);border-color:var(--acao)}
@@ -199,6 +199,16 @@ a.omni-cartao:hover,button.omni-cartao:hover{box-shadow:var(--sombra-2);border-c
 .omni-tabela .num{text-align:right;font-family:var(--font-mono);font-variant-numeric:tabular-nums}
 .omni-tabela__nome{font-weight:700}
 .omni-tabela__sub{display:block;font-size:13px;line-height:18px;color:var(--tinta-3)}
+/* Tabela que vira cartões no celular: cada linha empilha as células, com o rótulo da coluna (data-rotulo) em cima. */
+@media (max-width: 640px){
+  .omni-tabela--empilha thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .omni-tabela--empilha,.omni-tabela--empilha tbody,.omni-tabela--empilha tr,.omni-tabela--empilha td{display:block;width:100%}
+  .omni-tabela--empilha tr{padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--borda)}
+  .omni-tabela--empilha tr:last-child{border-bottom:0}
+  .omni-tabela--empilha td{padding:6px 0;border-bottom:0}
+  .omni-tabela--empilha tbody tr:hover td{background:transparent}
+  .omni-tabela--empilha td[data-rotulo]::before{content:attr(data-rotulo);display:block;font:500 11px/16px var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--tinta-2);margin-bottom:4px}
+}
 
 /* ───────────────────────── Diálogo ───────────────────────── */
 .omni-dialogo{border:0;padding:0;border-radius:var(--o-radius-lg) var(--o-radius-lg) var(--o-radius-lg) var(--o-radius-xs);background:var(--superficie);color:var(--tinta);width:min(520px,calc(100vw - 32px));box-shadow:var(--sombra-2)}

@@ -82,7 +82,7 @@ export function GestaoClient({
   const inactiveFamily = familyResponsaveis.filter((f) => f.active === false);
 
   return (
-    <div style={{ display: "grid", gap: 24 }}>
+    <div style={{ display: "grid", gap: 24, gridTemplateColumns: "minmax(0, 1fr)" }}>
       {/* Configurar master (se não existir) */}
       {!loading && !master && (
         <MasterSetupForm

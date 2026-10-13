@@ -137,14 +137,14 @@ function AcolhimentoTab() {
   return (
     <div style={{ display: "grid", gap: 20, maxWidth: "72ch" }}>
       <section className="omni-cartao omni-cartao--plano">
-        <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Acolhimento dos estudantes</h3>
+        <h2 className="omni-cartao__titulo" style={{ margin: 0 }}>Acolhimento dos estudantes</h2>
         <p className="omni-cartao__texto" style={{ margin: 0 }}>
           A inclusão de estudantes com deficiência é um compromisso da escola. Todo estudante deve ser acolhido
           por uma escola que não só o receba, mas o integre com práticas pedagógicas significativas e inclusivas.
         </p>
       </section>
       <section style={{ display: "grid", gap: 8 }}>
-        <h4 style={tituloSecao}>O que não pode faltar</h4>
+        <h3 style={tituloSecao}>O que não pode faltar</h3>
         <ul style={{ ...textoCorrido, paddingLeft: 20, display: "grid", gap: 8, listStyle: "disc" }}>
           <li><strong style={{ color: "var(--tinta)" }}>Políticas inclusivas:</strong> um PPP (Projeto Político-Pedagógico) que trate a diversidade como valor da escola.</li>
           <li><strong style={{ color: "var(--tinta)" }}>Ambientes acessíveis:</strong> rampas, banheiros adaptados e tecnologias assistivas.</li>
@@ -152,7 +152,7 @@ function AcolhimentoTab() {
         </ul>
       </section>
       <section style={{ display: "grid", gap: 8 }}>
-        <h4 style={tituloSecao}>PGEI: estrutura e equipe</h4>
+        <h3 style={tituloSecao}>PGEI: estrutura e equipe</h3>
         <p style={textoCorrido}>
           O PGEI (Plano Geral de Educação Inclusiva) deve prever uma orientação educacional ou um departamento de apoio.
           A equipe reúne orientadores, psicólogos, psicopedagogos e professores habilitados. A coordenação pedagógica
@@ -160,7 +160,7 @@ function AcolhimentoTab() {
         </p>
       </section>
       <section style={{ display: "grid", gap: 8 }}>
-        <h4 style={tituloSecao}>Salas de Recursos Multifuncionais (SRM)</h4>
+        <h3 style={tituloSecao}>Salas de Recursos Multifuncionais (SRM)</h3>
         <p style={textoCorrido}>
           Pelo Decreto nº 6.571/2008, são ambientes com equipamentos, mobiliário e materiais para o AEE (Atendimento
           Educacional Especializado). O trabalho na SRM não substitui o da sala comum: ele complementa e tira os
@@ -388,7 +388,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
         <section className="omni-cartao omni-cartao--plano">
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
             <div style={{ minWidth: 0 }}>
-              <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Sugerir ações com IA</h3>
+              <h2 className="omni-cartao__titulo" style={{ margin: 0 }}>Sugerir ações com IA</h2>
               <p className="omni-cartao__texto" style={{ margin: "4px 0 0" }}>
                 A IA lê o dimensionamento e sugere as ações mais urgentes para o PGI.
               </p>
@@ -448,7 +448,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
 
       {/* Ações rápidas */}
       <section style={{ display: "grid", gap: 8 }}>
-        <h3 style={{ font: "700 15px/22px var(--font-sans)", color: "var(--tinta)", margin: 0 }}>Ações prontas</h3>
+        <h2 style={{ font: "700 15px/22px var(--font-sans)", color: "var(--tinta)", margin: 0 }}>Ações prontas</h2>
         <p className="omni-apoio" style={{ margin: 0 }}>Toque numa ação para colocá-la no plano.</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {[
@@ -475,7 +475,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
       {/* Formulário */}
       <section className="omni-cartao">
         <form onSubmit={handleAddAcao} style={{ display: "grid", gap: 16 }}>
-          <h3 style={tituloSecao}>Adicionar ação ao plano</h3>
+          <h2 style={tituloSecao}>Adicionar ação ao plano</h2>
           <label className="omni-campo">
             <span className="omni-campo__rotulo">Tipo de ação</span>
             <select
@@ -604,7 +604,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
       {/* Lista de ações */}
       <section style={{ display: "grid", gap: 12 }}>
         <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-          <h3 style={tituloSecao}>O plano da escola</h3>
+          <h2 style={tituloSecao}>O plano da escola</h2>
           {acoes.length > 0 && (
             <PdfDownloadButton
               text={formatPGIText(acoes, dimLocal)}
