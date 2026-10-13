@@ -1,6 +1,7 @@
 "use client";
 import { IssueCard } from "./IssueCard";
-import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Loader2, Play, Pause, X, Megaphone, Download, Camera, ExternalLink } from 'lucide-react';
+import { MensagemAdmin, type Mensagem } from "./MensagemAdmin";
+import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Loader2, Play, Pause, X, Megaphone, Download, Camera, ExternalLink, Bug } from 'lucide-react';
 
 import { OmniLoader } from "@/components/OmniLoader";
 import { LottieIcon } from "@/components/LottieIcon";
@@ -22,6 +23,7 @@ export function BugsTab() {
   const [formWorkspace, setFormWorkspace] = useState<string>("");
   const [formSource, setFormSource] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [mensagem, setMensagem] = useState<Mensagem | null>(null);
 
   useEffect(() => {
     loadIssues();
@@ -57,10 +59,11 @@ export function BugsTab() {
 
   async function handleSubmit() {
     if (!formTitle.trim()) {
-      alert("Informe o título.");
+      setMensagem({ tipo: "atencao", texto: "Escreva o título do erro." });
       return;
     }
 
+    setMensagem(null);
     setSubmitting(true);
     try {
       const res = await fetch("/api/admin/issues", {
@@ -82,14 +85,15 @@ export function BugsTab() {
         setFormWorkspace("");
         setFormSource("");
         setShowForm(false);
+        setMensagem({ tipo: "sucesso", texto: "Erro registrado." });
         loadIssues();
       } else {
         const error = await res.json().catch(() => ({}));
-        alert(`Erro: ${error.error || "Erro ao registrar bug"}`);
+        setMensagem({ tipo: "erro", texto: `Não foi possível registrar. ${error.error || ""}`.trim() });
       }
     } catch (err) {
       /* client-side */ console.error("Erro ao registrar bug:", err);
-      alert("Erro ao registrar bug.");
+      setMensagem({ tipo: "erro", texto: "Não foi possível registrar. Tente de novo." });
     } finally {
       setSubmitting(false);
     }
@@ -106,124 +110,133 @@ export function BugsTab() {
       if (res.ok) {
         loadIssues();
       } else {
-        alert("Erro ao atualizar status.");
+        setMensagem({ tipo: "erro", texto: "Não foi possível atualizar a situação." });
       }
     } catch (err) {
       /* client-side */ console.error("Erro ao atualizar status:", err);
-      alert("Erro ao atualizar status.");
+      setMensagem({ tipo: "erro", texto: "Não foi possível atualizar a situação." });
     }
   }
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-        </div>
+      <div className="omni-cartao">
+        <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, padding: "24px 0" }}>
+          <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando erros relatados…
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Formulário Novo Bug */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold text-slate-900">🐛 Registro de bugs e inconsistências</h3>
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <MensagemAdmin mensagem={mensagem} onFechar={() => setMensagem(null)} />
+      {/* Formulário novo erro */}
+      <section className="omni-cartao" aria-labelledby="bugs-titulo">
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <h3 id="bugs-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)", display: "flex", alignItems: "center", gap: 8 }}>
+            <Bug size={20} aria-hidden /> Erros e problemas da plataforma
+          </h3>
           <button
+            type="button"
             onClick={() => setShowForm(!showForm)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            aria-expanded={showForm}
+            className={`omni-btn ${showForm ? "omni-btn--secundario" : "omni-btn--primario"}`}
           >
-            {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            {showForm ? "Cancelar" : "Novo Bug"}
+            {showForm ? <X size={18} aria-hidden /> : <Plus size={18} aria-hidden />}
+            {showForm ? "Cancelar" : "Registrar erro"}
           </button>
         </div>
 
         {showForm && (
-          <div className="mt-4 space-y-4 border-t border-slate-200 pt-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Escola relacionada (opcional)</label>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16, borderTop: "1px solid var(--borda)", paddingTop: 16, marginTop: 4 }}>
+            <label className="omni-campo">
+              <span className="omni-campo__rotulo">Escola relacionada <span className="omni-campo__opcional">(opcional)</span></span>
               <select
                 value={formWorkspace}
                 onChange={(e) => setFormWorkspace(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                className="omni-entrada"
               >
-                <option value="">(sem vínculo)</option>
+                <option value="">Nenhuma escola</option>
                 {workspaces.map((ws) => (
                   <option key={ws.id} value={ws.id}>
                     {ws.name} — PIN {ws.pin}
                   </option>
                 ))}
               </select>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Título do bug *</label>
+            </label>
+            <label className="omni-campo">
+              <span className="omni-campo__rotulo">Título do erro</span>
               <input
                 type="text"
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
-                placeholder="Ex: Master não consegue alterar senha"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                placeholder="Ex.: Gestor não consegue trocar a senha"
+                className="omni-entrada"
+                required
               />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Severidade</label>
+            </label>
+            <label className="omni-campo">
+              <span className="omni-campo__rotulo">Gravidade</span>
               <select
                 value={formSeverity}
                 onChange={(e) => setFormSeverity(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                className="omni-entrada"
               >
                 <option value="baixa">Baixa</option>
                 <option value="média">Média</option>
                 <option value="alta">Alta</option>
                 <option value="crítica">Crítica</option>
               </select>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Origem / Tela</label>
+            </label>
+            <label className="omni-campo">
+              <span className="omni-campo__rotulo">Onde aconteceu <span className="omni-campo__opcional">(opcional)</span></span>
               <input
                 type="text"
                 value={formSource}
                 onChange={(e) => setFormSource(e.target.value)}
-                placeholder="Ex: Gestão de Usuários"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                placeholder="Ex.: Gestão de usuários"
+                className="omni-entrada"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Descrição detalhada</label>
+            </label>
+            <label className="omni-campo" style={{ maxWidth: "none" }}>
+              <span className="omni-campo__rotulo">Descrição <span className="omni-campo__opcional">(opcional)</span></span>
               <textarea
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
                 rows={4}
-                placeholder="Explique o que aconteceu, quem foi impactado e como reproduzir."
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                placeholder="O que aconteceu, quem foi afetado e como repetir o problema."
+                className="omni-entrada"
               />
+            </label>
+            <div>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="omni-btn omni-btn--primario"
+              >
+                {submitting ? <Loader2 size={18} className="animate-spin" aria-hidden /> : <Plus size={18} aria-hidden />}
+                Registrar erro
+              </button>
             </div>
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-            >
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              Registrar bug
-            </button>
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Lista de Bugs */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <h3 className="text-xl font-bold text-slate-900 mb-4">Lista de Issues</h3>
+      {/* Lista */}
+      <section className="omni-cartao" aria-labelledby="bugs-lista-titulo">
+        <h3 id="bugs-lista-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" }}>Erros registrados</h3>
         {issues.length === 0 ? (
-          <p className="text-slate-600 text-center py-8">Nenhum bug registrado até o momento.</p>
+          <p className="omni-apoio" style={{ textAlign: "center", padding: "24px 0" }}>Nenhum erro registrado até agora.</p>
         ) : (
-          <div className="space-y-4">
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {issues.map((issue) => (
               <IssueCard key={issue.id} issue={issue} workspaces={workspaces} onUpdate={loadIssues} />
             ))}
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

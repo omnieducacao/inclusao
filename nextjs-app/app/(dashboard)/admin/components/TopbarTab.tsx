@@ -10,6 +10,7 @@ import { Workspace } from "../lib/admin-types";
 import { ENGINE_OPTIONS, SEGMENT_OPTIONS, FEED_CATEGORIES, COLOR_OPTIONS, DEFAULT_TOPBAR_ICONS } from "../lib/admin-constants";
 
 import React, { useState, useEffect } from "react";
+import { Check, ChevronLeft, ChevronRight, PanelTop } from "lucide-react";
 export function TopbarTab() {
   const [customs, setCustoms] = useState<TopbarCustomization>({});
   const [loading, setLoading] = useState(true);
@@ -94,16 +95,20 @@ export function TopbarTab() {
   }
 
   if (loading) {
-    return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-slate-400" size={28} /></div>;
+    return (
+      <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "48px 0" }}>
+        <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando…
+      </p>
+    );
   }
 
-  // Dropdown group headers are items whose KEY matches a group name used by other items
+  // Cabeçalhos de menu são itens cuja CHAVE é usada como grupo por outros itens
   const AVAILABLE_GROUPS = [
-    { value: "", label: "Item direto (sem dropdown)" },
-    { value: "paee", label: "Dentro de PAEE ▼" },
-    { value: "avaliacoes", label: "Dentro de Avaliações ▼" },
-    { value: "professor", label: "Dentro de Professor ▼" },
-    { value: "config", label: "Dentro de Config ▼" },
+    { value: "", label: "Item solto (fora de menu)" },
+    { value: "paee", label: "Dentro do menu PAEE" },
+    { value: "avaliacoes", label: "Dentro do menu Avaliações" },
+    { value: "professor", label: "Dentro do menu Professor" },
+    { value: "config", label: "Dentro do menu Configurações" },
   ];
 
   // Dynamically determine which items are group headers based on current assignments
@@ -115,56 +120,70 @@ export function TopbarTab() {
   const groupHeaders = TOPBAR_NAV_ITEMS.filter(i => groupHeaderKeys.has(i.key));
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <section className="omni-cartao" aria-labelledby="topbar-titulo" style={{ gap: 16 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
         <div>
-          <h2 className="text-xl font-bold text-slate-900">🧭 Personalizar Topbar</h2>
-          <p className="text-sm text-slate-500 mt-1">Altere nomes, ícones e agrupamentos dos itens da barra de navegação superior.</p>
+          <h3 id="topbar-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)", display: "flex", alignItems: "center", gap: 8 }}>
+            <PanelTop size={20} aria-hidden /> Barra do topo
+          </h3>
+          <p className="omni-apoio" style={{ marginTop: 4 }}>
+            Mude nomes, ícones e menus dos itens da barra de navegação do topo.
+            PAEE: Plano de Atendimento Educacional Especializado.
+          </p>
         </div>
         <button
+          type="button"
           onClick={save}
           disabled={saving}
-          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="omni-btn omni-btn--primario"
         >
-          {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-          {saving ? "Salvando..." : saved ? "✓ Salvo" : "Salvar Topbar"}
+          {saving ? <Loader2 size={18} className="animate-spin" aria-hidden /> : saved ? <Check size={18} aria-hidden /> : <Save size={18} aria-hidden />}
+          {saving ? "Salvando…" : saved ? "Salvo" : "Salvar barra do topo"}
         </button>
       </div>
+      <span role="status" className="sr-only">{saved ? "Barra do topo salva." : ""}</span>
 
-      {/* Nav items list */}
-      <div className="space-y-3">
+      {/* Itens */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {TOPBAR_NAV_ITEMS.map((item) => {
           const isGroupHeader = groupHeaderKeys.has(item.key);
           const currentGroup = getVal(item.key, "group") as string | null;
           const isGroupChild = !!currentGroup && !isGroupHeader;
           const currentIcon = getVal(item.key, "icon") as string;
+          const nomeItem = (getVal(item.key, "label") as string) || item.defaultLabel;
 
           return (
             <div
               key={item.key}
-              className={`bg-white border rounded-xl p-4 ${isGroupChild ? "ml-8 border-dashed border-slate-200" : "border-slate-200"}`}
+              className="omni-cartao omni-cartao--plano"
+              style={{ padding: 16, gap: 8, ...(isGroupChild ? { marginLeft: 32, background: "var(--superficie)", border: "1px dashed var(--borda-forte)" } : {}) }}
             >
-              <div className="flex items-center gap-4">
-                {/* Icon preview */}
+              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 16 }}>
+                {/* Ícone */}
                 <button
+                  type="button"
                   onClick={() => setEditingIcon(editingIcon === item.key ? null : item.key)}
-                  className="shrink-0 w-14 h-14 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center cursor-pointer hover:bg-slate-100 transition-colors"
+                  aria-expanded={editingIcon === item.key}
+                  aria-label={`Trocar ícone de ${nomeItem}`}
+                  style={{ flex: "none", width: 56, height: 56, borderRadius: "var(--o-radius-sm)", background: "var(--superficie)", border: "1px solid var(--borda)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
                   title="Trocar ícone"
                 >
                   <LottieIcon animation={currentIcon} size={36} />
                 </button>
 
-                {/* Label + meta */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                {/* Nome + menu */}
+                <div style={{ flex: "1 1 220px", minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
+                  <div>
                     {groupHeaderKeys.has(item.key) && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-600 uppercase tracking-wider">Dropdown</span>
+                      <span className="omni-estado omni-estado--info">Abre um menu</span>
                     )}
                     {!groupHeaderKeys.has(item.key) && (
                       <select
                         value={(getVal(item.key, "group") as string | null) || ""}
                         onChange={(e) => setVal(item.key, "group", e.target.value || null)}
-                        className="text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200 bg-white text-slate-600 cursor-pointer"
+                        aria-label={`Onde fica ${nomeItem}`}
+                        className="omni-entrada"
+                        style={{ minHeight: 32, padding: "4px 36px 4px 10px", fontSize: 13, width: "auto" }}
                       >
                         {AVAILABLE_GROUPS.map(g => (
                           <option key={g.value} value={g.value}>{g.label}</option>
@@ -176,88 +195,100 @@ export function TopbarTab() {
                     type="text"
                     value={getVal(item.key, "label") as string}
                     onChange={(e) => setVal(item.key, "label", e.target.value)}
-                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400 outline-none"
+                    aria-label={`Nome do item (padrão: ${item.defaultLabel})`}
+                    className="omni-entrada"
+                    style={{ fontWeight: 600 }}
                     placeholder={item.defaultLabel}
                   />
                 </div>
 
-                {/* Visibility toggle */}
-                <label className="flex items-center gap-2 shrink-0 cursor-pointer">
+                {/* Visível */}
+                <label className="omni-chip" style={{ flex: "none" }}>
                   <input
                     type="checkbox"
                     checked={getVal(item.key, "visible") as boolean}
                     onChange={(e) => setVal(item.key, "visible", e.target.checked)}
-                    className="w-4 h-4 accent-blue-600 rounded"
                   />
-                  <span className="text-xs text-slate-500">Visível</span>
+                  <Check className="omni-chip__marca" aria-hidden />
+                  Aparece na barra
                 </label>
               </div>
 
-              {/* Pill color picker */}
-              <div className="mt-2 flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-semibold text-slate-400">Cor da pílula:</span>
+              {/* Cor da pílula */}
+              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }} role="group" aria-label={`Cor de destaque de ${nomeItem}`}>
+                <span className="omni-apoio" style={{ fontSize: 12 }}>Cor de destaque:</span>
                 <button
+                  type="button"
                   onClick={() => setVal(item.key, "pillColor", null)}
-                  className={`w-5 h-5 rounded border-2 text-[8px] flex items-center justify-center cursor-pointer ${!customs[item.key]?.pillColor
-                    ? "border-blue-500 bg-slate-100"
-                    : "border-slate-200 bg-slate-50 hover:border-slate-300"
-                    }`}
+                  aria-pressed={!customs[item.key]?.pillColor}
+                  style={{
+                    width: 24, height: 24, borderRadius: "var(--o-radius-xs)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+                    background: "var(--superficie)", color: "var(--tinta-2)",
+                    border: !customs[item.key]?.pillColor ? "2px solid var(--tinta)" : "1px solid var(--borda-forte)",
+                  }}
                   title="Padrão"
-                >✕</button>
+                  aria-label="Padrão"
+                ><X size={12} aria-hidden /></button>
                 {COLOR_OPTIONS.slice(0, 10).map(c => (
                   <button
+                    type="button"
                     key={c.key}
                     onClick={() => setVal(item.key, "pillColor", c.key)}
-                    className={`w-5 h-5 rounded border-2 cursor-pointer transition-all ${customs[item.key]?.pillColor === c.key
-                      ? "border-blue-500 scale-110 shadow"
-                      : "border-transparent hover:border-slate-300"
-                      }`}
-                    style={{ backgroundColor: c.hex }}
+                    aria-pressed={customs[item.key]?.pillColor === c.key}
+                    aria-label={c.label}
+                    style={{
+                      width: 24, height: 24, borderRadius: "var(--o-radius-xs)", cursor: "pointer", backgroundColor: c.hex,
+                      border: customs[item.key]?.pillColor === c.key ? "2px solid var(--tinta)" : "1px solid var(--borda)",
+                    }}
                     title={c.label}
                   />
                 ))}
               </div>
 
               {editingIcon === item.key && (
-                <div className="mt-3 pt-3 border-t border-slate-100">
-                  <div className="text-xs font-semibold text-slate-500 mb-2">Escolher ícone:</div>
+                <div style={{ marginTop: 4, paddingTop: 12, borderTop: "1px solid var(--borda)", display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div className="omni-campo__rotulo">Escolher ícone</div>
                   {(topbarIcons.length > 0 || DEFAULT_TOPBAR_ICONS.length > 0) ? (
-                    <div>
-                      {/* Default _simples icons */}
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Ícones padrão</div>
-                      <div className="grid grid-cols-5 sm:grid-cols-9 gap-2 mb-3">
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      <div className="omni-rotulo">Ícones simples</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))", gap: 8 }}>
                         {DEFAULT_TOPBAR_ICONS.map((icon) => (
                           <button
+                            type="button"
                             key={icon}
                             onClick={() => { setVal(item.key, "icon", icon); setEditingIcon(null); }}
-                            className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all cursor-pointer ${currentIcon === icon
-                              ? "border-blue-500 bg-blue-50 ring-2 ring-blue-400/30"
-                              : "border-slate-200 hover:border-blue-300 hover:bg-blue-50/50"
-                              }`}
+                            aria-pressed={currentIcon === icon}
+                            style={{
+                              display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: 8, borderRadius: "var(--o-radius-sm)", cursor: "pointer",
+                              border: currentIcon === icon ? "2px solid var(--acao)" : "1px solid var(--borda)",
+                              background: currentIcon === icon ? "var(--acao-suave)" : "var(--superficie)",
+                            }}
                           >
                             <LottieIcon animation={icon} size={36} />
-                            <span className="text-[7px] text-slate-500 truncate w-full text-center">
+                            <span style={{ fontSize: 10, lineHeight: "12px", color: "var(--tinta-2)", width: "100%", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                               {icon.replace(/_simples$/, "").replace(/_/g, " ")}
                             </span>
                           </button>
                         ))}
                       </div>
-                      {/* Topbar animated icons */}
                       {topbarIcons.length > 0 && (
                         <>
-                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Ícones animados</div>
-                          <div className="grid grid-cols-5 sm:grid-cols-9 gap-2">
+                          <div className="omni-rotulo">Ícones animados</div>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))", gap: 8 }}>
                             {topbarIcons.map((icon) => (
                               <button
+                                type="button"
                                 key={icon}
                                 onClick={() => { setVal(item.key, "icon", icon); setEditingIcon(null); }}
-                                className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all cursor-pointer ${currentIcon === icon
-                                  ? "border-blue-500 bg-blue-50 ring-2 ring-blue-400/30"
-                                  : "border-slate-200 hover:border-blue-300 hover:bg-blue-50/50"
-                                  }`}
+                                aria-pressed={currentIcon === icon}
+                                style={{
+                              display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: 8, borderRadius: "var(--o-radius-sm)", cursor: "pointer",
+                              border: currentIcon === icon ? "2px solid var(--acao)" : "1px solid var(--borda)",
+                              background: currentIcon === icon ? "var(--acao-suave)" : "var(--superficie)",
+                            }}
                               >
                                 <LottieIcon animation={icon} size={36} />
-                                <span className="text-[7px] text-slate-500 truncate w-full text-center">
+                                <span style={{ fontSize: 10, lineHeight: "12px", color: "var(--tinta-2)", width: "100%", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                   {icon.replace(/^topbar\//, "").replace(/wired-gradient-\d+-/, "").replace(/-hover.*/, "").replace(/-/g, " ")}
                                 </span>
                               </button>
@@ -267,7 +298,7 @@ export function TopbarTab() {
                       )}
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-400">Carregando ícones...</p>
+                    <p className="omni-apoio" style={{ fontSize: 13 }}>Carregando ícones…</p>
                   )}
                 </div>
               )}
@@ -276,10 +307,10 @@ export function TopbarTab() {
         })}
       </div>
 
-      {/* Preview with reordering */}
-      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Pré-visualização da Topbar (arraste para reordenar)</div>
-        <div className="flex items-center gap-1 flex-wrap">
+      {/* Prévia com ordem */}
+      <div className="omni-cartao omni-cartao--plano" style={{ padding: 16, gap: 12 }}>
+        <div className="omni-rotulo">Prévia da barra do topo (use as setas para mudar a ordem)</div>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6 }}>
           {itemOrder
             .map(key => TOPBAR_NAV_ITEMS.find(i => i.key === key))
             .filter((item): item is typeof TOPBAR_NAV_ITEMS[0] => !!item)
@@ -291,26 +322,32 @@ export function TopbarTab() {
             .map((item, idx, arr) => (
               <div
                 key={item.key}
-                className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200 group/preview"
+                style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 6px", borderRadius: "var(--o-radius-sm)", background: "var(--superficie)", border: "1px solid var(--borda)", font: "600 13px/18px var(--font-sans)", color: "var(--tinta-2)" }}
               >
                 <button
+                  type="button"
                   onClick={() => moveItem(item.key, "up")}
                   disabled={idx === 0}
-                  className="text-slate-300 hover:text-slate-600 disabled:opacity-30 text-[10px] cursor-pointer"
-                  title="Mover para esquerda"
-                >◀</button>
+                  className="omni-btn omni-btn--discreto"
+                  style={{ minHeight: 28, width: 28, padding: 0 }}
+                  aria-label={`Mover ${getVal(item.key, "label") as string} para a esquerda`}
+                  title="Mover para a esquerda"
+                ><ChevronLeft size={16} aria-hidden /></button>
                 <LottieIcon animation={getVal(item.key, "icon") as string} size={18} />
-                <span className="mx-0.5">{getVal(item.key, "label") as string}</span>
+                <span style={{ margin: "0 2px" }}>{getVal(item.key, "label") as string}</span>
                 <button
+                  type="button"
                   onClick={() => moveItem(item.key, "down")}
                   disabled={idx === arr.length - 1}
-                  className="text-slate-300 hover:text-slate-600 disabled:opacity-30 text-[10px] cursor-pointer"
-                  title="Mover para direita"
-                >▶</button>
+                  className="omni-btn omni-btn--discreto"
+                  style={{ minHeight: 28, width: 28, padding: 0 }}
+                  aria-label={`Mover ${getVal(item.key, "label") as string} para a direita`}
+                  title="Mover para a direita"
+                ><ChevronRight size={16} aria-hidden /></button>
               </div>
             ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 }

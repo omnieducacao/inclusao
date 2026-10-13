@@ -21,6 +21,7 @@ export function IssueCard({
   const [localStatus, setLocalStatus] = useState(issue.status || "aberto");
   const [localNotes, setLocalNotes] = useState(issue.resolution_notes || "");
   const [saving, setSaving] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
 
   const workspaceName =
     workspaces.find((w) => w.id === issue.workspace_id)?.name || "Geral";
@@ -30,6 +31,7 @@ export function IssueCard({
 
   async function handleSave() {
     setSaving(true);
+    setErro(null);
     try {
       const res = await fetch(`/api/admin/issues/${issue.id}`, {
         method: "PATCH",
@@ -40,11 +42,11 @@ export function IssueCard({
       if (res.ok) {
         onUpdate();
       } else {
-        alert("Erro ao atualizar.");
+        setErro("Não foi possível atualizar.");
       }
     } catch (err) {
       /* client-side */ console.error("Erro ao salvar:", err);
-      alert("Erro ao salvar.");
+      setErro("Não foi possível salvar. Tente de novo.");
     } finally {
       setSaving(false);
     }
@@ -60,27 +62,36 @@ export function IssueCard({
     })
     : "—";
 
+  const ROTULO_SITUACAO: Record<string, string> = {
+    aberto: "Aberto",
+    em_andamento: "Em andamento",
+    resolvido: "Resolvido",
+    arquivado: "Arquivado",
+  };
+  const classeSituacao =
+    localStatus === "aberto" ? "omni-estado--erro" :
+      localStatus === "em_andamento" ? "omni-estado--atencao" :
+        localStatus === "resolvido" ? "omni-estado--sucesso" :
+          "omni-estado--neutro";
+  const idBase = `issue-${issue.id}`;
+
   return (
-    <div className="border border-slate-200 rounded-lg p-4">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <span className={`px-2 py-1 text-xs font-semibold rounded ${localStatus === "aberto" ? "bg-red-100 text-red-800" :
-              localStatus === "em_andamento" ? "bg-yellow-100 text-yellow-800" :
-                localStatus === "resolvido" ? "bg-green-100 text-green-800" :
-                  "bg-slate-100 text-slate-800"
-              }`}>
-              {localStatus.toUpperCase()}
+    <div className="omni-cartao omni-cartao--plano" style={{ padding: 16 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+            <span className={`omni-estado ${classeSituacao}`}>
+              {ROTULO_SITUACAO[localStatus] || localStatus}
             </span>
-            <h4 className="font-bold text-slate-900">{issue.title || "Sem título"}</h4>
-            <span className="text-sm text-slate-500">• {workspaceName}</span>
+            <h4 style={{ font: "700 16px/22px var(--font-sans)", color: "var(--tinta)" }}>{issue.title || "Sem título"}</h4>
+            <span className="omni-apoio">· {workspaceName}</span>
           </div>
           {expanded && (
-            <div className="mt-3 space-y-3 text-sm text-slate-600">
-              <p>{issue.description || "_Sem descrição detalhada._"}</p>
-              <div className="grid grid-cols-2 gap-4">
+            <div id={`${idBase}-detalhes`} style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 12 }}>
+              <p className="omni-apoio" style={{ color: "var(--tinta)" }}>{issue.description || "Sem descrição detalhada."}</p>
+              <div className="omni-apoio" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
                 <div>
-                  <p className="font-semibold">Severidade: {issue.severity || "média"}</p>
+                  <p style={{ fontWeight: 600 }}>Gravidade: {issue.severity || "média"}</p>
                   <p>Origem: {issue.source || "—"}</p>
                 </div>
                 <div>
@@ -88,45 +99,54 @@ export function IssueCard({
                   <p>Registrado por: {issue.created_by || "—"}</p>
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Status</label>
+              <label className="omni-campo">
+                <span className="omni-campo__rotulo">Situação</span>
                 <select
                   value={localStatus}
                   onChange={(e) => setLocalStatus(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                  className="omni-entrada"
                 >
                   {statusOrder.map((s) => (
                     <option key={s} value={s}>
-                      {s.charAt(0).toUpperCase() + s.slice(1)}
+                      {ROTULO_SITUACAO[s] || s}
                     </option>
                   ))}
                 </select>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Notas / Próximos passos</label>
+              </label>
+              <label className="omni-campo" style={{ maxWidth: "none" }}>
+                <span className="omni-campo__rotulo">Notas e próximos passos</span>
                 <textarea
                   value={localNotes}
                   onChange={(e) => setLocalNotes(e.target.value)}
                   rows={3}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                  className="omni-entrada"
                 />
+              </label>
+              {erro && (
+                <div className="omni-aviso omni-aviso--erro" role="alert"><div><div className="omni-aviso__texto">{erro}</div></div></div>
+              )}
+              <div>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="omni-btn omni-btn--primario omni-btn--pequeno"
+                >
+                  {saving ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <Save size={16} aria-hidden />}
+                  Salvar atualização
+                </button>
               </div>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-              >
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                Salvar atualização
-              </button>
             </div>
           )}
         </div>
         <button
+          type="button"
           onClick={() => setExpanded(!expanded)}
-          className="ml-4 px-3 py-1 text-sm border border-slate-300 rounded-lg hover:bg-slate-50"
+          aria-expanded={expanded}
+          aria-controls={`${idBase}-detalhes`}
+          className="omni-btn omni-btn--discreto omni-btn--pequeno"
         >
-          {expanded ? "Ocultar" : "Expandir"}
+          {expanded ? "Ocultar" : "Ver detalhes"}
         </button>
       </div>
     </div>

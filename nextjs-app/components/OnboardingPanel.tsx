@@ -45,6 +45,8 @@ export function OnboardingPanel({
     }, []);
 
     const accentColor = resolvedAccent || accentColorProp;
+    // Onda 20: transparências com color-mix (aceita hex e variáveis do design system)
+    const tom = (cor: string, pct: number) => `color-mix(in srgb, ${cor} ${pct}%, transparent)`;
     const accentColorLight = resolvedAccent ? `${resolvedAccent}88` : accentColorLightProp;
 
     useEffect(() => {
@@ -84,7 +86,7 @@ export function OnboardingPanel({
                     borderRadius: 18,
                     overflow: "hidden",
                     border: `1.5px solid ${accentColorLight}`,
-                    background: "var(--bg-secondary, rgba(15,23,42,.5))",
+                    background: "var(--superficie)",
                     position: "relative",
                 }}
             >
@@ -102,9 +104,9 @@ export function OnboardingPanel({
                         position: "absolute", top: 14, right: 14,
                         width: 28, height: 28, borderRadius: 8,
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        border: "1px solid var(--border-default, rgba(148,163,184,.15))",
-                        background: "var(--bg-tertiary, rgba(15,23,42,.3))",
-                        color: "var(--text-muted, #94a3b8)", cursor: "pointer",
+                        border: "1px solid var(--borda)",
+                        background: "var(--superficie-2)",
+                        color: "var(--tinta-2)", cursor: "pointer",
                         transition: "all .15s",
                     }}
                     title="Fechar guia"
@@ -119,20 +121,20 @@ export function OnboardingPanel({
                             width: 36, height: 36, borderRadius: 10,
                             display: "flex", alignItems: "center", justifyContent: "center",
                             background: `linear-gradient(135deg, ${accentColor}, ${accentColorLight})`,
-                            color: "#fff",
+                            color: "var(--sobre-encontro-claro)",
                         }}>
                             <HelpCircle size={20} />
                         </div>
                         <div>
                             <h3 style={{
                                 margin: 0, fontSize: 17, fontWeight: 800,
-                                color: "var(--text-primary, #e2e8f0)",
+                                color: "var(--tinta)",
                             }}>
                                 {moduleTitle}
                             </h3>
                             <p style={{
                                 margin: 0, fontSize: 12,
-                                color: "var(--text-muted, #94a3b8)",
+                                color: "var(--tinta-2)",
                             }}>
                                 {moduleSubtitle}
                             </p>
@@ -156,8 +158,8 @@ export function OnboardingPanel({
                                 <div style={{
                                     width: 48, height: 48, borderRadius: 14,
                                     display: "flex", alignItems: "center", justifyContent: "center",
-                                    background: `${accentColor}14`,
-                                    border: `1.5px solid ${accentColor}30`,
+                                    background: tom(accentColor, 8),
+                                    border: `1.5px solid ${tom(accentColor, 19)}`,
                                     color: accentColor, position: "relative",
                                 }}>
                                     {step.icon}
@@ -166,18 +168,18 @@ export function OnboardingPanel({
                                         width: 18, height: 18, borderRadius: "50%",
                                         display: "flex", alignItems: "center", justifyContent: "center",
                                         fontSize: 10, fontWeight: 800,
-                                        background: accentColor, color: "#fff",
+                                        background: accentColor, color: "var(--sobre-encontro-claro)",
                                     }}>{i + 1}</span>
                                 </div>
                                 <div style={{
                                     fontSize: 13, fontWeight: 700,
-                                    color: "var(--text-primary, #e2e8f0)",
+                                    color: "var(--tinta)",
                                 }}>
                                     {step.title}
                                 </div>
                                 <div style={{
                                     fontSize: 11, lineHeight: 1.4,
-                                    color: "var(--text-muted, #94a3b8)",
+                                    color: "var(--tinta-2)",
                                     maxWidth: 150,
                                 }}>
                                     {step.description}
@@ -204,7 +206,7 @@ export function OnboardingPanel({
                     padding: "0 28px 24px",
                     display: "flex", alignItems: "center", justifyContent: "space-between",
                 }}>
-                    <span style={{ fontSize: 11, color: "var(--text-muted, #94a3b8)" }}>
+                    <span style={{ fontSize: 11, color: "var(--tinta-2)" }}>
                         Você pode rever este guia a qualquer momento
                     </span>
                     <button
@@ -214,9 +216,9 @@ export function OnboardingPanel({
                             padding: "10px 24px", borderRadius: 10,
                             border: "none", cursor: "pointer",
                             background: `linear-gradient(135deg, ${accentColor}, ${accentColorLight})`,
-                            color: "#fff", fontSize: 13, fontWeight: 700,
+                            color: "var(--sobre-encontro-claro)", fontSize: 13, fontWeight: 700,
                             display: "flex", alignItems: "center", gap: 6,
-                            boxShadow: `0 4px 16px ${accentColor}30`,
+                            boxShadow: `0 4px 16px ${tom(accentColor, 19)}`,
                             transition: "all .2s",
                         }}
                     >
@@ -249,9 +251,9 @@ export function OnboardingResetButton({
             style={{
                 display: "flex", alignItems: "center", gap: 4,
                 padding: "4px 10px", borderRadius: 8,
-                border: "1px solid var(--border-default, rgba(148,163,184,.15))",
+                border: "1px solid var(--borda)",
                 background: "transparent",
-                color: "var(--text-muted, #94a3b8)",
+                color: "var(--tinta-2)",
                 fontSize: 11, fontWeight: 600, cursor: "pointer",
                 transition: "all .15s",
             }}

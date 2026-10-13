@@ -1,16 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ExternalLink, Globe, Loader2, ToggleLeft, ToggleRight } from "lucide-react";
+import { ExternalLink, Globe, Loader2, ToggleLeft, ToggleRight, Info } from "lucide-react";
+import { MensagemAdmin, type Mensagem } from "./MensagemAdmin";
 
 /**
- * Admin tab to enable/disable the public landing page.
+ * Aba de administração: liga/desliga a página inicial pública (landing page).
  * Uses platform_config key "landing_page_enabled".
  */
 export function LandingPageTab() {
     const [enabled, setEnabled] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [mensagem, setMensagem] = useState<Mensagem | null>(null);
 
     useEffect(() => {
         loadConfig();
@@ -34,6 +36,7 @@ export function LandingPageTab() {
     async function toggleLandingPage() {
         const newValue = !enabled;
         setSaving(true);
+        setMensagem(null);
         try {
             const res = await fetch("/api/admin/platform-config", {
                 method: "POST",
@@ -46,10 +49,10 @@ export function LandingPageTab() {
             if (res.ok) {
                 setEnabled(newValue);
             } else {
-                alert("Erro ao salvar configuração.");
+                setMensagem({ tipo: "erro", texto: "Não foi possível salvar a configuração. Tente de novo." });
             }
         } catch {
-            alert("Erro ao salvar configuração.");
+            setMensagem({ tipo: "erro", texto: "Não foi possível salvar a configuração. Tente de novo." });
         } finally {
             setSaving(false);
         }
@@ -57,96 +60,90 @@ export function LandingPageTab() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center py-20">
-                <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
-            </div>
+            <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, padding: "48px 0", justifyContent: "center" }}>
+                <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando…
+            </p>
         );
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-2">
-                <Globe className="w-5 h-5 text-indigo-500" />
-                <h2 className="text-xl font-bold text-slate-900">Landing Page</h2>
-            </div>
+        <section className="omni-cartao" aria-labelledby="landing-titulo" style={{ gap: 16 }}>
+            <h3 id="landing-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)", display: "flex", alignItems: "center", gap: 8 }}>
+                <Globe size={20} aria-hidden /> Página inicial pública
+            </h3>
 
-            <p className="text-sm text-slate-600 max-w-xl">
-                Quando habilitada, visitantes que acessam a plataforma sem estar logados
-                veem uma página institucional de divulgação antes do login.
+            <p className="omni-apoio" style={{ maxWidth: 640 }}>
+                Quando ligada, quem abre a plataforma sem ter entrado vê uma página de apresentação
+                da Omnisfera antes da tela de entrada.
             </p>
 
-            {/* Toggle */}
+            <MensagemAdmin mensagem={mensagem} onFechar={() => setMensagem(null)} />
+
+            {/* Liga/desliga */}
             <div
-                className="flex items-center justify-between p-5 rounded-2xl border transition-all"
-                style={{
-                    background: enabled
-                        ? "linear-gradient(135deg, rgba(99,102,241,0.05), rgba(139,92,246,0.05))"
-                        : "#fafafa",
-                    borderColor: enabled ? "#c7d2fe" : "#e2e8f0",
-                }}
+                className={`omni-cartao ${enabled ? "" : "omni-cartao--plano"}`}
+                style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16, padding: 20, borderColor: enabled ? "var(--acao)" : undefined }}
             >
-                <div className="flex items-center gap-4">
+                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                     <button
                         type="button"
+                        role="switch"
+                        aria-checked={enabled}
                         onClick={toggleLandingPage}
                         disabled={saving}
-                        className="transition-transform hover:scale-110 active:scale-95 disabled:opacity-50"
-                        aria-label={enabled ? "Desabilitar landing page" : "Habilitar landing page"}
+                        className="omni-btn omni-btn--discreto omni-btn--icone"
+                        aria-label="Página inicial pública"
+                        style={{ color: enabled ? "var(--acao)" : "var(--tinta-3)", width: 56, height: 56 }}
                     >
-                        {enabled ? (
-                            <ToggleRight className="w-10 h-10 text-indigo-500" />
+                        {saving ? (
+                            <Loader2 size={28} className="animate-spin" aria-hidden />
+                        ) : enabled ? (
+                            <ToggleRight size={40} aria-hidden />
                         ) : (
-                            <ToggleLeft className="w-10 h-10 text-slate-400" />
+                            <ToggleLeft size={40} aria-hidden />
                         )}
                     </button>
                     <div>
-                        <p className="font-bold text-slate-900">
-                            {enabled ? "Landing Page Ativa" : "Landing Page Desativada"}
+                        <p style={{ font: "700 16px/22px var(--font-sans)", color: "var(--tinta)" }}>
+                            {enabled ? "Página inicial ligada" : "Página inicial desligada"}
                         </p>
-                        <p className="text-xs text-slate-500">
+                        <p className="omni-apoio" style={{ fontSize: 13 }}>
                             {enabled
-                                ? "Visitantes verão a página institucional antes do login."
-                                : "Visitantes serão direcionados diretamente ao login."}
+                                ? "Visitantes veem a página de apresentação antes de entrar."
+                                : "Visitantes vão direto para a tela de entrada."}
                         </p>
                     </div>
                 </div>
-                <span
-                    className="px-3 py-1 rounded-full text-xs font-bold"
-                    style={{
-                        background: enabled ? "#dbeafe" : "#f1f5f9",
-                        color: enabled ? "#3b82f6" : "#94a3b8",
-                    }}
-                >
-                    {enabled ? "ON" : "OFF"}
+                <span className={`omni-estado ${enabled ? "omni-estado--sucesso" : "omni-estado--neutro"}`}>
+                    {enabled ? "Ligada" : "Desligada"}
                 </span>
             </div>
 
-            {/* Preview button */}
-            <a
-                href="/landing"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105 active:scale-95"
-                style={{
-                    background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-                    color: "white",
-                    boxShadow: "0 4px 16px rgba(99, 102, 241, 0.25)",
-                }}
-            >
-                <ExternalLink className="w-4 h-4" />
-                Visualizar Landing Page
-            </a>
-
-            {/* Info callout */}
-            <div className="p-4 rounded-xl bg-sky-50 border border-sky-200">
-                <p className="text-xs text-sky-800 leading-relaxed">
-                    <strong>Como funciona:</strong> Quando ativa, o middleware da plataforma
-                    detecta visitantes sem sessão e redireciona para <code>/landing</code>.
-                    A página exibe informações institucionais, módulos disponíveis, motores de IA
-                    e um botão &quot;Entrar&quot; que leva ao login. Usuários já logados não são
-                    afetados e veem o dashboard normalmente.
-                </p>
+            {/* Ver a página */}
+            <div>
+                <a
+                    href="/landing"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="omni-btn omni-btn--secundario"
+                >
+                    <ExternalLink size={18} aria-hidden />
+                    Ver a página inicial
+                </a>
             </div>
-        </div>
+
+            {/* Como funciona */}
+            <div className="omni-aviso omni-aviso--info" style={{ maxWidth: "none" }}>
+                <Info className="omni-aviso__icone" aria-hidden />
+                <div>
+                    <div className="omni-aviso__titulo">Como funciona</div>
+                    <div className="omni-aviso__texto">
+                        Quando ligada, a plataforma manda quem ainda não entrou para <code>/landing</code>.
+                        Lá aparecem a apresentação, os módulos, os motores de IA e um botão &quot;Entrar&quot;.
+                        Quem já entrou não é afetado e vê o painel normalmente.
+                    </div>
+                </div>
+            </div>
+        </section>
     );
 }

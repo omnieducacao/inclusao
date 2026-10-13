@@ -3,14 +3,16 @@
 import { useEffect, useState } from "react";
 import type { EngineId } from "@/lib/ai-engines";
 import { ENGINE_NAMES } from "@/lib/ai-engines";
+import { Sparkles } from "lucide-react";
 import { LottieIcon } from "./LottieIcon";
 
+// Onda 20: cores do símbolo Encontro (tokens do design system) no lugar da paleta do Tailwind
 const ENGINE_COLORS: Record<EngineId, { bg: string; text: string; dot: string }> = {
-  red: { bg: "bg-red-50", text: "text-red-600", dot: "#ef4444" },
-  blue: { bg: "bg-blue-50", text: "text-blue-600", dot: "#3b82f6" },
-  green: { bg: "bg-emerald-50", text: "text-emerald-600", dot: "#10b981" },
-  yellow: { bg: "bg-amber-50", text: "text-amber-600", dot: "#f59e0b" },
-  orange: { bg: "bg-orange-50", text: "text-orange-600", dot: "#f97316" },
+  red: { bg: "var(--encontro-vermelho-suave)", text: "var(--encontro-vermelho-forte)", dot: "var(--encontro-vermelho)" },
+  blue: { bg: "var(--encontro-azul-suave)", text: "var(--encontro-azul-forte)", dot: "var(--encontro-azul)" },
+  green: { bg: "var(--encontro-verde-suave)", text: "var(--encontro-verde-forte)", dot: "var(--encontro-verde)" },
+  yellow: { bg: "var(--encontro-amarelo-suave)", text: "var(--encontro-amarelo-forte)", dot: "var(--encontro-amarelo)" },
+  orange: { bg: "var(--encontro-laranja-suave)", text: "var(--encontro-laranja-forte)", dot: "var(--encontro-laranja)" },
 };
 
 const ENGINE_SHORT_NAMES: Record<EngineId, string> = {
@@ -44,16 +46,22 @@ export function AIEnginesBadge({ engines }: { engines?: EngineId[] } = {}) {
     return null;
   }
 
+  const caixa: React.CSSProperties = {
+    background: "var(--superficie)",
+    border: "1px solid var(--borda)",
+    boxShadow: "var(--sombra-2)",
+  };
+
   return (
-    <div className="fixed bottom-5 right-5 z-40 flex flex-col gap-2 items-end">
-      {/* Expanded panel */}
+    <div style={{ position: "fixed", bottom: 20, right: 20, zIndex: 40, display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+      {/* Painel aberto */}
       {isExpanded && (
         <div
-          className="glass-strong rounded-2xl p-4 animate-fade-in-up"
-          style={{ boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-default)' }}
+          id="motores-ia-painel"
+          style={{ ...caixa, padding: 16, maxWidth: "calc(100vw - 40px)", borderRadius: "var(--o-radius-lg) var(--o-radius-lg) var(--o-radius-xs) var(--o-radius-lg)" }}
         >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+            <div aria-hidden style={{ width: 40, height: 40, borderRadius: "50%", display: "grid", placeItems: "center", background: "var(--encontro-roxo-suave)" }}>
               <LottieIcon
                 animation="wired-lineal-2512-artificial-intelligence-ai-alt-hover-pinch"
                 size={24}
@@ -61,38 +69,41 @@ export function AIEnginesBadge({ engines }: { engines?: EngineId[] } = {}) {
               />
             </div>
             <div>
-              <p className="text-[13px] font-bold text-slate-700">Motores IA</p>
-              <p className="text-[11px] text-slate-400">{availableEngines.length} ativos</p>
+              <p style={{ margin: 0, font: "700 14px/20px var(--font-sans)", color: "var(--tinta)" }}>Motores de inteligência artificial (IA)</p>
+              <p style={{ margin: 0, font: "400 12px/16px var(--font-sans)", color: "var(--tinta-2)" }}>
+                {availableEngines.length} {availableEngines.length === 1 ? "ativo" : "ativos"}
+              </p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-1.5">
+          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexWrap: "wrap", gap: 6 }}>
             {availableEngines.map((engine) => {
               const colors = ENGINE_COLORS[engine];
               return (
-                <span
+                <li
                   key={engine}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-lg ${colors.bg} ${colors.text} whitespace-nowrap transition-all`}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 10px", borderRadius: "var(--o-radius-pill)", background: colors.bg, color: colors.text, font: "700 12px/16px var(--font-sans)", whiteSpace: "nowrap" }}
                   title={ENGINE_NAMES[engine]}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: colors.dot }} />
+                  <span aria-hidden style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: colors.dot }} />
                   Omni{ENGINE_SHORT_NAMES[engine]}
-                </span>
+                </li>
               );
             })}
-          </div>
+          </ul>
         </div>
       )}
 
-      {/* Toggle button — pill when collapsed */}
+      {/* Botão: pílula quando fechado */}
       <button
+        type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="group flex items-center gap-2 px-3 py-2 rounded-full glass-strong transition-all duration-300 hover:scale-105"
-        style={{ boxShadow: 'var(--shadow-md)', border: '1px solid var(--border-default)' }}
-        title={isExpanded ? "Ocultar motores" : "Motores IA ativos"}
-        aria-label={isExpanded ? "Ocultar motores de IA" : `Mostrar ${availableEngines.length} motores de IA ativos`}
+        style={{ ...caixa, display: "flex", alignItems: "center", gap: 8, minHeight: 40, padding: "8px 12px", borderRadius: "var(--o-radius-pill)", cursor: "pointer", color: "var(--tinta-2)" }}
+        title={isExpanded ? "Ocultar motores de IA" : "Motores de IA ativos"}
+        aria-label={isExpanded ? "Ocultar motores de inteligência artificial" : `Mostrar ${availableEngines.length} motores de inteligência artificial ativos`}
         aria-expanded={isExpanded}
+        aria-controls="motores-ia-painel"
       >
-        <div className="w-5 h-5 flex items-center justify-center">
+        <span aria-hidden style={{ width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center" }}>
           {isExpanded ? (
             <LottieIcon
               animation="wired-lineal-2512-artificial-intelligence-ai-alt-hover-pinch"
@@ -100,11 +111,11 @@ export function AIEnginesBadge({ engines }: { engines?: EngineId[] } = {}) {
               className="transition-transform duration-300"
             />
           ) : (
-            <span className="text-[13px]">✨</span>
+            <Sparkles style={{ width: 16, height: 16, color: "var(--encontro-roxo-forte)" }} />
           )}
-        </div>
+        </span>
         {!isExpanded && (
-          <span className="text-[11px] font-bold text-slate-500 pr-0.5">
+          <span aria-hidden style={{ font: "700 12px/16px var(--font-sans)", paddingRight: 2 }}>
             {availableEngines.length} IA
           </span>
         )}

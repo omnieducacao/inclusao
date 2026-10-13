@@ -35,7 +35,7 @@ export default async function DashboardLayout({
         <SimulationBanner session={session} />
         <MemberSimulationBanner session={session} />
         {/* Onda 6: topo com logo, busca, sino e perfil; a navegação vai para a barra lateral */}
-        <Navbar session={session} hideMenu />
+        <Navbar session={session} />
         <div className="omni-moldura">
           <BarraLateral session={session} />
           <div className="flex-1 min-w-0 flex flex-col">

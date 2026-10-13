@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { ArrowRight, GraduationCap, Layers, Brain, Sparkles, ChartLine, NotebookPen, Lock, Accessibility, Zap } from "lucide-react";
+import SimboloOmnisfera from "@/components/SimboloOmnisfera";
+import { OmniEducacaoSignature } from "@/components/Footer";
 
 type LandingProps = {
     stats: { schools: number; students: number; peis: number };
@@ -45,51 +47,52 @@ function useAnimatedCounter(target: number, duration = 2000) {
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 /* Modules data                                             */
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+// Onda 20: ícones do lucide (antes eram emojis) e cores dos módulos do design system
 const MODULES = [
     {
-        icon: "🎓",
-        title: "PEI — Plano Educacional Individual",
-        desc: "Construção guiada por IA com barreiras, potencialidades e habilidades BNCC.",
-        color: "#6366f1",
+        Icone: GraduationCap,
+        title: "PEI — Plano Educacional Individualizado",
+        desc: "Construção guiada por inteligência artificial (IA), com barreiras, potencialidades e habilidades da BNCC (Base Nacional Comum Curricular).",
+        modulo: "pei",
     },
     {
-        icon: "🧩",
-        title: "PAEE — Plano de Ação",
+        Icone: Layers,
+        title: "PAEE — Plano de Atendimento Educacional Especializado",
         desc: "Atendimento educacional especializado com relatórios contextualizados.",
-        color: "#ec4899",
+        modulo: "paee",
     },
     {
-        icon: "🧠",
-        title: "Avaliação Diagnóstica",
-        desc: "Geração de itens com IA baseados na BNCC e matriz SAEB/CAEd.",
-        color: "#f59e0b",
+        Icone: Brain,
+        title: "Avaliação diagnóstica",
+        desc: "Criação de questões com IA, baseadas na BNCC e na matriz do SAEB (Sistema de Avaliação da Educação Básica) e do CAEd (Centro de Políticas Públicas e Avaliação da Educação).",
+        modulo: "hub",
     },
     {
-        icon: "🚀",
-        title: "Hub de Inclusão",
+        Icone: Sparkles,
+        title: "Hub de inclusão",
         desc: "Crie atividades, jogos, mapas mentais e imagens com inteligência artificial.",
-        color: "#10b981",
+        modulo: "hub",
     },
     {
-        icon: "📊",
-        title: "Monitoramento e Evolução",
-        desc: "Indicadores, relatórios de progresso e acompanhamento longitudinal.",
-        color: "#0ea5e9",
+        Icone: ChartLine,
+        title: "Monitoramento e evolução",
+        desc: "Indicadores, relatórios de progresso e acompanhamento ao longo do tempo.",
+        modulo: "monitoramento",
     },
     {
-        icon: "📔",
-        title: "Diário de Bordo",
+        Icone: NotebookPen,
+        title: "Diário de bordo",
         desc: "Registro de observações, evidências e intervenções pedagógicas.",
-        color: "#8b5cf6",
+        modulo: "diario",
     },
 ];
 
 const ENGINES = [
-    { name: "OmniRed", desc: "DeepSeek — Raciocínio profundo", color: "#ef4444" },
-    { name: "OmniBlue", desc: "Kimi — Contexto longo", color: "#3b82f6" },
-    { name: "OmniGreen", desc: "Claude — Sensibilidade pedagógica", color: "#22c55e" },
-    { name: "OmniYellow", desc: "Gemini — Multimodal e imagens", color: "#eab308" },
-    { name: "OmniOrange", desc: "GPT — Parsing e laudos", color: "#f97316" },
+    { name: "OmniRed", desc: "DeepSeek — raciocínio profundo", color: "var(--encontro-vermelho)" },
+    { name: "OmniBlue", desc: "Kimi — textos longos", color: "var(--encontro-azul)" },
+    { name: "OmniGreen", desc: "Claude — sensibilidade pedagógica", color: "var(--encontro-verde)" },
+    { name: "OmniYellow", desc: "Gemini — imagens e outros formatos", color: "var(--encontro-amarelo)" },
+    { name: "OmniOrange", desc: "GPT — leitura de documentos e laudos", color: "var(--encontro-laranja)" },
 ];
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -136,434 +139,224 @@ export default function LandingClient({ stats }: LandingProps) {
     const studentsCounter = useAnimatedCounter(stats.students);
     const peisCounter = useAnimatedCounter(stats.peis);
 
+    const h2: React.CSSProperties = { margin: "0 0 16px", font: "800 clamp(28px, 4.5vw, 38px)/1.15 var(--font-sans)", letterSpacing: "-.03em", color: "var(--tinta)" };
+    const intro: React.CSSProperties = { margin: "0 auto", maxWidth: "56ch", font: "400 17px/28px var(--font-sans)", color: "var(--tinta-2)" };
+    const secao: React.CSSProperties = { maxWidth: 1180, margin: "0 auto", padding: "0 16px" };
+    const numero: React.CSSProperties = { margin: "0 0 4px", font: "800 40px/1 var(--font-sans)", letterSpacing: "-.03em", fontVariantNumeric: "tabular-nums" };
+    const legendaNumero: React.CSSProperties = { margin: 0, font: "600 14px/20px var(--font-sans)", color: "var(--tinta-2)" };
+
     return (
-        <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
-            {/* ══════ NAVBAR ══════ */}
-            <nav
-                className="sticky top-0 z-50 backdrop-blur-xl border-b"
-                style={{
-                    background: "color-mix(in srgb, var(--bg-primary) 80%, transparent)",
-                    borderColor: "var(--border-default)",
-                }}
-            >
-                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <Image
-                            src="/omni_icone.webp"
-                            alt="Omnisfera"
-                            width={36}
-                            height={36}
-                            className="rounded-lg"
-                        />
-                        <span
-                            className="text-xl font-bold tracking-tight"
-                            style={{ color: "var(--text-primary)" }}
-                        >
-                            Omnisfera
-                        </span>
-                    </div>
-                    <Link
-                        href="/login"
-                        className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 active:scale-95"
-                        style={{
-                            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-                            boxShadow: "0 4px 16px rgba(99, 102, 241, 0.3)",
-                        }}
-                    >
-                        Entrar na Plataforma
+        <div className="omni-base" style={{ minHeight: "100dvh", background: "var(--fundo)", color: "var(--tinta)" }}>
+            <a href="#conteudo" className="omni-pular">Pular para o conteúdo</a>
+
+            {/* ══════ TOPO ══════ */}
+            <header className="omni-topo">
+                <Link href="/landing" className="omni-topo__marca" aria-label="Omnisfera, página inicial">
+                    <SimboloOmnisfera tamanho={34} />
+                    <span className="omni-topo__nome" aria-hidden>omnisfera</span>
+                </Link>
+                <div className="omni-topo__acoes">
+                    <Link href="/login" className="omni-btn omni-btn--primario omni-btn--pequeno">
+                        Entrar na plataforma
                     </Link>
                 </div>
-            </nav>
+            </header>
 
-            {/* ══════ HERO ══════ */}
-            <section className="relative overflow-hidden">
-                {/* Background gradient orbs */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div
-                        className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full opacity-20 blur-3xl"
-                        style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}
-                    />
-                    <div
-                        className="absolute -bottom-40 -left-40 w-[400px] h-[400px] rounded-full opacity-15 blur-3xl"
-                        style={{ background: "linear-gradient(135deg, #ec4899, #f43f5e)" }}
-                    />
-                    <div
-                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-10 blur-3xl"
-                        style={{ background: "linear-gradient(135deg, #10b981, #0ea5e9)" }}
-                    />
-                </div>
-
-                <div className="relative max-w-7xl mx-auto px-6 pt-20 pb-24 flex flex-col items-center text-center">
-                    <div
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold mb-8"
-                        style={{
-                            background: "color-mix(in srgb, #6366f1 12%, transparent)",
-                            color: "#818cf8",
-                            border: "1px solid color-mix(in srgb, #6366f1 25%, transparent)",
-                        }}
-                    >
-                        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                        Plataforma ativa • 5 motores de IA
+            <main id="conteudo">
+                {/* ══════ ABERTURA ══════ */}
+                <section style={{ position: "relative", overflow: "hidden", isolation: "isolate" }}>
+                    {/* círculos de fundo, como no login */}
+                    <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: -1, pointerEvents: "none" }}>
+                        <i style={{ position: "absolute", width: 340, height: 340, borderRadius: "50%", opacity: 0.12, background: "var(--encontro-vermelho)", top: -120, left: -80 }} />
+                        <i style={{ position: "absolute", width: 260, height: 260, borderRadius: "50%", opacity: 0.12, background: "var(--encontro-azul)", bottom: -90, left: "22%" }} />
+                        <i style={{ position: "absolute", width: 300, height: 300, borderRadius: "50%", opacity: 0.12, background: "var(--encontro-verde)", top: "12%", right: -110 }} />
+                        <i style={{ position: "absolute", width: 180, height: 180, borderRadius: "50%", opacity: 0.12, background: "var(--encontro-amarelo)", bottom: "12%", right: "18%" }} />
+                        <i style={{ position: "absolute", width: 140, height: 140, borderRadius: "50%", opacity: 0.12, background: "var(--encontro-roxo)", top: "46%", left: "44%" }} />
                     </div>
 
-                    <h1
-                        className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 max-w-4xl"
-                        style={{ color: "var(--text-primary)" }}
-                    >
-                        Educação Inclusiva{" "}
-                        <span
-                            style={{
-                                background: "linear-gradient(135deg, #6366f1, #ec4899, #f59e0b)",
-                                WebkitBackgroundClip: "text",
-                                WebkitTextFillColor: "transparent",
-                            }}
-                        >
-                            com Inteligência Artificial
+                    <div style={{ ...secao, padding: "72px 16px 88px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 24 }}>
+                        <SimboloOmnisfera tamanho={120} animado />
+                        <span className="omni-estado omni-estado--sucesso">
+                            <span aria-hidden style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--sucesso)" }} />
+                            Plataforma ativa · 5 motores de IA
                         </span>
-                    </h1>
 
-                    <p
-                        className="text-lg sm:text-xl max-w-2xl mb-10 leading-relaxed"
-                        style={{ color: "var(--text-secondary)" }}
-                    >
-                        A plataforma mais completa do Brasil para inclusão escolar. PEI, PAEE,
-                        avaliações diagnósticas, Hub de atividades e muito mais — tudo integrado
-                        com 5 motores de IA.
-                    </p>
+                        <h1 style={{ margin: 0, maxWidth: "18ch", font: "800 clamp(36px, 7vw, 64px)/1.05 var(--font-sans)", letterSpacing: "-.04em", color: "var(--tinta)" }}>
+                            Educação inclusiva <span style={{ color: "var(--acao)" }}>com inteligência artificial</span>
+                        </h1>
 
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <Link
-                            href="/login"
-                            className="px-8 py-4 rounded-2xl text-base font-bold text-white transition-all hover:scale-105 active:scale-95"
-                            style={{
-                                background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-                                boxShadow: "0 8px 32px rgba(99, 102, 241, 0.35)",
-                            }}
-                        >
-                            Começar Agora →
-                        </Link>
-                        <a
-                            href="#modulos"
-                            className="px-8 py-4 rounded-2xl text-base font-bold transition-all hover:scale-105"
-                            style={{
-                                color: "var(--text-primary)",
-                                background: "var(--bg-secondary)",
-                                border: "1px solid var(--border-default)",
-                            }}
-                        >
-                            Conhecer Módulos
-                        </a>
-                    </div>
-                </div>
-            </section>
+                        <p style={{ margin: 0, maxWidth: "52ch", font: "400 clamp(17px, 2.2vw, 20px)/1.6 var(--font-sans)", color: "var(--tinta-2)" }}>
+                            A plataforma mais completa do Brasil para a inclusão escolar. PEI, PAEE, avaliações diagnósticas, Hub de atividades e muito mais, tudo integrado com 5 motores de inteligência artificial (IA).
+                        </p>
 
-            {/* ══════ STATS ══════ */}
-            {(stats.schools > 0 || stats.students > 0) && (
-                <section
-                    className="border-y"
-                    style={{
-                        background: "var(--bg-secondary)",
-                        borderColor: "var(--border-default)",
-                    }}
-                >
-                    <div className="max-w-5xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
-                        <div ref={schoolsCounter.ref}>
-                            <p
-                                className="text-4xl font-extrabold mb-1"
-                                style={{ color: "#6366f1" }}
-                            >
-                                {schoolsCounter.count}+
-                            </p>
-                            <p
-                                className="text-sm font-medium"
-                                style={{ color: "var(--text-secondary)" }}
-                            >
-                                Escolas cadastradas
-                            </p>
-                        </div>
-                        <div ref={studentsCounter.ref}>
-                            <p
-                                className="text-4xl font-extrabold mb-1"
-                                style={{ color: "#059669" }}
-                            >
-                                {studentsCounter.count}+
-                            </p>
-                            <p
-                                className="text-sm font-medium"
-                                style={{ color: "var(--text-secondary)" }}
-                            >
-                                Estudantes acompanhados
-                            </p>
-                        </div>
-                        <div ref={peisCounter.ref}>
-                            <p
-                                className="text-4xl font-extrabold mb-1"
-                                style={{ color: "#ec4899" }}
-                            >
-                                {peisCounter.count}+
-                            </p>
-                            <p
-                                className="text-sm font-medium"
-                                style={{ color: "var(--text-secondary)" }}
-                            >
-                                PEIs construídos com IA
-                            </p>
+                        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 12 }}>
+                            <Link href="/login" className="omni-btn omni-btn--primario omni-btn--grande">
+                                Começar agora <ArrowRight aria-hidden />
+                            </Link>
+                            <a href="#modulos" className="omni-btn omni-btn--secundario omni-btn--grande">
+                                Conhecer os módulos
+                            </a>
                         </div>
                     </div>
                 </section>
-            )}
 
-            {/* ══════ MÓDULOS ══════ */}
-            <section id="modulos" className="py-20">
-                <div className="max-w-7xl mx-auto px-6">
-                    <Reveal>
-                        <div className="text-center mb-14">
-                            <h2
-                                className="text-3xl sm:text-4xl font-extrabold mb-4"
-                                style={{ color: "var(--text-primary)" }}
-                            >
-                                Tudo que sua escola precisa
-                            </h2>
-                            <p
-                                className="text-base sm:text-lg max-w-xl mx-auto"
-                                style={{ color: "var(--text-secondary)" }}
-                            >
-                                Módulos integrados que cobrem todo o ciclo da inclusão — do
-                                planejamento à avaliação.
-                            </p>
+                {/* ══════ NÚMEROS ══════ */}
+                {(stats.schools > 0 || stats.students > 0) && (
+                    <section aria-label="A Omnisfera em números" style={{ background: "var(--superficie)", borderBlock: "1px solid var(--borda)" }}>
+                        <div style={{ ...secao, maxWidth: 960, padding: "48px 16px", display: "grid", gap: 32, gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", textAlign: "center" }}>
+                            <div ref={schoolsCounter.ref}>
+                                <p style={{ ...numero, color: "var(--encontro-azul-forte)" }}>{schoolsCounter.count}+</p>
+                                <p style={legendaNumero}>Escolas cadastradas</p>
+                            </div>
+                            <div ref={studentsCounter.ref}>
+                                <p style={{ ...numero, color: "var(--encontro-verde-forte)" }}>{studentsCounter.count}+</p>
+                                <p style={legendaNumero}>Estudantes acompanhados</p>
+                            </div>
+                            <div ref={peisCounter.ref}>
+                                <p style={{ ...numero, color: "var(--encontro-vermelho-forte)" }}>{peisCounter.count}+</p>
+                                <p style={legendaNumero}>PEIs construídos com IA</p>
+                            </div>
                         </div>
-                    </Reveal>
+                    </section>
+                )}
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {MODULES.map((mod, i) => (
-                            <Reveal key={mod.title}>
-                                <div
-                                    className="group rounded-2xl p-6 transition-all hover:scale-[1.02] hover:shadow-xl"
-                                    style={{
-                                        background: "var(--bg-secondary)",
-                                        border: "1px solid var(--border-default)",
-                                        transitionDelay: `${i * 80}ms`,
-                                    }}
-                                >
+                {/* ══════ MÓDULOS ══════ */}
+                <section id="modulos" aria-labelledby="titulo-modulos" style={{ padding: "80px 0" }}>
+                    <div style={secao}>
+                        <Reveal>
+                            <div style={{ textAlign: "center", marginBottom: 48 }}>
+                                <span className="omni-rotulo" style={{ color: "var(--acao)" }}>Módulos</span>
+                                <h2 id="titulo-modulos" style={{ ...h2, marginTop: 8 }}>Tudo o que a sua escola precisa</h2>
+                                <p style={intro}>
+                                    Módulos integrados que cobrem todo o ciclo da inclusão, do planejamento à avaliação.
+                                </p>
+                            </div>
+                        </Reveal>
+
+                        <div style={{ display: "grid", gap: 20, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))" }}>
+                            {MODULES.map((mod, i) => (
+                                <Reveal key={mod.title}>
                                     <div
-                                        className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4"
-                                        style={{
-                                            background: `color-mix(in srgb, ${mod.color} 12%, transparent)`,
-                                        }}
+                                        className={`omni-cartao omni-modulo omni-modulo--${mod.modulo}`}
+                                        style={{ height: "100%", transitionDelay: `${i * 80}ms` }}
                                     >
-                                        {mod.icon}
+                                        <span className="omni-modulo__selo" aria-hidden>
+                                            <mod.Icone />
+                                        </span>
+                                        <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>{mod.title}</h3>
+                                        <p className="omni-cartao__texto" style={{ margin: 0 }}>{mod.desc}</p>
                                     </div>
-                                    <h3
-                                        className="text-base font-bold mb-2"
-                                        style={{ color: "var(--text-primary)" }}
-                                    >
-                                        {mod.title}
-                                    </h3>
-                                    <p
-                                        className="text-sm leading-relaxed"
-                                        style={{ color: "var(--text-secondary)" }}
-                                    >
-                                        {mod.desc}
+                                </Reveal>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                {/* ══════ MOTORES ══════ */}
+                <section aria-labelledby="titulo-motores" style={{ padding: "80px 0", background: "var(--superficie-2)", borderBlock: "1px solid var(--borda)" }}>
+                    <div style={{ ...secao, maxWidth: 1000 }}>
+                        <Reveal>
+                            <div style={{ textAlign: "center", marginBottom: 48 }}>
+                                <span className="omni-rotulo" style={{ color: "var(--acao)" }}>Inteligência artificial</span>
+                                <h2 id="titulo-motores" style={{ ...h2, marginTop: 8 }}>5 motores de IA</h2>
+                                <p style={intro}>
+                                    Cada motor é especialista em um aspecto diferente da inclusão. O professor escolhe qual usar em cada situação.
+                                </p>
+                            </div>
+                        </Reveal>
+
+                        <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 12 }}>
+                            {ENGINES.map((engine) => (
+                                <li key={engine.name}>
+                                    <Reveal>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 20px", background: "var(--superficie)", border: "1px solid var(--borda)", borderRadius: "var(--o-radius-md)" }}>
+                                            <span aria-hidden style={{ width: 14, height: 14, borderRadius: "50%", flexShrink: 0, background: engine.color }} />
+                                            <div>
+                                                <p style={{ margin: 0, font: "700 15px/20px var(--font-sans)", color: "var(--tinta)" }}>{engine.name}</p>
+                                                <p style={{ margin: 0, font: "400 13px/18px var(--font-sans)", color: "var(--tinta-2)" }}>{engine.desc}</p>
+                                            </div>
+                                        </div>
+                                    </Reveal>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </section>
+
+                {/* ══════ CONFIANÇA E SEGURANÇA ══════ */}
+                <section aria-labelledby="titulo-confianca" style={{ padding: "88px 0" }}>
+                    <div style={secao}>
+                        <Reveal>
+                            <div style={{ textAlign: "center", marginBottom: 48 }}>
+                                <span className="omni-rotulo" style={{ color: "var(--acao)" }}>Segurança</span>
+                                <h2 id="titulo-confianca" style={{ ...h2, marginTop: 8 }}>Tecnologia em que você pode confiar</h2>
+                                <p style={{ ...intro, maxWidth: "62ch" }}>
+                                    A Omnisfera cuida de toda a infraestrutura complexa, da privacidade dos dados e da acessibilidade, por trás dos panos, para que os professores foquem 100% no ser humano.
+                                </p>
+                            </div>
+                        </Reveal>
+
+                        <div style={{ display: "grid", gap: 20, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", marginBottom: 32 }}>
+                            <Reveal>
+                                <div className="omni-cartao omni-modulo omni-modulo--diario" style={{ height: "100%", alignItems: "center", textAlign: "center" }}>
+                                    <span className="omni-modulo__selo" aria-hidden><Lock /></span>
+                                    <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Conformidade com a LGPD</h3>
+                                    <p className="omni-cartao__texto" style={{ margin: 0 }}>
+                                        LGPD é a Lei Geral de Proteção de Dados. Laudos médicos e PDIs (Planos de Desenvolvimento Individual) ficam totalmente resguardados no Supabase, com registros de auditoria contínuos.
                                     </p>
                                 </div>
                             </Reveal>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* ══════ ENGINES ══════ */}
-            <section
-                className="py-20"
-                style={{ background: "var(--bg-secondary)" }}
-            >
-                <div className="max-w-5xl mx-auto px-6">
-                    <Reveal>
-                        <div className="text-center mb-14">
-                            <h2
-                                className="text-3xl sm:text-4xl font-extrabold mb-4"
-                                style={{ color: "var(--text-primary)" }}
-                            >
-                                5 Motores de IA
-                            </h2>
-                            <p
-                                className="text-base sm:text-lg max-w-xl mx-auto"
-                                style={{ color: "var(--text-secondary)" }}
-                            >
-                                Cada motor é especialista em um aspecto diferente da inclusão.
-                                O professor escolhe qual usar em cada contexto.
-                            </p>
-                        </div>
-                    </Reveal>
-
-                    <div className="flex flex-wrap justify-center gap-4">
-                        {ENGINES.map((engine) => (
-                            <Reveal key={engine.name}>
-                                <div
-                                    className="flex items-center gap-3 px-5 py-3.5 rounded-xl transition-all hover:scale-105"
-                                    style={{
-                                        background: "var(--bg-primary)",
-                                        border: "1px solid var(--border-default)",
-                                    }}
-                                >
-                                    <div
-                                        className="w-3 h-3 rounded-full shrink-0"
-                                        style={{ background: engine.color }}
-                                    />
-                                    <div>
-                                        <p
-                                            className="text-sm font-bold"
-                                            style={{ color: "var(--text-primary)" }}
-                                        >
-                                            {engine.name}
-                                        </p>
-                                        <p
-                                            className="text-xs"
-                                            style={{ color: "var(--text-tertiary)" }}
-                                        >
-                                            {engine.desc}
-                                        </p>
-                                    </div>
+                            <Reveal>
+                                <div className="omni-cartao omni-modulo omni-modulo--pei" style={{ height: "100%", alignItems: "center", textAlign: "center" }}>
+                                    <span className="omni-modulo__selo" aria-hidden><Accessibility /></span>
+                                    <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Acessibilidade 100/100 (WCAG)</h3>
+                                    <p className="omni-cartao__texto" style={{ margin: 0 }}>
+                                        Segue as WCAG, diretrizes internacionais de acessibilidade na web. Design pensado desde o início para navegação por teclado e adaptado para pessoas com TDAH (Transtorno do Déficit de Atenção com Hiperatividade) e outras pessoas neurodivergentes.
+                                    </p>
                                 </div>
                             </Reveal>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* ══════ TRUST & SECURITY ══════ */}
-            <section className="py-24 border-y border-slate-200/50" style={{ background: "var(--bg-primary)" }}>
-                <div className="max-w-7xl mx-auto px-6">
-                    <Reveal>
-                        <div className="text-center mb-16">
-                            <h2 className="text-3xl sm:text-4xl font-extrabold mb-4" style={{ color: "var(--text-primary)" }}>
-                                Tecnologia em que você pode confiar
-                            </h2>
-                            <p className="text-base sm:text-lg max-w-2xl mx-auto" style={{ color: "var(--text-secondary)" }}>
-                                A Omnisfera cuida de toda infraestrutura complexa, privacidade de dados e acessibilidade
-                                por trás dos panos para que os professores foquem 100% no ser humano.
-                            </p>
+                            <Reveal>
+                                <div className="omni-cartao omni-modulo omni-modulo--monitoramento" style={{ height: "100%", alignItems: "center", textAlign: "center" }}>
+                                    <span className="omni-modulo__selo" aria-hidden><Zap /></span>
+                                    <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Alto desempenho (1,1 s)</h3>
+                                    <p className="omni-cartao__texto" style={{ margin: 0 }}>
+                                        Avaliação máxima (AAA) em desempenho. Sistemas pesados que funcionam na hora, mesmo nos computadores da escola.
+                                    </p>
+                                </div>
+                            </Reveal>
                         </div>
-                    </Reveal>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
                         <Reveal>
-                            <div className="flex flex-col items-center text-center p-6">
-                                <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-6">
-                                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                    </svg>
-                                </div>
-                                <h3 className="text-xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>Conformidade LGPD</h3>
-                                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Laudos médicos e PDI's totalmente resguardados no Supabase e logs de auditoria contínuos.</p>
-                            </div>
-                        </Reveal>
-                        <Reveal>
-                            <div className="flex flex-col items-center text-center p-6">
-                                <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-6">
-                                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                    </svg>
-                                </div>
-                                <h3 className="text-xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>100/100 Acessível (WCAG)</h3>
-                                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Design pensado nativamente para navegação por teclado e otimizado para TDAH e neurodivergentes.</p>
-                            </div>
-                        </Reveal>
-                        <Reveal>
-                            <div className="flex flex-col items-center text-center p-6">
-                                <div className="w-16 h-16 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center mb-6">
-                                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                    </svg>
-                                </div>
-                                <h3 className="text-xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>Alta Performance (1.1s)</h3>
-                                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Auditoria AAA em performance. Sistemas pesados que rodam de forma instantânea em computadores escolares.</p>
+                            <div style={{ textAlign: "center" }}>
+                                <Link href="/seguranca" className="omni-btn omni-btn--discreto">
+                                    Saiba mais sobre segurança e privacidade <ArrowRight aria-hidden />
+                                </Link>
                             </div>
                         </Reveal>
                     </div>
+                </section>
 
+                {/* ══════ CHAMADA FINAL ══════ */}
+                <section aria-labelledby="titulo-chamada" style={{ padding: "0 16px 88px" }}>
                     <Reveal>
-                        <div className="text-center mt-8">
-                            <Link href="/seguranca" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline flex items-center justify-center gap-2">
-                                Saiba mais sobre nosso escudo de Proteção e Privacidade →
+                        <div style={{ maxWidth: 820, margin: "0 auto", textAlign: "center", padding: "clamp(32px, 6vw, 56px)", background: "var(--noite)", color: "var(--sobre-noite)", borderRadius: "var(--o-radius-xl) var(--o-radius-xl) var(--o-radius-xl) var(--o-radius-xs)", display: "grid", justifyItems: "center", gap: 16 }}>
+                            <h2 id="titulo-chamada" style={{ margin: 0, font: "800 clamp(26px, 4vw, 36px)/1.15 var(--font-sans)", letterSpacing: "-.03em", color: "var(--sobre-noite)" }}>
+                                Pronto para transformar a inclusão na sua escola?
+                            </h2>
+                            <p style={{ margin: 0, maxWidth: "56ch", font: "400 17px/28px var(--font-sans)", color: "var(--sobre-noite-2)" }}>
+                                Entre na plataforma e comece a construir PEIs, gerar avaliações diagnósticas e criar atividades adaptadas com inteligência artificial.
+                            </p>
+                            <Link href="/login" className="omni-btn omni-btn--grande" style={{ marginTop: 8, background: "var(--sobre-noite)", color: "var(--noite)" }}>
+                                Entrar na Omnisfera <ArrowRight aria-hidden />
                             </Link>
                         </div>
                     </Reveal>
-                </div>
-            </section>
+                </section>
+            </main>
 
-            {/* ══════ CTA FINAL ══════ */}
-            <section className="py-24">
-                <div className="max-w-3xl mx-auto px-6 text-center">
-                    <Reveal>
-                        <h2
-                            className="text-3xl sm:text-4xl font-extrabold mb-6"
-                            style={{ color: "var(--text-primary)" }}
-                        >
-                            Pronto para transformar a inclusão na sua escola?
-                        </h2>
-                        <p
-                            className="text-lg mb-10"
-                            style={{ color: "var(--text-secondary)" }}
-                        >
-                            Entre na plataforma e comece a construir PEIs, gerar avaliações
-                            diagnósticas e criar atividades adaptadas com inteligência artificial.
-                        </p>
-                        <Link
-                            href="/login"
-                            className="inline-block px-10 py-5 rounded-2xl text-lg font-bold text-white transition-all hover:scale-105 active:scale-95"
-                            style={{
-                                background: "linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)",
-                                boxShadow: "0 8px 40px rgba(99, 102, 241, 0.4)",
-                            }}
-                        >
-                            Entrar na Omnisfera →
-                        </Link>
-                    </Reveal>
-                </div>
-            </section>
-
-            {/* ══════ FOOTER ══════ */}
-            <footer
-                className="border-t py-8"
-                style={{
-                    background: "var(--bg-secondary)",
-                    borderColor: "var(--border-default)",
-                }}
-            >
-                <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-2">
-                        <Image
-                            src="/omni_icone.webp"
-                            alt="OmniEducação"
-                            width={24}
-                            height={24}
-                            className="rounded-md opacity-60"
-                        />
-                        <span
-                            className="text-sm"
-                            style={{ color: "var(--text-tertiary)" }}
-                        >
-                            © {new Date().getFullYear()} OmniEducação. Todos os direitos reservados.
-                        </span>
-                    </div>
-                    <div className="flex items-center gap-6">
-                        <Link
-                            href="/privacidade"
-                            className="text-sm hover:underline"
-                            style={{ color: "var(--text-tertiary)" }}
-                        >
-                            Privacidade
-                        </Link>
-                        <Link
-                            href="/login"
-                            className="text-sm font-medium hover:underline"
-                            style={{ color: "#4f46e5" }}
-                        >
-                            Entrar
-                        </Link>
-                    </div>
-                </div>
+            {/* ══════ RODAPÉ ══════ */}
+            <footer style={{ padding: "24px 16px 32px", borderTop: "1px solid var(--borda)", background: "var(--superficie)" }}>
+                <OmniEducacaoSignature variant="full" />
             </footer>
         </div>
     );

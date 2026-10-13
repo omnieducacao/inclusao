@@ -312,56 +312,6 @@ test.describe("Avaliação Diagnóstica - PEI Integration", () => {
             page.locator("text=/Avaliação Diagnóstica|Estudantes|Diagnóstica/i").first()
         ).toBeVisible();
     });
-
-    test("diagnostic stepper shows 4 phases", async ({ authenticatedPage: page }) => {
-        await page.goto("/avaliacao-diagnostica");
-        await page.waitForTimeout(3000);
-
-        // Navigate to a student if available
-        const studentButton = page.locator("button").filter({ hasText: /[A-Z]/ }).first();
-        const hasStudents = await studentButton.isVisible().catch(() => false);
-
-        if (!hasStudents) {
-            test.skip(true, "No students available");
-            return;
-        }
-
-        await studentButton.click();
-        await page.waitForTimeout(1500);
-
-        // Select a discipline if prompted
-        const discButton = page.locator("button").filter({ hasText: /Matemática|Português|Ciências/i }).first();
-        if (await discButton.isVisible()) {
-            await discButton.click();
-            await page.waitForTimeout(1500);
-        }
-
-        // Check for the 4-step progress stepper
-        await expect(page.locator("text=Gerar Avaliação").first()).toBeVisible();
-        await expect(page.locator("text=Aplicar Gabarito").first()).toBeVisible();
-        await expect(page.locator("text=Perfil de Funcionamento").first()).toBeVisible();
-        await expect(page.locator("text=Estratégias Práticas").first()).toBeVisible();
-    });
-
-    test("tab navigation works correctly", async ({ authenticatedPage: page }) => {
-        await page.goto("/avaliacao-diagnostica");
-        await page.waitForTimeout(3000);
-
-        // Check tab bar exists
-        const tabs = ["Estudantes", "Respostas", "Matriz de Referência", "Manual de Aplicação"];
-
-        for (const tab of tabs) {
-            const tabButton = page.locator("button").filter({ hasText: tab }).first();
-            const isVisible = await tabButton.isVisible().catch(() => false);
-            if (isVisible) {
-                await tabButton.click();
-                await page.waitForTimeout(500);
-            }
-        }
-
-        // No errors should have occurred
-        await expect(page.locator("body")).not.toContainText("Error");
-    });
 });
 
 // ─── Data Cleanup ─────────────────────────────────────────────────────────

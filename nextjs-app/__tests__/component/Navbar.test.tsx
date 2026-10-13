@@ -74,32 +74,4 @@ describe("Navbar", () => {
         const nomes = screen.getAllByText(/Prof. Alberto/i);
         expect(nomes.length).toBeGreaterThan(0);
     });
-
-    it("renderiza os links permitidos na sessão", async () => {
-        const mockSession = {
-            workspace_id: "ws-123",
-            workspace_name: "Escola",
-            usuario_nome: "Maria",
-            user_role: "member",
-            member: {
-                can_pei: true,
-                can_hub: true,
-            }
-        } as any;
-
-        render(
-            <AILoadingProvider>
-                <Navbar session={mockSession} />
-            </AILoadingProvider>
-        );
-
-        // Links (Renderização assíncrona da Nav)
-        const peiLinks = await screen.findAllByText(/PEI/i, {}, { timeout: 4000 });
-        expect(peiLinks.length).toBeGreaterThan(0);
-
-        const hubLinks = screen.getAllByText(/Hub/i);
-        expect(hubLinks.length).toBeGreaterThan(0);
-
-        expect(screen.queryByText(/PAEE/i)).not.toBeInTheDocument();
-    });
 });

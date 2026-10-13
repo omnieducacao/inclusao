@@ -8,6 +8,8 @@ import { Workspace } from "../lib/admin-types";
 import { ENGINE_OPTIONS, SEGMENT_OPTIONS, FEED_CATEGORIES } from "../lib/admin-constants";
 
 import React, { useState, useEffect } from "react";
+import { useConfirmar } from "@/components/Confirmar";
+import { MensagemAdmin, type Mensagem } from "./MensagemAdmin";
 export function AvisosTab({ workspaces }: { workspaces: Workspace[] }) {
   const [announcements, setAnnouncements] = useState<any[] /* eslint-disable-line @typescript-eslint/no-explicit-any */>([]);
   const [loading, setLoading] = useState(true);
@@ -19,6 +21,8 @@ export function AvisosTab({ workspaces }: { workspaces: Workspace[] }) {
   const [type, setType] = useState<"info" | "warning" | "alert">("info");
   const [target, setTarget] = useState("all");
   const [submitting, setSubmitting] = useState(false);
+  const [mensagem, setMensagem] = useState<Mensagem | null>(null);
+  const { confirmar, dialogo } = useConfirmar();
 
   useEffect(() => {
     loadAnnouncements();
@@ -41,9 +45,10 @@ export function AvisosTab({ workspaces }: { workspaces: Workspace[] }) {
 
   async function handleCreate() {
     if (!title.trim() || !message.trim()) {
-      alert("Preencha título e mensagem.");
+      setMensagem({ tipo: "atencao", texto: "Escreva o título e a mensagem do aviso." });
       return;
     }
+    setMensagem(null);
     setSubmitting(true);
     try {
       const res = await fetch("/api/admin/announcements", {
@@ -62,9 +67,12 @@ export function AvisosTab({ workspaces }: { workspaces: Workspace[] }) {
         setType("info");
         setTarget("all");
         setShowForm(false);
+        setMensagem({ tipo: "sucesso", texto: "Aviso publicado." });
+      } else {
+        setMensagem({ tipo: "erro", texto: "Não foi possível publicar o aviso." });
       }
     } catch (err) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      alert("Erro ao criar aviso.");
+      setMensagem({ tipo: "erro", texto: "Não foi possível publicar o aviso. Tente de novo." });
     } finally {
       setSubmitting(false);
     }
@@ -82,12 +90,12 @@ export function AvisosTab({ workspaces }: { workspaces: Workspace[] }) {
         setAnnouncements(data.announcements || []);
       }
     } catch { /* expected fallback */
-      alert("Erro ao alterar aviso.");
+      setMensagem({ tipo: "erro", texto: "Não foi possível ligar ou desligar o aviso." });
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Excluir este aviso?")) return;
+    if (!(await confirmar({ titulo: "Excluir este aviso?", texto: "Ele some para todas as escolas. Não dá para desfazer.", acao: "Excluir aviso", cancelar: "Manter aviso", perigo: true }))) return;
     try {
       const res = await fetch("/api/admin/announcements", {
         method: "POST",
@@ -99,103 +107,114 @@ export function AvisosTab({ workspaces }: { workspaces: Workspace[] }) {
         setAnnouncements(data.announcements || []);
       }
     } catch { /* expected fallback */
-      alert("Erro ao excluir aviso.");
+      setMensagem({ tipo: "erro", texto: "Não foi possível excluir o aviso." });
     }
   }
 
-  const typeColors = {
-    info: "bg-blue-100 text-blue-800",
-    warning: "bg-amber-100 text-amber-800",
-    alert: "bg-red-100 text-red-800",
+  const classeTipo: Record<string, string> = {
+    info: "omni-estado--info",
+    warning: "omni-estado--atencao",
+    alert: "omni-estado--erro",
   };
 
   return (
-    <div className="space-y-6">
-      {/* New Announcement Form */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold text-slate-900">📢 Avisos da Plataforma</h3>
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      {dialogo}
+      <MensagemAdmin mensagem={mensagem} onFechar={() => setMensagem(null)} />
+      {/* Novo aviso */}
+      <section className="omni-cartao" aria-labelledby="avisos-titulo">
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <h3 id="avisos-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)", display: "flex", alignItems: "center", gap: 8 }}>
+            <Megaphone size={20} aria-hidden /> Avisos da plataforma
+          </h3>
           <button
+            type="button"
             onClick={() => setShowForm(!showForm)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            aria-expanded={showForm}
+            className={`omni-btn ${showForm ? "omni-btn--secundario" : "omni-btn--primario"}`}
           >
-            {showForm ? <X className="w-4 h-4" /> : <Megaphone className="w-4 h-4" />}
-            {showForm ? "Cancelar" : "Novo Aviso"}
+            {showForm ? <X size={18} aria-hidden /> : <Megaphone size={18} aria-hidden />}
+            {showForm ? "Cancelar" : "Novo aviso"}
           </button>
         </div>
 
         {showForm && (
-          <div className="mt-4 space-y-4 border-t border-slate-200 pt-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Título *</label>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16, borderTop: "1px solid var(--borda)", paddingTop: 16, marginTop: 4 }}>
+            <label className="omni-campo">
+              <span className="omni-campo__rotulo">Título</span>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Ex: Manutenção programada"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                placeholder="Ex.: Manutenção programada"
+                className="omni-entrada"
+                required
               />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Mensagem *</label>
+            </label>
+            <label className="omni-campo" style={{ maxWidth: "none" }}>
+              <span className="omni-campo__rotulo">Mensagem</span>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={3}
-                placeholder="Detalhe o aviso para os usuários..."
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                placeholder="O que as escolas precisam saber."
+                className="omni-entrada"
+                required
               />
-            </div>
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Tipo</label>
+            </label>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+              <label className="omni-campo">
+                <span className="omni-campo__rotulo">Tipo</span>
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value as "info" | "warning" | "alert")}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                  className="omni-entrada"
                 >
-                  <option value="info">ℹ️ Informativo</option>
-                  <option value="warning">⚠️ Aviso</option>
-                  <option value="alert">🔴 Alerta</option>
+                  <option value="info">Informativo</option>
+                  <option value="warning">Atenção</option>
+                  <option value="alert">Urgente</option>
                 </select>
-              </div>
-              <div className="flex-1">
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Destino</label>
+              </label>
+              <label className="omni-campo">
+                <span className="omni-campo__rotulo">Para quem</span>
                 <select
                   value={target}
                   onChange={(e) => setTarget(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                  className="omni-entrada"
                 >
                   <option value="all">Todas as escolas</option>
                   {workspaces.map((ws) => (
                     <option key={ws.id} value={ws.id}>{ws.name}</option>
                   ))}
                 </select>
-              </div>
+              </label>
             </div>
-            <button
-              onClick={handleCreate}
-              disabled={submitting}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-            >
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Megaphone className="w-4 h-4" />}
-              Publicar aviso
-            </button>
+            <div>
+              <button
+                type="button"
+                onClick={handleCreate}
+                disabled={submitting}
+                className="omni-btn omni-btn--primario"
+              >
+                {submitting ? <Loader2 size={18} className="animate-spin" aria-hidden /> : <Megaphone size={18} aria-hidden />}
+                Publicar aviso
+              </button>
+            </div>
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Announcements List */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <h3 className="text-xl font-bold text-slate-900 mb-4">Avisos Publicados</h3>
+      {/* Lista de avisos */}
+      <section className="omni-cartao" aria-labelledby="avisos-lista-titulo">
+        <h3 id="avisos-lista-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" }}>Avisos publicados</h3>
         {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-          </div>
+          <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, padding: "24px 0" }}>
+            <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando avisos…
+          </p>
         ) : announcements.length === 0 ? (
-          <p className="text-slate-600 text-center py-8">Nenhum aviso publicado.</p>
+          <p className="omni-apoio" style={{ textAlign: "center", padding: "24px 0" }}>Nenhum aviso publicado.</p>
         ) : (
-          <div className="space-y-3">
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {announcements.map((a: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
               const wsName = a.target === "all"
                 ? "Todas as escolas"
@@ -206,32 +225,36 @@ export function AvisosTab({ workspaces }: { workspaces: Workspace[] }) {
                 })
                 : "";
               return (
-                <div key={a.id} className={`border rounded-lg p-4 ${a.active ? "border-slate-200" : "border-slate-100 opacity-60"}`}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`px-2 py-0.5 text-xs font-semibold rounded ${typeColors[a.type as keyof typeof typeColors] || typeColors.info}`}>
-                          {a.type === "info" ? "INFO" : a.type === "warning" ? "AVISO" : "ALERTA"}
+                <div key={a.id} className="omni-cartao omni-cartao--plano" style={{ padding: 16, opacity: a.active ? 1 : 0.65 }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                        <span className={`omni-estado ${classeTipo[a.type] || classeTipo.info}`}>
+                          {a.type === "info" ? "Informativo" : a.type === "warning" ? "Atenção" : "Urgente"}
                         </span>
-                        <span className={`px-2 py-0.5 text-xs rounded ${a.active ? "bg-green-100 text-green-800" : "bg-slate-100 text-slate-600"}`}>
+                        <span className={`omni-estado ${a.active ? "omni-estado--sucesso" : "omni-estado--neutro"}`}>
                           {a.active ? "Ativo" : "Inativo"}
                         </span>
-                        <span className="text-xs text-slate-500">· {date} · {wsName}</span>
+                        <span className="omni-apoio" style={{ fontSize: 13 }}>· {date} · {wsName}</span>
                       </div>
-                      <h4 className="font-bold text-slate-900">{a.title}</h4>
-                      <p className="text-sm text-slate-600 mt-1">{a.message}</p>
+                      <h4 style={{ font: "700 16px/22px var(--font-sans)", color: "var(--tinta)" }}>{a.title}</h4>
+                      <p className="omni-apoio" style={{ marginTop: 4 }}>{a.message}</p>
                     </div>
-                    <div className="flex gap-2 ml-4">
+                    <div style={{ display: "flex", gap: 8 }}>
                       <button
+                        type="button"
                         onClick={() => handleToggle(a.id)}
-                        className="px-3 py-1 text-xs border border-slate-300 rounded-lg hover:bg-slate-50"
+                        className="omni-btn omni-btn--secundario omni-btn--pequeno"
                       >
+                        {a.active ? <Pause size={16} aria-hidden /> : <Play size={16} aria-hidden />}
                         {a.active ? "Desativar" : "Ativar"}
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleDelete(a.id)}
-                        className="px-3 py-1 text-xs border border-red-300 text-red-700 rounded-lg hover:bg-red-50"
+                        className="omni-btn omni-btn--perigo omni-btn--pequeno"
                       >
+                        <Trash2 size={16} aria-hidden />
                         Excluir
                       </button>
                     </div>
@@ -241,7 +264,7 @@ export function AvisosTab({ workspaces }: { workspaces: Workspace[] }) {
             })}
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

@@ -8,10 +8,12 @@ import { Workspace } from "../lib/admin-types";
 import { ENGINE_OPTIONS, SEGMENT_OPTIONS, FEED_CATEGORIES } from "../lib/admin-constants";
 
 import React, { useState, useEffect } from "react";
+import { MensagemAdmin, type Mensagem } from "./MensagemAdmin";
 export function TermoTab() {
   const [termsText, setTermsText] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [mensagem, setMensagem] = useState<Mensagem | null>(null);
 
   useEffect(() => {
     loadTerms();
@@ -46,6 +48,7 @@ export function TermoTab() {
 
   async function handleSave() {
     setSaving(true);
+    setMensagem(null);
     try {
       const res = await fetch("/api/admin/platform-config", {
         method: "POST",
@@ -54,14 +57,14 @@ export function TermoTab() {
       });
 
       if (res.ok) {
-        alert("Termo salvo. Os usuários verão a nova versão no próximo primeiro acesso.");
+        setMensagem({ tipo: "sucesso", texto: "Termo salvo. Quem entrar pela primeira vez verá a nova versão." });
       } else {
         const error = await res.json().catch(() => ({}));
-        alert(`Erro ao salvar: ${error.error || "Erro desconhecido"}`);
+        setMensagem({ tipo: "erro", texto: `Não foi possível salvar o termo. ${error.error || ""}`.trim() });
       }
     } catch (err) {
       /* client-side */ console.error("Erro ao salvar termos:", err);
-      alert("Erro ao salvar termo.");
+      setMensagem({ tipo: "erro", texto: "Não foi possível salvar o termo. Tente de novo." });
     } finally {
       setSaving(false);
     }
@@ -69,38 +72,45 @@ export function TermoTab() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-        </div>
+      <div className="omni-cartao">
+        <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, padding: "24px 0" }}>
+          <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando termo…
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-      <h3 className="text-xl font-bold text-slate-900 mb-2">📜 Termo de Uso e Confidencialidade</h3>
-      <p className="text-slate-600 text-sm mb-4">Este texto aparece no primeiro acesso de cada usuário após o login.</p>
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-2">Texto do termo</label>
+    <section className="omni-cartao" aria-labelledby="termo-titulo">
+      <h3 id="termo-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)", display: "flex", alignItems: "center", gap: 8 }}>
+        <FileText size={20} aria-hidden /> Termo de uso e confidencialidade
+      </h3>
+      <p className="omni-apoio">Este texto aparece no primeiro acesso de cada usuário, depois de entrar.</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <label className="omni-campo" style={{ maxWidth: "none" }}>
+          <span className="omni-campo__rotulo">Texto do termo</span>
           <textarea
             value={termsText}
             onChange={(e) => setTermsText(e.target.value)}
             rows={14}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono text-sm"
-            placeholder="Digite o texto do termo de uso..."
+            className="omni-entrada"
+            style={{ fontFamily: "var(--font-mono)", fontSize: 14 }}
+            placeholder="Escreva o texto do termo de uso."
           />
+        </label>
+        <MensagemAdmin mensagem={mensagem} onFechar={() => setMensagem(null)} />
+        <div>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="omni-btn omni-btn--primario"
+          >
+            {saving ? <Loader2 size={18} className="animate-spin" aria-hidden /> : <Save size={18} aria-hidden />}
+            Salvar termo
+          </button>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-        >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          Salvar termo
-        </button>
       </div>
-    </div>
+    </section>
   );
 }

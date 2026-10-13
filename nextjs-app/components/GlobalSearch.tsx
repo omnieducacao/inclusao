@@ -14,8 +14,8 @@ type SearchResult = {
 };
 
 /**
- * GlobalSearch — Cmd+K palette for quick search across
- * students and members.
+ * GlobalSearch — busca rápida (Ctrl+K ou ⌘K) por estudantes e pessoas da equipe.
+ * Onda 20: design system; resultados como lista de opções (combobox) para leitor de tela.
  */
 export function GlobalSearch() {
     const [open, setOpen] = useState(false);
@@ -122,146 +122,171 @@ export function GlobalSearch() {
 
     const hasResults = allResults.length > 0;
     const hasQuery = query.length >= 2;
+    const idOpcao = (i: number) => `busca-global-opcao-${i}`;
+
+    const estiloGrupo: React.CSSProperties = { padding: "12px 12px 6px", margin: 0 };
+
+    const opcao = (result: SearchResult, globalIdx: number, rotulo: string, destino: string) => {
+        const ativa = selectedIndex === globalIdx;
+        const Icone = result.type === "student" ? User : Users;
+        return (
+            <li
+                key={result.id}
+                id={idOpcao(globalIdx)}
+                role="option"
+                aria-selected={ativa}
+                aria-label={rotulo}
+                onClick={() => navigate(result)}
+                onMouseEnter={() => setSelectedIndex(globalIdx)}
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "10px 12px",
+                    borderRadius: "var(--o-radius-sm)",
+                    cursor: "pointer",
+                    background: ativa ? "var(--acao-suave)" : "transparent",
+                    outline: ativa ? "1.5px solid var(--acao)" : "none",
+                    outlineOffset: -1.5,
+                    color: "var(--tinta)",
+                }}
+            >
+                <span
+                    aria-hidden
+                    style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: "50%",
+                        display: "grid",
+                        placeItems: "center",
+                        flexShrink: 0,
+                        background: result.type === "student" ? "var(--encontro-azul-suave)" : "var(--encontro-roxo-suave)",
+                        color: result.type === "student" ? "var(--encontro-azul-forte)" : "var(--encontro-roxo-forte)",
+                    }}
+                >
+                    <Icone style={{ width: 16, height: 16 }} />
+                </span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: "block", font: "700 14px/20px var(--font-sans)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{result.name}</span>
+                    <span style={{ display: "block", font: "400 13px/18px var(--font-sans)", color: "var(--tinta-2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {result.type === "student"
+                            ? <>{result.subtitle}{result.diagnosis && ` · ${result.diagnosis}`}</>
+                            : <>{result.subtitle} · {result.role}</>}
+                    </span>
+                </span>
+                <span aria-hidden style={{ font: "600 12px/16px var(--font-sans)", color: "var(--tinta-3)", flexShrink: 0 }}>{destino}</span>
+            </li>
+        );
+    };
 
     return (
         <div
-            className="fixed inset-0 z-9997 flex items-start justify-center pt-[15vh]"
-            style={{ backgroundColor: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(4px)" }}
+            style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 9997,
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "center",
+                paddingTop: "15vh",
+                background: "rgba(13, 21, 38, 0.55)",
+            }}
             onClick={(e) => {
                 if (e.target === e.currentTarget) setOpen(false);
             }}
             role="dialog"
             aria-modal="true"
-            aria-label="Busca global"
+            aria-label="Busca rápida"
         >
             <div
-                className="rounded-2xl shadow-2xl max-w-xl w-full mx-4 overflow-hidden animate-fade-in"
-                style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}
+                style={{
+                    width: "calc(100% - 32px)",
+                    maxWidth: 576,
+                    overflow: "hidden",
+                    background: "var(--superficie)",
+                    border: "1px solid var(--borda)",
+                    borderRadius: "var(--o-radius-lg) var(--o-radius-lg) var(--o-radius-lg) var(--o-radius-xs)",
+                    boxShadow: "var(--sombra-2)",
+                }}
             >
-                {/* Search input */}
-                <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: '1px solid var(--border-default)' }}>
-                    <Search className="w-5 h-5 shrink-0" style={{ color: 'var(--text-muted)' }} />
+                {/* Campo de busca */}
+                <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 12px 12px 20px", borderBottom: "1px solid var(--borda)" }}>
+                    <Search aria-hidden style={{ width: 20, height: 20, flexShrink: 0, color: "var(--tinta-3)" }} />
                     <input
                         ref={inputRef}
                         type="text"
-                        aria-label="Buscar estudantes ou membros"
+                        role="combobox"
+                        aria-label="Buscar estudantes ou pessoas da equipe"
+                        aria-expanded={hasResults}
+                        aria-controls="busca-global-resultados"
+                        aria-autocomplete="list"
+                        aria-activedescendant={hasResults ? idOpcao(selectedIndex) : undefined}
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         onKeyDown={handleKeydown}
-                        placeholder="Pesquise pelo &quot;nome&quot; para encontrar estudantes rapidamente.óstico ou membro..."
-                        className="flex-1 text-sm outline-none"
-                        style={{ color: 'var(--text-primary)', backgroundColor: 'transparent' }}
+                        placeholder="Digite o nome de um estudante ou de alguém da equipe"
+                        style={{ flex: 1, minWidth: 0, minHeight: 40, border: 0, outline: "none", background: "transparent", font: "400 16px/24px var(--font-sans)", color: "var(--tinta)" }}
                     />
-                    {loading && <Loader2 className="w-4 h-4 text-blue-500 animate-spin shrink-0" />}
+                    {loading && <Loader2 aria-hidden className="animate-spin" style={{ width: 18, height: 18, flexShrink: 0, color: "var(--acao)" }} />}
                     <button
                         type="button"
                         onClick={() => setOpen(false)}
                         aria-label="Fechar busca"
-                        className="text-xs px-2 py-1 rounded-md font-mono"
-                        style={{ color: 'var(--text-muted)', backgroundColor: 'var(--bg-tertiary)' }}
+                        className="omni-btn omni-btn--secundario omni-btn--pequeno"
+                        style={{ font: "500 12px/16px var(--font-mono)" }}
                     >
-                        ESC
+                        Esc
                     </button>
                 </div>
 
-                {/* Results */}
-                <div className="max-h-[50vh] overflow-y-auto">
-                    {hasQuery && !hasResults && !loading && (
-                        <div className="py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-                            {/* eslint-disable-next-line react/no-unescaped-entities */}
-                            {/* eslint-disable-next-line react/no-unescaped-entities */}
-                            Nenhum resultado para "{query}"
-                        </div>
-                    )}
+                {/* Resultados */}
+                <div style={{ maxHeight: "50vh", overflowY: "auto", padding: "0 8px 8px" }}>
+                    <p role="status" className={hasQuery && !hasResults && !loading ? "omni-apoio" : "omni-so-leitor"} style={{ margin: 0, padding: hasQuery && !hasResults && !loading ? "32px 16px" : undefined, textAlign: "center" }}>
+                        {hasQuery && !hasResults && !loading
+                            ? <>Nada encontrado para &ldquo;{query}&rdquo;.</>
+                            : hasResults
+                                ? `${allResults.length} resultado${allResults.length === 1 ? "" : "s"}. Use as setas para escolher.`
+                                : ""}
+                    </p>
 
                     {!hasQuery && (
-                        <div className="py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-                            Digite ao menos 2 caracteres para buscar
-                        </div>
+                        <p className="omni-apoio" style={{ margin: 0, padding: "32px 16px", textAlign: "center" }}>
+                            Digite pelo menos 2 letras para buscar.
+                        </p>
                     )}
 
-                    {/* Students */}
-                    {results.students.length > 0 && (
-                        <div className="px-2 pt-2">
-                            <div className="px-3 py-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                Estudantes
-                            </div>
-                            {results.students.map((result, i) => {
-                                const globalIdx = i;
-                                return (
-                                    <button
-                                        key={result.id}
-                                        type="button"
-                                        onClick={() => navigate(result)}
-                                        aria-label={`Ir para PEI de ${result.name}`}
-                                        className={`w-full text-left px-3 py-3 rounded-xl flex items-center gap-3 transition-colors ${selectedIndex === globalIdx
-                                            ? "bg-blue-50 text-blue-800"
-                                            : "hover:bg-slate-50 text-slate-700"
-                                            }`}
-                                    >
-                                        <div className="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center shrink-0">
-                                            <User className="w-4 h-4 text-sky-600" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="text-sm font-semibold truncate">{result.name}</div>
-                                            <div className="text-xs text-slate-400 truncate">
-                                                {result.subtitle}
-                                                {result.diagnosis && ` · ${result.diagnosis}`}
-                                            </div>
-                                        </div>
-                                        <span className="text-xs text-slate-300">→ PEI</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    )}
-
-                    {/* Members */}
-                    {results.members.length > 0 && (
-                        <div className="px-2 pt-1 pb-2">
-                            <div className="px-3 py-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                Equipe
-                            </div>
-                            {results.members.map((result, i) => {
-                                const globalIdx = results.students.length + i;
-                                return (
-                                    <button
-                                        key={result.id}
-                                        type="button"
-                                        onClick={() => navigate(result)}
-                                        aria-label={`Ir para gestão de ${result.name}`}
-                                        className={`w-full text-left px-3 py-3 rounded-xl flex items-center gap-3 transition-colors ${selectedIndex === globalIdx
-                                            ? "bg-blue-50 text-blue-800"
-                                            : "hover:bg-slate-50 text-slate-700"
-                                            }`}
-                                    >
-                                        <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
-                                            <Users className="w-4 h-4 text-indigo-600" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="text-sm font-semibold truncate">{result.name}</div>
-                                            <div className="text-xs text-slate-400 truncate">
-                                                {result.subtitle} · {result.role}
-                                            </div>
-                                        </div>
-                                        <span className="text-xs text-slate-300">→ Gestão</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
+                    {hasResults && (
+                        <ul id="busca-global-resultados" role="listbox" aria-label="Resultados da busca" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                            {results.students.length > 0 && (
+                                <li role="presentation">
+                                    <p className="omni-rotulo" style={estiloGrupo} aria-hidden>Estudantes</p>
+                                    <ul role="group" aria-label="Estudantes" style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 2 }}>
+                                        {results.students.map((result, i) => opcao(result, i, `Ir para o PEI de ${result.name}`, "Abrir PEI"))}
+                                    </ul>
+                                </li>
+                            )}
+                            {results.members.length > 0 && (
+                                <li role="presentation">
+                                    <p className="omni-rotulo" style={estiloGrupo} aria-hidden>Equipe</p>
+                                    <ul role="group" aria-label="Equipe" style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 2 }}>
+                                        {results.members.map((result, i) => opcao(result, results.students.length + i, `Ir para a gestão de ${result.name}`, "Abrir gestão"))}
+                                    </ul>
+                                </li>
+                            )}
+                        </ul>
                     )}
                 </div>
 
-                {/* Footer */}
-                <div className="px-4 py-2.5 flex items-center justify-between text-xs" style={{ backgroundColor: 'var(--bg-tertiary)', borderTop: '1px solid var(--border-default)', color: 'var(--text-muted)' }}>
-                    <div className="flex items-center gap-3">
-                        <span>↑↓ navegar</span>
-                        <span>↵ selecionar</span>
-                        <span>ESC fechar</span>
+                {/* Rodapé com atalhos */}
+                <div aria-hidden style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "10px 16px", background: "var(--superficie-2)", borderTop: "1px solid var(--borda)", font: "400 12px/16px var(--font-sans)", color: "var(--tinta-2)" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+                        <span>↑↓ escolher</span>
+                        <span>Enter abrir</span>
+                        <span>Esc fechar</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                        <span className="font-mono px-1.5 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--border-strong)' }}>⌘</span>
-                        <span className="font-mono px-1.5 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--border-strong)' }}>K</span>
+                    <div style={{ display: "flex", gap: 4 }}>
+                        <kbd style={{ font: "500 11px/16px var(--font-mono)", padding: "1px 6px", borderRadius: "var(--o-radius-xs)", background: "var(--superficie)", border: "1px solid var(--borda-forte)" }}>Ctrl ou ⌘</kbd>
+                        <kbd style={{ font: "500 11px/16px var(--font-mono)", padding: "1px 6px", borderRadius: "var(--o-radius-xs)", background: "var(--superficie)", border: "1px solid var(--borda-forte)" }}>K</kbd>
                     </div>
                 </div>
             </div>

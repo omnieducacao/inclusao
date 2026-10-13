@@ -1,135 +1,119 @@
-import { Shield, Lock, Server, CheckCircle2, Baseline, HeartHandshake } from "lucide-react";
+/**
+ * Segurança e transparência — página pública, acessível sem login.
+ * Onda 20: levada ao design system, com a mesma identidade do login (fundo, marca, círculos e cartões).
+ * O conteúdo é o mesmo de antes; só foi reorganizado e revisado no português (sem termos em inglês).
+ */
+import { Shield, Lock, Server, CheckCircle2, Baseline, HeartHandshake, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
+import SimboloOmnisfera from "@/components/SimboloOmnisfera";
+import { OmniEducacaoSignature } from "@/components/Footer";
+
+export const metadata = {
+    title: "Segurança e transparência | Omnisfera",
+    description: "Como a Omnisfera protege os dados, garante acessibilidade e usa inteligência artificial com transparência.",
+};
+
+const PILARES = [
+    {
+        Icone: Lock,
+        modulo: "pei",
+        titulo: "Proteção de dados (LGPD)",
+        texto: "Os laudos e os dados sensíveis dos estudantes ficam protegidos na nuvem (Supabase), com criptografia de ponta a ponta.",
+        itens: ["Registros de auditoria rigorosos", "Banco de dados isolado"],
+    },
+    {
+        Icone: Server,
+        modulo: "diario",
+        titulo: "Desempenho de nível empresarial",
+        texto: "Construída com tecnologia atual (Next.js 16), a Omnisfera abre módulos institucionais complexos em menos de 1 segundo: o primeiro conteúdo aparece em 1,1 s (medida conhecida como FCP).",
+        itens: ["Nota 100/100 em boas práticas", "Sem carregamentos lentos"],
+    },
+    {
+        Icone: Baseline,
+        modulo: "hub",
+        titulo: "100% acessível (WCAG AAA)",
+        texto: "Design aprovado nas métricas internacionais de acessibilidade na web (WCAG, as diretrizes de acessibilidade para conteúdo web, no nível mais alto, AAA). Contraste perfeito e navegação inclusiva para diretores e professores.",
+        itens: ["Contraste aprovado (nota 100/100 em acessibilidade)", "Sistema de design inclusivo"],
+    },
+] as const;
 
 export default function SegurancaPage() {
     return (
-        <div className="min-h-dvh flex flex-col bg-slate-50">
-            {/* Header */}
-            <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
-                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <Link href="/landing" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                        <Image
-                            src="/omni_icone.webp"
-                            alt="Omnisfera"
-                            width={32}
-                            height={32}
-                            className="rounded-lg"
-                        />
-                        <span className="text-xl font-bold tracking-tight text-slate-800">
-                            Omnisfera
-                        </span>
-                    </Link>
-                    <Link
-                        href="/login"
-                        className="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
-                    >
-                        Entrar na Plataforma
-                    </Link>
+        <div className="omni-base" style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", background: "var(--fundo)", color: "var(--tinta)" }}>
+            <a href="#conteudo" className="omni-pular">Pular para o conteúdo</a>
+
+            <header className="omni-topo">
+                <Link href="/landing" className="omni-topo__marca" aria-label="Omnisfera, página inicial">
+                    <SimboloOmnisfera tamanho={34} />
+                    <span className="omni-topo__nome" aria-hidden>omnisfera</span>
+                </Link>
+                <div className="omni-topo__acoes">
+                    <Link href="/login" className="omni-btn omni-btn--primario omni-btn--pequeno">Entrar na plataforma</Link>
                 </div>
             </header>
 
-            {/* Hero */}
-            <main className="flex-1">
-                <section className="pt-20 pb-16 px-6 text-center max-w-4xl mx-auto">
-                    <div className="inline-flex items-center justify-center p-3 bg-emerald-100 text-emerald-700 rounded-2xl mb-6">
-                        <Shield className="w-8 h-8" />
+            <main id="conteudo" style={{ flex: 1 }}>
+                {/* Abertura */}
+                <section style={{ position: "relative", overflow: "hidden", isolation: "isolate", padding: "64px 16px 56px" }}>
+                    {/* círculos de fundo, como no login */}
+                    <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: -1, pointerEvents: "none" }}>
+                        <i style={{ position: "absolute", width: 300, height: 300, borderRadius: "50%", opacity: 0.12, background: "var(--encontro-vermelho)", top: -120, left: -80 }} />
+                        <i style={{ position: "absolute", width: 240, height: 240, borderRadius: "50%", opacity: 0.12, background: "var(--encontro-verde)", top: "10%", right: -100 }} />
+                        <i style={{ position: "absolute", width: 160, height: 160, borderRadius: "50%", opacity: 0.12, background: "var(--encontro-amarelo)", bottom: -60, left: "30%" }} />
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">
-                        Segurança e Confiança
-                    </h1>
-                    <p className="text-lg md:text-xl text-slate-600 leading-relaxed">
-                        Nós cuidamos da infraestrutura, da proteção de dados (LGPD) e da performance técnica
-                        para que sua escola possa focar no que realmente importa: a inclusão dos estudantes.
-                    </p>
+                    <div style={{ maxWidth: 760, margin: "0 auto", textAlign: "center", display: "grid", justifyItems: "center", gap: 16 }}>
+                        <span aria-hidden style={{ width: 64, height: 64, borderRadius: "50%", display: "grid", placeItems: "center", background: "var(--encontro-verde)", color: "var(--sobre-encontro)" }}>
+                            <Shield style={{ width: 30, height: 30 }} />
+                        </span>
+                        <span className="omni-rotulo" style={{ color: "var(--acao)" }}>Segurança e transparência</span>
+                        <h1 style={{ margin: 0, font: "800 clamp(32px, 6vw, 52px)/1.08 var(--font-sans)", letterSpacing: "-.035em", color: "var(--tinta)" }}>
+                            Segurança e confiança
+                        </h1>
+                        <p style={{ margin: 0, maxWidth: "60ch", font: "400 18px/29px var(--font-sans)", color: "var(--tinta-2)" }}>
+                            Nós cuidamos da infraestrutura, da proteção de dados (de acordo com a LGPD, a Lei Geral de Proteção de Dados) e do desempenho técnico, para que a sua escola possa focar no que realmente importa: a inclusão dos estudantes.
+                        </p>
+                    </div>
                 </section>
 
                 {/* Pilares */}
-                <section className="py-16 px-6 bg-white border-y border-slate-100">
-                    <div className="max-w-6xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {/* LGPD */}
-                        <div className="p-8 rounded-3xl bg-slate-50 border border-slate-200 hover:shadow-lg transition-shadow">
-                            <Lock className="w-10 h-10 text-indigo-600 mb-6" />
-                            <h3 className="text-xl font-bold text-slate-900 mb-3">
-                                Proteção de Dados (LGPD)
-                            </h3>
-                            <p className="text-slate-600 leading-relaxed mb-4">
-                                Os laudos e dados sensíveis dos alunos são protegidos em nuvem com criptografia de ponta a ponta (Supabase).
-                            </p>
-                            <ul className="space-y-2 text-sm text-slate-700 font-medium">
-                                <li className="flex items-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Logs de auditoria rigorosos
-                                </li>
-                                <li className="flex items-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Banco isolado
-                                </li>
-                            </ul>
-                        </div>
-
-                        {/* Performance */}
-                        <div className="p-8 rounded-3xl bg-slate-50 border border-slate-200 hover:shadow-lg transition-shadow">
-                            <Server className="w-10 h-10 text-sky-500 mb-6" />
-                            <h3 className="text-xl font-bold text-slate-900 mb-3">
-                                Performance Enterprise
-                            </h3>
-                            <p className="text-slate-600 leading-relaxed mb-4">
-                                Construída com a mais nova tecnologia (Next.js v16), a Omnisfera carrega módulos
-                                institucionais complexos em menos de 1 segundo (FCP 1.1s).
-                            </p>
-                            <ul className="space-y-2 text-sm text-slate-700 font-medium">
-                                <li className="flex items-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Certificado 100/100 Best Practices
-                                </li>
-                                <li className="flex items-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Sem carregamentos lentos
-                                </li>
-                            </ul>
-                        </div>
-
-                        {/* Acessibilidade */}
-                        <div className="p-8 rounded-3xl bg-slate-50 border border-slate-200 hover:shadow-lg transition-shadow">
-                            <Baseline className="w-10 h-10 text-emerald-500 mb-6" />
-                            <h3 className="text-xl font-bold text-slate-900 mb-3">
-                                100% Acessível (WCAG AAA)
-                            </h3>
-                            <p className="text-slate-600 leading-relaxed mb-4">
-                                Design aprovado nas métricas internacionais de acessibilidade web. Contraste perfeito
-                                e navegação inclusiva para diretores e professores.
-                            </p>
-                            <ul className="space-y-2 text-sm text-slate-700 font-medium">
-                                <li className="flex items-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Contraste Aprovado (A11y 100/100)
-                                </li>
-                                <li className="flex items-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Design System Inclusivo
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
+                <section aria-label="Nossos pilares" style={{ padding: "48px 16px", background: "var(--superficie-2)", borderBlock: "1px solid var(--borda)" }}>
+                    <ul style={{ listStyle: "none", margin: "0 auto", padding: 0, maxWidth: 1120, display: "grid", gap: 24, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))" }}>
+                        {PILARES.map(({ Icone, modulo, titulo, texto, itens }) => (
+                            <li key={titulo} className={`omni-cartao omni-modulo omni-modulo--${modulo}`} style={{ gap: 16, padding: "clamp(20px, 3vw, 32px)" }}>
+                                <span className="omni-modulo__selo" aria-hidden><Icone /></span>
+                                <h2 style={{ margin: 0, font: "800 20px/26px var(--font-sans)", letterSpacing: "-.015em", color: "var(--tinta)" }}>{titulo}</h2>
+                                <p className="omni-cartao__texto" style={{ margin: 0 }}>{texto}</p>
+                                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8 }}>
+                                    {itens.map((item) => (
+                                        <li key={item} style={{ display: "flex", alignItems: "flex-start", gap: 8, font: "600 14px/20px var(--font-sans)", color: "var(--tinta)" }}>
+                                            <CheckCircle2 aria-hidden style={{ width: 18, height: 18, flexShrink: 0, color: "var(--sucesso)" }} /> {item}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </li>
+                        ))}
+                    </ul>
                 </section>
 
-                <section className="py-20 px-6 max-w-4xl mx-auto text-center">
-                    <HeartHandshake className="w-12 h-12 text-rose-500 mx-auto mb-6" />
-                    <h2 className="text-3xl font-bold text-slate-900 mb-6">
-                        Transparência é Inclusão
+                {/* Transparência */}
+                <section style={{ padding: "64px 16px", maxWidth: 760, margin: "0 auto", textAlign: "center", display: "grid", justifyItems: "center", gap: 16 }}>
+                    <span aria-hidden style={{ width: 56, height: 56, borderRadius: "50%", display: "grid", placeItems: "center", background: "var(--encontro-vermelho)", color: "var(--sobre-encontro-claro)" }}>
+                        <HeartHandshake style={{ width: 28, height: 28 }} />
+                    </span>
+                    <h2 style={{ margin: 0, font: "800 clamp(26px, 4vw, 34px)/1.15 var(--font-sans)", letterSpacing: "-.025em", color: "var(--tinta)" }}>
+                        Transparência é inclusão
                     </h2>
-                    <p className="text-lg text-slate-600 leading-relaxed mb-10">
-                        Nossos modelos de Inteligência Artificial (DeepSeek, Kimi, Claude, Gemini, OpenAI) são
-                        orquestrados por um Firewall estrito. Seus "prompts" educacionais, ao construírem o PEI,
-                        não são usados para treinar IAs públicas. O foco é exclusivo no aluno.
+                    <p style={{ margin: 0, font: "400 17px/28px var(--font-sans)", color: "var(--tinta-2)" }}>
+                        Nossos modelos de inteligência artificial (DeepSeek, Kimi, Claude, Gemini e OpenAI) passam por uma barreira de proteção rígida (um <em>firewall</em>). Os pedidos que você escreve ao construir o PEI (Plano Educacional Individualizado) não são usados para treinar IAs públicas. O foco é só o estudante.
                     </p>
-                    <Link
-                        href="/landing"
-                        className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-indigo-600 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition-colors"
-                    >
-                        Voltar para a Página Inicial
+                    <Link href="/landing" className="omni-btn omni-btn--secundario omni-btn--grande" style={{ marginTop: 16 }}>
+                        <ArrowLeft aria-hidden /> Voltar para a página inicial
                     </Link>
                 </section>
             </main>
 
-            {/* Footer super limpo */}
-            <footer className="py-10 text-center border-t border-slate-200 text-slate-500 text-sm">
-                <p>© {new Date().getFullYear()} OmniEducação. Todos os direitos reservados.</p>
+            <footer style={{ padding: "24px 16px 32px", borderTop: "1px solid var(--borda)", background: "var(--superficie)" }}>
+                <OmniEducacaoSignature variant="full" />
             </footer>
         </div>
     );

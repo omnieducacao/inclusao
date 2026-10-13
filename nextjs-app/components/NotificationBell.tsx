@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Bell, X, AlertTriangle, Info, AlertCircle, ExternalLink, Megaphone } from "lucide-react";
+import { Bell, X, AlertTriangle, Info, AlertCircle, ExternalLink, Megaphone, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 type Notification = {
@@ -138,72 +138,80 @@ export function NotificationBell() {
         }
     };
 
-    const getSeverityIcon = (severity: string) => {
+    // Onda 20: cores do design system (erro, atenção, informação) em vez da paleta do Tailwind
+    const corDaSeveridade = (severity: string) => {
         switch (severity) {
             case "alert":
-                return <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />;
+                return { cor: "var(--erro)", suave: "var(--erro-suave)" };
             case "warning":
-                return <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />;
+                return { cor: "var(--atencao)", suave: "var(--atencao-suave)" };
             default:
-                return <Info className="w-4 h-4 text-blue-500 shrink-0" />;
+                return { cor: "var(--info)", suave: "var(--info-suave)" };
         }
     };
 
-    const getSeverityBg = (severity: string) => {
+    const getSeverityIcon = (severity: string, tamanho = 16) => {
+        const estilo = { width: tamanho, height: tamanho, flexShrink: 0, marginTop: 2, color: corDaSeveridade(severity).cor };
         switch (severity) {
             case "alert":
-                return "bg-red-50 border-red-100";
+                return <AlertCircle aria-hidden style={estilo} />;
             case "warning":
-                return "bg-amber-50 border-amber-100";
+                return <AlertTriangle aria-hidden style={estilo} />;
             default:
-                return "bg-blue-50 border-blue-100";
+                return <Info aria-hidden style={estilo} />;
         }
     };
 
-    const getAnnouncementConfig = (type: "info" | "warning" | "alert") => {
-        const configs = {
-            info: {
-                bg: "bg-blue-50",
-                border: "border-blue-200",
-                text: "text-blue-900",
-                icon: <Info className="w-6 h-6 text-blue-600" />,
-                buttonBg: "bg-blue-600 hover:bg-blue-700",
-            },
-            warning: {
-                bg: "bg-amber-50",
-                border: "border-amber-200",
-                text: "text-amber-900",
-                icon: <AlertTriangle className="w-6 h-6 text-amber-600" />,
-                buttonBg: "bg-amber-600 hover:bg-amber-700",
-            },
-            alert: {
-                bg: "bg-red-50",
-                border: "border-red-200",
-                text: "text-red-900",
-                icon: <AlertCircle className="w-6 h-6 text-red-600" />,
-                buttonBg: "bg-red-600 hover:bg-red-700",
-            },
-        };
-        return configs[type] || configs.info;
+    const nomeDaSeveridade = (severity: string) =>
+        severity === "alert" ? "Alerta" : severity === "warning" ? "Atenção" : "Informação";
+
+    // Comunicado aberto: <dialog> nativo (prende o foco, fecha com Esc)
+    const dialogoRef = useRef<HTMLDialogElement | null>(null);
+    useEffect(() => {
+        const d = dialogoRef.current;
+        if (!selectedAnnouncement || !d) return;
+        if (!d.open) {
+            try { d.showModal(); } catch { d.setAttribute("open", ""); }
+        }
+    }, [selectedAnnouncement]);
+    const fecharComunicado = () => {
+        dialogoRef.current?.close();
+        setSelectedAnnouncement(null);
     };
 
     return (
-        <div ref={ref} className="relative">
+        <div ref={ref} style={{ position: "relative" }}>
             <button
                 type="button"
                 onClick={handleToggle}
-                className="relative p-2 rounded-lg transition-colors"
-                style={{ color: 'var(--text-muted)' }}
-                onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-hover)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'; }}
-                onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = ''; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; }}
+                className="omni-btn omni-btn--discreto omni-btn--icone"
+                style={{ position: "relative", color: open ? "var(--tinta)" : "var(--tinta-2)" }}
                 title="Notificações"
                 aria-label={`Notificações${total > 0 ? ` (${total} pendentes)` : ''}`}
                 aria-expanded={open}
                 aria-haspopup="true"
             >
-                <Bell className="w-5 h-5" />
+                <Bell aria-hidden style={{ width: 20, height: 20 }} />
                 {total > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center min-w-[18px] px-1 border-2 border-white">
+                    <span
+                        aria-hidden
+                        style={{
+                            position: "absolute",
+                            top: 4,
+                            right: 4,
+                            minWidth: 18,
+                            height: 18,
+                            padding: "0 4px",
+                            borderRadius: 999,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: "var(--erro)",
+                            color: "var(--sobre-acao)",
+                            border: "2px solid var(--superficie)",
+                            font: "700 10px/1 var(--font-sans)",
+                        }}
+                    >
                         {total > 9 ? "9+" : total}
                     </span>
                 )}
@@ -211,136 +219,153 @@ export function NotificationBell() {
 
             {open && (
                 <div
-                    className="absolute right-0 top-full mt-2 w-80 rounded-2xl shadow-2xl overflow-hidden animate-fade-in z-50"
-                    style={{ maxHeight: "60vh", backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}
+                    role="region"
+                    aria-label="Notificações"
+                    style={{
+                        position: "absolute",
+                        right: 0,
+                        top: "calc(100% + 8px)",
+                        width: "min(320px, calc(100vw - 32px))",
+                        maxHeight: "60vh",
+                        overflow: "hidden",
+                        zIndex: 60, // = --camada-menu
+                        background: "var(--superficie)",
+                        border: "1px solid var(--borda)",
+                        borderRadius: "var(--o-radius-lg) var(--o-radius-xs) var(--o-radius-lg) var(--o-radius-lg)",
+                        boxShadow: "var(--sombra-2)",
+                    }}
                 >
-                    {/* Header */}
-                    <div className="flex items-center justify-between px-4 py-3" style={{ backgroundColor: 'var(--bg-tertiary)', borderBottom: '1px solid var(--border-default)' }}>
-                        <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+                    {/* Cabeçalho */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "8px 8px 8px 16px", background: "var(--superficie-2)", borderBottom: "1px solid var(--borda)" }}>
+                        <h3 style={{ margin: 0, font: "700 15px/20px var(--font-sans)", color: "var(--tinta)" }}>
                             Notificações
                             {total > 0 && (
-                                <span className="ml-2 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>({total})</span>
+                                <span style={{ marginLeft: 8, font: "500 13px/18px var(--font-mono)", color: "var(--tinta-3)" }}>({total})</span>
                             )}
                         </h3>
                         <button
                             type="button"
                             onClick={() => setOpen(false)}
-                            className="hover:opacity-70 transition-opacity"
-                            style={{ color: 'var(--text-muted)' }}
+                            className="omni-btn omni-btn--discreto omni-btn--icone omni-btn--pequeno"
+                            style={{ width: 36, color: "var(--tinta-2)" }}
                             aria-label="Fechar notificações"
                         >
-                            <X className="w-4 h-4" />
+                            <X aria-hidden />
                         </button>
                     </div>
 
-                    {/* Content */}
-                    <div className="overflow-y-auto" style={{ maxHeight: "50vh" }}>
+                    {/* Conteúdo */}
+                    <div style={{ overflowY: "auto", maxHeight: "50vh" }} aria-live="polite" aria-busy={loading}>
                         {loading && (
-                            <div className="py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-                                Verificando...
-                            </div>
+                            <p className="omni-apoio" style={{ margin: 0, padding: "32px 16px", textAlign: "center" }}>
+                                Verificando…
+                            </p>
                         )}
 
                         {!loading && notifications.length === 0 && (
-                            <div className="py-8 text-center">
-                                <div className="text-2xl mb-2">✅</div>
-                                <div className="text-sm" style={{ color: 'var(--text-muted)' }}>Tudo em dia!</div>
-                                <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Nenhuma notificação pendente.</div>
+                            <div style={{ padding: "32px 16px", textAlign: "center", display: "grid", justifyItems: "center", gap: 4 }}>
+                                <CheckCircle2 aria-hidden style={{ width: 28, height: 28, color: "var(--sucesso)", marginBottom: 4 }} />
+                                <p style={{ margin: 0, font: "700 15px/20px var(--font-sans)", color: "var(--tinta)" }}>Tudo em dia!</p>
+                                <p className="omni-apoio" style={{ margin: 0, fontSize: 13 }}>Nenhuma notificação pendente.</p>
                             </div>
                         )}
 
-                        {!loading &&
-                            notifications.map((n) => (
-                                <div
-                                    key={n.id}
-                                    className={`px-4 py-3 border-b border-slate-50 hover:bg-slate-25 transition-colors ${getSeverityBg(n.severity)} border-l-4 relative group`}
-                                >
-                                    <div className="flex items-start gap-2.5">
-                                        {getSeverityIcon(n.severity)}
-                                        <div className="flex-1 min-w-0">
-                                            <div
-                                                className={`text-xs font-bold mb-0.5 ${n.type === "announcement" ? "cursor-pointer hover:underline flex items-center gap-1.5" : ""}`}
-                                                style={{ color: 'var(--text-primary)' }}
-                                                onClick={() => n.type === "announcement" && handleAnnouncementClick(n.id)}
-                                            >
-                                                {n.type === "announcement" && <Megaphone className="w-3.5 h-3.5" />}
-                                                {n.title}
-                                            </div>
-                                            <div className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                                                {n.description}
-                                            </div>
-                                            {n.studentId && (
+                        {!loading && notifications.length > 0 && (
+                            <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                                {notifications.map((n) => {
+                                    const sev = corDaSeveridade(n.severity);
+                                    return (
+                                        <li
+                                            key={n.id}
+                                            style={{
+                                                padding: "12px 8px 12px 12px",
+                                                background: sev.suave,
+                                                borderLeft: `4px solid ${sev.cor}`,
+                                                borderBottom: "1px solid var(--borda)",
+                                            }}
+                                        >
+                                            <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                                                {getSeverityIcon(n.severity)}
+                                                <span className="omni-so-leitor">{nomeDaSeveridade(n.severity)}:</span>
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    {n.type === "announcement" ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleAnnouncementClick(n.id)}
+                                                            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: 0, margin: "0 0 2px", background: "none", border: 0, cursor: "pointer", textAlign: "left", textDecoration: "underline", textUnderlineOffset: 3, font: "700 13px/18px var(--font-sans)", color: "var(--tinta)" }}
+                                                        >
+                                                            <Megaphone aria-hidden style={{ width: 14, height: 14, flexShrink: 0 }} />
+                                                            {n.title}
+                                                        </button>
+                                                    ) : (
+                                                        <p style={{ margin: "0 0 2px", font: "700 13px/18px var(--font-sans)", color: "var(--tinta)" }}>{n.title}</p>
+                                                    )}
+                                                    <p style={{ margin: 0, font: "400 13px/19px var(--font-sans)", color: "var(--tinta-2)" }}>
+                                                        {n.description}
+                                                    </p>
+                                                    {n.studentId && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setOpen(false);
+                                                                router.push(destinoDaNotificacao(n.id, n.type, n.studentId!));
+                                                            }}
+                                                            style={{ marginTop: 6, display: "inline-flex", alignItems: "center", gap: 4, padding: 0, background: "none", border: 0, cursor: "pointer", font: "700 12px/16px var(--font-sans)", color: "var(--acao)" }}
+                                                            aria-label={`${rotuloDaNotificacao(n.id, n.type)} de ${n.studentName || 'estudante'}`}
+                                                        >
+                                                            <ExternalLink aria-hidden style={{ width: 12, height: 12 }} />
+                                                            {rotuloDaNotificacao(n.id, n.type)}
+                                                        </button>
+                                                    )}
+                                                </div>
                                                 <button
                                                     type="button"
-                                                    onClick={() => {
-                                                        setOpen(false);
-                                                        router.push(destinoDaNotificacao(n.id, n.type, n.studentId!));
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDismiss(n.id);
                                                     }}
-                                                    className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 font-semibold"
-                                                    aria-label={`${rotuloDaNotificacao(n.id, n.type)} de ${n.studentName || 'estudante'}`}
+                                                    className="omni-btn omni-btn--discreto omni-btn--icone omni-btn--pequeno"
+                                                    style={{ width: 32, minHeight: 32, flexShrink: 0, alignSelf: "center", color: "var(--tinta-2)" }}
+                                                    title="Dispensar notificação"
+                                                    aria-label={`Dispensar notificação: ${n.title}`}
                                                 >
-                                                    <ExternalLink className="w-3 h-3" />
-                                                    {rotuloDaNotificacao(n.id, n.type)}
+                                                    <X aria-hidden />
                                                 </button>
-                                            )}
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDismiss(n.id);
-                                            }}
-                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-slate-200 rounded shrink-0 self-center"
-                                            title="Dispensar notificação"
-                                            aria-label={`Dispensar notificação: ${n.title}`}
-                                        >
-                                            <X className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} aria-hidden="true" />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                                            </div>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
                     </div>
                 </div>
             )}
 
-            {/* Announcement Modal */}
+            {/* Comunicado aberto */}
             {selectedAnnouncement && (
-                <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
-                        {/* Header */}
-                        <div className={`${getAnnouncementConfig(selectedAnnouncement.type).bg} ${getAnnouncementConfig(selectedAnnouncement.type).border} border-b px-6 py-4 flex items-center gap-3`}>
-                            <div>{getAnnouncementConfig(selectedAnnouncement.type).icon}</div>
-                            <h2 className={`font-semibold text-lg flex-1 ${getAnnouncementConfig(selectedAnnouncement.type).text}`}>
+                <dialog
+                    ref={dialogoRef}
+                    className="omni-dialogo"
+                    aria-labelledby="omni-comunicado-titulo"
+                    onCancel={(e) => { e.preventDefault(); fecharComunicado(); }}
+                >
+                    <div className="omni-dialogo__corpo">
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                            {getSeverityIcon(selectedAnnouncement.type, 24)}
+                            <h2 id="omni-comunicado-titulo" className="omni-dialogo__titulo" style={{ margin: 0, flex: 1 }}>
                                 {selectedAnnouncement.title}
                             </h2>
-                            <button
-                                onClick={() => setSelectedAnnouncement(null)}
-                                className={`${getAnnouncementConfig(selectedAnnouncement.type).text} opacity-60 hover:opacity-100 transition-opacity`}
-                                aria-label="Fechar comunicado"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
                         </div>
-
-                        {/* Body */}
-                        <div className="p-6">
-                            <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
-                                {selectedAnnouncement.message}
-                            </p>
-                        </div>
-
-                        {/* Footer */}
-                        <div className="bg-slate-50 px-6 py-4 flex justify-end">
-                            <button
-                                onClick={() => setSelectedAnnouncement(null)}
-                                className={`${getAnnouncementConfig(selectedAnnouncement.type).buttonBg} text-white px-6 py-2 rounded-lg font-medium transition-colors`}
-                                aria-label="Fechar comunicado"
-                            >
-                                Fechar
-                            </button>
-                        </div>
+                        <p style={{ margin: 0, whiteSpace: "pre-wrap", font: "400 16px/26px var(--font-sans)", color: "var(--tinta-2)" }}>
+                            {selectedAnnouncement.message}
+                        </p>
                     </div>
-                </div>
+                    <div className="omni-dialogo__acoes">
+                        <button type="button" onClick={fecharComunicado} className="omni-btn omni-btn--primario" autoFocus>
+                            Fechar
+                        </button>
+                    </div>
+                </dialog>
             )}
         </div>
     );

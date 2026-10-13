@@ -61,25 +61,25 @@ export class SafeModuleWrapper extends React.Component<Props, State> {
                 <div style={{
                     padding: 32, textAlign: "center",
                     borderRadius: 16,
-                    background: "rgba(239,68,68,.04)",
-                    border: "1px solid rgba(239,68,68,.15)",
+                    background: "var(--erro-suave)",
+                    border: "1px solid var(--borda)",
                     margin: "20px 0",
                 }}>
-                    <AlertTriangle size={40} style={{ color: "#f59e0b", margin: "0 auto 12px" }} />
-                    <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary, #e2e8f0)", marginBottom: 8 }}>
+                    <AlertTriangle size={40} style={{ color: "var(--atencao)", margin: "0 auto 12px" }} />
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--tinta)", marginBottom: 8 }}>
                         Erro ao carregar {title}
                     </h3>
-                    <p style={{ fontSize: 13, color: "var(--text-muted, #64748b)", marginBottom: 16, maxWidth: 400, margin: "0 auto 16px" }}>
+                    <p style={{ fontSize: 13, color: "var(--tinta-2)", marginBottom: 16, maxWidth: 400, margin: "0 auto 16px" }}>
                         Alguns dados podem estar indisponíveis. Isso geralmente é temporário. Tente recarregar o módulo.
                     </p>
                     {this.state.error && (
                         <details style={{ marginBottom: 16, textAlign: "left", maxWidth: 500, margin: "0 auto 16px" }}>
-                            <summary style={{ fontSize: 11, color: "var(--text-muted)", cursor: "pointer" }}>
+                            <summary style={{ fontSize: 11, color: "var(--tinta-2)", cursor: "pointer" }}>
                                 Detalhes técnicos
                             </summary>
                             <pre style={{
                                 fontSize: 10, padding: 8, marginTop: 8, borderRadius: 8,
-                                background: "rgba(0,0,0,.1)", color: "#ef4444",
+                                background: "var(--superficie)", color: "var(--erro)",
                                 overflow: "auto", maxHeight: 120,
                             }}>
                                 {this.state.error.message}
@@ -94,8 +94,8 @@ export class SafeModuleWrapper extends React.Component<Props, State> {
                         style={{
                             display: "inline-flex", alignItems: "center", gap: 6,
                             padding: "10px 20px", borderRadius: 10,
-                            background: "linear-gradient(135deg, #2563eb, #3b82f6)",
-                            color: "#fff", fontSize: 13, fontWeight: 700,
+                            background: "var(--acao)",
+                            color: "var(--sobre-acao)", fontSize: 13, fontWeight: 700,
                             border: "none", cursor: "pointer",
                         }}
                     >

@@ -5,14 +5,19 @@ import type { EngineId } from "@/lib/ai-engines";
 
 // ─── Engine Metadata ──────────────────────────────────────────────────────────
 
-const ENGINE_META: Record<string, { label: string; color: string; glow: string }> = {
-    red: { label: "OmniRed", color: "#ef4444", glow: "rgba(239,68,68,.25)" },
-    blue: { label: "OmniBlue", color: "#3b82f6", glow: "rgba(59,130,246,.25)" },
-    green: { label: "OmniGreen", color: "#10b981", glow: "rgba(16,185,129,.25)" },
-    orange: { label: "OmniOrange", color: "#f59e0b", glow: "rgba(245,158,11,.25)" },
-    yellow: { label: "OmniYellow", color: "#eab308", glow: "rgba(234,179,8,.25)" },
-    default: { label: "Omnisfera", color: "#94a3b8", glow: "rgba(148,163,184,.20)" },
+// Onda 20: cores do símbolo Encontro (variáveis do design system) no lugar de hex fixos.
+// As transparências usam color-mix, que aceita variáveis CSS.
+const ENGINE_META: Record<string, { label: string; color: string; glow: string; forte: string }> = {
+    red: { label: "OmniRed", color: "var(--encontro-vermelho)", glow: "color-mix(in srgb, var(--encontro-vermelho) 25%, transparent)", forte: "var(--encontro-vermelho-forte)" },
+    blue: { label: "OmniBlue", color: "var(--encontro-azul)", glow: "color-mix(in srgb, var(--encontro-azul) 25%, transparent)", forte: "var(--encontro-azul-forte)" },
+    green: { label: "OmniGreen", color: "var(--encontro-verde)", glow: "color-mix(in srgb, var(--encontro-verde) 25%, transparent)", forte: "var(--encontro-verde-forte)" },
+    orange: { label: "OmniOrange", color: "var(--encontro-laranja)", glow: "color-mix(in srgb, var(--encontro-laranja) 25%, transparent)", forte: "var(--encontro-laranja-forte)" },
+    yellow: { label: "OmniYellow", color: "var(--encontro-amarelo)", glow: "color-mix(in srgb, var(--encontro-amarelo) 25%, transparent)", forte: "var(--encontro-amarelo-forte)" },
+    default: { label: "Omnisfera", color: "var(--tinta-3)", glow: "color-mix(in srgb, var(--tinta-3) 20%, transparent)", forte: "var(--tinta-2)" },
 };
+
+/** Cor com transparência (pct de 0 a 100), funciona com variáveis CSS */
+const tom = (cor: string, pct: number) => `color-mix(in srgb, ${cor} ${pct}%, transparent)`;
 
 // ─── Contextual Messages ──────────────────────────────────────────────────────
 
@@ -106,23 +111,23 @@ function OmniSpinner({ color, size }: { color: string; size: number }) {
             height={size}
             viewBox="0 0 40 40"
             fill="none"
+            aria-hidden="true"
             style={{ animation: "omniSpin 1.2s linear infinite", flexShrink: 0 }}
         >
-            <circle cx="20" cy="20" r="17" stroke={`${color}25`} strokeWidth="3" />
+            <circle cx="20" cy="20" r="17" style={{ stroke: tom(color, 15) }} strokeWidth="3" />
             <circle
                 cx="20" cy="20" r="17"
-                stroke={color}
+                style={{ stroke: color }}
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeDasharray="80 26.7"
             />
             <circle
                 cx="20" cy="20" r="3"
-                fill={color}
-                style={{ animation: "omniPulse 1.5s ease-in-out infinite" }}
+                style={{ fill: color, animation: "omniPulse 1.5s ease-in-out infinite" }}
             />
             <g style={{ animation: "omniOrbit 2s linear infinite", transformOrigin: "20px 20px" }}>
-                <circle cx="20" cy="5" r="2" fill={color} opacity="0.6" />
+                <circle cx="20" cy="5" r="2" style={{ fill: color }} opacity="0.6" />
             </g>
         </svg>
     );
@@ -182,7 +187,7 @@ function OmniLoaderWithMessages({
     message?: string;
     variant: "card" | "overlay";
     size: number;
-    meta: { label: string; color: string; glow: string };
+    meta: { label: string; color: string; glow: string; forte: string };
 }) {
     const [msgIndex, setMsgIndex] = useState(0);
     const isNeutral = engine === "default";
@@ -207,19 +212,19 @@ function OmniLoaderWithMessages({
                 display: "flex", flexDirection: "column", alignItems: "center",
                 justifyContent: "center", gap: 16, padding: "32px 20px",
                 borderRadius: 16, textAlign: "center",
-                background: `${meta.color}06`,
-                border: `1.5px solid ${meta.color}18`,
+                background: tom(meta.color, 2),
+                border: `1.5px solid ${tom(meta.color, 9)}`,
             }}>
                 <OmniSpinner color={meta.color} size={32} />
                 <div>
                     <div style={{
-                        fontSize: 13, fontWeight: 700, color: meta.color,
+                        fontSize: 13, fontWeight: 700, color: meta.forte,
                         marginBottom: 4,
                     }}>
                         {isNeutral ? "Carregando..." : `${meta.label} processando`}
                     </div>
                     <div style={{
-                        fontSize: 12, color: "var(--text-muted, #94a3b8)",
+                        fontSize: 12, color: "var(--tinta-2)",
                         transition: "opacity .3s",
                         minHeight: 18,
                     }}>
@@ -236,21 +241,21 @@ function OmniLoaderWithMessages({
             position: "fixed", inset: 0, zIndex: 9999,
             display: "flex", flexDirection: "column",
             alignItems: "center", justifyContent: "center", gap: 20,
-            background: "rgba(2,6,23,.85)",
+            background: "color-mix(in srgb, var(--noite) 85%, transparent)",
             backdropFilter: "blur(8px)",
         }}>
             <div style={{
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 20,
                 padding: "40px 48px", borderRadius: 24,
-                background: "var(--bg-secondary, rgba(15,23,42,.9))",
-                border: `1.5px solid ${meta.color}30`,
-                boxShadow: `0 0 60px ${meta.glow}, 0 20px 40px rgba(0,0,0,.4)`,
+                background: "var(--superficie)",
+                border: `1.5px solid ${tom(meta.color, 19)}`,
+                boxShadow: `0 0 60px ${meta.glow}, var(--sombra-2)`,
             }}>
                 <OmniSpinner color={meta.color} size={48} />
 
                 <div style={{ textAlign: "center" }}>
                     <div style={{
-                        fontSize: 16, fontWeight: 800, color: meta.color,
+                        fontSize: 16, fontWeight: 800, color: meta.forte,
                         marginBottom: 8,
                         display: "flex", alignItems: "center", gap: 8, justifyContent: "center",
                     }}>
@@ -263,7 +268,7 @@ function OmniLoaderWithMessages({
                     <div
                         key={msgIndex}
                         style={{
-                            fontSize: 13, color: "var(--text-muted, #94a3b8)",
+                            fontSize: 13, color: "var(--tinta-2)",
                             animation: "omniFadeIn .4s ease",
                             minHeight: 20,
                         }}
@@ -277,7 +282,7 @@ function OmniLoaderWithMessages({
                     {messages.map((_, i) => (
                         <div key={i} style={{
                             width: 6, height: 6, borderRadius: "50%",
-                            background: i === msgIndex ? meta.color : `${meta.color}30`,
+                            background: i === msgIndex ? meta.color : tom(meta.color, 19),
                             transition: "background .3s",
                         }} />
                     ))}

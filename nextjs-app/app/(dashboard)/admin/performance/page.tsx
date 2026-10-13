@@ -7,7 +7,7 @@ import { getSupabase } from "@/lib/supabase";
 export default async function PerformancePage() {
     const session = await getSession();
 
-    // Apenas Master ou Admin deve ver isso
+    // Apenas coordenação (master) ou administração da plataforma
     if (!session?.workspace_id || (session.user_role !== "master" && session.user_role !== "platform_admin")) {
         redirect("/login");
     }
@@ -29,7 +29,7 @@ export default async function PerformancePage() {
     }
 
     return (
-        <SafeModuleWrapper fallbackTitle="Dashboard de Performance">
+        <SafeModuleWrapper fallbackTitle="Desempenho da plataforma">
             <PerformanceClient initialVitals={initialVitals} />
         </SafeModuleWrapper>
     );

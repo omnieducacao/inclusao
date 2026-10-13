@@ -43,26 +43,28 @@ export function EscolasTab({
   creating: boolean;
 }) {
   return (
-    <div className="space-y-6">
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       {/* Formulário Nova Escola */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <h3 className="text-xl font-bold text-slate-900 mb-4">➕ Nova escola</h3>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Nome da escola</label>
+      <section className="omni-cartao" aria-labelledby="nova-escola-titulo">
+        <h3 id="nova-escola-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)", display: "flex", alignItems: "center", gap: 8 }}>
+          <Plus size={20} aria-hidden /> Nova escola
+        </h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <label className="omni-campo">
+            <span className="omni-campo__rotulo">Nome da escola</span>
             <input
               type="text"
               value={newSchoolName}
               onChange={(e) => setNewSchoolName(e.target.value)}
-              placeholder="Ex: Escola Municipal XYZ"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+              placeholder="Ex.: Escola Municipal Monteiro Lobato"
+              className="omni-entrada"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Segmentos atendidos</label>
-            <div className="flex flex-wrap gap-2">
+          </label>
+          <fieldset style={{ border: 0, padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+            <legend className="omni-campo__rotulo" style={{ marginBottom: 8 }}>Etapas de ensino atendidas</legend>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {Object.entries(SEGMENT_OPTIONS).map(([key, label]) => (
-                <label key={key} className="flex items-center gap-2 px-3 py-2 border border-slate-300 rounded-lg cursor-pointer hover:bg-slate-50">
+                <label key={key} className="omni-chip">
                   <input
                     type="checkbox"
                     checked={newSchoolSegments.includes(key)}
@@ -73,18 +75,18 @@ export function EscolasTab({
                         setNewSchoolSegments(newSchoolSegments.filter((s) => s !== key));
                       }
                     }}
-                    className="rounded"
                   />
-                  <span className="text-sm">{label}</span>
+                  <CheckCircle2 className="omni-chip__marca" aria-hidden />
+                  {label}
                 </label>
               ))}
             </div>
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Motores de IA disponíveis</label>
-            <div className="flex flex-wrap gap-2">
+          </fieldset>
+          <fieldset style={{ border: 0, padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+            <legend className="omni-campo__rotulo" style={{ marginBottom: 8 }}>Motores de IA disponíveis</legend>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {Object.entries(ENGINE_OPTIONS).map(([key, label]) => (
-                <label key={key} className="flex items-center gap-2 px-3 py-2 border border-slate-300 rounded-lg cursor-pointer hover:bg-slate-50">
+                <label key={key} className="omni-chip">
                   <input
                     type="checkbox"
                     checked={newSchoolEngines.includes(key)}
@@ -95,35 +97,40 @@ export function EscolasTab({
                         setNewSchoolEngines(newSchoolEngines.filter((e) => e !== key));
                       }
                     }}
-                    className="rounded"
                   />
-                  <span className="text-sm">{label}</span>
+                  <CheckCircle2 className="omni-chip__marca" aria-hidden />
+                  {label}
                 </label>
               ))}
             </div>
+          </fieldset>
+          <div>
+            <button
+              type="button"
+              onClick={onCreate}
+              disabled={creating}
+              className="omni-btn omni-btn--primario"
+            >
+              {creating ? <Loader2 size={18} className="animate-spin" aria-hidden /> : <Plus size={18} aria-hidden />}
+              Criar escola e gerar PIN
+            </button>
           </div>
-          <button
-            onClick={onCreate}
-            disabled={creating}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-          >
-            {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-            Criar escola e gerar PIN
-          </button>
         </div>
-      </div>
+      </section>
 
       {/* Lista de Escolas */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <h3 className="text-xl font-bold text-slate-900 mb-4">📋 Escolas cadastradas</h3>
+      <section className="omni-cartao" aria-labelledby="escolas-lista-titulo">
+        <h3 id="escolas-lista-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" }}>
+          Escolas cadastradas
+        </h3>
         {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-          </div>
+          <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, padding: "24px 0" }}>
+            <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando escolas…
+          </p>
         ) : workspaces.length === 0 ? (
-          <p className="text-slate-600 text-center py-8">Nenhuma escola cadastrada. Crie a primeira acima.</p>
+          <p className="omni-apoio" style={{ textAlign: "center", padding: "24px 0" }}>Nenhuma escola cadastrada. Crie a primeira acima.</p>
         ) : (
-          <div className="space-y-4">
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {workspaces.map((ws) => (
               <WorkspaceCard
                 key={ws.id}
@@ -137,7 +144,7 @@ export function EscolasTab({
             ))}
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

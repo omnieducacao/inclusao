@@ -178,7 +178,7 @@ export default async function RootPage() {
     <div className="min-h-screen" style={{ background: "var(--fundo)" }}>
       <SimulationBanner session={sessionNonNull} />
       <MemberSimulationBanner session={sessionNonNull} />
-      <Navbar session={sessionNonNull} hideMenu={true} />
+      <Navbar session={sessionNonNull} />
       <Inicio
         saudacao={saudacao()}
         nome={nomePessoa}

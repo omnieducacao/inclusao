@@ -9,12 +9,20 @@ import { Workspace } from "../lib/admin-types";
 import { ENGINE_OPTIONS, SEGMENT_OPTIONS, FEED_CATEGORIES } from "../lib/admin-constants";
 
 import React, { useState, useEffect } from "react";
+import { useConfirmar } from "@/components/Confirmar";
 export function SimulateButton({ workspaceId, workspaceName }: { workspaceId: string; workspaceName: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const { confirmar, dialogo } = useConfirmar();
 
   async function handleSimulate() {
-    if (!confirm(`Deseja simular a escola "${workspaceName}"?\nVocê verá a plataforma como o master desta escola.`)) return;
+    if (!(await confirmar({
+      titulo: `Ver a plataforma como a escola "${workspaceName}"?`,
+      texto: "Você vai navegar com o acesso de coordenação desta escola, até encerrar a simulação.",
+      acao: "Simular escola",
+    }))) return;
+    setErro(null);
     setLoading(true);
     try {
       const res = await fetch("/api/admin/simulate", {
@@ -27,23 +35,32 @@ export function SimulateButton({ workspaceId, workspaceName }: { workspaceId: st
         router.refresh();
       } else {
         const data = await res.json().catch(() => ({}));
-        alert(data.error || "Erro ao iniciar simulação.");
+        setErro(data.error || "Não foi possível iniciar a simulação.");
       }
     } catch { /* expected fallback */
-      alert("Erro ao iniciar simulação.");
+      setErro("Não foi possível iniciar a simulação.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <button
-      onClick={handleSimulate}
-      disabled={loading}
-      className="px-3 py-1.5 text-sm border border-amber-400 text-amber-700 bg-amber-50 rounded-lg hover:bg-amber-100 flex items-center gap-1 disabled:opacity-50"
-    >
-      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
-      Simular
-    </button>
+    <>
+      {dialogo}
+      <button
+        type="button"
+        onClick={handleSimulate}
+        disabled={loading}
+        className="omni-btn omni-btn--secundario omni-btn--pequeno"
+      >
+        {loading ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <Eye size={16} aria-hidden />}
+        Simular
+      </button>
+      {erro && (
+        <span className="omni-campo__erro" role="alert" style={{ flexBasis: "100%" }}>
+          <AlertTriangle aria-hidden /> {erro}
+        </span>
+      )}
+    </>
   );
 }

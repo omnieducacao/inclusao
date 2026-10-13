@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Loader2, ShieldCheck, Download, Activity, Search, RefreshCw, AlertTriangle, Eye } from 'lucide-react';
+import { Loader2, ShieldCheck, Download, Activity, Search, RefreshCw, AlertTriangle, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Workspace } from "../lib/admin-types";
 
 type AuditLogEntry = {
@@ -55,165 +55,174 @@ export function AuditoriaTab({ workspaces, isPlatformAdmin = false }: { workspac
         }
     }
 
-    // Traduções amigáveis dos métodos
+    // Nomes simples das ações
     const actionLabels: Record<string, string> = {
-        view: "Visualização",
-        export: "Exportação Dados",
+        view: "Consulta",
+        export: "Exportação de dados",
         create: "Criação",
-        update: "Atualização",
+        update: "Alteração",
         delete: "Exclusão",
-        login: "Acesso (Login)",
-        logout: "Saída (Logout)"
+        login: "Entrada",
+        logout: "Saída"
     };
 
     const actionColors: Record<string, string> = {
-        view: "bg-blue-100 text-blue-700",
-        export: "bg-purple-100 text-purple-700 font-bold",
-        delete: "bg-red-100 text-red-700 font-bold",
-        create: "bg-emerald-100 text-emerald-700",
-        update: "bg-amber-100 text-amber-700",
+        view: "omni-estado--info",
+        export: "omni-estado--atencao",
+        delete: "omni-estado--erro",
+        create: "omni-estado--sucesso",
+        update: "omni-estado--atencao",
     };
 
     return (
-        <div className="space-y-4">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
-                    <div>
-                        <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                            <ShieldCheck className="text-emerald-600" />
-                            Auditoria & Portabilidade (LGPD)
-                        </h3>
-                        <p className="text-sm text-slate-500 mt-1">Trilha inalterável de quem acessa, insere ou processa dados de Saúde e Educação na Plataforma.</p>
-                    </div>
-
-                    <button
-                        onClick={() => { setOffset(0); loadAuditLogs(); }}
-                        className="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50 flex items-center gap-2 transition-colors"
-                    >
-                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                        Sincronizar
-                    </button>
+        <section className="omni-cartao" aria-labelledby="auditoria-titulo">
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                <div>
+                    <h3 id="auditoria-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)", display: "flex", alignItems: "center", gap: 8 }}>
+                        <ShieldCheck size={20} aria-hidden />
+                        Auditoria de dados
+                    </h3>
+                    <p className="omni-apoio" style={{ marginTop: 4 }}>
+                        Quem consultou, criou, alterou ou exportou dados de saúde e educação na plataforma.
+                        Exigência da LGPD (Lei Geral de Proteção de Dados).
+                    </p>
                 </div>
 
-                <div className="flex flex-wrap gap-3 mb-6 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    {isPlatformAdmin && (
+                <button
+                    type="button"
+                    onClick={() => { setOffset(0); loadAuditLogs(); }}
+                    className="omni-btn omni-btn--secundario omni-btn--pequeno"
+                >
+                    <RefreshCw size={16} className={loading ? "animate-spin" : undefined} aria-hidden />
+                    Atualizar
+                </button>
+            </div>
+
+            <div className="omni-cartao omni-cartao--plano" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "flex-end", gap: 12, padding: 12 }}>
+                {isPlatformAdmin && (
+                    <label className="omni-campo" style={{ flex: "0 1 260px" }}>
+                        <span className="omni-campo__rotulo">Escola</span>
                         <select
                             value={wsFilter}
                             onChange={(e) => { setWsFilter(e.target.value); setOffset(0); }}
-                            className="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+                            className="omni-entrada"
                         >
-                            <option value="">Todas as instâncias (Escolas)</option>
+                            <option value="">Todas as escolas</option>
                             {workspaces.map((ws) => (
                                 <option key={ws.id} value={ws.id}>{ws.name}</option>
                             ))}
                         </select>
-                    )}
+                    </label>
+                )}
 
+                <label className="omni-campo" style={{ flex: "0 1 260px" }}>
+                    <span className="omni-campo__rotulo">Tipo de ação</span>
                     <select
                         value={actionFilter}
                         onChange={(e) => { setActionFilter(e.target.value); setOffset(0); }}
-                        className="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+                        className="omni-entrada"
                     >
-                        <option value="">Foco de Rastreio (Todos)</option>
+                        <option value="">Todas as ações</option>
                         {availableActions.map((a) => (
                             <option key={a} value={a}>{actionLabels[a] || a}</option>
                         ))}
                     </select>
-                    <span className="self-center text-sm font-medium bg-slate-200 text-slate-600 px-3 py-1 rounded-full">
-                        {total} Registo(s) Sensível(is)
-                    </span>
-                </div>
-
-                {loading ? (
-                    <div className="flex flex-col items-center justify-center py-16">
-                        <Loader2 className="w-8 h-8 animate-spin text-emerald-600 mb-4" />
-                        <span className="text-slate-500 font-medium">Lendo trilha de dados na blockchain local...</span>
-                    </div>
-                ) : logs.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-16 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                        <ShieldCheck className="w-12 h-12 text-slate-300 mb-3" />
-                        <p className="text-slate-500 text-center font-medium">Nenhum evento auditável correspondente aos filtros.</p>
-                    </div>
-                ) : (
-                    <>
-                        <div className="overflow-x-auto rounded-xl border border-slate-200">
-                            <table className="w-full text-sm">
-                                <thead className="bg-slate-50">
-                                    <tr className="border-b border-slate-200">
-                                        <th className="text-left py-3 px-4 font-semibold text-slate-700">Timestamp</th>
-                                        <th className="text-left py-3 px-4 font-semibold text-slate-700">Recurso/Módulo</th>
-                                        <th className="text-left py-3 px-4 font-semibold text-slate-700">Acionador</th>
-                                        <th className="text-left py-3 px-4 font-semibold text-slate-700">Operador (Role)</th>
-                                        <th className="text-left py-3 px-4 font-semibold text-slate-700">ID / Alvo (IP)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {logs.map((log) => {
-                                        const date = log.created_at
-                                            ? new Date(log.created_at).toLocaleString("pt-BR", {
-                                                day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit"
-                                            })
-                                            : "—";
-
-                                        return (
-                                            <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50/80 transition-colors">
-                                                <td className="py-3 px-4 text-slate-600 whitespace-nowrap font-mono text-xs">
-                                                    {date}
-                                                </td>
-                                                <td className="py-3 px-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className={`px-2 py-0.5 rounded-md text-xs font-medium uppercase tracking-wider ${actionColors[log.action] || 'bg-slate-100 text-slate-700'}`}>
-                                                            {actionLabels[log.action] || log.action}
-                                                        </span>
-                                                        <span className="text-slate-600 font-medium capitalize">
-                                                            {log.resource_type}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="py-3 px-4 text-slate-900 font-medium truncate max-w-[150px]" title={log.actor_id}>
-                                                    {log.actor_id || "Sistema Automático"}
-                                                </td>
-                                                <td className="py-3 px-4">
-                                                    <span className="text-slate-600 uppercase text-[11px] bg-slate-100 px-2 py-1 rounded border border-slate-200">
-                                                        {log.actor_role || "service_role"}
-                                                    </span>
-                                                </td>
-                                                <td className="py-3 px-4 font-mono text-xs text-slate-500">
-                                                    <p className="truncate max-w-[180px]" title={log.resource_id}>
-                                                        {log.resource_id ? `#${log.resource_id.split("-")[0]}` : "Global"}
-                                                    </p>
-                                                    {log.metadata?.module && <p className="text-[10px] text-slate-400 mt-0.5">Módulo: {log.metadata.module}</p>}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Paginação */}
-                        <div className="flex items-center justify-between mt-6 bg-slate-50 p-2 rounded-lg border border-slate-200">
-                            <button
-                                disabled={offset === 0}
-                                onClick={() => setOffset(Math.max(0, offset - limit))}
-                                className="px-4 py-2 text-sm bg-white border border-slate-300 rounded-md shadow-sm hover:bg-slate-50 disabled:opacity-50 transition-all font-medium"
-                            >
-                                ← Anterior
-                            </button>
-                            <span className="text-sm font-medium text-slate-600">
-                                Mostrando {offset + 1} a {Math.min(offset + limit, total)} de {total}
-                            </span>
-                            <button
-                                disabled={offset + limit >= total}
-                                onClick={() => setOffset(offset + limit)}
-                                className="px-4 py-2 text-sm bg-white border border-slate-300 rounded-md shadow-sm hover:bg-slate-50 disabled:opacity-50 transition-all font-medium"
-                            >
-                                Próxima →
-                            </button>
-                        </div>
-                    </>
-                )}
+                </label>
+                <span className="omni-estado omni-estado--neutro" style={{ alignSelf: "center" }}>
+                    {total} {total === 1 ? "registro" : "registros"}
+                </span>
             </div>
-        </div>
+
+            {loading ? (
+                <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "48px 0" }}>
+                    <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando registros de auditoria…
+                </p>
+            ) : logs.length === 0 ? (
+                <div className="omni-cartao omni-cartao--plano" style={{ alignItems: "center", padding: "48px 16px", border: "1.5px dashed var(--borda-forte)" }}>
+                    <ShieldCheck size={40} aria-hidden style={{ color: "var(--tinta-3)" }} />
+                    <p className="omni-apoio" style={{ textAlign: "center", fontWeight: 600 }}>Nenhum registro com estes filtros.</p>
+                </div>
+            ) : (
+                <>
+                    <div className="omni-tabela-caixa">
+                        <table className="omni-tabela">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Data e hora</th>
+                                    <th scope="col">Ação e área</th>
+                                    <th scope="col">Quem fez</th>
+                                    <th scope="col">Papel</th>
+                                    <th scope="col">Item afetado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {logs.map((log) => {
+                                    const date = log.created_at
+                                        ? new Date(log.created_at).toLocaleString("pt-BR", {
+                                            day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit"
+                                        })
+                                        : "—";
+
+                                    return (
+                                        <tr key={log.id}>
+                                            <td style={{ whiteSpace: "nowrap", fontFamily: "var(--font-mono)", fontSize: 13 }}>
+                                                {date}
+                                            </td>
+                                            <td>
+                                                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+                                                    <span className={`omni-estado ${actionColors[log.action] || "omni-estado--neutro"}`}>
+                                                        {actionLabels[log.action] || log.action}
+                                                    </span>
+                                                    <span style={{ color: "var(--tinta-2)", fontWeight: 600, textTransform: "capitalize" }}>
+                                                        {log.resource_type}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="omni-tabela__nome" title={log.actor_id} style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                {log.actor_id || "Sistema"}
+                                            </td>
+                                            <td>
+                                                <span className="omni-estado omni-estado--neutro" style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>
+                                                    {log.actor_role || "service_role"}
+                                                </span>
+                                            </td>
+                                            <td style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--tinta-2)" }}>
+                                                <p title={log.resource_id} style={{ maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                    {log.resource_id ? `#${log.resource_id.split("-")[0]}` : "Geral"}
+                                                </p>
+                                                {log.metadata?.module && <span className="omni-tabela__sub">Módulo: {log.metadata.module}</span>}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Paginação */}
+                    <nav aria-label="Páginas da auditoria" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                        <button
+                            type="button"
+                            disabled={offset === 0}
+                            onClick={() => setOffset(Math.max(0, offset - limit))}
+                            className="omni-btn omni-btn--secundario omni-btn--pequeno"
+                        >
+                            <ChevronLeft size={16} aria-hidden /> Anterior
+                        </button>
+                        <span className="omni-apoio" style={{ fontVariantNumeric: "tabular-nums" }}>
+                            {offset + 1} a {Math.min(offset + limit, total)} de {total}
+                        </span>
+                        <button
+                            type="button"
+                            disabled={offset + limit >= total}
+                            onClick={() => setOffset(offset + limit)}
+                            className="omni-btn omni-btn--secundario omni-btn--pequeno"
+                        >
+                            Próxima <ChevronRight size={16} aria-hidden />
+                        </button>
+                    </nav>
+                </>
+            )}
+        </section>
     );
 }

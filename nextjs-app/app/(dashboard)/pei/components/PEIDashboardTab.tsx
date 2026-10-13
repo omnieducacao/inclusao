@@ -2,96 +2,19 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
-import { calcularProgresso, getTabStatus } from "@/hooks/usePEIData";
-import type { TabId } from "@/hooks/usePEIData";
-import { HelpTooltip } from "@/components/HelpTooltip";
-import { DiagnosticConditionalFields, LBIComplianceChecklist } from "@/components/PEIDiagnosticFields";
-import { PEIFase2Regentes } from "@/components/PEIFase2Regentes";
-import { PEIPlanoEnsino } from "@/components/PEIPlanoEnsino";
-import { PEIAvaliacaoDiagnostica } from "@/components/PEIAvaliacaoDiagnostica";
-import { PEIConsolidacao } from "@/components/PEIConsolidacao";
-import { Card, CardHeader, CardTitle, CardContent, Button } from "@omni/ds";
+import { calcularProgresso } from "@/hooks/usePEIData";
+import { LBIComplianceChecklist } from "@/components/PEIDiagnosticFields";
 
-import { NivelSuporteRange } from "./NivelSuporteRange";
-import { BarreirasDominio } from "./BarreirasDominio";
 import { InteligenciaDoCaso } from "./InteligenciaDoCaso";
 import {
   calcularIdade,
   getHiperfocoEmoji,
-  calcularComplexidadePei,
   extrairMetasEstruturadas,
   inferirComponentesImpactados,
-  getProIcon
 } from "../lib/dashboard-helpers";
 
-import { peiDataToFullText } from "@/lib/pei-export";
-import { ResumoAnexosEstudante } from "@/components/ResumoAnexosEstudante";
-import { EngineSelector } from "@/components/EngineSelector";
-import { OmniLoader } from "@/components/OmniLoader";
-import {
-  SERIES,
-  LISTA_ALFABETIZACAO,
-  LISTAS_BARREIRAS,
-  LISTA_POTENCIAS,
-  LISTA_PROFISSIONAIS,
-  LISTA_FAMILIA,
-  LISTA_TECNOLOGIAS_ASSISTIVAS,
-  EVIDENCIAS_PEDAGOGICO,
-  EVIDENCIAS_COGNITIVO,
-  EVIDENCIAS_COMPORTAMENTAL,
-  ESTRATEGIAS_ACESSO,
-  ESTRATEGIAS_ENSINO,
-  ESTRATEGIAS_AVALIACAO,
-  NIVEIS_SUPORTE,
-  STATUS_META,
-  PARECER_GERAL,
-  PROXIMOS_PASSOS,
-  detectarNivelEnsino,
-} from "@/lib/pei";
 import type { PEIData } from "@/lib/pei";
-import type { EngineId } from "@/lib/ai-engines";
-import {
-  Download,
-  FileText,
-  Sparkles,
-  CheckCircle2,
-  XCircle,
-  User,
-  Users,
-  Radar,
-  Puzzle,
-  RotateCw,
-  ClipboardList,
-  Bot,
-  FileDown,
-  Info,
-  BookOpen,
-  CheckCircle,
-  AlertTriangle,
-  TrendingUp,
-  ExternalLink,
-  Send,
-  Pill,
-} from "lucide-react";
-
-// Helper para validar e parsear respostas JSON
-async function parseJsonResponse(res: Response, url?: string) {
-  if (!res.ok) {
-    const contentType = res.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-      const data = await res.json();
-      throw new Error(data.error || `HTTP ${res.status}${url ? ` em ${url}` : ""}`);
-    }
-    throw new Error(`HTTP ${res.status}: ${res.statusText}${url ? ` em ${url}` : ""}`);
-  }
-  const contentType = res.headers.get("content-type");
-  if (!contentType || !contentType.includes("application/json")) {
-    throw new Error(`Resposta não é JSON${url ? ` de ${url}` : ""}`);
-  }
-  return res.json();
-}
-
+import { AlertTriangle, Pill } from "lucide-react";
 
 export function DashboardTab({
   peiData,

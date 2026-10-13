@@ -11,6 +11,8 @@ import { Workspace } from "../lib/admin-types";
 import { ENGINE_OPTIONS, SEGMENT_OPTIONS, FEED_CATEGORIES } from "../lib/admin-constants";
 
 import React, { useState, useEffect } from "react";
+import { Check, Palette, RotateCcw } from "lucide-react";
+import { MensagemAdmin, type Mensagem } from "./MensagemAdmin";
 export function AparenciaTab() {
   const [customizations, setCustomizations] = useState<CardCustomization>({});
   const [saving, setSaving] = useState(false);
@@ -18,6 +20,7 @@ export function AparenciaTab() {
   const [flatIcons, setFlatIcons] = useState<string[]>([]);
   const [editingModule, setEditingModule] = useState<string | null>(null);
   const [iconSearch, setIconSearch] = useState("");
+  const [mensagem, setMensagem] = useState<Mensagem | null>(null);
 
   // Load saved customizations and available flat icons
   useEffect(() => {
@@ -59,6 +62,7 @@ export function AparenciaTab() {
 
   async function handleSave() {
     setSaving(true);
+    setMensagem(null);
     try {
       const res = await fetch("/api/admin/platform-config", {
         method: "POST",
@@ -69,12 +73,12 @@ export function AparenciaTab() {
         }),
       });
       if (res.ok) {
-        alert("✅ Customizações de aparência salvas! Os cards serão atualizados ao recarregar a home.");
+        setMensagem({ tipo: "sucesso", texto: "Aparência salva. Os cartões mudam quando a página inicial for recarregada." });
       } else {
-        alert("Erro ao salvar.");
+        setMensagem({ tipo: "erro", texto: "Não foi possível salvar a aparência." });
       }
     } catch { /* expected fallback */
-      alert("Erro de conexão.");
+      setMensagem({ tipo: "erro", texto: "Sem conexão com o servidor. Tente de novo." });
     } finally {
       setSaving(false);
     }
@@ -102,186 +106,202 @@ export function AparenciaTab() {
     iconSearch ? ic.toLowerCase().includes(iconSearch.toLowerCase()) : true
   );
 
+  const amostra = { width: 32, height: 32, borderRadius: "var(--o-radius-sm)", border: "1px solid var(--borda)" } as const;
+  const corBotao = (selecionada: boolean) => ({
+    width: 40, height: 40, borderRadius: "var(--o-radius-sm)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+    border: selecionada ? "3px solid var(--tinta)" : "1px solid var(--borda)",
+    outlineOffset: 2,
+  } as const);
+
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-xl font-bold text-slate-900">🎨 Aparência dos Cards da Home</h3>
-            <p className="text-slate-600 text-sm mt-1">
-              Personalize a cor e o ícone de cada módulo na página inicial.
-            </p>
-          </div>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Salvar alterações
-          </button>
+    <section className="omni-cartao" aria-labelledby="aparencia-titulo">
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+        <div>
+          <h3 id="aparencia-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)", display: "flex", alignItems: "center", gap: 8 }}>
+            <Palette size={20} aria-hidden /> Aparência dos cartões da página inicial
+          </h3>
+          <p className="omni-apoio" style={{ marginTop: 4 }}>
+            Escolha a cor e o ícone de cada módulo na página inicial.
+          </p>
         </div>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="omni-btn omni-btn--primario"
+        >
+          {saving ? <Loader2 size={18} className="animate-spin" aria-hidden /> : <Save size={18} aria-hidden />}
+          Salvar alterações
+        </button>
+      </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {HOME_MODULES.map((mod: any) => {
-              const custom = customizations[mod.key] || {};
-              const currentColor = custom.color || mod.defaultColor;
-              const currentHeroColor = custom.heroColor || custom.color || mod.defaultColor;
-              const currentIcon = custom.icon || mod.defaultIcon;
-              const isEditing = editingModule === mod.key;
-              const colorInfo = COLOR_OPTIONS.find((c: any) => c.key === currentColor);
-              const heroColorInfo = COLOR_OPTIONS.find((c: any) => c.key === currentHeroColor);
+      <MensagemAdmin mensagem={mensagem} onFechar={() => setMensagem(null)} />
 
-              return (
-                <div
-                  key={mod.key}
-                  className={`border rounded-xl p-4 transition-all ${isEditing ? "border-blue-300 bg-blue-50/30" : "border-slate-200 hover:border-slate-300"
-                    }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {/* Color previews */}
-                      <div className="flex gap-1">
-                        <div
-                          className="w-8 h-8 rounded-lg border border-white shadow"
-                          style={{ background: colorInfo?.gradient || colorInfo?.hex || "#4285F4" }}
-                          title="Cor do Card"
-                        />
-                        <div
-                          className="w-8 h-8 rounded-lg border border-white shadow"
-                          style={{ background: heroColorInfo?.gradient || heroColorInfo?.hex || colorInfo?.gradient || colorInfo?.hex || "#4285F4" }}
-                          title="Cor do Hero"
-                        />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-slate-800">{mod.title}</h4>
-                        <p className="text-xs text-slate-500">
-                          Card: {colorInfo?.label || currentColor} · Hero: {heroColorInfo?.label || currentHeroColor} · Ícone: {currentIcon}
-                        </p>
-                      </div>
+      {loading ? (
+        <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, padding: "24px 0" }}>
+          <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando…
+        </p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {HOME_MODULES.map((mod: any) => {
+            const custom = customizations[mod.key] || {};
+            const currentColor = custom.color || mod.defaultColor;
+            const currentHeroColor = custom.heroColor || custom.color || mod.defaultColor;
+            const currentIcon = custom.icon || mod.defaultIcon;
+            const isEditing = editingModule === mod.key;
+            const colorInfo = COLOR_OPTIONS.find((c: any) => c.key === currentColor);
+            const heroColorInfo = COLOR_OPTIONS.find((c: any) => c.key === currentHeroColor);
+
+            return (
+              <div
+                key={mod.key}
+                className="omni-cartao omni-cartao--plano"
+                style={{ padding: 16, ...(isEditing ? { background: "var(--superficie)", borderColor: "var(--acao)" } : {}) }}
+              >
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    {/* Amostras de cor */}
+                    <div style={{ display: "flex", gap: 4 }}>
+                      <div
+                        style={{ ...amostra, background: colorInfo?.gradient || colorInfo?.hex || "#4285F4" }}
+                        title="Cor do cartão"
+                      />
+                      <div
+                        style={{ ...amostra, background: heroColorInfo?.gradient || heroColorInfo?.hex || colorInfo?.gradient || colorInfo?.hex || "#4285F4" }}
+                        title="Cor do topo da página do módulo"
+                      />
                     </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setEditingModule(isEditing ? null : mod.key)}
-                        className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-1"
-                      >
-                        {isEditing ? <X className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
-                        {isEditing ? "Fechar" : "Editar"}
-                      </button>
-                      {custom.color || custom.heroColor || custom.icon ? (
-                        <button
-                          onClick={() => resetModule(mod.key)}
-                          className="px-3 py-1.5 text-sm border border-amber-200 text-amber-600 rounded-lg hover:bg-amber-50"
-                        >
-                          Resetar
-                        </button>
-                      ) : null}
+                    <div>
+                      <h4 style={{ font: "700 16px/22px var(--font-sans)", color: "var(--tinta)" }}>{mod.title}</h4>
+                      <p className="omni-apoio" style={{ fontSize: 13 }}>
+                        Cartão: {colorInfo?.label || currentColor} · Topo: {heroColorInfo?.label || currentHeroColor} · Ícone: {currentIcon}
+                      </p>
                     </div>
                   </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => setEditingModule(isEditing ? null : mod.key)}
+                      aria-expanded={isEditing}
+                      className="omni-btn omni-btn--secundario omni-btn--pequeno"
+                    >
+                      {isEditing ? <X size={16} aria-hidden /> : <Edit2 size={16} aria-hidden />}
+                      {isEditing ? "Fechar" : "Editar"}
+                    </button>
+                    {custom.color || custom.heroColor || custom.icon ? (
+                      <button
+                        type="button"
+                        onClick={() => resetModule(mod.key)}
+                        className="omni-btn omni-btn--discreto omni-btn--pequeno"
+                      >
+                        <RotateCcw size={16} aria-hidden /> Voltar ao padrão
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
 
-                  {isEditing && (
-                    <div className="mt-4 space-y-4">
-                      {/* Home Card Color picker */}
-                      <div>
-                        <p className="text-sm font-semibold text-slate-700 mb-2">🏠 Cor do Card (Home)</p>
-                        <div className="flex flex-wrap gap-2">
-                          {COLOR_OPTIONS.map((color: any) => (
-                            <button
-                              key={color.key}
-                              onClick={() => updateModule(mod.key, "color", color.key)}
-                              className={`w-10 h-10 rounded-lg border-2 transition-all flex items-center justify-center ${currentColor === color.key
-                                ? "border-blue-500 scale-110 shadow-lg"
-                                : "border-transparent hover:border-slate-300"
-                                }`}
-                              style={{ background: color.gradient || color.hex }}
-                              title={color.label}
-                            >
-                              {currentColor === color.key && (
-                                <span className="text-white text-xs font-bold drop-shadow-md">✓</span>
-                              )}
-                            </button>
-                          ))}
-                        </div>
+                {isEditing && (
+                  <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 16 }}>
+                    {/* Cor do cartão */}
+                    <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+                      <legend className="omni-campo__rotulo" style={{ marginBottom: 8 }}>Cor do cartão na página inicial</legend>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                        {COLOR_OPTIONS.map((color: any) => (
+                          <button
+                            type="button"
+                            key={color.key}
+                            onClick={() => updateModule(mod.key, "color", color.key)}
+                            aria-pressed={currentColor === color.key}
+                            aria-label={color.label}
+                            style={{ ...corBotao(currentColor === color.key), background: color.gradient || color.hex }}
+                            title={color.label}
+                          >
+                            {currentColor === color.key && (
+                              <Check size={18} aria-hidden style={{ color: "#fff", filter: "drop-shadow(0 1px 1px rgba(0,0,0,.5))" }} />
+                            )}
+                          </button>
+                        ))}
                       </div>
+                    </fieldset>
 
-                      {/* Hero Color picker */}
-                      <div>
-                        <p className="text-sm font-semibold text-slate-700 mb-2">🌟 Cor do Hero (Subpágina)</p>
-                        <div className="flex flex-wrap gap-2">
-                          {COLOR_OPTIONS.map((color: any) => (
-                            <button
-                              key={color.key}
-                              onClick={() => updateModule(mod.key, "heroColor", color.key)}
-                              className={`w-10 h-10 rounded-lg border-2 transition-all flex items-center justify-center ${currentHeroColor === color.key
-                                ? "border-blue-500 scale-110 shadow-lg"
-                                : "border-transparent hover:border-slate-300"
-                                }`}
-                              style={{ background: color.gradient || color.hex }}
-                              title={color.label}
-                            >
-                              {currentHeroColor === color.key && (
-                                <span className="text-white text-xs font-bold drop-shadow-md">✓</span>
-                              )}
-                            </button>
-                          ))}
-                        </div>
+                    {/* Cor do topo */}
+                    <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+                      <legend className="omni-campo__rotulo" style={{ marginBottom: 8 }}>Cor do topo da página do módulo</legend>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                        {COLOR_OPTIONS.map((color: any) => (
+                          <button
+                            type="button"
+                            key={color.key}
+                            onClick={() => updateModule(mod.key, "heroColor", color.key)}
+                            aria-pressed={currentHeroColor === color.key}
+                            aria-label={color.label}
+                            style={{ ...corBotao(currentHeroColor === color.key), background: color.gradient || color.hex }}
+                            title={color.label}
+                          >
+                            {currentHeroColor === color.key && (
+                              <Check size={18} aria-hidden style={{ color: "#fff", filter: "drop-shadow(0 1px 1px rgba(0,0,0,.5))" }} />
+                            )}
+                          </button>
+                        ))}
                       </div>
+                    </fieldset>
 
-                      {/* Icon picker */}
-                      <div>
-                        <p className="text-sm font-semibold text-slate-700 mb-2">Ícone Lottie</p>
+                    {/* Ícone */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      <label className="omni-campo">
+                        <span className="omni-campo__rotulo">Ícone animado</span>
                         <input
-                          type="text"
-                          placeholder="Buscar ícone..."
+                          type="search"
+                          placeholder="Buscar ícone"
                           value={iconSearch}
                           onChange={(e) => setIconSearch(e.target.value)}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm mb-3"
+                          className="omni-entrada"
                         />
-                        <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2 max-h-[280px] overflow-y-auto p-1">
-                          {filteredIcons.map((iconName) => {
-                            const isSelected = currentIcon === `flat/${iconName}`;
-                            return (
-                              <button
-                                key={iconName}
-                                onClick={() => updateModule(mod.key, "icon", `flat/${iconName}`)}
-                                className={`relative aspect-square rounded-lg border-2 p-1.5 transition-all hover:scale-105 flex flex-col items-center justify-center gap-0.5 ${isSelected
-                                  ? "border-blue-500 bg-blue-50 shadow-md"
-                                  : "border-slate-200 hover:border-slate-300 bg-white"
-                                  }`}
-                                title={iconName.replace(/wired-flat-\d+-/, "").replace(/-hover.*/, "").replace(/-/g, " ")}
-                              >
-                                <LottieIcon
-                                  animation={`flat/${iconName}`}
-                                  size={60}
-                                />
-                                <span className="text-[9px] text-slate-500 truncate w-full text-center leading-tight mt-1">
-                                  {iconName.replace(/wired-flat-\d+-/, "").replace(/-hover.*/, "").replace(/-/g, " ").substring(0, 12)}
-                                </span>
-                              </button>
-                            );
-                          })}
-                          {filteredIcons.length === 0 && (
-                            <p className="col-span-full text-sm text-slate-500 text-center py-4">
-                              {flatIcons.length === 0
-                                ? "Nenhum ícone flat encontrado. Crie a API /api/admin/flat-icons."
-                                : "Nenhum ícone encontrado para a busca."}
-                            </p>
-                          )}
-                        </div>
+                      </label>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(84px, 1fr))", gap: 8, maxHeight: 280, overflowY: "auto", padding: 4 }}>
+                        {filteredIcons.map((iconName) => {
+                          const isSelected = currentIcon === `flat/${iconName}`;
+                          const nomeIcone = iconName.replace(/wired-flat-\d+-/, "").replace(/-hover.*/, "").replace(/-/g, " ");
+                          return (
+                            <button
+                              type="button"
+                              key={iconName}
+                              onClick={() => updateModule(mod.key, "icon", `flat/${iconName}`)}
+                              aria-pressed={isSelected}
+                              style={{
+                                position: "relative", aspectRatio: "1 / 1", borderRadius: "var(--o-radius-sm)", padding: 6, cursor: "pointer",
+                                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
+                                border: isSelected ? "2px solid var(--acao)" : "1px solid var(--borda)",
+                                background: isSelected ? "var(--acao-suave)" : "var(--superficie)",
+                              }}
+                              title={nomeIcone}
+                            >
+                              <LottieIcon
+                                animation={`flat/${iconName}`}
+                                size={60}
+                              />
+                              <span style={{ fontSize: 10, lineHeight: "12px", color: "var(--tinta-2)", width: "100%", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 4 }}>
+                                {nomeIcone.substring(0, 12)}
+                              </span>
+                            </button>
+                          );
+                        })}
+                        {filteredIcons.length === 0 && (
+                          <p className="omni-apoio" style={{ gridColumn: "1 / -1", textAlign: "center", padding: "16px 0" }}>
+                            {flatIcons.length === 0
+                              ? "Nenhum ícone disponível no momento."
+                              : "Nenhum ícone encontrado para a busca."}
+                          </p>
+                        )}
                       </div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 }

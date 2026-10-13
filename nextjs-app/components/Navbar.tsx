@@ -2,37 +2,16 @@
 
 import Link from "next/link";
 import SimboloOmnisfera from "@/components/SimboloOmnisfera";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { SessionPayload } from "@/lib/session";
-import { getRouteTheme } from "@/lib/module-theme";
 import type { Icon } from "phosphor-react";
 import { useState, useEffect, useRef } from "react";
-import { LottieIcon } from "./LottieIcon";
 import { useAILoading } from "@/hooks/useAILoading";
 import { NotificationBell } from "@/components/NotificationBell";
-import { ThemeToggle } from "./ThemeToggle"; // Mantido para caso de uso legado se preciso, mas substituído na barra!
 import { AccessibilityMenu } from "./AccessibilityMenu";
 import { useTheme } from "./ThemeProvider";
 
-type PermissionKey =
-  | "can_estudantes"
-  | "can_pei"
-  | "can_pei_professor"
-  | "can_paee"
-  | "can_hub"
-  | "can_diario"
-  | "can_avaliacao"
-  | "can_gestao";
-
-type NavItem = {
-  href: string;
-  label: string;
-  icon: Icon;
-  permission?: PermissionKey;
-  group?: "main" | "modules" | "admin";
-};
-
-// Função para carregar ícones Phosphor dinamicamente
+// Carrega o ícone de saída (Phosphor) só no cliente
 async function loadNavIcons() {
   if (typeof window === "undefined") {
     return null;
@@ -40,365 +19,13 @@ async function loadNavIcons() {
 
   try {
     const phosphor = await import("phosphor-react");
-    return {
-      House: phosphor.House,
-      UsersFour: phosphor.UsersFour,
-      FileText: phosphor.FileText,
-      PuzzlePiece: phosphor.PuzzlePiece,
-      RocketLaunch: phosphor.RocketLaunch,
-      BookOpen: phosphor.BookOpen,
-      ChartLineUp: phosphor.ChartLineUp,
-      Gear: phosphor.Gear,
-      UsersThree: phosphor.UsersThree,
-      ClipboardText: phosphor.ClipboardText,
-      ShieldCheckered: phosphor.ShieldCheckered,
-      SignOut: phosphor.SignOut,
-      Sparkle: phosphor.Sparkle,
-      BookBookmark: phosphor.BookBookmark,
-      Exam: phosphor.Exam,
-      Brain: phosphor.Brain,
-    };
+    return { SignOut: phosphor.SignOut };
   } catch (err) {
     console.warn("[Navbar] Failed to load phosphor-react:", err);
     return null;
   }
 }
 
-// Mapeamento de rotas para ícones Lottie (mesmos dos cards)
-function getNavLottieMap(): Record<string, string> {
-  return {
-    "/": "system-solid-41-home-hover-pinch", // Home
-    "/estudantes": "estudantes_simples", // Estudantes
-    "/pei": "pei_simples", // PEI
-    "/pei-regente": "pei_simples", // PEI Regente
-    "/plano-curso": "central_inteligencia_simples", // Plano de ensino
-    "/avaliacao-diagnostica": "hub_simples", // Avaliação Diagnóstica
-    "/avaliacao-processual": "dados_simples", // Avaliação Processual
-    "/paee": "paee_simples", // PAEE
-    "/hub": "hub_simples", // Hub
-    "/diario": "diario_simples", // Diário
-    "/monitoramento": "dados_simples", // Evolução & Dados
-    "/infos": "central_inteligencia_simples", // Central
-    "/config-escola": "configuracao_escola_flat", // Config Escola
-    "/gestao": "gestao_usuario_simples", // Gestão
-    "/pgi": "pgi_simples", // PGI
-  };
-}
-
-// Topbar admin key → route mapping
-const TOPBAR_KEY_TO_ROUTE: Record<string, string> = {
-  pei: "/pei",
-  paee: "/paee",
-  hub: "/hub",
-  avaliacoes: "/avaliacoes",
-  "avaliacao-diagnostica": "/avaliacao-diagnostica",
-  "avaliacao-processual": "/avaliacao-processual",
-  professor: "/professor",
-  "pei-regente": "/pei-regente",
-  "plano-curso": "/plano-curso",
-  monitoramento: "/monitoramento",
-  infos: "/infos",
-  pgi: "/pgi",
-  config: "/config",
-  gestao: "/gestao",
-  "config-escola": "/config-escola",
-  diario: "/diario",
-  estudantes: "/estudantes",
-};
-
-// Admin color keys → hex (matches DS moduleColors)
-const ADMIN_COLOR_HEX: Record<string, string> = {
-  omnisfera: "#0ea5e9", pei: "#7c3aed", paee: "#e11d48", hub: "#0891b2",
-  diario: "#059669", monitoramento: "#0d9488", ferramentas: "#2563eb",
-  gestao: "#6366f1", cursos: "#d97706", pgi: "#8b5cf6", admin: "#475569",
-  // Legacy keys (for backwards compatibility with existing saved data)
-  sky: "#0ea5e9", blue: "#2563eb", teal: "#0d9488", green: "#059669",
-  cyan: "#0891b2", violet: "#7c3aed", rose: "#e11d48", amber: "#d97706",
-  slate: "#475569", presentation: "#8b5cf6", table: "#2563eb",
-  test: "#6366f1", reports: "#d97706",
-};
-
-type TopbarOverrides = Record<string, { icon?: string; pillColor?: string }>;
-
-function buildTopbarOverrides(customs: Record<string, { icon?: string; pillColor?: string }>): TopbarOverrides {
-  const overrides: TopbarOverrides = {};
-  for (const [key, val] of Object.entries(customs)) {
-    if (key.startsWith("_")) continue; // skip _order etc.
-    const route = TOPBAR_KEY_TO_ROUTE[key];
-    if (!route) continue;
-    const o: TopbarOverrides[string] = {};
-    if (val.icon) o.icon = val.icon;
-    if (val.pillColor) o.pillColor = ADMIN_COLOR_HEX[val.pillColor] || val.pillColor;
-    if (Object.keys(o).length) overrides[route] = o;
-  }
-  return overrides;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getNavItems(icons: ReturnType<typeof loadNavIcons> extends Promise<infer T> ? T : any): NavItem[] {
-  if (!icons) return [];
-
-  return [
-    // Ordem visual da topbar: PEI → PAEE(dd) → Avaliações(dd) → Professor(dd) → Central → PGI → Config(dd)
-    { href: "/pei", label: "PEI", icon: icons.FileText, permission: "can_pei", group: "modules" },
-    { href: "/paee", label: "PAEE", icon: icons.PuzzlePiece, permission: "can_paee", group: "modules" },
-    { href: "/diario", label: "Diário", icon: icons.BookOpen, permission: "can_diario", group: "modules" },
-    { href: "/avaliacao-diagnostica", label: "Avaliação Diagnóstica", icon: icons.Exam, permission: "can_pei_professor", group: "modules" },
-    { href: "/avaliacao-processual", label: "Avaliação Processual", icon: icons.ChartLineUp, permission: "can_pei_professor", group: "modules" },
-    { href: "/pei-regente", label: "PEI do professor", icon: icons.BookOpen, permission: "can_pei_professor", group: "modules" },
-    { href: "/plano-curso", label: "Plano de ensino", icon: icons.BookBookmark, permission: "can_pei_professor", group: "modules" },
-    { href: "/hub", label: "Hub", icon: icons.RocketLaunch, permission: "can_hub", group: "modules" },
-    { href: "/monitoramento", label: "Evolução & Dados", icon: icons.ChartLineUp, permission: "can_avaliacao", group: "modules" },
-    { href: "/infos", label: "Central", icon: icons.BookBookmark, group: "modules" },
-    { href: "/pgi", label: "PGI", icon: icons.ClipboardText, permission: "can_gestao", group: "admin" },
-    { href: "/estudantes", label: "Estudantes", icon: icons.UsersFour, permission: "can_estudantes", group: "admin" },
-    { href: "/config-escola", label: "Config", icon: icons.Gear, permission: "can_gestao", group: "admin" },
-    { href: "/gestao", label: "Gestão", icon: icons.UsersThree, permission: "can_gestao", group: "admin" },
-  ];
-}
-
-function canAccess(
-  item: NavItem,
-  session: SessionPayload
-): boolean {
-  if (!item.permission) return true;
-  if (session?.is_platform_admin) return true;
-  const member = session?.member as Record<string, boolean> | undefined;
-  // Se não tem member e não é admin, deve negar o acesso para evitar vazamento
-  if (!member) return false;
-  return member[item.permission] === true;
-}
-
-// Cor da pill ativa derivada do module-theme (fonte única de cores)
-function getNavRouteColor(href: string) {
-  const theme = getRouteTheme(href);
-  return theme.navGrad;
-}
-
-// Componente para item de navegação com ícone Lottie
-function NavItemWithLottie({ item, isActive, iconOverride, pillColorOverride }: {
-  item: NavItem; isActive: boolean; iconOverride?: string; pillColorOverride?: string;
-}) {
-  const [isHovered, setIsHovered] = useState(false);
-  const Icon = item.icon;
-  const lottieMap = getNavLottieMap();
-  const lottieAnimation = iconOverride || lottieMap[item.href];
-  const routeColor = getNavRouteColor(item.href);
-  const pillGrad = pillColorOverride
-    ? { from: pillColorOverride, to: pillColorOverride }
-    : routeColor;
-
-  // Evitar crash se ícone não carregou (ex.: admin com ShieldCheckered)
-  if (!Icon) {
-    return (
-      <Link href={item.href} className="px-3.5 py-2 rounded-xl omni-body-sm font-semibold text-slate-500">
-        <span>{item.label}</span>
-      </Link>
-    );
-  }
-
-  return (
-    <Link
-      href={item.href}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl omni-body-sm font-semibold whitespace-nowrap shrink-0 ${isActive
-        ? "text-white shadow-md"
-        : "hover:shadow-sm"
-        }`}
-      style={{
-        color: isActive ? 'white' : 'var(--omni-text-muted)',
-        transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-        ...(isActive ? { background: `linear-gradient(to right, ${pillGrad.from}, ${pillGrad.to})` } : {}),
-      }}
-      onMouseOver={(e) => {
-        if (!isActive) {
-          (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--omni-bg-hover)';
-          (e.currentTarget as HTMLElement).style.color = 'var(--omni-text-primary)';
-        }
-      }}
-      onMouseOut={(e) => {
-        if (!isActive) {
-          (e.currentTarget as HTMLElement).style.backgroundColor = '';
-          (e.currentTarget as HTMLElement).style.color = 'var(--omni-text-muted)';
-        }
-      }}
-      aria-current={isActive ? "page" : undefined}
-      title={item.label}
-    >
-      {lottieAnimation ? (
-        <div className="w-[18px] h-[18px] flex items-center justify-center shrink-0">
-          <LottieIcon
-            animation={lottieAnimation}
-            size={18}
-            autoplay={isHovered || isActive}
-            className={`transition-all duration-300 ${isActive ? "opacity-100 brightness-0 invert" : "opacity-60 grayscale group-hover:opacity-100 group-hover:grayscale-0"}`}
-          />
-        </div>
-      ) : (
-        <Icon className={`w-[18px] h-[18px] shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} weight={isActive ? "fill" : "regular"} />
-      )}
-      <span>{item.label}</span>
-    </Link>
-  );
-}
-
-// Separator dot between nav groups
-function NavSeparator() {
-  return <div className="w-1 h-1 rounded-full mx-2 shrink-0" style={{ backgroundColor: 'var(--omni-border-strong)' }} />;
-}
-
-// Dropdown component for navigation items
-function NavDropdown({ label, items, isActive, icon: Icon, lottieAnimation, pathname, topbarOverrides = {} }: { label: string; items: NavItem[]; isActive: boolean; icon: Icon; lottieAnimation?: string; pathname: string; topbarOverrides?: TopbarOverrides }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const activeItemHref = items.find(i => i.href === pathname)?.href || items[0]?.href || "/";
-  const pillOverride = topbarOverrides[activeItemHref]?.pillColor;
-  const routeColor = getNavRouteColor(activeItemHref);
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
-
-  const handleMouseEnter = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    setIsOpen(true);
-  };
-
-  const handleMouseLeave = () => {
-    // Delay para permitir movimento entre botão e menu
-    timeoutRef.current = setTimeout(() => {
-      setIsOpen(false);
-    }, 150);
-  };
-
-  return (
-    <div
-      className="relative shrink-0"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      style={{ zIndex: isOpen ? 100 : 1 }}
-    >
-      <button
-        type="button"
-        aria-label={`Menu ${label}`}
-        aria-expanded={isOpen}
-        aria-haspopup="true"
-        className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl omni-body-sm font-semibold whitespace-nowrap shrink-0 ${isActive
-          ? "text-white shadow-md"
-          : "hover:shadow-sm"
-          }`}
-        style={{
-          color: isActive ? 'white' : 'var(--omni-text-muted)',
-          transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-          ...(isActive
-            ? { backgroundImage: `linear-gradient(to right, ${pillOverride || routeColor.from}, ${pillOverride || routeColor.to})` }
-            : { backgroundColor: isOpen ? 'var(--omni-bg-hover)' : 'transparent' }
-          ),
-        }}
-      >
-        {lottieAnimation ? (
-          <div className="w-[18px] h-[18px] flex items-center justify-center shrink-0">
-            <LottieIcon
-              animation={lottieAnimation}
-              size={18}
-              autoplay={isOpen || isActive}
-              className={`transition-all duration-300 ${isActive ? "opacity-100 brightness-0 invert" : "opacity-60 grayscale group-hover:opacity-100 group-hover:grayscale-0"}`}
-            />
-          </div>
-        ) : Icon && (
-          <Icon
-            className={`w-[18px] h-[18px] shrink-0 ${isActive ? "text-white" : "text-slate-400"}`}
-            weight={isActive ? "fill" : "regular"}
-          />
-        )}
-        <span>{label}</span>
-        <svg
-          className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-
-      {isOpen && items.length > 0 && (
-        <div
-          className="absolute top-full left-0 py-2 rounded-xl border min-w-[220px]"
-          style={{
-            backgroundColor: 'var(--omni-bg-primary)',
-            borderColor: 'var(--omni-border-default)',
-            zIndex: 9999,
-            boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
-            marginTop: '2px',
-          }}
-        >
-          {items.map((item) => {
-            const ItemIcon = item.icon;
-            const lottieMap = getNavLottieMap();
-            const lottieAnimation = (topbarOverrides[item.href]?.icon) || lottieMap[item.href];
-            const isCurrentPage = pathname === item.href;
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex items-center gap-2.5 px-4 py-2.5 omni-body-sm font-medium transition-all rounded-lg mx-2"
-                style={{
-                  color: isCurrentPage ? '#4285F4' : 'var(--omni-text-primary)',
-                  backgroundColor: isCurrentPage ? 'rgba(66, 133, 244, 0.1)' : 'transparent',
-                  fontWeight: isCurrentPage ? 600 : 500,
-                }}
-                onMouseEnter={(e) => {
-                  if (!isCurrentPage) {
-                    (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--omni-bg-hover)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isCurrentPage) {
-                    (e.currentTarget as HTMLElement).style.backgroundColor = '';
-                  } else {
-                    (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(66, 133, 244, 0.1)';
-                  }
-                }}
-              >
-                {lottieAnimation ? (
-                  <div className="w-[18px] h-[18px] flex items-center justify-center shrink-0">
-                    <LottieIcon
-                      animation={lottieAnimation}
-                      size={18}
-                      state={isCurrentPage ? "hover" : "initial"}
-                      className={isCurrentPage ? "opacity-100" : "opacity-60 grayscale"}
-                    />
-                  </div>
-                ) : ItemIcon ? (
-                  <ItemIcon
-                    className="w-[18px] h-[18px] shrink-0"
-                    style={{ color: isCurrentPage ? '#4285F4' : 'var(--omni-text-muted)' }}
-                    weight={isCurrentPage ? "fill" : "regular"}
-                  />
-                ) : null}
-                <span>{item.label}</span>
-                {isCurrentPage && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#4285F4' }} />
-                )}
-              </Link>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
 
 // Profile dropdown component
 function ProfileDropdown({
@@ -549,30 +176,16 @@ function ProfileDropdown({
   );
 }
 
-export function Navbar({ session, hideMenu = false }: { session: SessionPayload; hideMenu?: boolean }) {
-  const pathname = usePathname();
+export function Navbar({ session }: { session: SessionPayload }) {
   const router = useRouter();
   const [navIcons, setNavIcons] = useState<Awaited<ReturnType<typeof loadNavIcons>>>(null);
   const [isMounted, setIsMounted] = useState(false);
   const { state: aiState } = useAILoading();
   useTheme(); // mantém o tema sincronizado no topo
-  const [topbarOverrides, setTopbarOverrides] = useState<TopbarOverrides>({});
 
   useEffect(() => {
     const timer = setTimeout(() => setIsMounted(true), 0);
     loadNavIcons().then(setNavIcons);
-    // Fetch topbar customizations (icons, pill colors)
-    fetch("/api/public/platform-config?key=topbar_customizations")
-      .then(r => r.json())
-      .then(data => {
-        if (data?.value) {
-          try {
-            const parsed = typeof data.value === "string" ? JSON.parse(data.value) : data.value;
-            setTopbarOverrides(buildTopbarOverrides(parsed));
-          } catch { /* silent */ }
-        }
-      })
-      .catch(() => { });
     return () => clearTimeout(timer);
   }, []);
 
@@ -581,13 +194,6 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
     router.push("/login");
     router.refresh();
   }
-
-  const navItems = navIcons ? getNavItems(navIcons) : [];
-  const items = !isMounted || !navIcons
-    ? []
-    : session?.is_platform_admin
-      ? [{ href: "/admin", label: "Admin", icon: navIcons.ShieldCheckered, group: "main" as const }]
-      : navItems.filter((item) => canAccess(item, session));
 
   // Get initials for avatar (safe para admin sem workspace)
   const initials = (session?.usuario_nome || "U")
@@ -606,11 +212,6 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
             <SimboloOmnisfera tamanho={34} />
             <span className="omni-topo__nome">omnisfera</span>
           </Link>
-          {!hideMenu && (
-            <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center px-4">
-              <div className="w-32 h-7 bg-slate-100 rounded-lg animate-pulse" />
-            </nav>
-          )}
           <div className="flex items-center gap-1 ml-auto shrink-0">
             <div className="w-8 h-8 bg-slate-100 rounded-full animate-pulse" />
           </div>
@@ -622,50 +223,14 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
     </header>
   );
 
-  if (!isMounted || !navIcons || items.length === 0) {
+  if (!isMounted || !navIcons) {
     return navSkeleton;
   }
-
-  // Group items for separators
-  const mainItems = items.filter((i: NavItem) => i.group === "main" || !i.group);
-  const moduleItems = items.filter((i: NavItem) => i.group === "modules");
-  const adminItems = items.filter((i: NavItem) => i.group === "admin");
-
-  // ── Dropdown Groups ──
-  // Avaliações: Diagnóstica + Processual
-  const avaliacoesPaths = ["/avaliacao-diagnostica", "/avaliacao-processual"];
-  const avaliacoesItems = items.filter((i: NavItem) => avaliacoesPaths.includes(i.href));
-  const hasAvaliacoes = avaliacoesItems.length > 0;
-  const isAvaliacoesActive = avaliacoesPaths.includes(pathname);
-
-  // Professor: Plano Curso + PEI Professor + Hub
-  const professorPaths = ["/plano-curso", "/pei-regente", "/hub"];
-  const professorItems = items.filter((i: NavItem) => professorPaths.includes(i.href));
-  const hasProfessor = professorItems.length > 0;
-  const isProfessorActive = professorPaths.includes(pathname);
-
-  // PAEE: PAEE + Diário de Bordo
-  const paeePaths = ["/paee", "/diario"];
-  const paeeItems = items.filter((i: NavItem) => paeePaths.includes(i.href));
-  const hasPaee = paeeItems.length > 0;
-  const isPaeeActive = paeePaths.includes(pathname);
-
-  // Config: Gestão + Config Escola + Estudantes (already existed)
-  const configDropdownPaths = ["/gestao", "/config-escola", "/estudantes"];
-  const configDropdownItems = items.filter((i: NavItem) => configDropdownPaths.includes(i.href));
-  const hasConfigDropdown = configDropdownItems.length > 0;
-  const isConfigDropdownActive = configDropdownPaths.includes(pathname);
-
-  // All grouped paths — to filter them out of the flat list
-  const allGroupedPaths = [...avaliacoesPaths, ...professorPaths, ...paeePaths, ...configDropdownPaths];
-
-  // Items that are NOT in any dropdown group
-  const flatItems = items.filter((i: NavItem) => !allGroupedPaths.includes(i.href));
 
   return (
     <header className="glass-strong sticky top-0 z-50 shadow-premium" style={{ borderBottom: '1px solid var(--omni-border-default)', overflow: 'visible' }}>
       <div className="max-w-[1920px] mx-auto px-5" style={{ overflow: 'visible' }}>
-        {/* LAYOUT: Logo (esquerda) | Nav (centro, flex-1) | Busca+Ícones (direita) | Perfil (extrema direita) */}
+        {/* LAYOUT: Logo (esquerda) | Busca+Ícones (direita) | Perfil (extrema direita) */}
         <div className="flex items-center h-[68px]" style={{ overflow: 'visible' }}>
 
           {/* 1️⃣ LOGO vivo: abre no hover; gira enquanto a IA trabalha (design system: Navegacao) */}
@@ -677,107 +242,6 @@ export function Navbar({ session, hideMenu = false }: { session: SessionPayload;
             <SimboloOmnisfera key={aiState.isLoading ? "ia" : "hover"} tamanho={34} animacao={aiState.isLoading ? "carregando" : "hover"} />
             <span className="omni-topo__nome">omnisfera</span>
           </Link>
-
-
-          {/* 2️⃣ NAVEGAÇÃO - Centro, expande para ocupar espaço disponível */}
-          {!hideMenu && (
-            <>
-              <div className="hidden lg:flex items-center gap-0.5 flex-1 min-w-0" style={{ position: 'relative' }}>
-                <nav className="flex items-center gap-0.5 scrollbar-hide" style={{ flexShrink: 1 }}>
-                  {/* Ordem: PEI(flat) → PAEE(dd) → Avaliações(dd) → Professor(dd) → Central(flat) → PGI(flat) → Config(dd) */}
-
-                  {/* 1. PEI — flat */}
-                  {flatItems.filter((i: NavItem) => i.href === "/pei").map((item: NavItem) => (
-                    <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} iconOverride={topbarOverrides[item.href]?.icon} pillColorOverride={topbarOverrides[item.href]?.pillColor} />
-                  ))}
-
-                  {/* 2. PAEE — dropdown */}
-                  {hasPaee && navIcons && (
-                    <NavDropdown
-                      label="PAEE"
-                      items={paeeItems}
-                      isActive={isPaeeActive}
-                      icon={navIcons.PuzzlePiece}
-                      lottieAnimation={topbarOverrides["/paee"]?.icon || "paee_simples"}
-                      pathname={pathname}
-                      topbarOverrides={topbarOverrides}
-                    />
-                  )}
-
-                  {/* 3. Avaliações — dropdown */}
-                  {hasAvaliacoes && navIcons && (
-                    <NavDropdown
-                      label="Avaliações"
-                      items={avaliacoesItems}
-                      isActive={isAvaliacoesActive}
-                      icon={navIcons.Exam}
-                      lottieAnimation={topbarOverrides["/avaliacao-diagnostica"]?.icon || "dados_simples"}
-                      pathname={pathname}
-                      topbarOverrides={topbarOverrides}
-                    />
-                  )}
-
-                  {/* 4. Professor — dropdown */}
-                  {hasProfessor && navIcons && (
-                    <NavDropdown
-                      label="Professor"
-                      items={professorItems}
-                      isActive={isProfessorActive}
-                      icon={navIcons.BookOpen}
-                      lottieAnimation={topbarOverrides["/pei-regente"]?.icon || "central_inteligencia_simples"}
-                      pathname={pathname}
-                      topbarOverrides={topbarOverrides}
-                    />
-                  )}
-
-                  {/* 5. Evolução & Dados — flat */}
-                  {flatItems.filter((i: NavItem) => i.href === "/monitoramento").map((item: NavItem) => (
-                    <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} iconOverride={topbarOverrides[item.href]?.icon} pillColorOverride={topbarOverrides[item.href]?.pillColor} />
-                  ))}
-
-                  {/* 6. Central — flat */}
-                  {flatItems.filter((i: NavItem) => i.href === "/infos").map((item: NavItem) => (
-                    <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} iconOverride={topbarOverrides[item.href]?.icon} pillColorOverride={topbarOverrides[item.href]?.pillColor} />
-                  ))}
-
-                  {/* 7. PGI — flat */}
-                  {flatItems.filter((i: NavItem) => i.href === "/pgi").map((item: NavItem) => (
-                    <NavItemWithLottie key={item.href} item={item} isActive={pathname === item.href} iconOverride={topbarOverrides[item.href]?.icon} pillColorOverride={topbarOverrides[item.href]?.pillColor} />
-                  ))}
-
-                  {/* 8. Config — dropdown */}
-                  {hasConfigDropdown && navIcons && (
-                    <NavDropdown
-                      label=""
-                      items={configDropdownItems}
-                      isActive={isConfigDropdownActive}
-                      icon={navIcons.Gear}
-                      lottieAnimation={topbarOverrides["/gestao"]?.icon || "gestao_usuario_simples"}
-                      pathname={pathname}
-                      topbarOverrides={topbarOverrides}
-                    />
-                  )}
-                </nav>
-              </div>
-
-              {/* Menu Mobile/Tablet - Aparece no lugar da nav em lg */}
-              <div className="lg:hidden flex items-center gap-2 flex-1 justify-center">
-                <select
-                  value={pathname}
-                  onChange={(e) => router.push(e.target.value)}
-                  aria-label="Selecionar módulo"
-                  className="text-sm px-3 py-2 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-                  style={{ backgroundColor: 'var(--omni-bg-secondary)', color: 'var(--omni-text-primary)', borderColor: 'var(--omni-border-default)', border: '1px solid var(--omni-border-default)' }}
-                >
-                  {items.map((item: NavItem) => (
-                    <option key={item.href} value={item.href}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </>
-          )}
 
           {/* 3️⃣ BUSCA + ÍCONES AUXILIARES - Direita, antes do perfil */}
           <div className="flex items-center gap-1 ml-auto shrink-0 pl-4">

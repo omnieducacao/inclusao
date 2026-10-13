@@ -9,6 +9,8 @@ import { Workspace } from "../lib/admin-types";
 import { ENGINE_OPTIONS, SEGMENT_OPTIONS, FEED_CATEGORIES } from "../lib/admin-constants";
 
 import React, { useState, useEffect } from "react";
+import { useConfirmar } from "@/components/Confirmar";
+import { MensagemAdmin, type Mensagem } from "./MensagemAdmin";
 export function InstagramFeedTab() {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +24,8 @@ export function InstagramFeedTab() {
   const [instagramUrl, setInstagramUrl] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [mensagem, setMensagem] = useState<Mensagem | null>(null);
+  const { confirmar, dialogo } = useConfirmar();
 
   useEffect(() => {
     loadPosts();
@@ -66,10 +70,11 @@ export function InstagramFeedTab() {
 
   async function handleSubmit() {
     if (selectedFiles.length === 0) {
-      alert("Adicione pelo menos 1 imagem.");
+      setMensagem({ tipo: "atencao", texto: "Adicione pelo menos uma imagem." });
       return;
     }
 
+    setMensagem(null);
     setCreating(true);
     try {
       const formData = new FormData();
@@ -88,7 +93,7 @@ export function InstagramFeedTab() {
       });
 
       if (res.ok) {
-        alert("✅ Post criado com sucesso!");
+        setMensagem({ tipo: "sucesso", texto: "Publicação criada." });
         setTitle("");
         setCaption("");
         setCategory("instagram");
@@ -99,11 +104,11 @@ export function InstagramFeedTab() {
         loadPosts();
       } else {
         const error = await res.json().catch(() => ({}));
-        alert(`Erro: ${error.error || "Erro ao criar post"}`);
+        setMensagem({ tipo: "erro", texto: `Não foi possível criar a publicação. ${error.error || ""}`.trim() });
       }
     } catch (err) {
       /* client-side */ console.error("Erro ao criar post:", err);
-      alert("Erro ao criar post.");
+      setMensagem({ tipo: "erro", texto: "Não foi possível criar a publicação. Tente de novo." });
     } finally {
       setCreating(false);
     }
@@ -123,7 +128,7 @@ export function InstagramFeedTab() {
   }
 
   async function handleDelete(postId: string) {
-    if (!confirm("Excluir este post permanentemente?")) return;
+    if (!(await confirmar({ titulo: "Excluir esta publicação?", texto: "As imagens e o texto saem do feed. Não dá para desfazer.", acao: "Excluir publicação", cancelar: "Manter publicação", perigo: true }))) return;
     try {
       const res = await fetch(`/api/admin/instagram-feed/${postId}`, {
         method: "DELETE",
@@ -135,98 +140,99 @@ export function InstagramFeedTab() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header + New Post Button */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <div className="flex items-center justify-between mb-4">
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      {dialogo}
+      <MensagemAdmin mensagem={mensagem} onFechar={() => setMensagem(null)} />
+      {/* Cabeçalho + nova publicação */}
+      <section className="omni-cartao" aria-labelledby="feed-titulo">
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
           <div>
-            <h3 className="text-xl font-bold text-slate-900">📸 Feed Omnisfera</h3>
-            <p className="text-slate-600 text-sm mt-1">
-              Posts com carrossel de imagens. Aparece na Home de todas as escolas.
+            <h3 id="feed-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)", display: "flex", alignItems: "center", gap: 8 }}><Camera size={20} aria-hidden /> Feed da Omnisfera</h3>
+            <p className="omni-apoio" style={{ marginTop: 4 }}>
+              Publicações com várias imagens. Aparecem na página inicial de todas as escolas.
             </p>
           </div>
           <button
+            type="button"
             onClick={() => setShowForm(!showForm)}
-            className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 flex items-center gap-2 text-sm"
+            aria-expanded={showForm}
+            className={`omni-btn ${showForm ? "omni-btn--secundario" : "omni-btn--primario"}`}
           >
-            {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            {showForm ? "Cancelar" : "Novo Post"}
+            {showForm ? <X size={18} aria-hidden /> : <Plus size={18} aria-hidden />}
+            {showForm ? "Cancelar" : "Nova publicação"}
           </button>
         </div>
 
-        {/* Create Form */}
+        {/* Formulário */}
         {showForm && (
-          <div className="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Título (opcional)</label>
+          <div className="omni-cartao omni-cartao--plano" style={{ gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+              <label className="omni-campo">
+                <span className="omni-campo__rotulo">Título <span className="omni-campo__opcional">(opcional)</span></span>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Ex: Dia da Inclusão"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                  placeholder="Ex.: Dia da Inclusão"
+                  className="omni-entrada"
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Categoria</label>
+              </label>
+              <label className="omni-campo">
+                <span className="omni-campo__rotulo">Categoria</span>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                  className="omni-entrada"
                 >
                   {FEED_CATEGORIES.map((c) => (
                     <option key={c.value} value={c.value}>{c.label}</option>
                   ))}
                 </select>
-              </div>
+              </label>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Legenda / Texto</label>
+            <label className="omni-campo" style={{ maxWidth: "none" }}>
+              <span className="omni-campo__rotulo">Legenda <span className="omni-campo__opcional">(opcional)</span></span>
               <textarea
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
-                placeholder="Escreva o texto do post..."
+                placeholder="Texto da publicação."
                 rows={3}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm resize-none"
+                className="omni-entrada"
               />
-            </div>
+            </label>
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Link externo (opcional)
-              </label>
+            <label className="omni-campo">
+              <span className="omni-campo__rotulo">Link externo <span className="omni-campo__opcional">(opcional)</span></span>
               <input
                 type="url"
                 value={instagramUrl}
                 onChange={(e) => setInstagramUrl(e.target.value)}
                 placeholder="https://..."
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                className="omni-entrada"
               />
-            </div>
+            </label>
 
-            {/* Image Upload */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Imagens ({selectedFiles.length}/8)
-              </label>
+            {/* Imagens */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <span className="omni-campo__rotulo">Imagens ({selectedFiles.length} de 8)</span>
 
-              {/* Preview grid */}
               {previews.length > 0 && (
-                <div className="grid grid-cols-4 gap-2 mb-3">
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 8 }}>
                   {previews.map((preview, i) => (
-                    <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
+                    <div key={i} style={{ position: "relative", aspectRatio: "1 / 1", borderRadius: "var(--o-radius-sm)", overflow: "hidden", border: "1px solid var(--borda)" }}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={preview} alt={`Preview ${i + 1}`} className="w-full h-full object-cover" />
+                      <img src={preview} alt={`Imagem ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       <button
                         type="button"
                         onClick={() => removeFile(i)}
-                        className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
+                        aria-label={`Tirar imagem ${i + 1}`}
+                        className="omni-btn omni-btn--secundario omni-btn--pequeno"
+                        style={{ position: "absolute", top: 4, right: 4, minHeight: 28, width: 28, padding: 0 }}
                       >
-                        ×
+                        <X size={14} aria-hidden />
                       </button>
-                      <span className="absolute bottom-1 left-1 text-[10px] font-bold text-white bg-black/50 px-1 rounded">
+                      <span className="omni-rotulo" style={{ position: "absolute", bottom: 4, left: 4, background: "var(--superficie)", color: "var(--tinta)", padding: "0 6px", borderRadius: "var(--o-radius-xs)" }}>
                         {i + 1}
                       </span>
                     </div>
@@ -235,78 +241,74 @@ export function InstagramFeedTab() {
               )}
 
               {selectedFiles.length < 8 && (
-                <label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:border-pink-400 hover:bg-pink-50 transition-colors">
-                  <Upload className="w-5 h-5 text-slate-500" />
-                  <span className="text-sm text-slate-600">
-                    Clique para adicionar imagens ({8 - selectedFiles.length} restantes)
-                  </span>
+                <label className="omni-btn omni-btn--secundario" style={{ position: "relative", borderStyle: "dashed", alignSelf: "flex-start" }}>
+                  <Upload size={18} aria-hidden />
+                  Adicionar imagens (faltam {8 - selectedFiles.length})
                   <input
                     type="file"
                     accept="image/*"
                     multiple
                     onChange={handleFileSelect}
-                    className="hidden"
+                    style={{ position: "absolute", inset: 0, opacity: 0, cursor: "pointer" }}
                   />
                 </label>
               )}
             </div>
 
-            <button
-              onClick={handleSubmit}
-              disabled={creating || selectedFiles.length === 0}
-              className="px-6 py-2.5 bg-pink-600 text-white rounded-lg hover:bg-pink-700 disabled:opacity-50 flex items-center gap-2 text-sm font-semibold"
-            >
-              {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
-              Publicar Post
-            </button>
+            <div>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={creating || selectedFiles.length === 0}
+                className="omni-btn omni-btn--primario"
+              >
+                {creating ? <Loader2 size={18} className="animate-spin" aria-hidden /> : <Camera size={18} aria-hidden />}
+                Publicar
+              </button>
+            </div>
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Posts List */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <h3 className="text-xl font-bold text-slate-900 mb-4">📋 Posts publicados</h3>
+      {/* Lista */}
+      <section className="omni-cartao" aria-labelledby="feed-lista-titulo">
+        <h3 id="feed-lista-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" }}>Publicações</h3>
 
         {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-pink-600" />
-          </div>
+          <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, padding: "24px 0" }}>
+            <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando publicações…
+          </p>
         ) : posts.length === 0 ? (
-          <p className="text-slate-600 text-center py-8">
-            Nenhum post ainda. Crie o primeiro acima.
+          <p className="omni-apoio" style={{ textAlign: "center", padding: "24px 0" }}>
+            Nenhuma publicação ainda. Crie a primeira acima.
           </p>
         ) : (
-          <div className="space-y-4">
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {posts.map((post) => {
               const catLabel = FEED_CATEGORIES.find((c) => c.value === post.category)?.label || post.category;
               return (
-                <div key={post.id} className="border border-slate-200 rounded-lg p-4">
-                  <div className="flex items-start gap-4">
-                    {/* Thumbnail */}
+                <div key={post.id} className="omni-cartao omni-cartao--plano" style={{ padding: 16 }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: 16 }}>
                     {post.images[0] && (
-                      <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 border border-slate-200">
-                        <img src={post.images[0]} alt="" className="w-full h-full object-cover" />
+                      <div style={{ width: 80, height: 80, borderRadius: "var(--o-radius-sm)", overflow: "hidden", flex: "none", border: "1px solid var(--borda)" }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={post.images[0]} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       </div>
                     )}
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-pink-100 text-pink-800">
-                          {catLabel}
-                        </span>
-                        <span className={`text-xs px-2 py-0.5 rounded ${post.published ? "bg-green-100 text-green-800" : "bg-slate-100 text-slate-600"}`}>
+                    <div style={{ flex: 1, minWidth: 200 }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                        <span className="omni-estado omni-estado--info">{catLabel}</span>
+                        <span className={`omni-estado ${post.published ? "omni-estado--sucesso" : "omni-estado--neutro"}`}>
                           {post.published ? "Publicado" : "Rascunho"}
                         </span>
-                        <span className="text-xs text-slate-500">
-                          {post.images.length} foto{post.images.length !== 1 ? "s" : ""}
-                        </span>
-                        <span className="text-xs text-slate-400">
-                          · {new Date(post.created_at).toLocaleDateString("pt-BR")}
+                        <span className="omni-apoio" style={{ fontSize: 13 }}>
+                          {post.images.length} {post.images.length !== 1 ? "imagens" : "imagem"} · {new Date(post.created_at).toLocaleDateString("pt-BR")}
                         </span>
                       </div>
-                      {post.title && <h4 className="font-bold text-slate-900 text-sm">{post.title}</h4>}
+                      {post.title && <h4 style={{ font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>{post.title}</h4>}
                       {post.caption && (
-                        <p className="text-sm text-slate-600 mt-0.5 line-clamp-2">
+                        <p className="omni-apoio line-clamp-2" style={{ marginTop: 2 }}>
                           {post.caption}
                         </p>
                       )}
@@ -315,24 +317,28 @@ export function InstagramFeedTab() {
                           href={post.instagram_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-pink-600 mt-1 hover:underline"
+                          style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 4, fontSize: 14, color: "var(--acao)" }}
                         >
-                          <ExternalLink className="w-3 h-3" /> Ver link
+                          <ExternalLink size={14} aria-hidden /> Abrir link
                         </a>
                       )}
                     </div>
 
-                    <div className="flex gap-2 shrink-0">
+                    <div style={{ display: "flex", gap: 8, flex: "none" }}>
                       <button
+                        type="button"
                         onClick={() => handleTogglePublish(post.id, post.published)}
-                        className="px-3 py-1.5 text-xs border border-slate-300 rounded-lg hover:bg-slate-50"
+                        className="omni-btn omni-btn--secundario omni-btn--pequeno"
                       >
-                        {post.published ? "Despublicar" : "Publicar"}
+                        {post.published ? <Pause size={16} aria-hidden /> : <Play size={16} aria-hidden />}
+                        {post.published ? "Tirar do ar" : "Publicar"}
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleDelete(post.id)}
-                        className="px-3 py-1.5 text-xs border border-red-300 text-red-700 rounded-lg hover:bg-red-50"
+                        className="omni-btn omni-btn--perigo omni-btn--pequeno"
                       >
+                        <Trash2 size={16} aria-hidden />
                         Excluir
                       </button>
                     </div>
@@ -342,7 +348,7 @@ export function InstagramFeedTab() {
             })}
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

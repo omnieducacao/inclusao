@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react";
 import type { SessionPayload } from "@/lib/session";
-import { Loader2, Plus, Edit2, Trash2, Play, Pause, Save, X, Eye, Megaphone, Download, Activity, Camera, Upload, ExternalLink } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { LottieIcon } from "@/components/LottieIcon";
+import { School, Users, Cpu, BarChart3, ScrollText, ShieldCheck, Megaphone, FileText, Bug, Camera, Palette, PanelTop, Globe, RefreshCw } from "lucide-react";
+import { MensagemAdmin, type Mensagem } from "./components/MensagemAdmin";
 import { EscolasTab } from "./components/EscolasTab";
 import { WorkspaceCard } from "./components/WorkspaceCard";
 import { UsoIATab } from "./components/UsoIATab";
@@ -74,6 +73,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
   const [newSchoolSegments, setNewSchoolSegments] = useState<string[]>([]);
   const [newSchoolEngines, setNewSchoolEngines] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
+  const [mensagem, setMensagem] = useState<Mensagem | null>(null);
 
   useEffect(() => {
     loadWorkspaces();
@@ -101,18 +101,19 @@ export function AdminClient({ session }: { session: SessionPayload }) {
 
   async function createWorkspace() {
     if (!newSchoolName.trim()) {
-      alert("Informe o nome da escola.");
+      setMensagem({ tipo: "atencao", texto: "Escreva o nome da escola." });
       return;
     }
     if (newSchoolSegments.length === 0) {
-      alert("Selecione ao menos um segmento.");
+      setMensagem({ tipo: "atencao", texto: "Marque pelo menos uma etapa de ensino." });
       return;
     }
     if (newSchoolEngines.length === 0) {
-      alert("Selecione ao menos um motor de IA.");
+      setMensagem({ tipo: "atencao", texto: "Marque pelo menos um motor de IA." });
       return;
     }
 
+    setMensagem(null);
     setCreating(true);
     try {
       const res = await fetch("/api/admin/workspaces", {
@@ -127,18 +128,18 @@ export function AdminClient({ session }: { session: SessionPayload }) {
 
       if (res.ok) {
         const data = await res.json();
-        alert(`✅ Escola "${data.workspace.name}" criada! PIN: ${data.pin} — Guarde este PIN.`);
+        setMensagem({ tipo: "sucesso", titulo: `Escola "${data.workspace.name}" criada`, texto: `PIN: ${data.pin}. Guarde este PIN: ele é o acesso da escola.` });
         setNewSchoolName("");
         setNewSchoolSegments([]);
         setNewSchoolEngines([]);
         loadWorkspaces();
       } else {
         const error = await res.json().catch(() => ({}));
-        alert(`Erro: ${error.error || "Erro ao criar escola"}`);
+        setMensagem({ tipo: "erro", texto: `Não foi possível criar a escola. ${error.error || ""}`.trim() });
       }
     } catch (err) {
       /* client-side */ console.error("Erro ao criar escola:", err);
-      alert("Erro ao criar escola.");
+      setMensagem({ tipo: "erro", texto: "Não foi possível criar a escola. Tente de novo." });
     } finally {
       setCreating(false);
     }
@@ -147,59 +148,70 @@ export function AdminClient({ session }: { session: SessionPayload }) {
   // Mostrar erro de carregamento em vez de quebrar
   if (error) {
     return (
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
-        <h2 className="text-lg font-bold text-amber-900 mb-2">Erro ao carregar painel</h2>
-        <p className="text-sm text-amber-800 mb-4">{error}</p>
-        <button
-          type="button"
-          onClick={() => { setError(null); loadWorkspaces(); }}
-          className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
-        >
-          Tentar novamente
-        </button>
+      <div className="omni-aviso omni-aviso--atencao" role="alert" style={{ maxWidth: "none" }}>
+        <div>
+          <div className="omni-aviso__titulo">Não foi possível carregar o painel</div>
+          <div className="omni-aviso__texto">{error}</div>
+          <div className="omni-aviso__acoes">
+            <button
+              type="button"
+              onClick={() => { setError(null); loadWorkspaces(); }}
+              className="omni-btn omni-btn--secundario omni-btn--pequeno"
+            >
+              <RefreshCw size={16} aria-hidden /> Tentar de novo
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
+  const abas: { id: TabId; label: string; Icone: typeof School }[] = [
+    { id: "escolas", label: "Escolas", Icone: School },
+    { id: "usuarios", label: "Usuários", Icone: Users },
+    { id: "uso-ia", label: "Uso de IA", Icone: Cpu },
+    { id: "dashboard", label: "Painel geral", Icone: BarChart3 },
+    { id: "logs", label: "Registros", Icone: ScrollText },
+    { id: "auditoria", label: "Auditoria", Icone: ShieldCheck },
+    { id: "avisos", label: "Avisos", Icone: Megaphone },
+    { id: "termo", label: "Termo de uso", Icone: FileText },
+    { id: "bugs", label: "Erros relatados", Icone: Bug },
+    { id: "instagram", label: "Instagram", Icone: Camera },
+    { id: "aparencia", label: "Aparência", Icone: Palette },
+    { id: "topbar", label: "Barra do topo", Icone: PanelTop },
+    { id: "landing", label: "Página inicial", Icone: Globe },
+  ];
+
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-black text-slate-900 mb-2">🔧 Admin Plataforma Omnisfera</h1>
-        <p className="text-slate-600">Gerenciamento completo da plataforma</p>
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div>
+        <h1 style={{ font: "800 28px/34px var(--font-sans)", color: "var(--tinta)", margin: 0 }}>Administração da Omnisfera</h1>
+        <p className="omni-apoio" style={{ marginTop: 4 }}>Escolas, usuários, avisos e aparência da plataforma.</p>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-200 mb-6 overflow-x-auto">
-        {[
-          { id: "escolas" as TabId, label: "🏫 Escolas" },
-          { id: "usuarios" as TabId, label: "👥 Usuários" },
-          { id: "uso-ia" as TabId, label: "📊 Uso de IAs" },
-          { id: "dashboard" as TabId, label: "📈 Dashboard" },
-          { id: "logs" as TabId, label: "📋 Logs" },
-          { id: "auditoria" as TabId, label: "🛡️ Auditoria (LGPD)" },
-          { id: "avisos" as TabId, label: "📢 Avisos" },
-          { id: "termo" as TabId, label: "📜 Termo" },
-          { id: "bugs" as TabId, label: "🐛 Bugs" },
-          { id: "instagram" as TabId, label: "📸 Feed" },
-          { id: "aparencia" as TabId, label: "🎨 Aparência" },
-          { id: "topbar" as TabId, label: "🧭 Topbar" },
-          { id: "landing" as TabId, label: "🌐 Landing Page" },
-        ].map((tab) => (
+      {/* Abas */}
+      <div className="omni-abas" role="tablist" aria-label="Seções da administração">
+        {abas.map(({ id, label, Icone }) => (
           <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 font-semibold text-sm border-b-2 transition-colors ${activeTab === tab.id
-              ? "border-blue-600 text-blue-600"
-              : "border-transparent text-slate-600 hover:text-slate-900"
-              }`}
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === id}
+            onClick={() => setActiveTab(id)}
+            className="omni-aba"
+            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
           >
-            {tab.label}
+            <Icone size={16} aria-hidden />
+            {label}
           </button>
         ))}
       </div>
 
-      {/* Conteúdo das tabs */}
+      <div role="tabpanel" aria-label={abas.find((t) => t.id === activeTab)?.label}>
+      {/* Conteúdo das abas */}
       {activeTab === "escolas" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <MensagemAdmin mensagem={mensagem} onFechar={() => setMensagem(null)} />
         <EscolasTab
           workspaces={workspaces}
           loading={loading}
@@ -217,6 +229,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
           onCreate={createWorkspace}
           creating={creating}
         />
+        </div>
       )}
 
       {activeTab === "uso-ia" && <UsoIATab />}
@@ -231,6 +244,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
       {activeTab === "aparencia" && <AparenciaTab />}
       {activeTab === "topbar" && <TopbarTab />}
       {activeTab === "landing" && <LandingPageTab />}
+      </div>
     </div>
 
   );

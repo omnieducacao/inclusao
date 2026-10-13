@@ -1,5 +1,5 @@
 "use client";
-import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Loader2, Play, Pause, X, Megaphone, Download, Camera, ExternalLink } from 'lucide-react';
+import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Loader2, Play, Pause, X, Megaphone, Download, Camera, ExternalLink, ScrollText, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { OmniLoader } from "@/components/OmniLoader";
 import { LottieIcon } from "@/components/LottieIcon";
@@ -44,109 +44,118 @@ export function LogsTab({ workspaces }: { workspaces: Workspace[] }) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold text-slate-900">📋 Logs de Atividade</h3>
-          <button
-            onClick={() => { setOffset(0); loadLogs(); }}
-            className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg hover:bg-slate-50 flex items-center gap-1"
-          >
-            <Activity className="w-4 h-4" /> Atualizar
-          </button>
-        </div>
+    <section className="omni-cartao" aria-labelledby="registros-titulo">
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <h3 id="registros-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)", display: "flex", alignItems: "center", gap: 8 }}>
+          <ScrollText size={20} aria-hidden /> Registro de atividades
+        </h3>
+        <button
+          type="button"
+          onClick={() => { setOffset(0); loadLogs(); }}
+          className="omni-btn omni-btn--secundario omni-btn--pequeno"
+        >
+          <RefreshCw size={16} aria-hidden /> Atualizar
+        </button>
+      </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-3 mb-4">
+      {/* Filtros */}
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", gap: 12 }}>
+        <label className="omni-campo" style={{ flex: "0 1 260px" }}>
+          <span className="omni-campo__rotulo">Escola</span>
           <select
             value={wsFilter}
             onChange={(e) => { setWsFilter(e.target.value); setOffset(0); }}
-            className="px-3 py-2 border border-slate-300 rounded-lg text-sm"
+            className="omni-entrada"
           >
             <option value="">Todas as escolas</option>
             {workspaces.map((ws) => (
               <option key={ws.id} value={ws.id}>{ws.name}</option>
             ))}
           </select>
+        </label>
+        <label className="omni-campo" style={{ flex: "0 1 260px" }}>
+          <span className="omni-campo__rotulo">Tipo de ação</span>
           <select
             value={typeFilter}
             onChange={(e) => { setTypeFilter(e.target.value); setOffset(0); }}
-            className="px-3 py-2 border border-slate-300 rounded-lg text-sm"
+            className="omni-entrada"
           >
             <option value="">Todos os tipos</option>
             {eventTypes.map((t) => (
               <option key={t} value={t}>{t}</option>
             ))}
           </select>
-          <span className="self-center text-sm text-slate-500">{total} evento(s) total</span>
-        </div>
-
-        {/* Logs Table */}
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-          </div>
-        ) : logs.length === 0 ? (
-          <p className="text-slate-600 text-center py-8">Nenhum log encontrado.</p>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="text-left py-3 px-4 font-semibold text-slate-700">Data</th>
-                    <th className="text-left py-3 px-4 font-semibold text-slate-700">Evento</th>
-                    <th className="text-left py-3 px-4 font-semibold text-slate-700">Escola</th>
-                    <th className="text-left py-3 px-4 font-semibold text-slate-700">Origem</th>
-                    <th className="text-left py-3 px-4 font-semibold text-slate-700">Motor IA</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {logs.map((log: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
-                    const date = log.created_at
-                      ? new Date(log.created_at).toLocaleString("pt-BR", {
-                        day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
-                      })
-                      : "—";
-                    return (
-                      <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50">
-                        <td className="py-3 px-4 text-slate-600 whitespace-nowrap">{date}</td>
-                        <td className="py-3 px-4 font-medium text-slate-900">{log.event_type}</td>
-                        <td className="py-3 px-4 text-slate-600">{log.workspace_name}</td>
-                        <td className="py-3 px-4 text-slate-600">{log.source || "—"}</td>
-                        <td className="py-3 px-4 text-slate-600">
-                          {log.ai_engine ? (ENGINE_OPTIONS[log.ai_engine] || log.ai_engine) : "—"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            <div className="flex items-center justify-between mt-4">
-              <button
-                disabled={offset === 0}
-                onClick={() => setOffset(Math.max(0, offset - limit))}
-                className="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50"
-              >
-                ← Anterior
-              </button>
-              <span className="text-sm text-slate-600">
-                {offset + 1}–{Math.min(offset + limit, total)} de {total}
-              </span>
-              <button
-                disabled={offset + limit >= total}
-                onClick={() => setOffset(offset + limit)}
-                className="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50"
-              >
-                Próxima →
-              </button>
-            </div>
-          </>
-        )}
+        </label>
+        <span className="omni-apoio" style={{ alignSelf: "center" }}>{total} {total === 1 ? "registro" : "registros"} no total</span>
       </div>
-    </div>
+
+      {/* Tabela */}
+      {loading ? (
+        <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, padding: "24px 0" }}>
+          <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando registros…
+        </p>
+      ) : logs.length === 0 ? (
+        <p className="omni-apoio" style={{ textAlign: "center", padding: "24px 0" }}>Nenhum registro encontrado.</p>
+      ) : (
+        <>
+          <div className="omni-tabela-caixa">
+            <table className="omni-tabela">
+              <thead>
+                <tr>
+                  <th scope="col">Data</th>
+                  <th scope="col">Ação</th>
+                  <th scope="col">Escola</th>
+                  <th scope="col">Origem</th>
+                  <th scope="col">Motor de IA</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map((log: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+                  const date = log.created_at
+                    ? new Date(log.created_at).toLocaleString("pt-BR", {
+                      day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
+                    })
+                    : "—";
+                  return (
+                    <tr key={log.id}>
+                      <td style={{ whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{date}</td>
+                      <td className="omni-tabela__nome">{log.event_type}</td>
+                      <td>{log.workspace_name}</td>
+                      <td>{log.source || "—"}</td>
+                      <td>
+                        {log.ai_engine ? (ENGINE_OPTIONS[log.ai_engine] || log.ai_engine) : "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Paginação */}
+          <nav aria-label="Páginas de registros" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <button
+              type="button"
+              disabled={offset === 0}
+              onClick={() => setOffset(Math.max(0, offset - limit))}
+              className="omni-btn omni-btn--secundario omni-btn--pequeno"
+            >
+              <ChevronLeft size={16} aria-hidden /> Anterior
+            </button>
+            <span className="omni-apoio" style={{ fontVariantNumeric: "tabular-nums" }}>
+              {offset + 1}–{Math.min(offset + limit, total)} de {total}
+            </span>
+            <button
+              type="button"
+              disabled={offset + limit >= total}
+              onClick={() => setOffset(offset + limit)}
+              className="omni-btn omni-btn--secundario omni-btn--pequeno"
+            >
+              Próxima <ChevronRight size={16} aria-hidden />
+            </button>
+          </nav>
+        </>
+      )}
+    </section>
   );
 }

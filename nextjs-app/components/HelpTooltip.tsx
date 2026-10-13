@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import { HELP_TOOLTIPS } from "@/lib/tour-content";
 
 type HelpTooltipProps = {
@@ -9,18 +9,18 @@ type HelpTooltipProps = {
 };
 
 /**
- * Contextual help tooltip — renders a small "?" icon that
- * shows a tooltip with title, description, and optional example.
+ * Dica de ajuda contextual: um pequeno botão "?" que mostra uma dica com título, texto e exemplo opcional.
+ * Onda 20: design system + acessibilidade. A dica fica ligada ao botão por aria-describedby,
+ * abre com foco do teclado, com o mouse por cima ou com clique, e fecha com Esc ou clique fora.
  */
 export function HelpTooltip({ fieldId, className = "" }: HelpTooltipProps) {
     const [open, setOpen] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
+    const ref = useRef<HTMLSpanElement>(null);
+    const idDica = useId();
 
     const info = HELP_TOOLTIPS[fieldId];
-    if (!info) return null;
 
-    // Close on click outside
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+    // Fecha com clique fora e com Esc
     useEffect(() => {
         if (!open) return;
         function handleClick(e: MouseEvent) {
@@ -28,48 +28,89 @@ export function HelpTooltip({ fieldId, className = "" }: HelpTooltipProps) {
                 setOpen(false);
             }
         }
+        function handleKey(e: KeyboardEvent) {
+            if (e.key === "Escape") setOpen(false);
+        }
         document.addEventListener("mousedown", handleClick);
-        return () => document.removeEventListener("mousedown", handleClick);
+        document.addEventListener("keydown", handleKey);
+        return () => {
+            document.removeEventListener("mousedown", handleClick);
+            document.removeEventListener("keydown", handleKey);
+        };
     }, [open]);
 
+    if (!info) return null;
+
     return (
-        <div ref={ref} className={`relative inline-flex ${className}`}>
+        <span
+            ref={ref}
+            className={className}
+            style={{ position: "relative", display: "inline-flex", verticalAlign: "middle" }}
+            onMouseEnter={() => setOpen(true)}
+            onMouseLeave={() => setOpen(false)}
+        >
             <button
                 type="button"
-                onClick={() => setOpen(!open)}
-                className="w-5 h-5 rounded-full bg-slate-100 hover:bg-blue-100 text-slate-400 hover:text-blue-600 flex items-center justify-center text-xs font-bold transition-colors border border-slate-200 hover:border-blue-300 shrink-0"
-                title={info.title}
+                onClick={(e) => { e.preventDefault(); setOpen(!open); }}
+                onFocus={() => setOpen(true)}
+                onBlur={() => setOpen(false)}
                 aria-label={`Ajuda: ${info.title}`}
+                aria-describedby={idDica}
+                aria-expanded={open}
+                style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: "50%",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    padding: 0,
+                    cursor: "pointer",
+                    font: "700 13px/1 var(--font-sans)",
+                    background: open ? "var(--acao-suave)" : "var(--superficie-2)",
+                    color: open ? "var(--acao)" : "var(--tinta-2)",
+                    border: `1.5px solid ${open ? "var(--acao)" : "var(--borda-forte)"}`,
+                }}
             >
-                ?
+                <span aria-hidden>?</span>
             </button>
-            {open && (
-                <div
-                    className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 animate-fade-in"
-                    style={{ filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.12))" }}
-                >
-                    <div className="bg-white rounded-xl p-4 border border-slate-200">
-                        <h4 className="text-sm font-bold text-slate-900 mb-1.5">{info.title}</h4>
-                        <p className="text-xs text-slate-600 leading-relaxed">{info.text}</p>
-                        {info.example && (
-                            <div className="mt-2.5 px-3 py-2 bg-blue-50 rounded-lg border border-blue-100">
-                                <p className="text-xs text-blue-700">
-                                    <span className="font-bold">Exemplo:</span> {info.example}
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                    {/* Arrow */}
-                    <div className="absolute left-1/2 -translate-x-1/2 -bottom-1.5 w-3 h-3 bg-white border-b border-r border-slate-200 rotate-45" />
-                </div>
-            )}
-        </div>
+            <span
+                id={idDica}
+                role="tooltip"
+                hidden={!open}
+                style={{
+                    position: "absolute",
+                    zIndex: 50,
+                    bottom: "calc(100% + 8px)",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: "min(288px, calc(100vw - 32px))",
+                    padding: 16,
+                    textAlign: "left",
+                    background: "var(--superficie)",
+                    color: "var(--tinta)",
+                    border: "1px solid var(--borda)",
+                    borderRadius: "var(--o-radius-md)",
+                    boxShadow: "var(--sombra-2)",
+                    whiteSpace: "normal",
+                }}
+            >
+                <span style={{ display: "block", font: "700 14px/20px var(--font-sans)", color: "var(--tinta)", marginBottom: 6 }}>{info.title}</span>
+                <span style={{ display: "block", font: "400 13px/20px var(--font-sans)", color: "var(--tinta-2)" }}>{info.text}</span>
+                {info.example && (
+                    <span style={{ display: "block", marginTop: 10, padding: "8px 12px", background: "var(--info-suave)", borderRadius: "var(--o-radius-sm)", font: "400 13px/20px var(--font-sans)", color: "var(--tinta)" }}>
+                        <strong>Exemplo:</strong> {info.example}
+                    </span>
+                )}
+            </span>
+        </span>
     );
 }
 
 /**
- * EmptyStateGuide — shown when a module has no content yet.
- * Provides gentle guidance on what to do first.
+ * EmptyStateGuide — mostrado quando um módulo ainda não tem conteúdo.
+ * Orienta com calma o que fazer primeiro.
  */
 export function EmptyStateGuide({
     icon,
@@ -85,15 +126,12 @@ export function EmptyStateGuide({
     actionHref?: string;
 }) {
     return (
-        <div className="flex flex-col items-center justify-center py-12 px-6 text-center animate-fade-in">
-            <span className="text-5xl mb-4">{icon}</span>
-            <h3 className="text-lg font-bold text-slate-800 mb-2">{title}</h3>
-            <p className="text-sm text-slate-500 max-w-md leading-relaxed mb-4">{description}</p>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center", gap: 8 }}>
+            {icon && <span aria-hidden style={{ fontSize: 40, lineHeight: 1, marginBottom: 8 }}>{icon}</span>}
+            <h3 style={{ margin: 0, font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" }}>{title}</h3>
+            <p className="omni-apoio" style={{ margin: 0, maxWidth: 448 }}>{description}</p>
             {actionLabel && actionHref && (
-                <a
-                    href={actionHref}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-xl bg-linear-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all"
-                >
+                <a href={actionHref} className="omni-btn omni-btn--primario" style={{ marginTop: 8 }}>
                     {actionLabel}
                 </a>
             )}

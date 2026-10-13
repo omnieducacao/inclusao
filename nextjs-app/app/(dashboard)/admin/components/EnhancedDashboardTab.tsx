@@ -1,5 +1,5 @@
 "use client";
-import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Loader2, Play, Pause, X, Megaphone, Download, Camera, ExternalLink } from 'lucide-react';
+import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Loader2, Play, Pause, X, Megaphone, Download, Camera, ExternalLink, BarChart3 } from 'lucide-react';
 
 import { OmniLoader } from "@/components/OmniLoader";
 import { LottieIcon } from "@/components/LottieIcon";
@@ -22,84 +22,92 @@ export function EnhancedDashboardTab() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-        </div>
+      <div className="omni-cartao">
+        <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, padding: "24px 0" }}>
+          <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando painel…
+        </p>
       </div>
     );
   }
 
   if (!data) {
-    return <p className="text-center text-slate-600 py-8">Erro ao carregar dashboard.</p>;
+    return (
+      <div className="omni-aviso omni-aviso--erro" role="alert" style={{ maxWidth: "none" }}>
+        <XCircle className="omni-aviso__icone" aria-hidden />
+        <div><div className="omni-aviso__texto" style={{ color: "var(--tinta)" }}>Não foi possível carregar o painel geral.</div></div>
+      </div>
+    );
   }
 
   const { kpis, school_breakdown } = data;
 
+  const numero = { font: "800 30px/36px var(--font-sans)", color: "var(--tinta)", fontVariantNumeric: "tabular-nums" } as const;
+
   return (
-    <div className="space-y-6">
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-5 bg-blue-50 rounded-xl border border-blue-200">
-          <p className="text-sm text-blue-700 font-medium">Total de Escolas</p>
-          <p className="text-3xl font-bold text-blue-900 mt-1">{kpis.total_schools}</p>
-          <p className="text-xs text-blue-600 mt-1">{kpis.active_schools} ativas, {kpis.inactive_schools} inativas</p>
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      {/* Indicadores */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+        <div className="omni-cartao" style={{ gap: 4, padding: 20 }}>
+          <p className="omni-rotulo">Escolas</p>
+          <p style={numero}>{kpis.total_schools}</p>
+          <p className="omni-apoio" style={{ fontSize: 13 }}>{kpis.active_schools} ativas, {kpis.inactive_schools} inativas</p>
         </div>
-        <div className="p-5 bg-green-50 rounded-xl border border-green-200">
-          <p className="text-sm text-green-700 font-medium">Usuários Cadastrados</p>
-          <p className="text-3xl font-bold text-green-900 mt-1">{kpis.total_users}</p>
-          <p className="text-xs text-green-600 mt-1">{kpis.active_users} ativos</p>
+        <div className="omni-cartao" style={{ gap: 4, padding: 20 }}>
+          <p className="omni-rotulo">Usuários</p>
+          <p style={numero}>{kpis.total_users}</p>
+          <p className="omni-apoio" style={{ fontSize: 13 }}>{kpis.active_users} ativos</p>
         </div>
-        <div className="p-5 bg-purple-50 rounded-xl border border-purple-200">
-          <p className="text-sm text-purple-700 font-medium">Total de Alunos</p>
-          <p className="text-3xl font-bold text-purple-900 mt-1">{kpis.total_students}</p>
-          <p className="text-xs text-purple-600 mt-1">{kpis.students_with_pei} com PEI</p>
+        <div className="omni-cartao" style={{ gap: 4, padding: 20 }}>
+          <p className="omni-rotulo">Estudantes</p>
+          <p style={numero}>{kpis.total_students}</p>
+          <p className="omni-apoio" style={{ fontSize: 13 }}>{kpis.students_with_pei} com PEI (Plano Educacional Individualizado)</p>
         </div>
-        <div className="p-5 bg-amber-50 rounded-xl border border-amber-200">
-          <p className="text-sm text-amber-700 font-medium">Eventos (7 dias)</p>
-          <p className="text-3xl font-bold text-amber-900 mt-1">{kpis.recent_events_7d}</p>
-          <p className="text-xs text-amber-600 mt-1">uso da plataforma</p>
+        <div className="omni-cartao" style={{ gap: 4, padding: 20 }}>
+          <p className="omni-rotulo">Ações nos últimos 7 dias</p>
+          <p style={numero}>{kpis.recent_events_7d}</p>
+          <p className="omni-apoio" style={{ fontSize: 13 }}>uso da plataforma</p>
         </div>
       </div>
 
-      {/* Per-School Breakdown */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold text-slate-900">📊 Panorama por Escola</h3>
+      {/* Por escola */}
+      <section className="omni-cartao" aria-labelledby="panorama-titulo">
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <h3 id="panorama-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)", display: "flex", alignItems: "center", gap: 8 }}><BarChart3 size={20} aria-hidden /> Panorama por escola</h3>
           <button
+            type="button"
             onClick={() => window.open("/api/admin/export?type=schools", "_blank")}
-            className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg hover:bg-slate-50 flex items-center gap-1"
+            className="omni-btn omni-btn--secundario omni-btn--pequeno"
           >
-            <Download className="w-4 h-4" /> Exportar CSV
+            <Download size={16} aria-hidden /> Baixar planilha (CSV)
           </button>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="omni-tabela-caixa">
+          <table className="omni-tabela">
             <thead>
-              <tr className="border-b border-slate-200">
-                <th className="text-left py-3 px-4 font-semibold text-slate-700">Escola</th>
-                <th className="text-center py-3 px-4 font-semibold text-slate-700">Status</th>
-                <th className="text-center py-3 px-4 font-semibold text-slate-700">Usuários</th>
-                <th className="text-center py-3 px-4 font-semibold text-slate-700">Alunos</th>
+              <tr>
+                <th scope="col">Escola</th>
+                <th scope="col">Situação</th>
+                <th scope="col" className="num">Usuários</th>
+                <th scope="col" className="num">Estudantes</th>
               </tr>
             </thead>
             <tbody>
               {(school_breakdown || []).map((s: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
-                <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
-                  <td className="py-3 px-4 font-medium text-slate-900">{s.name}</td>
-                  <td className="py-3 px-4 text-center">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded ${s.active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                <tr key={s.id}>
+                  <td className="omni-tabela__nome">{s.name}</td>
+                  <td>
+                    <span className={`omni-estado ${s.active ? "omni-estado--sucesso" : "omni-estado--erro"}`}>
                       {s.active ? "Ativa" : "Inativa"}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-center font-medium">{s.users}</td>
-                  <td className="py-3 px-4 text-center font-medium">{s.students}</td>
+                  <td className="num">{s.users}</td>
+                  <td className="num">{s.students}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

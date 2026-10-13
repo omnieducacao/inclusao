@@ -46,7 +46,7 @@ describe("AccessibilityMenu", () => {
 
     it("renderiza o botão principal recolhido", () => {
         render(<AccessibilityMenu />);
-        const btn = screen.getByRole("button", { name: /Menu de Acessibilidade e Aparência/i });
+        const btn = screen.getByRole("button", { name: /Aparência e acessibilidade/i });
         expect(btn).toBeInTheDocument();
         expect(screen.queryByText(/Aparência e Acessibilidade/i)).not.toBeInTheDocument();
     });
@@ -54,7 +54,7 @@ describe("AccessibilityMenu", () => {
     it("abre o dropdown e revela os controles ao ser clicado", async () => {
         render(<AccessibilityMenu />);
 
-        const triggerBtn = screen.getByRole("button", { name: /Menu de Acessibilidade e Aparência/i });
+        const triggerBtn = screen.getByRole("button", { name: /Aparência e acessibilidade/i });
         fireEvent.click(triggerBtn);
 
         await waitFor(() => {
@@ -71,16 +71,16 @@ describe("AccessibilityMenu", () => {
         expect(screen.getByText(/Fonte para leitura/i)).toBeInTheDocument();
 
         // Color Blind specific modes
-        expect(screen.getByText(/Protanopia/i)).toBeInTheDocument();
-        expect(screen.getByText(/Deutera\./i)).toBeInTheDocument();
-        expect(screen.getByText(/Tritanopia/i)).toBeInTheDocument();
+        expect(screen.getByText(/^Protanopia$/i)).toBeInTheDocument();
+        expect(screen.getByText(/^Deuteranopia$/i)).toBeInTheDocument();
+        expect(screen.getByText(/^Tritanopia$/i)).toBeInTheDocument();
     });
 
     it("invoca the toggle functions de Acessibilidade corretamente", async () => {
         render(<AccessibilityMenu />);
 
         // Open the menu
-        fireEvent.click(screen.getByRole("button", { name: /Menu de Acessibilidade e Aparência/i }));
+        fireEvent.click(screen.getByRole("button", { name: /Aparência e acessibilidade/i }));
 
         await waitFor(() => {
             expect(screen.getByText(/Alto Contraste/i)).toBeInTheDocument();

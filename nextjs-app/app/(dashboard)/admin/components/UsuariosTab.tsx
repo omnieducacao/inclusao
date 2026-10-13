@@ -8,12 +8,14 @@ import { Workspace } from "../lib/admin-types";
 import { ENGINE_OPTIONS, SEGMENT_OPTIONS, FEED_CATEGORIES } from "../lib/admin-constants";
 
 import React, { useState, useEffect } from "react";
+import { MensagemAdmin, type Mensagem } from "./MensagemAdmin";
 export function UsuariosTab({ workspaces }: { workspaces: Workspace[] }) {
   const [users, setUsers] = useState<any[] /* eslint-disable-line @typescript-eslint/no-explicit-any */>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [wsFilter, setWsFilter] = useState("");
   const [toggling, setToggling] = useState<string | null>(null);
+  const [mensagem, setMensagem] = useState<Mensagem | null>(null);
 
   useEffect(() => {
     loadUsers();
@@ -50,7 +52,7 @@ export function UsuariosTab({ workspaces }: { workspaces: Workspace[] }) {
         loadUsers();
       }
     } catch (err) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      alert("Erro ao alterar status.");
+      setMensagem({ tipo: "erro", texto: "Não foi possível ativar ou desativar o usuário." });
     } finally {
       setToggling(null);
     }
@@ -65,104 +67,115 @@ export function UsuariosTab({ workspaces }: { workspaces: Workspace[] }) {
     : users;
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold text-slate-900">👥 Gestão de Usuários</h3>
-          <button
-            onClick={() => window.open("/api/admin/export?type=users", "_blank")}
-            className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg hover:bg-slate-50 flex items-center gap-1"
-          >
-            <Download className="w-4 h-4" /> Exportar CSV
-          </button>
-        </div>
+    <section className="omni-cartao" aria-labelledby="usuarios-titulo">
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <h3 id="usuarios-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)", display: "flex", alignItems: "center", gap: 8 }}>
+          <Users size={20} aria-hidden /> Usuários
+        </h3>
+        <button
+          type="button"
+          onClick={() => window.open("/api/admin/export?type=users", "_blank")}
+          className="omni-btn omni-btn--secundario omni-btn--pequeno"
+        >
+          <Download size={16} aria-hidden /> Baixar planilha (CSV)
+        </button>
+      </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-3 mb-4">
+      <MensagemAdmin mensagem={mensagem} onFechar={() => setMensagem(null)} />
+
+      {/* Filtros */}
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", gap: 12 }}>
+        <label className="omni-campo" style={{ flex: "1 1 240px" }}>
+          <span className="omni-campo__rotulo">Buscar</span>
           <input
-            type="text"
-            placeholder="Buscar por nome ou email..."
+            type="search"
+            placeholder="Nome ou e-mail"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && loadUsers()}
-            className="flex-1 min-w-[200px] px-3 py-2 border border-slate-300 rounded-lg text-sm"
+            className="omni-entrada"
           />
+        </label>
+        <label className="omni-campo" style={{ flex: "0 1 260px" }}>
+          <span className="omni-campo__rotulo">Escola</span>
           <select
             value={wsFilter}
             onChange={(e) => setWsFilter(e.target.value)}
-            className="px-3 py-2 border border-slate-300 rounded-lg text-sm"
+            className="omni-entrada"
           >
             <option value="">Todas as escolas</option>
             {workspaces.map((ws) => (
               <option key={ws.id} value={ws.id}>{ws.name}</option>
             ))}
           </select>
-          <button
-            onClick={loadUsers}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-          >
-            Buscar
-          </button>
-        </div>
-
-        {/* Users Table */}
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-          </div>
-        ) : filteredUsers.length === 0 ? (
-          <p className="text-slate-600 text-center py-8">Nenhum usuário encontrado.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-3 px-4 font-semibold text-slate-700">Nome</th>
-                  <th className="text-left py-3 px-4 font-semibold text-slate-700">Email</th>
-                  <th className="text-left py-3 px-4 font-semibold text-slate-700">Escola</th>
-                  <th className="text-center py-3 px-4 font-semibold text-slate-700">Papel</th>
-                  <th className="text-center py-3 px-4 font-semibold text-slate-700">Status</th>
-                  <th className="text-center py-3 px-4 font-semibold text-slate-700">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.map((user) => (
-                  <tr key={user.id} className="border-b border-slate-100 hover:bg-slate-50">
-                    <td className="py-3 px-4 font-medium text-slate-900">{user.nome || "—"}</td>
-                    <td className="py-3 px-4 text-slate-600">{user.email || "—"}</td>
-                    <td className="py-3 px-4 text-slate-600">{user.workspace_name}</td>
-                    <td className="py-3 px-4 text-center">
-                      <span className={`px-2 py-1 text-xs font-semibold rounded ${user.role === "master"
-                        ? "bg-purple-100 text-purple-800"
-                        : "bg-blue-100 text-blue-800"
-                        }`}>
-                        {user.role === "master" ? "Master" : "Membro"}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <span className={`px-2 py-1 text-xs font-semibold rounded ${user.active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                        }`}>
-                        {user.active ? "Ativo" : "Inativo"}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <button
-                        onClick={() => toggleUser(user.id, user.active)}
-                        disabled={toggling === user.id}
-                        className="px-3 py-1 text-xs border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50"
-                      >
-                        {toggling === user.id ? "..." : user.active ? "Desativar" : "Ativar"}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        <p className="text-sm text-slate-500 mt-3">{filteredUsers.length} usuário(s) encontrado(s)</p>
+        </label>
+        <button
+          type="button"
+          onClick={loadUsers}
+          className="omni-btn omni-btn--primario"
+        >
+          Buscar
+        </button>
       </div>
-    </div>
+
+      {/* Tabela */}
+      {loading ? (
+        <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, padding: "24px 0" }}>
+          <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando usuários…
+        </p>
+      ) : filteredUsers.length === 0 ? (
+        <p className="omni-apoio" style={{ textAlign: "center", padding: "24px 0" }}>Nenhum usuário encontrado.</p>
+      ) : (
+        <div className="omni-tabela-caixa">
+          <table className="omni-tabela">
+            <thead>
+              <tr>
+                <th scope="col">Nome</th>
+                <th scope="col">E-mail</th>
+                <th scope="col">Escola</th>
+                <th scope="col">Papel</th>
+                <th scope="col">Situação</th>
+                <th scope="col"><span className="sr-only">Ações</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.map((user) => (
+                <tr key={user.id}>
+                  <td className="omni-tabela__nome">{user.nome || "—"}</td>
+                  <td>{user.email || "—"}</td>
+                  <td>{user.workspace_name}</td>
+                  <td>
+                    <span className={`omni-estado ${user.role === "master" ? "omni-estado--info" : "omni-estado--neutro"}`}>
+                      {user.role === "master" ? "Coordenação" : "Equipe"}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`omni-estado ${user.active ? "omni-estado--sucesso" : "omni-estado--erro"}`}>
+                      {user.active ? "Ativo" : "Inativo"}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      onClick={() => toggleUser(user.id, user.active)}
+                      disabled={toggling === user.id}
+                      aria-label={`${user.active ? "Desativar" : "Ativar"} ${user.nome || user.email || "usuário"}`}
+                      className="omni-btn omni-btn--secundario omni-btn--pequeno"
+                    >
+                      {toggling === user.id ? <Loader2 size={16} className="animate-spin" aria-hidden /> : null}
+                      {toggling === user.id ? "Salvando" : user.active ? "Desativar" : "Ativar"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <p className="omni-apoio" style={{ fontSize: 13 }}>
+        {filteredUsers.length} {filteredUsers.length === 1 ? "usuário encontrado" : "usuários encontrados"}
+      </p>
+    </section>
   );
 }
