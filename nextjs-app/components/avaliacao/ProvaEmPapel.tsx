@@ -271,7 +271,7 @@ function Revisar({ prova, estudante, adaptacoes, onAdaptacoes, onItens, onTrocad
       </div>
       {erro && <span className="omni-campo__erro" role="alert">{erro}</span>}
       <p className="omni-apoio" style={{ margin: 0 }}>
-        Imprima a folha de respostas em A4, sem ajustar à página. Durante a aplicação, pinte na folha o apoio que você deu em cada questão.
+        Imprima em A4 (pode usar “ajustar à página”: a leitura por foto se guia pelos quadrados dos cantos). Durante a aplicação, pinte na folha o apoio que você deu em cada questão.
       </p>
 
       <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 12 }}>
