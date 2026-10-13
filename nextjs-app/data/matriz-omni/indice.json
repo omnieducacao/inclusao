@@ -1,14 +1,14 @@
 {
  "nome": "Matriz Omni",
- "versao": "2026-10-ma-saeb2022",
+ "versao": "2026-10-linguagens-saeb2022",
  "status": "rascunho para revisão do especialista",
  "fontes": [
   "BNCC (MEC) — códigos e textos oficiais das habilidades",
-  "Matrizes de referência de matemática do Saeb – BNCC (Inep, 2022) — 2º, 5º e 9º ano (Matemática)",
-  "Matrizes de Referência do SAEB 2001 (INEP) — Língua Portuguesa, 5º e 9º ano",
+  "Matrizes de referência do Saeb – BNCC (Inep, 2022): Matemática (2º, 5º e 9º) e Linguagens — Língua Portuguesa (2º, 5º e 9º), Arte e Educação Física (5º e 9º), Língua Inglesa (9º)",
+  "Matrizes de Referência do SAEB 2001 (Inep) — só como histórico dos códigos antigos",
   "Guia de Elaboração e Revisão de Itens (Inep, 2010) e taxonomia de Bloom revisada (Anderson e Krathwohl, 2001)"
  ],
- "estrutura": "componente → ano → eixo do conhecimento (unidade temática da BNCC) → descritor Omni → habilidades da BNCC → habilidade do Saeb (quando houver). Em Matemática, cada descritor também traz o eixo cognitivo do Saeb (1 = compreender e aplicar conceitos e procedimentos; 2 = resolver problemas e argumentar) e o nível de Bloom, e o código segue a lógica do Saeb: OMNI-MA5-N1.2 = 5º ano, Números, eixo cognitivo 1, descritor 2.",
+ "estrutura": "componente → ano → eixo do conhecimento (unidade temática da BNCC) → descritor Omni → habilidades da BNCC → habilidade do Saeb (quando houver). Em Matemática e Linguagens (LP, Arte, Educação Física, Inglês), cada descritor também traz o eixo cognitivo do Saeb (MA: 1 compreender e aplicar, 2 resolver problemas e argumentar; Linguagens: 1 reconhecer, 2 analisar, 3 avaliar, 4 produzir) e o nível de Bloom, e o código segue a lógica do Saeb: OMNI-MA5-N1.2 = 5º ano, Números, eixo cognitivo 1, descritor 2.",
  "escala": [
   {
    "nivel": 0,
@@ -55,7 +55,7 @@
   {
    "componente": "Língua Portuguesa",
    "sigla": "LP",
-   "total": 144
+   "total": 429
   },
   {
    "componente": "Matemática",
@@ -80,17 +80,17 @@
   {
    "componente": "Arte",
    "sigla": "AR",
-   "total": 20
+   "total": 77
   },
   {
    "componente": "Educação Física",
    "sigla": "EF",
-   "total": 39
+   "total": 130
   },
   {
    "componente": "Língua Inglesa",
    "sigla": "LI",
-   "total": 40
+   "total": 104
   }
  ]
 }

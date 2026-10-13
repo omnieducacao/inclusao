@@ -1,1 +1,1411 @@
-{"componente": "Arte", "sigla": "AR", "descritores": [{"codigo": "OMNI-AR15-D01", "ano": "1º ao 5º ano", "eixo": "Artes visuais", "descritor": "Identificar ponto, linha, forma e cor como elementos visuais em pinturas, ilustrações ou fotografias apresentadas.", "habilidades_bncc": ["EF15AR02"], "saeb": [], "evidencia": "Aponta ou nomeia, numa imagem dada, o elemento visual que predomina ou que foi destacado."}, {"codigo": "OMNI-AR15-D02", "ano": "1º ao 5º ano", "eixo": "Artes visuais", "descritor": "Reconhecer a técnica ou o material usado numa produção visual, como desenho, pintura, colagem, escultura ou fotografia.", "habilidades_bncc": ["EF15AR04", "EF15AR01"], "saeb": [], "evidencia": "Associa a imagem de uma obra à técnica ou ao material com que foi feita."}, {"codigo": "OMNI-AR15-D03", "ano": "1º ao 5º ano", "eixo": "Artes visuais", "descritor": "Distinguir o papel de pessoas e espaços do circuito das artes visuais, como artista, artesão, curador, museu e galeria.", "habilidades_bncc": ["EF15AR07"], "saeb": [], "evidencia": "Relaciona cada função ou espaço à descrição correta do que faz ou oferece."}, {"codigo": "OMNI-AR15-D04", "ano": "1º ao 5º ano", "eixo": "Dança", "descritor": "Identificar variações de direção, plano, deslocamento e velocidade em sequências de movimento dançado ilustradas ou descritas.", "habilidades_bncc": ["EF15AR10", "EF15AR09"], "saeb": [], "evidencia": "Indica, numa sequência de figuras, onde o movimento muda de plano, direção ou velocidade."}, {"codigo": "OMNI-AR15-D05", "ano": "1º ao 5º ano", "eixo": "Música", "descritor": "Diferenciar sons quanto à altura, intensidade, duração e timbre em situações de escuta ou de descrição sonora.", "habilidades_bncc": ["EF15AR14"], "saeb": [], "evidencia": "Classifica pares de sons como grave/agudo, forte/fraco, longo/curto ou pelo timbre."}, {"codigo": "OMNI-AR15-D06", "ano": "1º ao 5º ano", "eixo": "Música", "descritor": "Classificar fontes sonoras como do próprio corpo, da natureza, de objetos do cotidiano ou de instrumentos musicais.", "habilidades_bncc": ["EF15AR15"], "saeb": [], "evidencia": "Agrupa imagens ou descrições de fontes sonoras na categoria correspondente."}, {"codigo": "OMNI-AR15-D07", "ano": "1º ao 5º ano", "eixo": "Música", "descritor": "Relacionar uma música à função que exerce no cotidiano, como ninar, celebrar, anunciar produto ou acompanhar brincadeira.", "habilidades_bncc": ["EF15AR13"], "saeb": [], "evidencia": "Associa trechos de canções ou situações descritas à função social da música em cada uma."}, {"codigo": "OMNI-AR15-D08", "ano": "1º ao 5º ano", "eixo": "Teatro", "descritor": "Reconhecer entonação de voz, gestos, personagens e enredo como elementos teatrais em cenas ilustradas, descritas ou assistidas.", "habilidades_bncc": ["EF15AR19", "EF15AR18"], "saeb": [], "evidencia": "Identifica, numa cena, qual recurso de voz ou de corpo caracteriza um personagem."}, {"codigo": "OMNI-AR15-D09", "ano": "1º ao 5º ano", "eixo": "Artes integradas", "descritor": "Relacionar brinquedos, brincadeiras, cantigas, danças e histórias às matrizes culturais indígena, africana ou europeia de origem.", "habilidades_bncc": ["EF15AR24", "EF15AR25"], "saeb": [], "evidencia": "Associa cada manifestação apresentada à matriz cultural de que se origina."}, {"codigo": "OMNI-AR15-D10", "ano": "1º ao 5º ano", "eixo": "Artes integradas", "descritor": "Identificar o recurso tecnológico empregado numa produção artística, como fotografia, vídeo, animação ou gravação de áudio.", "habilidades_bncc": ["EF15AR26"], "saeb": [], "evidencia": "Indica qual tecnologia foi usada para criar ou registrar a produção mostrada."}, {"codigo": "OMNI-AR69-D01", "ano": "6º ao 9º ano", "eixo": "Artes visuais", "descritor": "Analisar o uso de linha, cor, tom, escala, direção e espaço na composição de uma obra visual reproduzida.", "habilidades_bncc": ["EF69AR04"], "saeb": [], "evidencia": "Explica como um elemento visual escolhido cria efeito de profundidade, movimento ou destaque na obra."}, {"codigo": "OMNI-AR69-D02", "ano": "6º ao 9º ano", "eixo": "Artes visuais", "descritor": "Relacionar uma obra visual ao estilo ou período artístico a que pertence, com base em características formais observáveis.", "habilidades_bncc": ["EF69AR02", "EF69AR01"], "saeb": [], "evidencia": "Associa a reprodução de uma obra ao estilo correto e justifica com um traço visível."}, {"codigo": "OMNI-AR69-D03", "ano": "6º ao 9º ano", "eixo": "Artes visuais", "descritor": "Identificar a integração das artes visuais com linguagens gráficas e audiovisuais em capas, ilustrações, animações ou filmes.", "habilidades_bncc": ["EF69AR03"], "saeb": [], "evidencia": "Aponta, num produto gráfico ou audiovisual, o recurso visual que contribui para o sentido."}, {"codigo": "OMNI-AR69-D04", "ano": "6º ao 9º ano", "eixo": "Dança", "descritor": "Identificar os fatores tempo, peso, fluência e espaço numa sequência de dança descrita ou registrada em imagens.", "habilidades_bncc": ["EF69AR11", "EF69AR10"], "saeb": [], "evidencia": "Indica qual fator de movimento varia entre dois trechos de uma coreografia apresentada."}, {"codigo": "OMNI-AR69-D05", "ano": "6º ao 9º ano", "eixo": "Música", "descritor": "Relacionar um gênero ou estilo musical ao contexto histórico, social e geográfico em que surgiu e circula.", "habilidades_bncc": ["EF69AR19", "EF69AR16"], "saeb": [], "evidencia": "Associa o gênero musical a época, lugar e grupo social de origem, citando uma característica."}, {"codigo": "OMNI-AR69-D06", "ano": "6º ao 9º ano", "eixo": "Música", "descritor": "Distinguir altura, intensidade, timbre, melodia e ritmo, e reconhecer timbres de instrumentos, em trechos ou descrições musicais.", "habilidades_bncc": ["EF69AR20", "EF69AR21"], "saeb": [], "evidencia": "Identifica o elemento musical alterado entre duas versões ou o instrumento pelo timbre descrito."}, {"codigo": "OMNI-AR69-D07", "ano": "6º ao 9º ano", "eixo": "Música", "descritor": "Interpretar registros musicais, como pauta, figuras rítmicas simples e partituras criativas, associando os símbolos aos sons representados.", "habilidades_bncc": ["EF69AR22"], "saeb": [], "evidencia": "Relaciona um registro gráfico ao padrão sonoro (duração, altura ou intensidade) que ele indica."}, {"codigo": "OMNI-AR69-D08", "ano": "6º ao 9º ano", "eixo": "Teatro", "descritor": "Reconhecer a função de figurino, adereço, cenário, iluminação e sonoplastia na construção de sentido de uma cena teatral.", "habilidades_bncc": ["EF69AR26", "EF69AR30"], "saeb": [], "evidencia": "Explica o efeito que um elemento cênico indicado produz no espectador."}, {"codigo": "OMNI-AR69-D09", "ano": "6º ao 9º ano", "eixo": "Teatro", "descritor": "Comparar estilos cênicos, como teatro de rua, de bonecos e musical, pela forma de encenação e de relação com o público.", "habilidades_bncc": ["EF69AR25"], "saeb": [], "evidencia": "Diferencia dois estilos teatrais a partir de imagens ou descrições de montagens."}, {"codigo": "OMNI-AR69-D10", "ano": "6º ao 9º ano", "eixo": "Artes integradas", "descritor": "Classificar bens do patrimônio cultural brasileiro como materiais ou imateriais, indicando suas matrizes indígena, africana ou europeia.", "habilidades_bncc": ["EF69AR34", "EF69AR33"], "saeb": [], "evidencia": "Classifica exemplos de patrimônio e associa cada um à matriz cultural predominante."}]}
+{
+ "componente": "Arte",
+ "sigla": "AR",
+ "descritores": [
+  {
+   "codigo": "OMNI-AR15-V1.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes visuais",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Identificar elementos visuais, como ponto, linha, forma, cor OU espaço, em uma imagem.",
+   "habilidades_bncc": [
+    "EF15AR02"
+   ],
+   "saeb": [
+    "5R1.1"
+   ],
+   "evidencia": "Aponta, na reprodução da pintura \"Feira de domingo\", onde há linhas curvas e diz quais cores predominam."
+  },
+  {
+   "codigo": "OMNI-AR15-V1.2",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes visuais",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Distinguir formas de expressão das artes visuais, tradicionais ou contemporâneas, como desenho, pintura, colagem, escultura, fotografia ou instalação, pelo suporte e pelo material.",
+   "habilidades_bncc": [
+    "EF15AR01",
+    "EF15AR04"
+   ],
+   "saeb": [
+    "5R1.2"
+   ],
+   "evidencia": "Diz que uma figura feita com recortes de revista colados é uma colagem e que uma peça de argila é uma modelagem."
+  },
+  {
+   "codigo": "OMNI-AR15-V1.3",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes visuais",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Identificar a função de pessoas OU de espaços do sistema das artes visuais, como artista, artesão, curador, museu ou galeria.",
+   "habilidades_bncc": [
+    "EF15AR07"
+   ],
+   "saeb": [
+    "5R1.3"
+   ],
+   "evidencia": "Liga \"curador\" a \"escolhe as obras de uma exposição\" e \"museu\" a \"guarda e mostra obras ao público\"."
+  },
+  {
+   "codigo": "OMNI-AR15-V1.4",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes visuais",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Reconhecer a influência de matrizes indígenas, africanas OU europeias em produções visuais locais, regionais ou nacionais.",
+   "habilidades_bncc": [
+    "EF15AR03"
+   ],
+   "saeb": [
+    "5R1.7"
+   ],
+   "evidencia": "Indica que os grafismos de um vaso de cerâmica marajoara vêm da matriz indígena."
+  },
+  {
+   "codigo": "OMNI-AR15-V2.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes visuais",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Comparar duas produções visuais da cultura local ou regional quanto à matriz estética ou cultural que as influencia.",
+   "habilidades_bncc": [
+    "EF15AR03"
+   ],
+   "saeb": [],
+   "evidencia": "Compara uma máscara africana com uma escultura de madeira de um artista baiano e aponta as formas parecidas."
+  },
+  {
+   "codigo": "OMNI-AR15-V2.2",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes visuais",
+   "eixo_cognitivo": 2,
+   "bloom": "entender",
+   "descritor": "Explicar a escolha de materiais reaproveitados OU não convencionais em uma produção visual, considerando o uso sustentável.",
+   "habilidades_bncc": [
+    "EF15AR04"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que a escultura \"Bicho de garrafa\" usa tampinhas e garrafas PET para não gerar mais lixo."
+  },
+  {
+   "codigo": "OMNI-AR15-V3.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes visuais",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar uma leitura da própria produção visual OU da produção de um colega, apontando elementos da imagem que a sustentam.",
+   "habilidades_bncc": [
+    "EF15AR06"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que o desenho do colega transmite tristeza e aponta as cores escuras e a figura encolhida no canto da folha."
+  },
+  {
+   "codigo": "OMNI-AR15-V4.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes visuais",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Produzir um trabalho visual, como desenho, pintura, colagem, dobradura ou modelagem, explorando de forma intencional ao menos um elemento visual.",
+   "habilidades_bncc": [
+    "EF15AR04",
+    "EF15AR02"
+   ],
+   "saeb": [],
+   "evidencia": "Faz uma colagem só com tiras retas de papel para representar a rua da escola."
+  },
+  {
+   "codigo": "OMNI-AR15-V4.2",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes visuais",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Criar, com colegas, uma produção visual coletiva em um espaço da escola ou da comunidade.",
+   "habilidades_bncc": [
+    "EF15AR05"
+   ],
+   "saeb": [],
+   "evidencia": "Pinta com o grupo um painel no muro do pátio sobre o tema \"nosso bairro\", cada pessoa responsável por uma parte."
+  },
+  {
+   "codigo": "OMNI-AR15-D1.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Dança",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar formas OU gêneros de dança de diferentes contextos, como ciranda, frevo, balé ou hip-hop.",
+   "habilidades_bncc": [
+    "EF15AR08"
+   ],
+   "saeb": [
+    "5R1.4"
+   ],
+   "evidencia": "Reconhece, por fotos, que a dança com sombrinhas coloridas é o frevo e a dança em roda de mãos dadas é a ciranda."
+  },
+  {
+   "codigo": "OMNI-AR15-D1.2",
+   "ano": "1º ao 5º ano",
+   "eixo": "Dança",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar deslocamentos, planos, direções OU ritmos (lento, moderado, rápido) em uma sequência de movimento dançado.",
+   "habilidades_bncc": [
+    "EF15AR10"
+   ],
+   "saeb": [
+    "5R1.1"
+   ],
+   "evidencia": "Diz que, na sequência mostrada no vídeo, a dançarina passa do plano alto para o plano baixo em ritmo lento."
+  },
+  {
+   "codigo": "OMNI-AR15-D2.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Dança",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar a relação entre as partes do corpo e o corpo inteiro na construção de um movimento dançado.",
+   "habilidades_bncc": [
+    "EF15AR09"
+   ],
+   "saeb": [
+    "5R2.2"
+   ],
+   "evidencia": "Explica que, no giro mostrado, os braços abertos ajudam o corpo todo a manter o equilíbrio."
+  },
+  {
+   "codigo": "OMNI-AR15-D2.2",
+   "ano": "1º ao 5º ano",
+   "eixo": "Dança",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar gestos do cotidiano, como varrer, remar ou pular corda, aos movimentos de uma dança em que aparecem transformados.",
+   "habilidades_bncc": [
+    "EF15AR08",
+    "EF15AR10"
+   ],
+   "saeb": [
+    "5R2.1"
+   ],
+   "evidencia": "Reconhece que o passo da dança \"Pescadores\" imita o gesto de puxar a rede do barco."
+  },
+  {
+   "codigo": "OMNI-AR15-D3.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Dança",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar, com respeito às diferenças, uma opinião sobre uma experiência de dança vivida na escola.",
+   "habilidades_bncc": [
+    "EF15AR12"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que gostou de dançar o coco em roda e cita um passo que passou a usar nas próprias criações, sem desmerecer a dança dos colegas."
+  },
+  {
+   "codigo": "OMNI-AR15-D4.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Dança",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Improvisar OU criar uma sequência curta de movimentos dançados, variando deslocamento, plano ou ritmo.",
+   "habilidades_bncc": [
+    "EF15AR11",
+    "EF15AR10",
+    "EF15AR09"
+   ],
+   "saeb": [],
+   "evidencia": "Cria com o grupo uma sequência de quatro movimentos que começa lenta no plano baixo e termina rápida no plano alto."
+  },
+  {
+   "codigo": "OMNI-AR15-M1.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Música",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Identificar altura, intensidade, duração OU timbre em sons ouvidos.",
+   "habilidades_bncc": [
+    "EF15AR14"
+   ],
+   "saeb": [
+    "5R1.1"
+   ],
+   "evidencia": "Diz, ao ouvir dois sons de flauta, qual é o mais agudo e qual é o mais forte."
+  },
+  {
+   "codigo": "OMNI-AR15-M1.2",
+   "ano": "1º ao 5º ano",
+   "eixo": "Música",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar características de instrumentos musicais OU de sons produzidos pelo próprio corpo, como palmas, estalos e voz.",
+   "habilidades_bncc": [
+    "EF15AR15"
+   ],
+   "saeb": [
+    "5R1.5"
+   ],
+   "evidencia": "Classifica pandeiro, violão e flauta como instrumentos de percussão, de cordas e de sopro."
+  },
+  {
+   "codigo": "OMNI-AR15-M1.3",
+   "ano": "1º ao 5º ano",
+   "eixo": "Música",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Reconhecer formas de notação musical, convencional ou não convencional, OU de registro em áudio e vídeo.",
+   "habilidades_bncc": [
+    "EF15AR16"
+   ],
+   "saeb": [
+    "5R1.6"
+   ],
+   "evidencia": "Indica que a pauta com notas é notação convencional e que o desenho de bolinhas grandes e pequenas é uma partitura criativa."
+  },
+  {
+   "codigo": "OMNI-AR15-M1.4",
+   "ano": "1º ao 5º ano",
+   "eixo": "Música",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar gêneros OU formas de expressão musical, como cantiga de roda, samba, baião ou rap.",
+   "habilidades_bncc": [
+    "EF15AR13"
+   ],
+   "saeb": [
+    "5R1.4"
+   ],
+   "evidencia": "Reconhece, ao ouvir trechos, qual é a cantiga de roda \"Ciranda, cirandinha\" e qual é um baião."
+  },
+  {
+   "codigo": "OMNI-AR15-M2.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Música",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar uma música à função que ela tem no cotidiano, como ninar, celebrar, anunciar um produto ou acompanhar uma brincadeira.",
+   "habilidades_bncc": [
+    "EF15AR13"
+   ],
+   "saeb": [],
+   "evidencia": "Liga uma canção de ninar a \"fazer o bebê dormir\" e um jingle a \"vender um sorvete\"."
+  },
+  {
+   "codigo": "OMNI-AR15-M2.2",
+   "ano": "1º ao 5º ano",
+   "eixo": "Música",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Comparar dois trechos musicais quanto ao ritmo, à melodia OU à intensidade.",
+   "habilidades_bncc": [
+    "EF15AR14"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que a segunda música é mais rápida e mais forte que a primeira, depois de ouvir as duas."
+  },
+  {
+   "codigo": "OMNI-AR15-M4.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Música",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Criar a sonorização de uma história com voz, sons do corpo OU objetos do cotidiano.",
+   "habilidades_bncc": [
+    "EF15AR17",
+    "EF15AR15"
+   ],
+   "saeb": [],
+   "evidencia": "Usa estalos de dedos para a chuva e batidas no peito para o trovão ao sonorizar a história \"A tempestade na floresta\"."
+  },
+  {
+   "codigo": "OMNI-AR15-M4.2",
+   "ano": "1º ao 5º ano",
+   "eixo": "Música",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Registrar uma sequência sonora curta em uma partitura criativa.",
+   "habilidades_bncc": [
+    "EF15AR16"
+   ],
+   "saeb": [],
+   "evidencia": "Desenha círculos grandes para sons fortes e pequenos para sons fracos, na ordem em que o grupo tocou."
+  },
+  {
+   "codigo": "OMNI-AR15-M4.3",
+   "ano": "1º ao 5º ano",
+   "eixo": "Música",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Executar um ritmo com percussão corporal OU instrumentos, mantendo a pulsação junto com o grupo.",
+   "habilidades_bncc": [
+    "EF15AR14",
+    "EF15AR17"
+   ],
+   "saeb": [],
+   "evidencia": "Acompanha a canção \"Escravos de Jó\" com palmas e batidas na coxa sem perder o tempo do grupo."
+  },
+  {
+   "codigo": "OMNI-AR15-T1.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Teatro",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar elementos teatrais, como entonação de voz, gestos, personagens OU enredo, em uma cena.",
+   "habilidades_bncc": [
+    "EF15AR19",
+    "EF15AR18"
+   ],
+   "saeb": [
+    "5R1.1"
+   ],
+   "evidencia": "Aponta, em uma cena de \"O lobo e os três porquinhos\", que o lobo fala com voz grossa e anda curvado."
+  },
+  {
+   "codigo": "OMNI-AR15-T1.2",
+   "ano": "1º ao 5º ano",
+   "eixo": "Teatro",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar formas de teatro de diferentes contextos, como teatro de bonecos, de sombras, de rua ou circo.",
+   "habilidades_bncc": [
+    "EF15AR18"
+   ],
+   "saeb": [
+    "5R1.4"
+   ],
+   "evidencia": "Reconhece por uma foto que o espetáculo usa sombras projetadas em um lençol iluminado."
+  },
+  {
+   "codigo": "OMNI-AR15-T2.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Teatro",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar teatralidades da vida cotidiana, como o jeito de falar de quem vende na feira ou os gestos de quem narra futebol.",
+   "habilidades_bncc": [
+    "EF15AR19"
+   ],
+   "saeb": [
+    "5R2.1"
+   ],
+   "evidencia": "Explica que o vendedor da feira muda a voz e exagera os gestos para chamar a atenção, como um personagem."
+  },
+  {
+   "codigo": "OMNI-AR15-T3.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Teatro",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar se a voz OU o movimento usados para criar um personagem reforçam um estereótipo, justificando com o que foi observado.",
+   "habilidades_bncc": [
+    "EF15AR22"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que representar a avó sempre curvada e esquecida é um estereótipo e sugere outro jeito de andar para a personagem."
+  },
+  {
+   "codigo": "OMNI-AR15-T4.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Teatro",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Encenar uma situação de faz de conta, dando novo sentido a um objeto OU assumindo o lugar de outra pessoa.",
+   "habilidades_bncc": [
+    "EF15AR21",
+    "EF15AR22"
+   ],
+   "saeb": [],
+   "evidencia": "Usa uma vassoura como cavalo e muda a voz para ser o cavaleiro de uma história inventada pelo grupo."
+  },
+  {
+   "codigo": "OMNI-AR15-T4.2",
+   "ano": "1º ao 5º ano",
+   "eixo": "Teatro",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Improvisar em grupo uma cena curta a partir de um gesto OU de uma ação do cotidiano.",
+   "habilidades_bncc": [
+    "EF15AR20"
+   ],
+   "saeb": [],
+   "evidencia": "Transforma, com colegas, o gesto de esperar o ônibus em uma cena com começo, conflito e fim."
+  },
+  {
+   "codigo": "OMNI-AR15-I1.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes integradas",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar a matriz indígena, africana OU europeia de brinquedos, brincadeiras, cantigas, danças ou histórias.",
+   "habilidades_bncc": [
+    "EF15AR24"
+   ],
+   "saeb": [
+    "5R1.7"
+   ],
+   "evidencia": "Indica que a peteca tem origem indígena e que a ciranda tem origem europeia."
+  },
+  {
+   "codigo": "OMNI-AR15-I1.2",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes integradas",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Identificar espaços OU profissionais que fazem circular espetáculos de teatro, dança e música, como palco, plateia, diretor ou produtor.",
+   "habilidades_bncc": [
+    "EF15AR18",
+    "EF15AR08",
+    "EF15AR13"
+   ],
+   "saeb": [
+    "5R1.3"
+   ],
+   "evidencia": "Liga \"bilheteria\", \"camarim\" e \"plateia\" ao lugar de cada um na planta de um teatro."
+  },
+  {
+   "codigo": "OMNI-AR15-I1.3",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes integradas",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar o recurso tecnológico usado em uma produção artística, como fotografia, animação, gravação de áudio ou vídeo.",
+   "habilidades_bncc": [
+    "EF15AR26"
+   ],
+   "saeb": [
+    "5R1.2"
+   ],
+   "evidencia": "Diz que o desenho que se mexe na tela foi feito com uma animação quadro a quadro."
+  },
+  {
+   "codigo": "OMNI-AR15-I2.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes integradas",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Caracterizar uma brincadeira, um jogo OU uma canção de determinada matriz cultural pelas regras, movimentos ou versos típicos.",
+   "habilidades_bncc": [
+    "EF15AR24"
+   ],
+   "saeb": [],
+   "evidencia": "Descreve as regras do jogo africano mancala e explica o movimento das sementes no tabuleiro."
+  },
+  {
+   "codigo": "OMNI-AR15-I2.2",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes integradas",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar as linguagens artísticas que se combinam em um projeto temático, como uma festa junina ou um auto de Natal.",
+   "habilidades_bncc": [
+    "EF15AR23"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta, na festa junina da escola, a música do forró, a dança da quadrilha e a decoração com bandeirinhas."
+  },
+  {
+   "codigo": "OMNI-AR15-I3.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes integradas",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar a importância de um bem do patrimônio cultural brasileiro, material OU imaterial, para a comunidade que o mantém, considerando sua matriz.",
+   "habilidades_bncc": [
+    "EF15AR25"
+   ],
+   "saeb": [
+    "5R3.1"
+   ],
+   "evidencia": "Justifica por que o jongo, de matriz africana, é importante para a comunidade que o dança há gerações."
+  },
+  {
+   "codigo": "OMNI-AR15-I4.1",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes integradas",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Produzir uma criação artística com um recurso digital, como foto, animação curta ou gravação de áudio.",
+   "habilidades_bncc": [
+    "EF15AR26"
+   ],
+   "saeb": [],
+   "evidencia": "Grava com o tablet um áudio de 30 segundos com sons da escola para a \"Paisagem sonora do recreio\"."
+  },
+  {
+   "codigo": "OMNI-AR15-I4.2",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes integradas",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Criar, em grupo, uma apresentação de projeto temático que combine ao menos duas linguagens artísticas.",
+   "habilidades_bncc": [
+    "EF15AR23",
+    "EF15AR25"
+   ],
+   "saeb": [],
+   "evidencia": "Apresenta com o grupo uma lenda indígena com narração, cenário pintado e sons de chocalho."
+  },
+  {
+   "codigo": "OMNI-AR69-V1.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes visuais",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer artistas visuais, brasileiros ou estrangeiros, pelo estilo OU pelo movimento que ajudaram a difundir.",
+   "habilidades_bncc": [
+    "EF69AR01"
+   ],
+   "saeb": [
+    "9R1.1"
+   ],
+   "evidencia": "Associa Tarsila do Amaral ao Modernismo brasileiro e Claude Monet ao Impressionismo."
+  },
+  {
+   "codigo": "OMNI-AR69-V2.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes visuais",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar uma obra visual pelos seus elementos constitutivos, como linha, cor, tom, escala, direção ou espaço.",
+   "habilidades_bncc": [
+    "EF69AR04"
+   ],
+   "saeb": [
+    "9R2.1"
+   ],
+   "evidencia": "Explica que, na pintura \"Rua sem saída\", a escala pequena das pessoas e os tons escuros criam sensação de solidão."
+  },
+  {
+   "codigo": "OMNI-AR69-V2.2",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes visuais",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Comparar estilos visuais de épocas OU lugares diferentes, situando cada um no tempo e no espaço.",
+   "habilidades_bncc": [
+    "EF69AR02",
+    "EF69AR01"
+   ],
+   "saeb": [
+    "9R2.1"
+   ],
+   "evidencia": "Compara uma tela barroca com uma obra de grafite e situa cada uma no século e no lugar em que surgiu."
+  },
+  {
+   "codigo": "OMNI-AR69-V2.3",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes visuais",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar como as artes visuais se integram a linguagens audiovisuais, gráficas OU cenográficas, como capas de livro, animações ou cenários.",
+   "habilidades_bncc": [
+    "EF69AR03",
+    "EF69AR05"
+   ],
+   "saeb": [],
+   "evidencia": "Explica como as cores e a tipografia da capa do livro \"Noite na cidade\" antecipam o clima de suspense da história."
+  },
+  {
+   "codigo": "OMNI-AR69-V2.4",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes visuais",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Diferenciar as funções de artista, artesão, curador, designer OU produtor cultural no sistema das artes visuais.",
+   "habilidades_bncc": [
+    "EF69AR08"
+   ],
+   "saeb": [
+    "9R2.3"
+   ],
+   "evidencia": "Explica, a partir do cartaz de uma exposição, o que fizeram a curadora, o designer gráfico e os artistas expostos."
+  },
+  {
+   "codigo": "OMNI-AR69-V4.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes visuais",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Desenvolver uma produção visual a partir de um tema, com materiais convencionais, alternativos OU digitais.",
+   "habilidades_bncc": [
+    "EF69AR06",
+    "EF69AR05"
+   ],
+   "saeb": [],
+   "evidencia": "Cria uma série de três fotografias com o celular sobre o tema \"invisíveis da cidade\"."
+  },
+  {
+   "codigo": "OMNI-AR69-V4.2",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes visuais",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Produzir uma obra visual a partir da referência de um artista OU de um conceito escolhido.",
+   "habilidades_bncc": [
+    "EF69AR07"
+   ],
+   "saeb": [],
+   "evidencia": "Faz uma colagem inspirada nas bandeirinhas de Volpi, usando recortes de embalagens."
+  },
+  {
+   "codigo": "OMNI-AR69-D1.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Dança",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer artistas OU grupos de dança, brasileiros ou estrangeiros, pelos gêneros e estilos que difundiram.",
+   "habilidades_bncc": [
+    "EF69AR09"
+   ],
+   "saeb": [
+    "9R1.1"
+   ],
+   "evidencia": "Associa o Grupo Corpo à dança contemporânea brasileira e Mestre Salustiano ao cavalo-marinho."
+  },
+  {
+   "codigo": "OMNI-AR69-D2.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Dança",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar um trecho de dança pelos fatores de movimento: tempo, peso, fluência e espaço.",
+   "habilidades_bncc": [
+    "EF69AR11"
+   ],
+   "saeb": [
+    "9R2.1"
+   ],
+   "evidencia": "Descreve que, no vídeo, os movimentos são rápidos, leves e interrompidos, ocupando todo o palco."
+  },
+  {
+   "codigo": "OMNI-AR69-D2.2",
+   "ano": "6º ao 9º ano",
+   "eixo": "Dança",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Comparar formas de dança tradicionais e contemporâneas pelos seus elementos constitutivos.",
+   "habilidades_bncc": [
+    "EF69AR10",
+    "EF69AR09"
+   ],
+   "saeb": [
+    "9R2.1"
+   ],
+   "evidencia": "Compara o maracatu de baque virado com uma coreografia de dança urbana quanto aos passos, à música e ao uso do espaço."
+  },
+  {
+   "codigo": "OMNI-AR69-D2.3",
+   "ano": "6º ao 9º ano",
+   "eixo": "Dança",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar como figurino, iluminação, cenário OU trilha sonora contribuem para uma composição coreográfica.",
+   "habilidades_bncc": [
+    "EF69AR14"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que a luz azul e o figurino esvoaçante reforçam a ideia de água na coreografia \"Rio\"."
+  },
+  {
+   "codigo": "OMNI-AR69-D3.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Dança",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar se uma experiência de dança vivida na escola ou fora dela reforça OU questiona estereótipos de gênero, de corpo ou de origem.",
+   "habilidades_bncc": [
+    "EF69AR15"
+   ],
+   "saeb": [
+    "9R3.3"
+   ],
+   "evidencia": "Argumenta que a ideia de que \"balé é só para meninas\" é um preconceito, citando bailarinos de uma companhia brasileira."
+  },
+  {
+   "codigo": "OMNI-AR69-D4.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Dança",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Improvisar sequências de movimento como base para um vocabulário próprio de dança.",
+   "habilidades_bncc": [
+    "EF69AR12",
+    "EF69AR11"
+   ],
+   "saeb": [],
+   "evidencia": "Improvisa variações de um mesmo gesto mudando o peso e o tempo, e repete a que escolheu para a coreografia."
+  },
+  {
+   "codigo": "OMNI-AR69-D4.2",
+   "ano": "6º ao 9º ano",
+   "eixo": "Dança",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Compor uma dança autoral, individual ou em grupo, a partir de uma brincadeira, um jogo OU uma dança de determinada matriz cultural.",
+   "habilidades_bncc": [
+    "EF69AR13",
+    "EF69AR14"
+   ],
+   "saeb": [],
+   "evidencia": "Cria com o grupo uma coreografia a partir dos passos do cacuriá, apresentada em um espaço do pátio."
+  },
+  {
+   "codigo": "OMNI-AR69-M1.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Música",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer músicos OU grupos que contribuíram para um gênero musical, como Chiquinha Gonzaga no choro ou Luiz Gonzaga no baião.",
+   "habilidades_bncc": [
+    "EF69AR18"
+   ],
+   "saeb": [
+    "9R1.1"
+   ],
+   "evidencia": "Associa Pixinguinha ao choro e Elza Soares ao samba, a partir de trechos de biografias."
+  },
+  {
+   "codigo": "OMNI-AR69-M1.2",
+   "ano": "6º ao 9º ano",
+   "eixo": "Música",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar formas de registro musical, como partitura tradicional, partitura criativa, gravação em áudio OU em vídeo.",
+   "habilidades_bncc": [
+    "EF69AR22"
+   ],
+   "saeb": [
+    "9R1.2"
+   ],
+   "evidencia": "Indica que um trecho com pauta e clave de sol é notação tradicional e que um gráfico de linhas coloridas é uma partitura criativa."
+  },
+  {
+   "codigo": "OMNI-AR69-M1.3",
+   "ano": "6º ao 9º ano",
+   "eixo": "Música",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar timbres OU características de instrumentos musicais acústicos e eletrônicos.",
+   "habilidades_bncc": [
+    "EF69AR21"
+   ],
+   "saeb": [],
+   "evidencia": "Reconhece, ao ouvir uma gravação, o som do sintetizador e o da rabeca."
+  },
+  {
+   "codigo": "OMNI-AR69-M2.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Música",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar um estilo musical pelos seus elementos constitutivos (altura, intensidade, timbre, melodia, ritmo), situando-o no tempo e no espaço.",
+   "habilidades_bncc": [
+    "EF69AR19",
+    "EF69AR20"
+   ],
+   "saeb": [
+    "9R2.2"
+   ],
+   "evidencia": "Explica que o ritmo sincopado e o uso do cavaquinho ajudam a reconhecer o samba carioca do início do século XX."
+  },
+  {
+   "codigo": "OMNI-AR69-M2.2",
+   "ano": "6º ao 9º ano",
+   "eixo": "Música",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar os usos OU as funções de uma música às dimensões social, política, histórica ou econômica do contexto em que circula.",
+   "habilidades_bncc": [
+    "EF69AR16"
+   ],
+   "saeb": [
+    "9R2.2"
+   ],
+   "evidencia": "Explica por que uma canção de protesto dos anos 1970 usava metáforas para escapar da censura."
+  },
+  {
+   "codigo": "OMNI-AR69-M2.3",
+   "ano": "6º ao 9º ano",
+   "eixo": "Música",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar meios OU equipamentos culturais de circulação da música, como rádio, plataformas de áudio, festivais ou casas de show.",
+   "habilidades_bncc": [
+    "EF69AR17"
+   ],
+   "saeb": [
+    "9R2.3"
+   ],
+   "evidencia": "Compara como um artista independente divulga músicas em plataformas de áudio e em festivais da cidade."
+  },
+  {
+   "codigo": "OMNI-AR69-M4.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Música",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Criar uma improvisação, um arranjo, um jingle OU uma trilha sonora curta com voz, sons corporais ou instrumentos.",
+   "habilidades_bncc": [
+    "EF69AR23",
+    "EF69AR21",
+    "EF69AR20"
+   ],
+   "saeb": [],
+   "evidencia": "Compõe com o grupo um jingle de 15 segundos para a campanha \"Água limpa na escola\"."
+  },
+  {
+   "codigo": "OMNI-AR69-M4.2",
+   "ano": "6º ao 9º ano",
+   "eixo": "Música",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Registrar uma ideia musical em partitura criativa, em notação tradicional OU em gravação de áudio.",
+   "habilidades_bncc": [
+    "EF69AR22"
+   ],
+   "saeb": [],
+   "evidencia": "Grava no celular a melodia criada e faz uma partitura criativa que mostra quando entra cada instrumento."
+  },
+  {
+   "codigo": "OMNI-AR69-T1.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Teatro",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer artistas OU grupos de teatro, brasileiros ou estrangeiros, pelo estilo cênico que praticam.",
+   "habilidades_bncc": [
+    "EF69AR24"
+   ],
+   "saeb": [
+    "9R1.1"
+   ],
+   "evidencia": "Associa o Grupo Galpão ao teatro de rua e Augusto Boal ao Teatro do Oprimido."
+  },
+  {
+   "codigo": "OMNI-AR69-T1.2",
+   "ano": "6º ao 9º ano",
+   "eixo": "Teatro",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar elementos da composição cênica, como figurino, adereço, cenário, iluminação OU sonoplastia, pelo vocabulário do teatro.",
+   "habilidades_bncc": [
+    "EF69AR26"
+   ],
+   "saeb": [],
+   "evidencia": "Classifica a coroa como adereço, o barulho de trovão como sonoplastia e a luz vermelha como iluminação de uma cena."
+  },
+  {
+   "codigo": "OMNI-AR69-T2.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Teatro",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar estilos cênicos, como teatro de rua, de bonecos ou musical, pela relação entre atuação, espaço e público.",
+   "habilidades_bncc": [
+    "EF69AR25"
+   ],
+   "saeb": [
+    "9R2.2"
+   ],
+   "evidencia": "Explica que, no teatro de rua, os atores falam alto e circulam entre o público, o que não ocorre no palco italiano."
+  },
+  {
+   "codigo": "OMNI-AR69-T2.2",
+   "ano": "6º ao 9º ano",
+   "eixo": "Teatro",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar a função de profissionais do teatro, como diretor, dramaturgo, iluminador ou produtor, na criação OU na circulação de um espetáculo.",
+   "habilidades_bncc": [
+    "EF69AR24",
+    "EF69AR28"
+   ],
+   "saeb": [
+    "9R2.3"
+   ],
+   "evidencia": "Explica, a partir da ficha técnica da peça \"A casa amarela\", o que fez a produtora para a peça chegar a outras cidades."
+  },
+  {
+   "codigo": "OMNI-AR69-T3.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Teatro",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar os desafios de uma criação teatral coletiva, justificando com situações vividas no grupo.",
+   "habilidades_bncc": [
+    "EF69AR28"
+   ],
+   "saeb": [],
+   "evidencia": "Argumenta que a divisão de funções ajudou o grupo, mas que a falta de ensaio da sonoplastia prejudicou a estreia."
+  },
+  {
+   "codigo": "OMNI-AR69-T4.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Teatro",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Improvisar no jogo teatral com gestos, construções corporais OU vocais.",
+   "habilidades_bncc": [
+    "EF69AR29"
+   ],
+   "saeb": [],
+   "evidencia": "Improvisa um personagem idoso mudando a postura e o ritmo da fala a partir de um objeto sorteado."
+  },
+  {
+   "codigo": "OMNI-AR69-T4.2",
+   "ano": "6º ao 9º ano",
+   "eixo": "Teatro",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Compor uma cena a partir de um texto dramático OU de outro estímulo, com caracterização de personagens, cenário e sonoplastia.",
+   "habilidades_bncc": [
+    "EF69AR30"
+   ],
+   "saeb": [],
+   "evidencia": "Encena com o grupo uma cena a partir da foto \"Estação lotada\", com figurinos, sons de trem e plateia em volta."
+  },
+  {
+   "codigo": "OMNI-AR69-T4.3",
+   "ano": "6º ao 9º ano",
+   "eixo": "Teatro",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Criar uma dramaturgia curta OU um espaço cênico não convencional para um acontecimento teatral.",
+   "habilidades_bncc": [
+    "EF69AR27"
+   ],
+   "saeb": [],
+   "evidencia": "Escreve uma cena de duas páginas para ser apresentada na escada da escola, com o público sentado nos degraus."
+  },
+  {
+   "codigo": "OMNI-AR69-I1.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes integradas",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar usos de tecnologias OU recursos digitais na produção, no registro ou na circulação de práticas artísticas.",
+   "habilidades_bncc": [
+    "EF69AR35"
+   ],
+   "saeb": [
+    "9R1.3"
+   ],
+   "evidencia": "Indica que a exposição virtual \"Museu em casa\" usa visita em 360 graus e que o show foi transmitido ao vivo."
+  },
+  {
+   "codigo": "OMNI-AR69-I2.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes integradas",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar a função do tema como eixo que integra as linguagens artísticas em um projeto OU espetáculo.",
+   "habilidades_bncc": [
+    "EF69AR32"
+   ],
+   "saeb": [
+    "9R2.4"
+   ],
+   "evidencia": "Explica como o tema \"migração\" une a música, a dança e as projeções do espetáculo \"Travessias\"."
+  },
+  {
+   "codigo": "OMNI-AR69-I2.2",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes integradas",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar uma prática artística a dimensões da vida social, cultural, política, histórica OU econômica.",
+   "habilidades_bncc": [
+    "EF69AR31"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que o grafite da avenida denuncia o despejo de famílias do bairro."
+  },
+  {
+   "codigo": "OMNI-AR69-I3.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes integradas",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar uma classificação de produções como arte, artesanato, folclore ou design, apontando visões eurocêntricas.",
+   "habilidades_bncc": [
+    "EF69AR33"
+   ],
+   "saeb": [
+    "9R3.3"
+   ],
+   "evidencia": "Argumenta por que chamar a cerâmica de uma comunidade indígena só de \"artesanato\" diminui seu valor artístico."
+  },
+  {
+   "codigo": "OMNI-AR69-I3.2",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes integradas",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar a diversidade do patrimônio cultural, material OU imaterial, brasileiro ou de outras culturas, a partir de suas matrizes.",
+   "habilidades_bncc": [
+    "EF69AR34"
+   ],
+   "saeb": [
+    "9R3.1"
+   ],
+   "evidencia": "Justifica por que o samba de roda, de matriz africana, e a Igreja de São Francisco, de matriz europeia, são patrimônios do país."
+  },
+  {
+   "codigo": "OMNI-AR69-I3.3",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes integradas",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar uma produção que combina diferentes linguagens artísticas, como ópera, videoclipe ou performance, quanto ao papel de cada linguagem.",
+   "habilidades_bncc": [
+    "EF69AR32",
+    "EF69AR03"
+   ],
+   "saeb": [
+    "9R3.2"
+   ],
+   "evidencia": "Diz que, no videoclipe \"Maré\", a dança é o que mais comunica a letra e que o cenário pouco acrescenta."
+  },
+  {
+   "codigo": "OMNI-AR69-I3.4",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes integradas",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar como uma produção artística questiona estereótipos OU preconceitos.",
+   "habilidades_bncc": [
+    "EF69AR31",
+    "EF69AR33"
+   ],
+   "saeb": [
+    "9R3.3"
+   ],
+   "evidencia": "Explica como a peça \"Cabelo bom\" usa humor para questionar o preconceito contra cabelos crespos."
+  },
+  {
+   "codigo": "OMNI-AR69-I4.1",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes integradas",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Registrar OU compartilhar uma prática artística em meio digital, com créditos de autoria e respeito ao direito de imagem.",
+   "habilidades_bncc": [
+    "EF69AR35"
+   ],
+   "saeb": [],
+   "evidencia": "Publica no blog da turma o vídeo da apresentação com o nome de todos os participantes e só com quem autorizou a imagem."
+  },
+  {
+   "codigo": "OMNI-AR69-I4.2",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes integradas",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Criar, em grupo, um projeto temático que integre ao menos duas linguagens artísticas.",
+   "habilidades_bncc": [
+    "EF69AR32",
+    "EF69AR34"
+   ],
+   "saeb": [],
+   "evidencia": "Monta com o grupo uma intervenção sobre as festas do bairro com fotos, música ao vivo e uma cena curta."
+  }
+ ],
+ "substituidos": [
+  {
+   "codigo": "OMNI-AR15-D01",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes visuais",
+   "descritor": "Identificar ponto, linha, forma e cor como elementos visuais em pinturas, ilustrações ou fotografias apresentadas.",
+   "habilidades_bncc": [
+    "EF15AR02"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta ou nomeia, numa imagem dada, o elemento visual que predomina ou que foi destacado.",
+   "substituido_por": [
+    "OMNI-AR15-V1.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR15-D02",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes visuais",
+   "descritor": "Reconhecer a técnica ou o material usado numa produção visual, como desenho, pintura, colagem, escultura ou fotografia.",
+   "habilidades_bncc": [
+    "EF15AR04",
+    "EF15AR01"
+   ],
+   "saeb": [],
+   "evidencia": "Associa a imagem de uma obra à técnica ou ao material com que foi feita.",
+   "substituido_por": [
+    "OMNI-AR15-V1.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR15-D03",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes visuais",
+   "descritor": "Distinguir o papel de pessoas e espaços do circuito das artes visuais, como artista, artesão, curador, museu e galeria.",
+   "habilidades_bncc": [
+    "EF15AR07"
+   ],
+   "saeb": [],
+   "evidencia": "Relaciona cada função ou espaço à descrição correta do que faz ou oferece.",
+   "substituido_por": [
+    "OMNI-AR15-V1.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR15-D04",
+   "ano": "1º ao 5º ano",
+   "eixo": "Dança",
+   "descritor": "Identificar variações de direção, plano, deslocamento e velocidade em sequências de movimento dançado ilustradas ou descritas.",
+   "habilidades_bncc": [
+    "EF15AR10",
+    "EF15AR09"
+   ],
+   "saeb": [],
+   "evidencia": "Indica, numa sequência de figuras, onde o movimento muda de plano, direção ou velocidade.",
+   "substituido_por": [
+    "OMNI-AR15-D1.2",
+    "OMNI-AR15-D2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR15-D05",
+   "ano": "1º ao 5º ano",
+   "eixo": "Música",
+   "descritor": "Diferenciar sons quanto à altura, intensidade, duração e timbre em situações de escuta ou de descrição sonora.",
+   "habilidades_bncc": [
+    "EF15AR14"
+   ],
+   "saeb": [],
+   "evidencia": "Classifica pares de sons como grave/agudo, forte/fraco, longo/curto ou pelo timbre.",
+   "substituido_por": [
+    "OMNI-AR15-M1.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR15-D06",
+   "ano": "1º ao 5º ano",
+   "eixo": "Música",
+   "descritor": "Classificar fontes sonoras como do próprio corpo, da natureza, de objetos do cotidiano ou de instrumentos musicais.",
+   "habilidades_bncc": [
+    "EF15AR15"
+   ],
+   "saeb": [],
+   "evidencia": "Agrupa imagens ou descrições de fontes sonoras na categoria correspondente.",
+   "substituido_por": [
+    "OMNI-AR15-M1.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR15-D07",
+   "ano": "1º ao 5º ano",
+   "eixo": "Música",
+   "descritor": "Relacionar uma música à função que exerce no cotidiano, como ninar, celebrar, anunciar produto ou acompanhar brincadeira.",
+   "habilidades_bncc": [
+    "EF15AR13"
+   ],
+   "saeb": [],
+   "evidencia": "Associa trechos de canções ou situações descritas à função social da música em cada uma.",
+   "substituido_por": [
+    "OMNI-AR15-M2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR15-D08",
+   "ano": "1º ao 5º ano",
+   "eixo": "Teatro",
+   "descritor": "Reconhecer entonação de voz, gestos, personagens e enredo como elementos teatrais em cenas ilustradas, descritas ou assistidas.",
+   "habilidades_bncc": [
+    "EF15AR19",
+    "EF15AR18"
+   ],
+   "saeb": [],
+   "evidencia": "Identifica, numa cena, qual recurso de voz ou de corpo caracteriza um personagem.",
+   "substituido_por": [
+    "OMNI-AR15-T1.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR15-D09",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes integradas",
+   "descritor": "Relacionar brinquedos, brincadeiras, cantigas, danças e histórias às matrizes culturais indígena, africana ou europeia de origem.",
+   "habilidades_bncc": [
+    "EF15AR24",
+    "EF15AR25"
+   ],
+   "saeb": [],
+   "evidencia": "Associa cada manifestação apresentada à matriz cultural de que se origina.",
+   "substituido_por": [
+    "OMNI-AR15-I1.1",
+    "OMNI-AR15-I2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR15-D10",
+   "ano": "1º ao 5º ano",
+   "eixo": "Artes integradas",
+   "descritor": "Identificar o recurso tecnológico empregado numa produção artística, como fotografia, vídeo, animação ou gravação de áudio.",
+   "habilidades_bncc": [
+    "EF15AR26"
+   ],
+   "saeb": [],
+   "evidencia": "Indica qual tecnologia foi usada para criar ou registrar a produção mostrada.",
+   "substituido_por": [
+    "OMNI-AR15-I1.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR69-D01",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes visuais",
+   "descritor": "Analisar o uso de linha, cor, tom, escala, direção e espaço na composição de uma obra visual reproduzida.",
+   "habilidades_bncc": [
+    "EF69AR04"
+   ],
+   "saeb": [],
+   "evidencia": "Explica como um elemento visual escolhido cria efeito de profundidade, movimento ou destaque na obra.",
+   "substituido_por": [
+    "OMNI-AR69-V2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR69-D02",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes visuais",
+   "descritor": "Relacionar uma obra visual ao estilo ou período artístico a que pertence, com base em características formais observáveis.",
+   "habilidades_bncc": [
+    "EF69AR02",
+    "EF69AR01"
+   ],
+   "saeb": [],
+   "evidencia": "Associa a reprodução de uma obra ao estilo correto e justifica com um traço visível.",
+   "substituido_por": [
+    "OMNI-AR69-V2.2",
+    "OMNI-AR69-V1.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR69-D03",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes visuais",
+   "descritor": "Identificar a integração das artes visuais com linguagens gráficas e audiovisuais em capas, ilustrações, animações ou filmes.",
+   "habilidades_bncc": [
+    "EF69AR03"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta, num produto gráfico ou audiovisual, o recurso visual que contribui para o sentido.",
+   "substituido_por": [
+    "OMNI-AR69-V2.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR69-D04",
+   "ano": "6º ao 9º ano",
+   "eixo": "Dança",
+   "descritor": "Identificar os fatores tempo, peso, fluência e espaço numa sequência de dança descrita ou registrada em imagens.",
+   "habilidades_bncc": [
+    "EF69AR11",
+    "EF69AR10"
+   ],
+   "saeb": [],
+   "evidencia": "Indica qual fator de movimento varia entre dois trechos de uma coreografia apresentada.",
+   "substituido_por": [
+    "OMNI-AR69-D2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR69-D05",
+   "ano": "6º ao 9º ano",
+   "eixo": "Música",
+   "descritor": "Relacionar um gênero ou estilo musical ao contexto histórico, social e geográfico em que surgiu e circula.",
+   "habilidades_bncc": [
+    "EF69AR19",
+    "EF69AR16"
+   ],
+   "saeb": [],
+   "evidencia": "Associa o gênero musical a época, lugar e grupo social de origem, citando uma característica.",
+   "substituido_por": [
+    "OMNI-AR69-M2.1",
+    "OMNI-AR69-M2.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR69-D06",
+   "ano": "6º ao 9º ano",
+   "eixo": "Música",
+   "descritor": "Distinguir altura, intensidade, timbre, melodia e ritmo, e reconhecer timbres de instrumentos, em trechos ou descrições musicais.",
+   "habilidades_bncc": [
+    "EF69AR20",
+    "EF69AR21"
+   ],
+   "saeb": [],
+   "evidencia": "Identifica o elemento musical alterado entre duas versões ou o instrumento pelo timbre descrito.",
+   "substituido_por": [
+    "OMNI-AR69-M2.1",
+    "OMNI-AR69-M1.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR69-D07",
+   "ano": "6º ao 9º ano",
+   "eixo": "Música",
+   "descritor": "Interpretar registros musicais, como pauta, figuras rítmicas simples e partituras criativas, associando os símbolos aos sons representados.",
+   "habilidades_bncc": [
+    "EF69AR22"
+   ],
+   "saeb": [],
+   "evidencia": "Relaciona um registro gráfico ao padrão sonoro (duração, altura ou intensidade) que ele indica.",
+   "substituido_por": [
+    "OMNI-AR69-M1.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR69-D08",
+   "ano": "6º ao 9º ano",
+   "eixo": "Teatro",
+   "descritor": "Reconhecer a função de figurino, adereço, cenário, iluminação e sonoplastia na construção de sentido de uma cena teatral.",
+   "habilidades_bncc": [
+    "EF69AR26",
+    "EF69AR30"
+   ],
+   "saeb": [],
+   "evidencia": "Explica o efeito que um elemento cênico indicado produz no espectador.",
+   "substituido_por": [
+    "OMNI-AR69-T1.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR69-D09",
+   "ano": "6º ao 9º ano",
+   "eixo": "Teatro",
+   "descritor": "Comparar estilos cênicos, como teatro de rua, de bonecos e musical, pela forma de encenação e de relação com o público.",
+   "habilidades_bncc": [
+    "EF69AR25"
+   ],
+   "saeb": [],
+   "evidencia": "Diferencia dois estilos teatrais a partir de imagens ou descrições de montagens.",
+   "substituido_por": [
+    "OMNI-AR69-T2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-AR69-D10",
+   "ano": "6º ao 9º ano",
+   "eixo": "Artes integradas",
+   "descritor": "Classificar bens do patrimônio cultural brasileiro como materiais ou imateriais, indicando suas matrizes indígena, africana ou europeia.",
+   "habilidades_bncc": [
+    "EF69AR34",
+    "EF69AR33"
+   ],
+   "saeb": [],
+   "evidencia": "Classifica exemplos de patrimônio e associa cada um à matriz cultural predominante.",
+   "substituido_por": [
+    "OMNI-AR69-I3.2"
+   ]
+  }
+ ]
+}

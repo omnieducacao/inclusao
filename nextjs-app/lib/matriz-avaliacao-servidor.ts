@@ -7,7 +7,7 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 import { descritorPorCodigo, descritoresDoAno, type ComponenteOmni } from "@/lib/matriz-omni";
 import { areaEnem, type AreaEnem } from "@/lib/matriz-enem";
-import { matrizSaeb } from "@/lib/matriz-saeb";
+import { saebPorCodigos } from "@/lib/matriz-saeb";
 import { componenteOficial, matrizDoComponente, type Etapa, type FonteMatriz, type ItemMatriz } from "@/lib/matriz-avaliacao";
 
 const cache = new Map<string, unknown>();
@@ -97,13 +97,10 @@ export async function itemPorCodigo(codigo: string, componente: string, etapa: E
   return null;
 }
 
-/** Saeb oficial ligado ao descritor (LP 2001: 5º e 9º; MA 2022: 2º, 5º e 9º), para o prompt das questões. */
+/** Saeb oficial ligado ao descritor (Saeb–BNCC 2022: MA 2º/5º/9º; LP 2º/5º/9º; Arte e Ed. Física 5º/9º; Inglês 9º). */
 export function saebDoItem(componente: string, item: ItemMatriz): { codigo: string; texto: string }[] {
   if (!item.saeb.length) return [];
-  const comp = componenteOficial(componente);
-  const anoSaeb = /9º/.test(item.ano) || /[6-9]º/.test(item.ano) ? "9º ano" : "5º ano";
-  const m = matrizSaeb(comp, item.ano) || matrizSaeb(comp, anoSaeb);
-  return item.saeb.map((c) => m?.descritores.find((d) => d.codigo === c)).filter(Boolean).map((d) => ({ codigo: d!.codigo, texto: d!.texto }));
+  return saebPorCodigos(componenteOficial(componente), item.saeb).map((d) => ({ codigo: d.codigo, texto: d.texto }));
 }
 
 // ── Confronto de qualidade com a matriz antiga ─────────────────────────────

@@ -77,6 +77,32 @@ describe("Matemática revisada (Saeb–BNCC 2022 + Bloom)", () => {
   });
 });
 
+describe("Linguagens revisadas (Saeb–BNCC 2022: LP, Arte, Educação Física, Inglês)", () => {
+  const bloom = ["lembrar", "entender", "aplicar", "analisar", "avaliar", "criar"];
+  const FAIXA: Record<string, string> = { "15": "1º ao 5º ano", "69": "6º ao 9º ano", "12": "1º e 2º ano", "35": "3º ao 5º ano", "67": "6º e 7º ano", "89": "8º e 9º ano" };
+  for (const sigla of ["LP", "AR", "EF", "LI"]) {
+    const comp = comps.find((c) => c.sigla === sigla)!;
+    it(`${sigla}: código no padrão do Saeb, eixo cognitivo 1–4, Bloom e códigos antigos substituídos`, () => {
+      for (const d of comp.descritores) {
+        const m = new RegExp(`^OMNI-${sigla}(\\d{1,2})-[A-Z]([1-4])\\.\\d+$`).exec(d.codigo);
+        expect(m, d.codigo).not.toBeNull();
+        expect(d.ano).toBe(m![1].length === 1 ? `${m![1]}º ano` : FAIXA[m![1]]);
+        expect(d.eixo_cognitivo).toBe(Number(m![2]));
+        expect(bloom).toContain(d.bloom);
+      }
+      const novos = new Set(comp.descritores.map((d) => d.codigo));
+      expect(comp.substituidos!.length).toBeGreaterThan(0);
+      for (const d of comp.substituidos!) for (const c of d.substituido_por) expect(novos.has(c), c).toBe(true);
+    });
+    it(`${sigla}: cobre toda a BNCC do componente e todo o Saeb 2022 do componente`, () => {
+      const cobertas = new Set(comp.descritores.flatMap((d) => d.habilidades_bncc));
+      for (const h of bnccEf) if (h.slice(4, 6) === sigla) expect(cobertas.has(h), h).toBe(true);
+      const cobertos = new Set(comp.descritores.flatMap((d) => d.saeb));
+      for (const m of MATRIZES_SAEB.filter((x) => x.componente === comp.componente)) for (const s of m.descritores) expect(cobertos.has(s.codigo), s.codigo).toBe(true);
+    });
+  }
+});
+
 describe("série, componente e matriz", () => {
   it("lê as séries como a escola escreve", () => {
     expect(lerSerie("7º Ano (EFAF)")).toMatchObject({ etapa: "EF", ano: 7 });

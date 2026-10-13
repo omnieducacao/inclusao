@@ -1,1 +1,1982 @@
-{"componente": "Língua Inglesa", "sigla": "LI", "descritores": [{"codigo": "OMNI-LI6-D01", "ano": "6º ano", "eixo": "Interação discursiva", "descritor": "Selecionar a pergunta ou a resposta adequada em inglês para obter dados sobre família, amigos ou escola num diálogo.", "habilidades_bncc": ["EF06LI02", "EF06LI03"], "saeb": [], "evidencia": "Completa um diálogo curto com a fala que faz sentido no contexto."}, {"codigo": "OMNI-LI6-D02", "ano": "6º ano", "eixo": "Compreensão oral", "descritor": "Reconhecer o assunto e os dados principais de um áudio curto em inglês sobre tema familiar, usando cognatos e contexto.", "habilidades_bncc": ["EF06LI04"], "saeb": [], "evidencia": "Responde qual é o tema do áudio e uma informação central dita nele."}, {"codigo": "OMNI-LI6-D03", "ano": "6º ano", "eixo": "Estratégias de leitura", "descritor": "Inferir a finalidade de um texto em inglês com base em layout, título, imagens e organização gráfica.", "habilidades_bncc": ["EF06LI07"], "saeb": [], "evidencia": "Indica para que serve o texto (convidar, informar, anunciar) e a pista que usou."}, {"codigo": "OMNI-LI6-D04", "ano": "6º ano", "eixo": "Estratégias de leitura", "descritor": "Localizar dado específico, como horário, nome, lugar ou preço, em texto curto em inglês.", "habilidades_bncc": ["EF06LI09"], "saeb": [], "evidencia": "Encontra e transcreve a informação pedida no texto."}, {"codigo": "OMNI-LI6-D05", "ano": "6º ano", "eixo": "Práticas de leitura e construção de repertório lexical", "descritor": "Usar a estrutura de um verbete de dicionário bilíngue para escolher a acepção adequada de uma palavra no contexto.", "habilidades_bncc": ["EF06LI10"], "saeb": [], "evidencia": "Seleciona, entre as acepções do verbete, a que corresponde à frase dada."}, {"codigo": "OMNI-LI6-D06", "ano": "6º ano", "eixo": "Estudo do léxico", "descritor": "Associar palavras e expressões em inglês sobre família, escola, rotina, lazer e sala de aula a imagens ou situações.", "habilidades_bncc": ["EF06LI17", "EF06LI16"], "saeb": [], "evidencia": "Liga cada palavra ou expressão à imagem ou situação correspondente."}, {"codigo": "OMNI-LI6-D07", "ano": "6º ano", "eixo": "Gramática", "descritor": "Empregar o verbo to be e o presente simples para identificar pessoas e descrever rotinas em frases afirmativas, negativas e interrogativas.", "habilidades_bncc": ["EF06LI19"], "saeb": [], "evidencia": "Completa frases com a forma verbal correta conforme pessoa e tipo de frase."}, {"codigo": "OMNI-LI6-D08", "ano": "6º ano", "eixo": "Gramática", "descritor": "Identificar relações de posse expressas por adjetivos possessivos e pelo genitivo 's em frases e legendas.", "habilidades_bncc": ["EF06LI22", "EF06LI23"], "saeb": [], "evidencia": "Indica quem é o dono de algo numa frase ou escolhe o possessivo adequado."}, {"codigo": "OMNI-LI6-D09", "ano": "6º ano", "eixo": "Gramática", "descritor": "Interpretar instruções e avisos em inglês escritos no imperativo, indicando a ação que se pede ao leitor.", "habilidades_bncc": ["EF06LI21"], "saeb": [], "evidencia": "Associa cada comando à ação correspondente."}, {"codigo": "OMNI-LI6-D10", "ano": "6º ano", "eixo": "A língua inglesa no cotidiano da sociedade brasileira/comunidade", "descritor": "Identificar palavras e expressões em inglês presentes em embalagens, anúncios e mídias brasileiras, explicando seu significado.", "habilidades_bncc": ["EF06LI25"], "saeb": [], "evidencia": "Explica o sentido de um termo em inglês visto num produto ou anúncio nacional."}, {"codigo": "OMNI-LI7-D01", "ano": "7º ano", "eixo": "Compreensão oral", "descritor": "Reconhecer quem fala, com que objetivo e sobre o quê em trecho de filme, vídeo ou programa em inglês.", "habilidades_bncc": ["EF07LI04", "EF07LI03"], "saeb": [], "evidencia": "Responde a perguntas sobre os participantes, o propósito e o tema do trecho ouvido."}, {"codigo": "OMNI-LI7-D02", "ano": "7º ano", "eixo": "Estratégias de leitura", "descritor": "Prever o tema geral de um texto em inglês observando título, primeiras linhas e termos que se repetem.", "habilidades_bncc": ["EF07LI06"], "saeb": [], "evidencia": "Escolhe o tema provável antes da leitura completa e confirma depois."}, {"codigo": "OMNI-LI7-D03", "ano": "7º ano", "eixo": "Estratégias de leitura", "descritor": "Indicar a ideia-chave de cada parágrafo de um texto em inglês e relacioná-las para chegar ao sentido global.", "habilidades_bncc": ["EF07LI07", "EF07LI08"], "saeb": [], "evidencia": "Associa cada parágrafo à sua ideia central e escolhe o resumo geral adequado."}, {"codigo": "OMNI-LI7-D04", "ano": "7º ano", "eixo": "Práticas de leitura e pesquisa", "descritor": "Selecionar, entre trechos ou fontes em inglês, aquele que atende a um objetivo de pesquisa definido.", "habilidades_bncc": ["EF07LI09", "EF07LI10"], "saeb": [], "evidencia": "Aponta o trecho ou a fonte que responde à pergunta de pesquisa proposta."}, {"codigo": "OMNI-LI7-D05", "ano": "7º ano", "eixo": "Estudo do léxico", "descritor": "Identificar a forma de passado de verbos regulares e irregulares e o sentido de conectores como because, then e so.", "habilidades_bncc": ["EF07LI15"], "saeb": [], "evidencia": "Completa uma narrativa com o verbo no passado e o conector adequado."}, {"codigo": "OMNI-LI7-D06", "ano": "7º ano", "eixo": "Estudo do léxico", "descritor": "Determinar o sentido de palavra polissêmica em inglês de acordo com o contexto da frase.", "habilidades_bncc": ["EF07LI17"], "saeb": [], "evidencia": "Escolhe o significado correto de uma palavra que muda de sentido entre duas frases."}, {"codigo": "OMNI-LI7-D07", "ano": "7º ano", "eixo": "Gramática", "descritor": "Empregar passado simples e passado contínuo para narrar fatos em sequência ou ação interrompida por outra.", "habilidades_bncc": ["EF07LI18"], "saeb": [], "evidencia": "Completa um relato com as formas verbais que mostram ordem e causa dos fatos."}, {"codigo": "OMNI-LI7-D08", "ano": "7º ano", "eixo": "Gramática", "descritor": "Distinguir pronomes sujeito e objeto em frases, escolhendo a forma adequada à função que exercem.", "habilidades_bncc": ["EF07LI19"], "saeb": [], "evidencia": "Substitui nomes por pronomes de sujeito ou objeto corretamente."}, {"codigo": "OMNI-LI7-D09", "ano": "7º ano", "eixo": "Gramática", "descritor": "Usar can e could para expressar habilidades no presente e no passado em frases contextualizadas.", "habilidades_bncc": ["EF07LI20"], "saeb": [], "evidencia": "Completa frases sobre o que alguém sabe ou sabia fazer com a forma modal adequada."}, {"codigo": "OMNI-LI7-D10", "ano": "7º ano", "eixo": "Comunicação intercultural", "descritor": "Reconhecer diferenças de vocabulário ou pronúncia entre variedades do inglês, sem tratá-las como erro.", "habilidades_bncc": ["EF07LI22", "EF07LI23"], "saeb": [], "evidencia": "Associa pares de palavras de variedades diferentes e explica que ambas são corretas."}, {"codigo": "OMNI-LI8-D01", "ano": "8º ano", "eixo": "Compreensão oral", "descritor": "Relacionar partes de notícia ou reportagem oral em inglês para apontar o assunto principal e os dados relevantes.", "habilidades_bncc": ["EF08LI03"], "saeb": [], "evidencia": "Indica o tema central do áudio e duas informações que o sustentam."}, {"codigo": "OMNI-LI8-D02", "ano": "8º ano", "eixo": "Estratégias de leitura", "descritor": "Inferir informações implícitas em texto em inglês com base em pistas linguísticas e contextuais.", "habilidades_bncc": ["EF08LI05"], "saeb": [], "evidencia": "Responde a pergunta cuja resposta não está escrita, justificando com uma pista do texto."}, {"codigo": "OMNI-LI8-D03", "ano": "8º ano", "eixo": "Avaliação dos textos lidos", "descritor": "Comparar os pontos de vista de dois textos em inglês sobre um mesmo assunto.", "habilidades_bncc": ["EF08LI08"], "saeb": [], "evidencia": "Aponta em que os textos concordam e em que divergem."}, {"codigo": "OMNI-LI8-D04", "ano": "8º ano", "eixo": "Práticas de leitura e fruição", "descritor": "Identificar personagens, conflito e desfecho em conto ou narrativa simplificada em inglês.", "habilidades_bncc": ["EF08LI06"], "saeb": [], "evidencia": "Responde quem são as personagens, qual o problema e como ele se resolve."}, {"codigo": "OMNI-LI8-D05", "ano": "8º ano", "eixo": "Estratégias de escrita: escrita e pós- escrita", "descritor": "Apontar problemas de adequação, organização ou estrutura de frase num texto curto em inglês e propor correção.", "habilidades_bncc": ["EF08LI09", "EF08LI10"], "saeb": [], "evidencia": "Marca o trecho inadequado e reescreve-o de forma correta."}, {"codigo": "OMNI-LI8-D06", "ano": "8º ano", "eixo": "Estudo do léxico", "descritor": "Deduzir o sentido de palavras em inglês a partir de prefixos e sufixos comuns, como un-, re-, -ful e -less.", "habilidades_bncc": ["EF08LI13"], "saeb": [], "evidencia": "Explica o significado de uma palavra derivada com base no afixo."}, {"codigo": "OMNI-LI8-D07", "ano": "8º ano", "eixo": "Gramática", "descritor": "Empregar will e going to para expressar planos, previsões e intenções em contextos dados.", "habilidades_bncc": ["EF08LI14", "EF08LI04"], "saeb": [], "evidencia": "Completa frases com a forma de futuro coerente com a situação."}, {"codigo": "OMNI-LI8-D08", "ano": "8º ano", "eixo": "Gramática", "descritor": "Escolher a forma comparativa ou superlativa correta de adjetivos ao confrontar dados de pessoas, objetos ou lugares.", "habilidades_bncc": ["EF08LI15"], "saeb": [], "evidencia": "Completa ou escolhe a forma correta numa comparação a partir de dados de uma tabela."}, {"codigo": "OMNI-LI8-D09", "ano": "8º ano", "eixo": "Gramática", "descritor": "Escolher entre some, any, many e much conforme o tipo de frase e o substantivo contável ou incontável.", "habilidades_bncc": ["EF08LI16"], "saeb": [], "evidencia": "Completa frases com o quantificador adequado."}, {"codigo": "OMNI-LI8-D10", "ano": "8º ano", "eixo": "Gramática", "descritor": "Unir duas orações com o pronome relativo adequado (who, which, that, whose) em frases sobre pessoas e objetos.", "habilidades_bncc": ["EF08LI17"], "saeb": [], "evidencia": "Combina duas frases numa só usando o pronome relativo correto."}, {"codigo": "OMNI-LI9-D01", "ano": "9º ano", "eixo": "Compreensão oral", "descritor": "Identificar a posição defendida e a posição refutada em debate ou vídeo argumentativo em inglês.", "habilidades_bncc": ["EF09LI03", "EF09LI02"], "saeb": [], "evidencia": "Indica qual opinião o falante sustenta e qual ele rejeita."}, {"codigo": "OMNI-LI9-D02", "ano": "9º ano", "eixo": "Estratégias de leitura", "descritor": "Explicar como escolhas de palavras, imagens e cores de um anúncio em inglês buscam convencer o público.", "habilidades_bncc": ["EF09LI05"], "saeb": [], "evidencia": "Aponta um recurso do anúncio e o efeito persuasivo que provoca."}, {"codigo": "OMNI-LI9-D03", "ano": "9º ano", "eixo": "Estratégias de leitura", "descritor": "Classificar trechos de notícia ou artigo de opinião em inglês como fato verificável ou opinião do autor.", "habilidades_bncc": ["EF09LI06"], "saeb": [], "evidencia": "Separa as frases dadas em fato e opinião."}, {"codigo": "OMNI-LI9-D04", "ano": "9º ano", "eixo": "Estratégias de leitura", "descritor": "Relacionar o argumento principal de um texto em inglês aos dados ou exemplos que o sustentam.", "habilidades_bncc": ["EF09LI07"], "saeb": [], "evidencia": "Liga a tese do texto à evidência que a apoia."}, {"codigo": "OMNI-LI9-D05", "ano": "9º ano", "eixo": "Práticas de leitura e novas tecnologias", "descritor": "Avaliar a confiabilidade de informação em inglês publicada em site ou rede social, considerando fonte, data e evidências.", "habilidades_bncc": ["EF09LI08"], "saeb": [], "evidencia": "Indica se a postagem é confiável e cita o critério usado."}, {"codigo": "OMNI-LI9-D06", "ano": "9º ano", "eixo": "Estudo do léxico", "descritor": "Interpretar abreviações, combinações de letras e números e emojis em mensagens digitais em inglês.", "habilidades_bncc": ["EF09LI13"], "saeb": [], "evidencia": "Reescreve por extenso uma mensagem curta com formas como gr8, u ou BTW."}, {"codigo": "OMNI-LI9-D07", "ano": "9º ano", "eixo": "Estudo do léxico", "descritor": "Identificar a relação de adição, condição, oposição ou conclusão estabelecida por conectores num texto em inglês.", "habilidades_bncc": ["EF09LI14"], "saeb": [], "evidencia": "Escolhe o conector que mantém o sentido entre duas ideias."}, {"codigo": "OMNI-LI9-D08", "ano": "9º ano", "eixo": "Gramática", "descritor": "Empregar orações condicionais dos tipos 1 e 2 para expressar situações prováveis ou hipotéticas.", "habilidades_bncc": ["EF09LI15"], "saeb": [], "evidencia": "Completa if-clauses com as formas verbais adequadas a cada tipo."}, {"codigo": "OMNI-LI9-D09", "ano": "9º ano", "eixo": "Gramática", "descritor": "Relacionar should, must, have to, may e might aos sentidos de conselho, obrigação, necessidade ou possibilidade.", "habilidades_bncc": ["EF09LI16"], "saeb": [], "evidencia": "Associa cada frase com modal ao sentido que expressa."}, {"codigo": "OMNI-LI9-D10", "ano": "9º ano", "eixo": "A língua inglesa no mundo", "descritor": "Relacionar a presença do inglês em países da África, Ásia, Américas e Oceania ao processo histórico de colonização.", "habilidades_bncc": ["EF09LI17"], "saeb": [], "evidencia": "Explica, com base em mapa ou texto, por que o inglês é língua oficial num país dado."}]}
+{
+ "componente": "Língua Inglesa",
+ "sigla": "LI",
+ "descritores": [
+  {
+   "codigo": "OMNI-LI6-O1.1",
+   "ano": "6º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Reconhecer o assunto OU as informações principais de um áudio curto sobre tema familiar, com apoio de palavras cognatas e do contexto.",
+   "habilidades_bncc": [
+    "EF06LI04"
+   ],
+   "saeb": [],
+   "evidencia": "Ouve a mensagem de voz \"Hi, I'm Lucas, I'm eleven and I love music\" e diz a idade e o gosto de quem fala."
+  },
+  {
+   "codigo": "OMNI-LI6-O2.1",
+   "ano": "6º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Distinguir, em um diálogo oral curto, qual informação sobre família, amigos ou escola está sendo pedida.",
+   "habilidades_bncc": [
+    "EF06LI02"
+   ],
+   "saeb": [],
+   "evidencia": "Ao ouvir \"How many brothers and sisters have you got?\", indica que a pergunta é sobre o número de irmãos."
+  },
+  {
+   "codigo": "OMNI-LI6-O4.1",
+   "ano": "6º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Fazer perguntas OU responder sobre família, amigos, escola e comunidade em uma conversa curta.",
+   "habilidades_bncc": [
+    "EF06LI02",
+    "EF06LI01"
+   ],
+   "saeb": [],
+   "evidencia": "Pergunta \"Where do you live?\" a um colega e responde \"I live near the school\" quando perguntam a ela ou a ele."
+  },
+  {
+   "codigo": "OMNI-LI6-O4.2",
+   "ano": "6º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Pedir esclarecimento em inglês sobre uma palavra OU instrução que não entendeu.",
+   "habilidades_bncc": [
+    "EF06LI03",
+    "EF06LI16"
+   ],
+   "saeb": [],
+   "evidencia": "Diz \"Sorry, can you repeat, please?\" ou \"What does 'homework' mean?\" durante a aula."
+  },
+  {
+   "codigo": "OMNI-LI6-O4.3",
+   "ano": "6º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Falar de si OU de outra pessoa, informando dados pessoais, gostos, preferências e rotina.",
+   "habilidades_bncc": [
+    "EF06LI05"
+   ],
+   "saeb": [],
+   "evidencia": "Diz \"My name is Ana. I like pizza. I get up at seven o'clock\" ao se apresentar."
+  },
+  {
+   "codigo": "OMNI-LI6-O4.4",
+   "ano": "6º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Apresentar oralmente, a partir de um roteiro planejado, a família, a escola OU a comunidade.",
+   "habilidades_bncc": [
+    "EF06LI06"
+   ],
+   "saeb": [],
+   "evidencia": "Apresenta em um minuto \"This is my school\", seguindo um roteiro de cinco tópicos com fotos."
+  },
+  {
+   "codigo": "OMNI-LI6-L1.1",
+   "ano": "6º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar o assunto de um texto curto pela organização textual OU por palavras cognatas.",
+   "habilidades_bncc": [
+    "EF06LI08"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que o texto \"Healthy food for students\" trata de alimentação saudável, apoiando-se em \"healthy\", \"food\" e na lista de frutas."
+  },
+  {
+   "codigo": "OMNI-LI6-L1.2",
+   "ano": "6º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Localizar informações específicas, como nome, horário, lugar ou preço, em um texto curto.",
+   "habilidades_bncc": [
+    "EF06LI09"
+   ],
+   "saeb": [],
+   "evidencia": "Encontra no cartaz \"School Fair\" o horário de início e o preço do ingresso."
+  },
+  {
+   "codigo": "OMNI-LI6-L1.3",
+   "ano": "6º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar, em um verbete de dicionário bilíngue, a acepção adequada de uma palavra no contexto.",
+   "habilidades_bncc": [
+    "EF06LI10"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe, no verbete de \"bat\", o sentido \"morcego\" para a frase \"The bat lives in a cave\"."
+  },
+  {
+   "codigo": "OMNI-LI6-L1.4",
+   "ano": "6º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar comandos no imperativo em enunciados de atividade, instruções OU avisos.",
+   "habilidades_bncc": [
+    "EF06LI21"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que \"Circle the correct word\" pede para circular a palavra certa e que \"Don't run\" proíbe correr."
+  },
+  {
+   "codigo": "OMNI-LI6-L2.1",
+   "ano": "6º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Inferir a finalidade de um texto pela estrutura, pela organização OU por pistas gráficas.",
+   "habilidades_bncc": [
+    "EF06LI07"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que um texto com lista de ingredientes e passos numerados serve para ensinar a preparar uma receita."
+  },
+  {
+   "codigo": "OMNI-LI6-L2.2",
+   "ano": "6º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar imagens e palavras de um cartaz OU de uma história em quadrinhos para inferir uma informação.",
+   "habilidades_bncc": [
+    "EF06LI07",
+    "EF06LI08"
+   ],
+   "saeb": [],
+   "evidencia": "Deduz, pela imagem do menino molhado e pela fala \"Oh no!\", que começou a chover na tirinha."
+  },
+  {
+   "codigo": "OMNI-LI6-L3.1",
+   "ano": "6º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Justificar uma opinião sobre o que um texto lido informa, citando um trecho que a sustenta.",
+   "habilidades_bncc": [
+    "EF06LI12"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que achou útil o texto \"My weekend routine\" e aponta a frase que mostra uma ideia nova para o fim de semana."
+  },
+  {
+   "codigo": "OMNI-LI6-E4.1",
+   "ano": "6º ano",
+   "eixo": "Escrita",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Listar ideias para um texto a partir de um tema dado.",
+   "habilidades_bncc": [
+    "EF06LI13"
+   ],
+   "saeb": [],
+   "evidencia": "Lista em inglês cinco palavras e ideias para um cartaz sobre \"My favourite sport\"."
+  },
+  {
+   "codigo": "OMNI-LI6-E4.2",
+   "ano": "6º ano",
+   "eixo": "Escrita",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Organizar ideias selecionadas de acordo com a estrutura OU o objetivo do texto.",
+   "habilidades_bncc": [
+    "EF06LI14"
+   ],
+   "saeb": [],
+   "evidencia": "Ordena as ideias listadas em título, três informações e frase final para montar um post de blog."
+  },
+  {
+   "codigo": "OMNI-LI6-E4.3",
+   "ano": "6º ano",
+   "eixo": "Escrita",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Produzir um texto curto, como fotolegenda, cartaz, agenda ou post de blog, sobre si, a família, os amigos OU a escola.",
+   "habilidades_bncc": [
+    "EF06LI15"
+   ],
+   "saeb": [],
+   "evidencia": "Escreve a fotolegenda \"This is my cousin Leo. He is twelve and he plays football\" para uma foto de família."
+  },
+  {
+   "codigo": "OMNI-LI6-C1.1",
+   "ano": "6º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Associar palavras de temas familiares, como escola, família, rotina, lazer e esportes, a imagens OU a situações.",
+   "habilidades_bncc": [
+    "EF06LI17",
+    "EF06LI11"
+   ],
+   "saeb": [],
+   "evidencia": "Liga \"grandmother\", \"playground\" e \"brush my teeth\" às imagens certas em um jogo de aplicativo."
+  },
+  {
+   "codigo": "OMNI-LI6-C1.2",
+   "ano": "6º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar expressões de convívio social, como cumprimentos, despedidas ou agradecimentos, pela situação de uso.",
+   "habilidades_bncc": [
+    "EF06LI16"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe \"Good night\" para a despedida no fim do dia e \"Thank you\" para quem recebe um presente."
+  },
+  {
+   "codigo": "OMNI-LI6-C2.1",
+   "ano": "6º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Comparar a pronúncia de palavras parecidas em inglês e em português, apontando semelhanças OU diferenças.",
+   "habilidades_bncc": [
+    "EF06LI18"
+   ],
+   "saeb": [],
+   "evidencia": "Percebe que \"chocolate\" se escreve igual nas duas línguas, mas tem pronúncia diferente em inglês."
+  },
+  {
+   "codigo": "OMNI-LI6-C4.1",
+   "ano": "6º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Escrever frases com o verbo to be OU com o presente simples para identificar pessoas ou descrever rotinas.",
+   "habilidades_bncc": [
+    "EF06LI19"
+   ],
+   "saeb": [],
+   "evidencia": "Completa \"She ___ my teacher\" com \"is\" e escreve \"I don't go to school on Sundays\"."
+  },
+  {
+   "codigo": "OMNI-LI6-C4.2",
+   "ano": "6º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Descrever ações em andamento com o presente contínuo.",
+   "habilidades_bncc": [
+    "EF06LI20"
+   ],
+   "saeb": [],
+   "evidencia": "Escreve \"They are playing basketball\" para descrever uma foto da quadra."
+  },
+  {
+   "codigo": "OMNI-LI6-C4.3",
+   "ano": "6º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Indicar posse com adjetivos possessivos OU com o genitivo 's em frases curtas.",
+   "habilidades_bncc": [
+    "EF06LI22",
+    "EF06LI23"
+   ],
+   "saeb": [],
+   "evidencia": "Escreve \"This is Maria's bag\" e completa \"Tom and I love ___ dog\" com \"our\"."
+  },
+  {
+   "codigo": "OMNI-LI6-I1.1",
+   "ano": "6º ano",
+   "eixo": "Dimensão intercultural",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar países em que o inglês é língua materna OU língua oficial.",
+   "habilidades_bncc": [
+    "EF06LI24"
+   ],
+   "saeb": [],
+   "evidencia": "Marca no mapa que o inglês é língua materna na Austrália e língua oficial na Nigéria e na Índia."
+  },
+  {
+   "codigo": "OMNI-LI6-I1.2",
+   "ano": "6º ano",
+   "eixo": "Dimensão intercultural",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Explicar o significado de palavras OU expressões em inglês presentes no cotidiano brasileiro.",
+   "habilidades_bncc": [
+    "EF06LI25"
+   ],
+   "saeb": [],
+   "evidencia": "Explica o que querem dizer \"delivery\", \"sale\" e \"drive-thru\" em placas e embalagens do bairro."
+  },
+  {
+   "codigo": "OMNI-LI6-I3.1",
+   "ano": "6º ano",
+   "eixo": "Dimensão intercultural",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar a presença, na comunidade, de um produto cultural de país de língua inglesa, apontando aspectos positivos OU problemáticos.",
+   "habilidades_bncc": [
+    "EF06LI26"
+   ],
+   "saeb": [],
+   "evidencia": "Argumenta que o Halloween na escola é divertido, mas pode deixar de lado festas brasileiras como o Dia do Saci."
+  },
+  {
+   "codigo": "OMNI-LI7-O1.1",
+   "ano": "7º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar o contexto, a finalidade, o assunto OU os interlocutores de um trecho oral de filme, vídeo ou programa.",
+   "habilidades_bncc": [
+    "EF07LI04"
+   ],
+   "saeb": [],
+   "evidencia": "Diz, depois de ver um trecho de vídeo, que é um guia de museu explicando uma obra a turistas."
+  },
+  {
+   "codigo": "OMNI-LI7-O2.1",
+   "ano": "7º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Antecipar o conteúdo de um áudio a partir de conhecimentos prévios sobre o tema.",
+   "habilidades_bncc": [
+    "EF07LI03"
+   ],
+   "saeb": [],
+   "evidencia": "Prevê, pelo título \"Life in the 1980s\", que o áudio vai falar de fitas cassete e telefones fixos, e confere ao ouvir."
+  },
+  {
+   "codigo": "OMNI-LI7-O3.1",
+   "ano": "7º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Defender oralmente uma opinião sobre um texto lido, com ao menos uma justificativa.",
+   "habilidades_bncc": [
+    "EF07LI11"
+   ],
+   "saeb": [],
+   "evidencia": "Diz \"I think the story is sad because the dog gets lost\" na roda de conversa sobre o conto."
+  },
+  {
+   "codigo": "OMNI-LI7-O4.1",
+   "ano": "7º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Participar de jogo OU atividade oral em grupo com expressões de colaboração, como \"It's your turn\" ou \"Let's try again\".",
+   "habilidades_bncc": [
+    "EF07LI01"
+   ],
+   "saeb": [],
+   "evidencia": "Usa \"It's your turn\" e \"Good job!\" durante um jogo de adivinhação com a turma."
+  },
+  {
+   "codigo": "OMNI-LI7-O4.2",
+   "ano": "7º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Entrevistar um colega sobre a história de vida, com perguntas no passado.",
+   "habilidades_bncc": [
+    "EF07LI02"
+   ],
+   "saeb": [],
+   "evidencia": "Pergunta \"Where were you born?\" e \"What did you like to play when you were five?\" e anota as respostas."
+  },
+  {
+   "codigo": "OMNI-LI7-O4.3",
+   "ano": "7º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Narrar oralmente um fato OU a trajetória de uma personalidade do passado.",
+   "habilidades_bncc": [
+    "EF07LI05"
+   ],
+   "saeb": [],
+   "evidencia": "Conta em um minuto como Santos Dumont voou com o 14-Bis em 1906, usando \"first\", \"then\" e \"finally\"."
+  },
+  {
+   "codigo": "OMNI-LI7-L1.1",
+   "ano": "7º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar a informação-chave de cada parágrafo de um texto.",
+   "habilidades_bncc": [
+    "EF07LI07"
+   ],
+   "saeb": [],
+   "evidencia": "Escreve ao lado de cada parágrafo do texto \"The first smartphones\" a ideia principal em poucas palavras."
+  },
+  {
+   "codigo": "OMNI-LI7-L1.2",
+   "ano": "7º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Localizar, em um texto, a informação que atende a um objetivo de leitura dado.",
+   "habilidades_bncc": [
+    "EF07LI09"
+   ],
+   "saeb": [],
+   "evidencia": "Encontra na biografia de Malala o ano em que ela recebeu o Prêmio Nobel da Paz."
+  },
+  {
+   "codigo": "OMNI-LI7-L2.1",
+   "ano": "7º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Antecipar o sentido global de um texto por leitura rápida do título, das primeiras frases OU das palavras-chave repetidas.",
+   "habilidades_bncc": [
+    "EF07LI06"
+   ],
+   "saeb": [],
+   "evidencia": "Prevê, pelo título e pela repetição de \"volcano\" e \"lava\", que o texto trata de uma erupção."
+  },
+  {
+   "codigo": "OMNI-LI7-L2.2",
+   "ano": "7º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar as ideias dos parágrafos para chegar ao sentido global do texto.",
+   "habilidades_bncc": [
+    "EF07LI08"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que os três parágrafos de \"How the Internet began\" mostram, juntos, a evolução da rede em ordem de tempo."
+  },
+  {
+   "codigo": "OMNI-LI7-L3.1",
+   "ano": "7º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar a confiabilidade de uma fonte on-line em inglês para uma pesquisa escolar.",
+   "habilidades_bncc": [
+    "EF07LI10"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe o site de um museu de ciências, e não um fórum anônimo, para pesquisar sobre dinossauros, e diz por quê."
+  },
+  {
+   "codigo": "OMNI-LI7-E4.1",
+   "ano": "7º ano",
+   "eixo": "Escrita",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Planejar um texto definindo público, finalidade, suporte OU layout.",
+   "habilidades_bncc": [
+    "EF07LI12"
+   ],
+   "saeb": [],
+   "evidencia": "Preenche um quadro de planejamento indicando que a biografia será para o mural da escola, lida por colegas do 6º ano."
+  },
+  {
+   "codigo": "OMNI-LI7-E4.2",
+   "ano": "7º ano",
+   "eixo": "Escrita",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Organizar um texto em parágrafos OU em tópicos e subtópicos.",
+   "habilidades_bncc": [
+    "EF07LI13"
+   ],
+   "saeb": [],
+   "evidencia": "Divide um texto sobre um cientista em \"Early life\", \"Discoveries\" e \"Legacy\"."
+  },
+  {
+   "codigo": "OMNI-LI7-E4.3",
+   "ano": "7º ano",
+   "eixo": "Escrita",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Produzir uma linha do tempo, uma biografia curta OU um verbete sobre um fato ou uma personalidade do passado.",
+   "habilidades_bncc": [
+    "EF07LI14",
+    "EF07LI18"
+   ],
+   "saeb": [],
+   "evidencia": "Escreve uma linha do tempo com cinco datas da vida de Pelé, cada uma com uma frase no passado."
+  },
+  {
+   "codigo": "OMNI-LI7-C1.1",
+   "ano": "7º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar a forma de passado de verbos regulares OU irregulares em um texto.",
+   "habilidades_bncc": [
+    "EF07LI15"
+   ],
+   "saeb": [],
+   "evidencia": "Sublinha \"visited\", \"went\" e \"saw\" em um relato de viagem e diz o infinitivo de cada um."
+  },
+  {
+   "codigo": "OMNI-LI7-C1.2",
+   "ano": "7º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar a relação de sentido indicada por conectores como and, but, because, then, so, before ou after.",
+   "habilidades_bncc": [
+    "EF07LI15"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que \"because\" introduz a causa em \"She stayed home because she was sick\"."
+  },
+  {
+   "codigo": "OMNI-LI7-C1.3",
+   "ano": "7º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Reconhecer a pronúncia do -ed em verbos regulares no passado, como /t/, /d/ ou /ɪd/.",
+   "habilidades_bncc": [
+    "EF07LI16"
+   ],
+   "saeb": [],
+   "evidencia": "Separa \"worked\", \"played\" e \"wanted\" pelo som final que ouve em cada um."
+  },
+  {
+   "codigo": "OMNI-LI7-C2.1",
+   "ano": "7º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Determinar o sentido de uma palavra polissêmica de acordo com o contexto.",
+   "habilidades_bncc": [
+    "EF07LI17"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que \"light\" significa \"leve\" em \"a light bag\" e \"luz\" em \"turn on the light\"."
+  },
+  {
+   "codigo": "OMNI-LI7-C2.2",
+   "ano": "7º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Distinguir pronomes sujeito de pronomes objeto pela função na frase.",
+   "habilidades_bncc": [
+    "EF07LI19"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe \"him\" em \"I saw ___ at the park\" e explica que a palavra recebe a ação."
+  },
+  {
+   "codigo": "OMNI-LI7-C4.1",
+   "ano": "7º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Narrar fatos em sequência OU em relação de causa com o passado simples e o passado contínuo.",
+   "habilidades_bncc": [
+    "EF07LI18"
+   ],
+   "saeb": [],
+   "evidencia": "Escreve \"I was walking home when it started to rain, so I ran\"."
+  },
+  {
+   "codigo": "OMNI-LI7-C4.2",
+   "ano": "7º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Descrever habilidades no presente OU no passado com can e could.",
+   "habilidades_bncc": [
+    "EF07LI20"
+   ],
+   "saeb": [],
+   "evidencia": "Escreve \"I can swim now, but I couldn't swim when I was six\"."
+  },
+  {
+   "codigo": "OMNI-LI7-C4.3",
+   "ano": "7º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Empregar as preposições de tempo in, on OU at com datas, horas e períodos.",
+   "habilidades_bncc": [
+    "EF07LI15"
+   ],
+   "saeb": [],
+   "evidencia": "Completa \"The party is ___ Saturday ___ 8 p.m.\" com \"on\" e \"at\"."
+  },
+  {
+   "codigo": "OMNI-LI7-I1.1",
+   "ano": "7º ano",
+   "eixo": "Dimensão intercultural",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar diferenças de vocabulário OU de pronúncia entre variedades do inglês.",
+   "habilidades_bncc": [
+    "EF07LI22"
+   ],
+   "saeb": [],
+   "evidencia": "Associa \"lift\" ao inglês britânico e \"elevator\" ao inglês dos Estados Unidos."
+  },
+  {
+   "codigo": "OMNI-LI7-I2.1",
+   "ano": "7º ano",
+   "eixo": "Dimensão intercultural",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar onde OU para que o inglês é usado no mundo globalizado, como na internet, na aviação ou nos negócios.",
+   "habilidades_bncc": [
+    "EF07LI21"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que pilotos de diferentes países se comunicam em inglês com as torres de controle."
+  },
+  {
+   "codigo": "OMNI-LI7-I2.2",
+   "ano": "7º ano",
+   "eixo": "Dimensão intercultural",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar uma expressão em inglês ao modo de pensar OU de ver o mundo de quem a usa.",
+   "habilidades_bncc": [
+    "EF07LI23"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que \"time is money\" revela uma forma de ver o tempo como algo que se gasta ou se economiza."
+  },
+  {
+   "codigo": "OMNI-LI7-I3.1",
+   "ano": "7º ano",
+   "eixo": "Dimensão intercultural",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar um comentário sobre um sotaque ou modo de falar inglês, identificando preconceito linguístico.",
+   "habilidades_bncc": [
+    "EF07LI22",
+    "EF07LI23"
+   ],
+   "saeb": [],
+   "evidencia": "Argumenta que dizer que o inglês da Índia é \"errado\" é preconceito, pois todas as variedades são legítimas."
+  },
+  {
+   "codigo": "OMNI-LI8-O1.1",
+   "ano": "8º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar o assunto principal OU informações relevantes de uma notícia oral ou de um vídeo informativo.",
+   "habilidades_bncc": [
+    "EF08LI03"
+   ],
+   "saeb": [],
+   "evidencia": "Diz, depois de ouvir uma notícia de rádio, que o assunto é uma onda de calor e que as escolas vão fechar mais cedo."
+  },
+  {
+   "codigo": "OMNI-LI8-O2.1",
+   "ano": "8º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar as partes de um texto oral informativo para construir o sentido global.",
+   "habilidades_bncc": [
+    "EF08LI03"
+   ],
+   "saeb": [],
+   "evidencia": "Explica como a abertura, a entrevista e o fechamento de um podcast se ligam para mostrar o problema do lixo no mar."
+  },
+  {
+   "codigo": "OMNI-LI8-O2.2",
+   "ano": "8º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar o efeito de hesitações, frases incompletas, gestos OU expressões faciais em uma interação oral.",
+   "habilidades_bncc": [
+    "EF08LI02"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que o \"well... umm...\" da personagem do vídeo mostra que ela está insegura para responder."
+  },
+  {
+   "codigo": "OMNI-LI8-O4.1",
+   "ano": "8º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Esclarecer um mal-entendido OU uma informação, reformulando a fala com paráfrase ou justificativa.",
+   "habilidades_bncc": [
+    "EF08LI01"
+   ],
+   "saeb": [],
+   "evidencia": "Diz \"I mean, I can't go on Friday, but Saturday is fine\" quando percebe que o colega entendeu errado."
+  },
+  {
+   "codigo": "OMNI-LI8-O4.2",
+   "ano": "8º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Falar sobre planos, previsões OU possibilidades para o futuro.",
+   "habilidades_bncc": [
+    "EF08LI04"
+   ],
+   "saeb": [],
+   "evidencia": "Conta em um minuto \"Next year I'm going to join a band and I think I will learn the drums\"."
+  },
+  {
+   "codigo": "OMNI-LI8-L1.1",
+   "ano": "8º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar personagens, conflito OU desfecho em um conto em inglês, original ou simplificado.",
+   "habilidades_bncc": [
+    "EF08LI06"
+   ],
+   "saeb": [],
+   "evidencia": "Indica, no conto simplificado \"The Lost Key\", quem perdeu a chave e como o problema foi resolvido."
+  },
+  {
+   "codigo": "OMNI-LI8-L1.2",
+   "ano": "8º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar elementos de um poema OU de uma letra de canção em inglês, como rima, refrão ou repetição.",
+   "habilidades_bncc": [
+    "EF08LI06",
+    "EF08LI18"
+   ],
+   "saeb": [],
+   "evidencia": "Marca as palavras que rimam e o refrão da canção \"Rainy Days\"."
+  },
+  {
+   "codigo": "OMNI-LI8-L1.3",
+   "ano": "8º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Localizar, em site ou aplicativo, uma obra literária em inglês pelo autor, pelo título OU pelo gênero.",
+   "habilidades_bncc": [
+    "EF08LI07"
+   ],
+   "saeb": [],
+   "evidencia": "Encontra em uma biblioteca digital gratuita um conto de Edgar Allan Poe, usando o filtro \"short stories\"."
+  },
+  {
+   "codigo": "OMNI-LI8-L2.1",
+   "ano": "8º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Inferir informações OU relações que não estão explícitas em um texto.",
+   "habilidades_bncc": [
+    "EF08LI05"
+   ],
+   "saeb": [],
+   "evidencia": "Deduz, pela frase \"She took her umbrella and sighed\", que estava chovendo e que a personagem estava desanimada."
+  },
+  {
+   "codigo": "OMNI-LI8-L2.2",
+   "ano": "8º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Comparar as perspectivas de dois textos sobre um mesmo assunto.",
+   "habilidades_bncc": [
+    "EF08LI08"
+   ],
+   "saeb": [],
+   "evidencia": "Compara dois posts sobre o uso de celular na escola e diz em que ponto eles discordam."
+  },
+  {
+   "codigo": "OMNI-LI8-L3.1",
+   "ano": "8º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Posicionar-se sobre o conteúdo de um texto, com argumentos apoiados em trechos dele.",
+   "habilidades_bncc": [
+    "EF08LI08"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que discorda do texto \"Video games are a waste of time\" e cita o dado do próprio texto que enfraquece a ideia."
+  },
+  {
+   "codigo": "OMNI-LI8-E3.1",
+   "ano": "8º ano",
+   "eixo": "Escrita",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar um texto próprio OU de colega quanto à finalidade, ao público, à organização ou à estrutura das frases.",
+   "habilidades_bncc": [
+    "EF08LI09"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta que o convite do colega não informa o horário da festa e que uma frase está sem verbo."
+  },
+  {
+   "codigo": "OMNI-LI8-E4.1",
+   "ano": "8º ano",
+   "eixo": "Escrita",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Reescrever um texto com cortes, acréscimos, reformulações OU correções para a versão final.",
+   "habilidades_bncc": [
+    "EF08LI10"
+   ],
+   "saeb": [],
+   "evidencia": "Reescreve o relato acrescentando a data, cortando uma repetição e corrigindo \"he go\" para \"he goes\"."
+  },
+  {
+   "codigo": "OMNI-LI8-E4.2",
+   "ano": "8º ano",
+   "eixo": "Escrita",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Produzir um texto, como post, relato, mensagem ou história, sobre sonhos e projetos para o futuro, com rascunho e revisão.",
+   "habilidades_bncc": [
+    "EF08LI11"
+   ],
+   "saeb": [],
+   "evidencia": "Escreve, em duas versões, o post \"My dreams for 2035\" com planos para si e para a cidade."
+  },
+  {
+   "codigo": "OMNI-LI8-C1.1",
+   "ano": "8º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar palavras OU expressões ligadas a planos, previsões e expectativas para o futuro.",
+   "habilidades_bncc": [
+    "EF08LI12"
+   ],
+   "saeb": [],
+   "evidencia": "Sublinha \"plan\", \"hope\", \"probably\" e \"in the future\" em um texto sobre profissões do futuro."
+  },
+  {
+   "codigo": "OMNI-LI8-C1.2",
+   "ano": "8º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar o que está sendo comparado em frases com o comparativo OU o superlativo.",
+   "habilidades_bncc": [
+    "EF08LI15"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que \"Brazil is bigger than Argentina\" compara o tamanho dos dois países."
+  },
+  {
+   "codigo": "OMNI-LI8-C2.1",
+   "ano": "8º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Deduzir o sentido de palavras pelos prefixos OU sufixos, como un-, re-, -ful e -less.",
+   "habilidades_bncc": [
+    "EF08LI13"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que \"careless\" significa \"sem cuidado\" e \"unhappy\" significa \"infeliz\"."
+  },
+  {
+   "codigo": "OMNI-LI8-C4.1",
+   "ano": "8º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Expressar planos OU previsões com will e going to.",
+   "habilidades_bncc": [
+    "EF08LI14"
+   ],
+   "saeb": [],
+   "evidencia": "Escreve \"Look at the clouds! It's going to rain\" e \"I think robots will help doctors\"."
+  },
+  {
+   "codigo": "OMNI-LI8-C4.2",
+   "ano": "8º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Empregar formas comparativas OU superlativas de adjetivos para comparar pessoas, lugares ou objetos.",
+   "habilidades_bncc": [
+    "EF08LI15"
+   ],
+   "saeb": [],
+   "evidencia": "Escreve \"The Amazon is the longest river in Brazil\" a partir de uma tabela com dados de rios."
+  },
+  {
+   "codigo": "OMNI-LI8-C4.3",
+   "ano": "8º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Empregar quantificadores (some, any, many, much) de acordo com o tipo de frase e o substantivo.",
+   "habilidades_bncc": [
+    "EF08LI16"
+   ],
+   "saeb": [],
+   "evidencia": "Completa \"There isn't ___ milk\" com \"much\" e \"Are there ___ apples?\" com \"any\"."
+  },
+  {
+   "codigo": "OMNI-LI8-C4.4",
+   "ano": "8º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Unir duas orações com o pronome relativo adequado (who, which, that, whose).",
+   "habilidades_bncc": [
+    "EF08LI17"
+   ],
+   "saeb": [],
+   "evidencia": "Junta \"I have a friend. She speaks French.\" em \"I have a friend who speaks French\"."
+  },
+  {
+   "codigo": "OMNI-LI8-I1.1",
+   "ano": "8º ano",
+   "eixo": "Dimensão intercultural",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar elementos de manifestações artístico-culturais de língua inglesa, como canção, filme, dança ou festividade.",
+   "habilidades_bncc": [
+    "EF08LI18"
+   ],
+   "saeb": [],
+   "evidencia": "Indica que o Thanksgiving tem jantar em família e o desfile como elementos típicos."
+  },
+  {
+   "codigo": "OMNI-LI8-I2.1",
+   "ano": "8º ano",
+   "eixo": "Dimensão intercultural",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Explicar como um gesto, uma expressão OU um comportamento pode ter sentidos diferentes em outras culturas.",
+   "habilidades_bncc": [
+    "EF08LI19"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que o sinal de \"ok\" com os dedos é positivo nos Estados Unidos, mas é ofensivo em outros países."
+  },
+  {
+   "codigo": "OMNI-LI8-I2.2",
+   "ano": "8º ano",
+   "eixo": "Dimensão intercultural",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar fatores que dificultam o entendimento entre falantes de inglês de culturas diferentes, como sotaque, gírias ou normas de polidez.",
+   "habilidades_bncc": [
+    "EF08LI20"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que a gíria \"I'm knackered\", comum na Inglaterra, pode não ser entendida por quem aprendeu o inglês dos EUA."
+  },
+  {
+   "codigo": "OMNI-LI8-I3.1",
+   "ano": "8º ano",
+   "eixo": "Dimensão intercultural",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar uma situação de comunicação intercultural, indicando o que pode causar mal-entendido.",
+   "habilidades_bncc": [
+    "EF08LI20",
+    "EF08LI19"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que um e-mail curto e sem \"please\" pode parecer grosseiro para um colega britânico e explica por quê."
+  },
+  {
+   "codigo": "OMNI-LI9-O1.1",
+   "ano": "9º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Anotar as ideias-chave de um texto oral argumentativo, como vídeo, podcast ou debate.",
+   "habilidades_bncc": [
+    "EF09LI02"
+   ],
+   "saeb": [],
+   "evidencia": "Registra em tópicos os três argumentos de um podcast sobre o fim dos canudos de plástico."
+  },
+  {
+   "codigo": "OMNI-LI9-O2.1",
+   "ano": "9º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Distinguir o posicionamento defendido do posicionamento refutado em um texto oral argumentativo.",
+   "habilidades_bncc": [
+    "EF09LI03"
+   ],
+   "saeb": [
+    "9I2.1"
+   ],
+   "evidencia": "Indica, após ver um debate sobre semana de quatro dias de aula, qual posição a convidada defende e qual ela rebate."
+  },
+  {
+   "codigo": "OMNI-LI9-O3.1",
+   "ano": "9º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar, com respeito, os argumentos de um texto escrito por colegas, mesmo quando o ponto de vista é diferente do seu.",
+   "habilidades_bncc": [
+    "EF09LI09"
+   ],
+   "saeb": [],
+   "evidencia": "Comenta o artigo do grupo vizinho dizendo qual argumento convenceu e qual faltou provar, sem desqualificar os autores."
+  },
+  {
+   "codigo": "OMNI-LI9-O4.1",
+   "ano": "9º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Expor oralmente um ponto de vista com argumentos OU contra-argumentos adequados ao contexto.",
+   "habilidades_bncc": [
+    "EF09LI01"
+   ],
+   "saeb": [],
+   "evidencia": "Diz \"In my opinion, uniforms are useful because... However, some people say...\" em um debate da turma."
+  },
+  {
+   "codigo": "OMNI-LI9-O4.2",
+   "ano": "9º ano",
+   "eixo": "Oralidade",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Apresentar oralmente resultados de pesquisa com apoio de notas, gráficos OU tabelas.",
+   "habilidades_bncc": [
+    "EF09LI04"
+   ],
+   "saeb": [],
+   "evidencia": "Apresenta em três minutos o gráfico \"How we get to school\" com os resultados da pesquisa da turma."
+  },
+  {
+   "codigo": "OMNI-LI9-L1.1",
+   "ano": "9º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar a finalidade de um texto pela estrutura, pela organização, por pistas gráficas OU por marcas linguísticas.",
+   "habilidades_bncc": [
+    "EF06LI07",
+    "EF09LI05"
+   ],
+   "saeb": [
+    "9I1.1"
+   ],
+   "evidencia": "Diz que um texto com \"Join us!\", data e local em destaque serve para convidar para um evento."
+  },
+  {
+   "codigo": "OMNI-LI9-L1.2",
+   "ano": "9º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar o assunto de um texto pela organização, por palavras cognatas OU por palavras formadas por prefixos e sufixos.",
+   "habilidades_bncc": [
+    "EF06LI08",
+    "EF08LI13"
+   ],
+   "saeb": [
+    "9I1.2"
+   ],
+   "evidencia": "Diz que o texto trata de reciclagem a partir de \"recycle\", \"reuse\", \"environment\" e \"plastic\"."
+  },
+  {
+   "codigo": "OMNI-LI9-L1.3",
+   "ano": "9º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 1,
+   "bloom": "lembrar",
+   "descritor": "Localizar informações específicas em um texto de acordo com um objetivo de leitura.",
+   "habilidades_bncc": [
+    "EF07LI09",
+    "EF06LI09"
+   ],
+   "saeb": [
+    "9I1.3"
+   ],
+   "evidencia": "Encontra, no site de um festival, o dia e o preço do ingresso para estudantes."
+  },
+  {
+   "codigo": "OMNI-LI9-L1.4",
+   "ano": "9º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Reconhecer elementos de forma OU de conteúdo em textos artístico-culturais, como letra de canção, poema ou programa de festival.",
+   "habilidades_bncc": [
+    "EF08LI18",
+    "EF08LI06"
+   ],
+   "saeb": [
+    "9I1.4"
+   ],
+   "evidencia": "Indica o refrão e o tema da canção \"Home Again\" e diz que o poema \"Autumn\" tem versos rimados."
+  },
+  {
+   "codigo": "OMNI-LI9-L1.5",
+   "ano": "9º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar recursos verbais OU não verbais usados para convencer em anúncios e propagandas.",
+   "habilidades_bncc": [
+    "EF09LI05"
+   ],
+   "saeb": [
+    "9I1.5"
+   ],
+   "evidencia": "Aponta que o anúncio usa letras grandes em \"FREE\", cores fortes e a frase \"Don't miss it!\" para atrair o público."
+  },
+  {
+   "codigo": "OMNI-LI9-L1.6",
+   "ano": "9º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar o argumento principal de um texto OU as evidências e exemplos que o sustentam.",
+   "habilidades_bncc": [
+    "EF09LI07"
+   ],
+   "saeb": [
+    "9I1.5"
+   ],
+   "evidencia": "Sublinha a tese do artigo \"Teens need more sleep\" e a pesquisa citada como prova."
+  },
+  {
+   "codigo": "OMNI-LI9-L2.1",
+   "ano": "9º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Contrapor as perspectivas de dois textos sobre um mesmo assunto.",
+   "habilidades_bncc": [
+    "EF08LI08",
+    "EF09LI03"
+   ],
+   "saeb": [
+    "9I2.1"
+   ],
+   "evidencia": "Compara uma carta de leitor a favor e outra contra o turismo em uma praia e aponta o argumento central de cada uma."
+  },
+  {
+   "codigo": "OMNI-LI9-L2.2",
+   "ano": "9º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Distinguir fatos de opiniões em notícias, editoriais OU artigos de opinião.",
+   "habilidades_bncc": [
+    "EF09LI06"
+   ],
+   "saeb": [
+    "9I2.2"
+   ],
+   "evidencia": "Classifica \"The park opened in 2010\" como fato e \"It is the best park in town\" como opinião."
+  },
+  {
+   "codigo": "OMNI-LI9-L3.1",
+   "ano": "9º ano",
+   "eixo": "Leitura",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar a qualidade OU a validade de uma informação publicada em ambiente virtual, considerando fonte, data e evidências.",
+   "habilidades_bncc": [
+    "EF09LI08"
+   ],
+   "saeb": [
+    "9I3.2"
+   ],
+   "evidencia": "Explica por que um post sem autor e sem data dizendo \"Chocolate cures colds\" não é confiável."
+  },
+  {
+   "codigo": "OMNI-LI9-E4.1",
+   "ano": "9º ano",
+   "eixo": "Escrita",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Propor argumentos sustentados por dados, evidências OU exemplos, em sequência lógica, para defender um ponto de vista.",
+   "habilidades_bncc": [
+    "EF09LI10"
+   ],
+   "saeb": [],
+   "evidencia": "Organiza em um esquema três argumentos, cada um com um dado de pesquisa, para defender mais ciclovias na cidade."
+  },
+  {
+   "codigo": "OMNI-LI9-E4.2",
+   "ano": "9º ano",
+   "eixo": "Escrita",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Produzir uma peça publicitária curta com recursos verbais e não verbais adequados ao público.",
+   "habilidades_bncc": [
+    "EF09LI11"
+   ],
+   "saeb": [],
+   "evidencia": "Cria um cartaz da campanha \"Save Water\" com slogan, imagem e uso intencional de cores."
+  },
+  {
+   "codigo": "OMNI-LI9-E4.3",
+   "ano": "9º ano",
+   "eixo": "Escrita",
+   "eixo_cognitivo": 4,
+   "bloom": "criar",
+   "descritor": "Produzir um texto, como infográfico, post de fórum, meme ou fotorreportagem, com posicionamento crítico sobre tema de interesse coletivo.",
+   "habilidades_bncc": [
+    "EF09LI12"
+   ],
+   "saeb": [],
+   "evidencia": "Escreve um post de fórum defendendo o fim do bullying virtual, com dois argumentos e uma proposta."
+  },
+  {
+   "codigo": "OMNI-LI9-C1.1",
+   "ano": "9º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar formas de escrita digital, como abreviações, combinações de letras e números OU emojis, em mensagens.",
+   "habilidades_bncc": [
+    "EF09LI13"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que \"CU L8R\" significa \"see you later\" e que \"BTW\" significa \"by the way\"."
+  },
+  {
+   "codigo": "OMNI-LI9-C1.2",
+   "ano": "9º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 1,
+   "bloom": "entender",
+   "descritor": "Identificar a relação de adição, condição, oposição, conclusão OU síntese indicada por um conector.",
+   "habilidades_bncc": [
+    "EF09LI14"
+   ],
+   "saeb": [],
+   "evidencia": "Diz que \"however\" marca oposição e \"therefore\" marca conclusão em um parágrafo argumentativo."
+  },
+  {
+   "codigo": "OMNI-LI9-C2.1",
+   "ano": "9º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar os verbos should, must, have to, may OU might aos sentidos de recomendação, obrigação, necessidade ou probabilidade.",
+   "habilidades_bncc": [
+    "EF09LI16"
+   ],
+   "saeb": [],
+   "evidencia": "Explica que \"You must wear a helmet\" expressa obrigação e \"It might rain\" expressa possibilidade."
+  },
+  {
+   "codigo": "OMNI-LI9-C3.1",
+   "ano": "9º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar o efeito de palavras polissêmicas OU de expressões metafóricas em um texto.",
+   "habilidades_bncc": [
+    "EF07LI17",
+    "EF09LI05"
+   ],
+   "saeb": [
+    "9I3.1"
+   ],
+   "evidencia": "Explica que, no slogan \"Our juice is a breath of fresh air\", a metáfora sugere algo novo e leve."
+  },
+  {
+   "codigo": "OMNI-LI9-C4.1",
+   "ano": "9º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Empregar conectores para articular argumentos em um parágrafo.",
+   "habilidades_bncc": [
+    "EF09LI14"
+   ],
+   "saeb": [],
+   "evidencia": "Reescreve três frases soltas em um parágrafo com \"First\", \"In addition\" e \"In conclusion\"."
+  },
+  {
+   "codigo": "OMNI-LI9-C4.2",
+   "ano": "9º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Escrever orações condicionais dos tipos 1 OU 2 para expressar situações prováveis ou hipotéticas.",
+   "habilidades_bncc": [
+    "EF09LI15"
+   ],
+   "saeb": [],
+   "evidencia": "Escreve \"If it rains, we will stay home\" e \"If I had a million dollars, I would travel the world\"."
+  },
+  {
+   "codigo": "OMNI-LI9-C4.3",
+   "ano": "9º ano",
+   "eixo": "Conhecimentos linguísticos",
+   "eixo_cognitivo": 4,
+   "bloom": "aplicar",
+   "descritor": "Empregar should, must, have to, may OU might para aconselhar, indicar obrigação ou expressar probabilidade.",
+   "habilidades_bncc": [
+    "EF09LI16"
+   ],
+   "saeb": [],
+   "evidencia": "Escreve três regras para o laboratório de ciências com \"must\", \"have to\" e \"should\"."
+  },
+  {
+   "codigo": "OMNI-LI9-I2.1",
+   "ano": "9º ano",
+   "eixo": "Dimensão intercultural",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Relacionar a expansão do inglês na África, na Ásia, nas Américas e na Oceania ao processo de colonização.",
+   "habilidades_bncc": [
+    "EF09LI17"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que o inglês é língua oficial na Nigéria e na Índia a partir da história de colonização britânica."
+  },
+  {
+   "codigo": "OMNI-LI9-I2.2",
+   "ano": "9º ano",
+   "eixo": "Dimensão intercultural",
+   "eixo_cognitivo": 2,
+   "bloom": "analisar",
+   "descritor": "Analisar o papel do inglês na divulgação científica, na economia OU na política mundial.",
+   "habilidades_bncc": [
+    "EF09LI18"
+   ],
+   "saeb": [],
+   "evidencia": "Explica por que a maior parte dos artigos científicos sobre vacinas é publicada em inglês."
+  },
+  {
+   "codigo": "OMNI-LI9-I3.1",
+   "ano": "9º ano",
+   "eixo": "Dimensão intercultural",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Avaliar a presença da língua inglesa OU de produtos culturais de países de língua inglesa no mundo globalizado.",
+   "habilidades_bncc": [
+    "EF09LI18",
+    "EF06LI26"
+   ],
+   "saeb": [
+    "9I3.3"
+   ],
+   "evidencia": "Argumenta se o uso de \"black friday\" e de \"coach\" no Brasil amplia a comunicação ou apaga palavras do português."
+  },
+  {
+   "codigo": "OMNI-LI9-I3.2",
+   "ano": "9º ano",
+   "eixo": "Dimensão intercultural",
+   "eixo_cognitivo": 3,
+   "bloom": "avaliar",
+   "descritor": "Posicionar-se, com argumentos, sobre o papel do inglês na construção de identidades no mundo globalizado.",
+   "habilidades_bncc": [
+    "EF09LI19"
+   ],
+   "saeb": [],
+   "evidencia": "Defende em um parágrafo como falar inglês ajudou uma youtuber brasileira a divulgar a cultura indígena sem deixar de ser quem é."
+  }
+ ],
+ "substituidos": [
+  {
+   "codigo": "OMNI-LI6-D01",
+   "ano": "6º ano",
+   "eixo": "Interação discursiva",
+   "descritor": "Selecionar a pergunta ou a resposta adequada em inglês para obter dados sobre família, amigos ou escola num diálogo.",
+   "habilidades_bncc": [
+    "EF06LI02",
+    "EF06LI03"
+   ],
+   "saeb": [],
+   "evidencia": "Completa um diálogo curto com a fala que faz sentido no contexto.",
+   "substituido_por": [
+    "OMNI-LI6-O4.1",
+    "OMNI-LI6-O4.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI6-D02",
+   "ano": "6º ano",
+   "eixo": "Compreensão oral",
+   "descritor": "Reconhecer o assunto e os dados principais de um áudio curto em inglês sobre tema familiar, usando cognatos e contexto.",
+   "habilidades_bncc": [
+    "EF06LI04"
+   ],
+   "saeb": [],
+   "evidencia": "Responde qual é o tema do áudio e uma informação central dita nele.",
+   "substituido_por": [
+    "OMNI-LI6-O1.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI6-D03",
+   "ano": "6º ano",
+   "eixo": "Estratégias de leitura",
+   "descritor": "Inferir a finalidade de um texto em inglês com base em layout, título, imagens e organização gráfica.",
+   "habilidades_bncc": [
+    "EF06LI07"
+   ],
+   "saeb": [],
+   "evidencia": "Indica para que serve o texto (convidar, informar, anunciar) e a pista que usou.",
+   "substituido_por": [
+    "OMNI-LI6-L2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI6-D04",
+   "ano": "6º ano",
+   "eixo": "Estratégias de leitura",
+   "descritor": "Localizar dado específico, como horário, nome, lugar ou preço, em texto curto em inglês.",
+   "habilidades_bncc": [
+    "EF06LI09"
+   ],
+   "saeb": [],
+   "evidencia": "Encontra e transcreve a informação pedida no texto.",
+   "substituido_por": [
+    "OMNI-LI6-L1.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI6-D05",
+   "ano": "6º ano",
+   "eixo": "Práticas de leitura e construção de repertório lexical",
+   "descritor": "Usar a estrutura de um verbete de dicionário bilíngue para escolher a acepção adequada de uma palavra no contexto.",
+   "habilidades_bncc": [
+    "EF06LI10"
+   ],
+   "saeb": [],
+   "evidencia": "Seleciona, entre as acepções do verbete, a que corresponde à frase dada.",
+   "substituido_por": [
+    "OMNI-LI6-L1.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI6-D06",
+   "ano": "6º ano",
+   "eixo": "Estudo do léxico",
+   "descritor": "Associar palavras e expressões em inglês sobre família, escola, rotina, lazer e sala de aula a imagens ou situações.",
+   "habilidades_bncc": [
+    "EF06LI17",
+    "EF06LI16"
+   ],
+   "saeb": [],
+   "evidencia": "Liga cada palavra ou expressão à imagem ou situação correspondente.",
+   "substituido_por": [
+    "OMNI-LI6-C1.1",
+    "OMNI-LI6-C1.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI6-D07",
+   "ano": "6º ano",
+   "eixo": "Gramática",
+   "descritor": "Empregar o verbo to be e o presente simples para identificar pessoas e descrever rotinas em frases afirmativas, negativas e interrogativas.",
+   "habilidades_bncc": [
+    "EF06LI19"
+   ],
+   "saeb": [],
+   "evidencia": "Completa frases com a forma verbal correta conforme pessoa e tipo de frase.",
+   "substituido_por": [
+    "OMNI-LI6-C4.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI6-D08",
+   "ano": "6º ano",
+   "eixo": "Gramática",
+   "descritor": "Identificar relações de posse expressas por adjetivos possessivos e pelo genitivo 's em frases e legendas.",
+   "habilidades_bncc": [
+    "EF06LI22",
+    "EF06LI23"
+   ],
+   "saeb": [],
+   "evidencia": "Indica quem é o dono de algo numa frase ou escolhe o possessivo adequado.",
+   "substituido_por": [
+    "OMNI-LI6-C4.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI6-D09",
+   "ano": "6º ano",
+   "eixo": "Gramática",
+   "descritor": "Interpretar instruções e avisos em inglês escritos no imperativo, indicando a ação que se pede ao leitor.",
+   "habilidades_bncc": [
+    "EF06LI21"
+   ],
+   "saeb": [],
+   "evidencia": "Associa cada comando à ação correspondente.",
+   "substituido_por": [
+    "OMNI-LI6-L1.4"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI6-D10",
+   "ano": "6º ano",
+   "eixo": "A língua inglesa no cotidiano da sociedade brasileira/comunidade",
+   "descritor": "Identificar palavras e expressões em inglês presentes em embalagens, anúncios e mídias brasileiras, explicando seu significado.",
+   "habilidades_bncc": [
+    "EF06LI25"
+   ],
+   "saeb": [],
+   "evidencia": "Explica o sentido de um termo em inglês visto num produto ou anúncio nacional.",
+   "substituido_por": [
+    "OMNI-LI6-I1.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI7-D01",
+   "ano": "7º ano",
+   "eixo": "Compreensão oral",
+   "descritor": "Reconhecer quem fala, com que objetivo e sobre o quê em trecho de filme, vídeo ou programa em inglês.",
+   "habilidades_bncc": [
+    "EF07LI04",
+    "EF07LI03"
+   ],
+   "saeb": [],
+   "evidencia": "Responde a perguntas sobre os participantes, o propósito e o tema do trecho ouvido.",
+   "substituido_por": [
+    "OMNI-LI7-O1.1",
+    "OMNI-LI7-O2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI7-D02",
+   "ano": "7º ano",
+   "eixo": "Estratégias de leitura",
+   "descritor": "Prever o tema geral de um texto em inglês observando título, primeiras linhas e termos que se repetem.",
+   "habilidades_bncc": [
+    "EF07LI06"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe o tema provável antes da leitura completa e confirma depois.",
+   "substituido_por": [
+    "OMNI-LI7-L2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI7-D03",
+   "ano": "7º ano",
+   "eixo": "Estratégias de leitura",
+   "descritor": "Indicar a ideia-chave de cada parágrafo de um texto em inglês e relacioná-las para chegar ao sentido global.",
+   "habilidades_bncc": [
+    "EF07LI07",
+    "EF07LI08"
+   ],
+   "saeb": [],
+   "evidencia": "Associa cada parágrafo à sua ideia central e escolhe o resumo geral adequado.",
+   "substituido_por": [
+    "OMNI-LI7-L1.1",
+    "OMNI-LI7-L2.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI7-D04",
+   "ano": "7º ano",
+   "eixo": "Práticas de leitura e pesquisa",
+   "descritor": "Selecionar, entre trechos ou fontes em inglês, aquele que atende a um objetivo de pesquisa definido.",
+   "habilidades_bncc": [
+    "EF07LI09",
+    "EF07LI10"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta o trecho ou a fonte que responde à pergunta de pesquisa proposta.",
+   "substituido_por": [
+    "OMNI-LI7-L1.2",
+    "OMNI-LI7-L3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI7-D05",
+   "ano": "7º ano",
+   "eixo": "Estudo do léxico",
+   "descritor": "Identificar a forma de passado de verbos regulares e irregulares e o sentido de conectores como because, then e so.",
+   "habilidades_bncc": [
+    "EF07LI15"
+   ],
+   "saeb": [],
+   "evidencia": "Completa uma narrativa com o verbo no passado e o conector adequado.",
+   "substituido_por": [
+    "OMNI-LI7-C1.1",
+    "OMNI-LI7-C1.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI7-D06",
+   "ano": "7º ano",
+   "eixo": "Estudo do léxico",
+   "descritor": "Determinar o sentido de palavra polissêmica em inglês de acordo com o contexto da frase.",
+   "habilidades_bncc": [
+    "EF07LI17"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe o significado correto de uma palavra que muda de sentido entre duas frases.",
+   "substituido_por": [
+    "OMNI-LI7-C2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI7-D07",
+   "ano": "7º ano",
+   "eixo": "Gramática",
+   "descritor": "Empregar passado simples e passado contínuo para narrar fatos em sequência ou ação interrompida por outra.",
+   "habilidades_bncc": [
+    "EF07LI18"
+   ],
+   "saeb": [],
+   "evidencia": "Completa um relato com as formas verbais que mostram ordem e causa dos fatos.",
+   "substituido_por": [
+    "OMNI-LI7-C4.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI7-D08",
+   "ano": "7º ano",
+   "eixo": "Gramática",
+   "descritor": "Distinguir pronomes sujeito e objeto em frases, escolhendo a forma adequada à função que exercem.",
+   "habilidades_bncc": [
+    "EF07LI19"
+   ],
+   "saeb": [],
+   "evidencia": "Substitui nomes por pronomes de sujeito ou objeto corretamente.",
+   "substituido_por": [
+    "OMNI-LI7-C2.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI7-D09",
+   "ano": "7º ano",
+   "eixo": "Gramática",
+   "descritor": "Usar can e could para expressar habilidades no presente e no passado em frases contextualizadas.",
+   "habilidades_bncc": [
+    "EF07LI20"
+   ],
+   "saeb": [],
+   "evidencia": "Completa frases sobre o que alguém sabe ou sabia fazer com a forma modal adequada.",
+   "substituido_por": [
+    "OMNI-LI7-C4.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI7-D10",
+   "ano": "7º ano",
+   "eixo": "Comunicação intercultural",
+   "descritor": "Reconhecer diferenças de vocabulário ou pronúncia entre variedades do inglês, sem tratá-las como erro.",
+   "habilidades_bncc": [
+    "EF07LI22",
+    "EF07LI23"
+   ],
+   "saeb": [],
+   "evidencia": "Associa pares de palavras de variedades diferentes e explica que ambas são corretas.",
+   "substituido_por": [
+    "OMNI-LI7-I1.1",
+    "OMNI-LI7-I3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI8-D01",
+   "ano": "8º ano",
+   "eixo": "Compreensão oral",
+   "descritor": "Relacionar partes de notícia ou reportagem oral em inglês para apontar o assunto principal e os dados relevantes.",
+   "habilidades_bncc": [
+    "EF08LI03"
+   ],
+   "saeb": [],
+   "evidencia": "Indica o tema central do áudio e duas informações que o sustentam.",
+   "substituido_por": [
+    "OMNI-LI8-O1.1",
+    "OMNI-LI8-O2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI8-D02",
+   "ano": "8º ano",
+   "eixo": "Estratégias de leitura",
+   "descritor": "Inferir informações implícitas em texto em inglês com base em pistas linguísticas e contextuais.",
+   "habilidades_bncc": [
+    "EF08LI05"
+   ],
+   "saeb": [],
+   "evidencia": "Responde a pergunta cuja resposta não está escrita, justificando com uma pista do texto.",
+   "substituido_por": [
+    "OMNI-LI8-L2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI8-D03",
+   "ano": "8º ano",
+   "eixo": "Avaliação dos textos lidos",
+   "descritor": "Comparar os pontos de vista de dois textos em inglês sobre um mesmo assunto.",
+   "habilidades_bncc": [
+    "EF08LI08"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta em que os textos concordam e em que divergem.",
+   "substituido_por": [
+    "OMNI-LI8-L2.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI8-D04",
+   "ano": "8º ano",
+   "eixo": "Práticas de leitura e fruição",
+   "descritor": "Identificar personagens, conflito e desfecho em conto ou narrativa simplificada em inglês.",
+   "habilidades_bncc": [
+    "EF08LI06"
+   ],
+   "saeb": [],
+   "evidencia": "Responde quem são as personagens, qual o problema e como ele se resolve.",
+   "substituido_por": [
+    "OMNI-LI8-L1.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI8-D05",
+   "ano": "8º ano",
+   "eixo": "Estratégias de escrita: escrita e pós- escrita",
+   "descritor": "Apontar problemas de adequação, organização ou estrutura de frase num texto curto em inglês e propor correção.",
+   "habilidades_bncc": [
+    "EF08LI09",
+    "EF08LI10"
+   ],
+   "saeb": [],
+   "evidencia": "Marca o trecho inadequado e reescreve-o de forma correta.",
+   "substituido_por": [
+    "OMNI-LI8-E3.1",
+    "OMNI-LI8-E4.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI8-D06",
+   "ano": "8º ano",
+   "eixo": "Estudo do léxico",
+   "descritor": "Deduzir o sentido de palavras em inglês a partir de prefixos e sufixos comuns, como un-, re-, -ful e -less.",
+   "habilidades_bncc": [
+    "EF08LI13"
+   ],
+   "saeb": [],
+   "evidencia": "Explica o significado de uma palavra derivada com base no afixo.",
+   "substituido_por": [
+    "OMNI-LI8-C2.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI8-D07",
+   "ano": "8º ano",
+   "eixo": "Gramática",
+   "descritor": "Empregar will e going to para expressar planos, previsões e intenções em contextos dados.",
+   "habilidades_bncc": [
+    "EF08LI14",
+    "EF08LI04"
+   ],
+   "saeb": [],
+   "evidencia": "Completa frases com a forma de futuro coerente com a situação.",
+   "substituido_por": [
+    "OMNI-LI8-C4.1",
+    "OMNI-LI8-O4.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI8-D08",
+   "ano": "8º ano",
+   "eixo": "Gramática",
+   "descritor": "Escolher a forma comparativa ou superlativa correta de adjetivos ao confrontar dados de pessoas, objetos ou lugares.",
+   "habilidades_bncc": [
+    "EF08LI15"
+   ],
+   "saeb": [],
+   "evidencia": "Completa ou escolhe a forma correta numa comparação a partir de dados de uma tabela.",
+   "substituido_por": [
+    "OMNI-LI8-C4.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI8-D09",
+   "ano": "8º ano",
+   "eixo": "Gramática",
+   "descritor": "Escolher entre some, any, many e much conforme o tipo de frase e o substantivo contável ou incontável.",
+   "habilidades_bncc": [
+    "EF08LI16"
+   ],
+   "saeb": [],
+   "evidencia": "Completa frases com o quantificador adequado.",
+   "substituido_por": [
+    "OMNI-LI8-C4.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI8-D10",
+   "ano": "8º ano",
+   "eixo": "Gramática",
+   "descritor": "Unir duas orações com o pronome relativo adequado (who, which, that, whose) em frases sobre pessoas e objetos.",
+   "habilidades_bncc": [
+    "EF08LI17"
+   ],
+   "saeb": [],
+   "evidencia": "Combina duas frases numa só usando o pronome relativo correto.",
+   "substituido_por": [
+    "OMNI-LI8-C4.4"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI9-D01",
+   "ano": "9º ano",
+   "eixo": "Compreensão oral",
+   "descritor": "Identificar a posição defendida e a posição refutada em debate ou vídeo argumentativo em inglês.",
+   "habilidades_bncc": [
+    "EF09LI03",
+    "EF09LI02"
+   ],
+   "saeb": [],
+   "evidencia": "Indica qual opinião o falante sustenta e qual ele rejeita.",
+   "substituido_por": [
+    "OMNI-LI9-O2.1",
+    "OMNI-LI9-O1.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI9-D02",
+   "ano": "9º ano",
+   "eixo": "Estratégias de leitura",
+   "descritor": "Explicar como escolhas de palavras, imagens e cores de um anúncio em inglês buscam convencer o público.",
+   "habilidades_bncc": [
+    "EF09LI05"
+   ],
+   "saeb": [],
+   "evidencia": "Aponta um recurso do anúncio e o efeito persuasivo que provoca.",
+   "substituido_por": [
+    "OMNI-LI9-L1.5"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI9-D03",
+   "ano": "9º ano",
+   "eixo": "Estratégias de leitura",
+   "descritor": "Classificar trechos de notícia ou artigo de opinião em inglês como fato verificável ou opinião do autor.",
+   "habilidades_bncc": [
+    "EF09LI06"
+   ],
+   "saeb": [],
+   "evidencia": "Separa as frases dadas em fato e opinião.",
+   "substituido_por": [
+    "OMNI-LI9-L2.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI9-D04",
+   "ano": "9º ano",
+   "eixo": "Estratégias de leitura",
+   "descritor": "Relacionar o argumento principal de um texto em inglês aos dados ou exemplos que o sustentam.",
+   "habilidades_bncc": [
+    "EF09LI07"
+   ],
+   "saeb": [],
+   "evidencia": "Liga a tese do texto à evidência que a apoia.",
+   "substituido_por": [
+    "OMNI-LI9-L1.6"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI9-D05",
+   "ano": "9º ano",
+   "eixo": "Práticas de leitura e novas tecnologias",
+   "descritor": "Avaliar a confiabilidade de informação em inglês publicada em site ou rede social, considerando fonte, data e evidências.",
+   "habilidades_bncc": [
+    "EF09LI08"
+   ],
+   "saeb": [],
+   "evidencia": "Indica se a postagem é confiável e cita o critério usado.",
+   "substituido_por": [
+    "OMNI-LI9-L3.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI9-D06",
+   "ano": "9º ano",
+   "eixo": "Estudo do léxico",
+   "descritor": "Interpretar abreviações, combinações de letras e números e emojis em mensagens digitais em inglês.",
+   "habilidades_bncc": [
+    "EF09LI13"
+   ],
+   "saeb": [],
+   "evidencia": "Reescreve por extenso uma mensagem curta com formas como gr8, u ou BTW.",
+   "substituido_por": [
+    "OMNI-LI9-C1.1"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI9-D07",
+   "ano": "9º ano",
+   "eixo": "Estudo do léxico",
+   "descritor": "Identificar a relação de adição, condição, oposição ou conclusão estabelecida por conectores num texto em inglês.",
+   "habilidades_bncc": [
+    "EF09LI14"
+   ],
+   "saeb": [],
+   "evidencia": "Escolhe o conector que mantém o sentido entre duas ideias.",
+   "substituido_por": [
+    "OMNI-LI9-C1.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI9-D08",
+   "ano": "9º ano",
+   "eixo": "Gramática",
+   "descritor": "Empregar orações condicionais dos tipos 1 e 2 para expressar situações prováveis ou hipotéticas.",
+   "habilidades_bncc": [
+    "EF09LI15"
+   ],
+   "saeb": [],
+   "evidencia": "Completa if-clauses com as formas verbais adequadas a cada tipo.",
+   "substituido_por": [
+    "OMNI-LI9-C4.2"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI9-D09",
+   "ano": "9º ano",
+   "eixo": "Gramática",
+   "descritor": "Relacionar should, must, have to, may e might aos sentidos de conselho, obrigação, necessidade ou possibilidade.",
+   "habilidades_bncc": [
+    "EF09LI16"
+   ],
+   "saeb": [],
+   "evidencia": "Associa cada frase com modal ao sentido que expressa.",
+   "substituido_por": [
+    "OMNI-LI9-C2.1",
+    "OMNI-LI9-C4.3"
+   ]
+  },
+  {
+   "codigo": "OMNI-LI9-D10",
+   "ano": "9º ano",
+   "eixo": "A língua inglesa no mundo",
+   "descritor": "Relacionar a presença do inglês em países da África, Ásia, Américas e Oceania ao processo histórico de colonização.",
+   "habilidades_bncc": [
+    "EF09LI17"
+   ],
+   "saeb": [],
+   "evidencia": "Explica, com base em mapa ou texto, por que o inglês é língua oficial num país dado.",
+   "substituido_por": [
+    "OMNI-LI9-I2.1"
+   ]
+  }
+ ]
+}

@@ -3,9 +3,10 @@
  * Estrutura: componente → ano → eixo (unidade temática da BNCC) → descritor Omni →
  * habilidades da BNCC (códigos oficiais) → descritor do SAEB, quando existe (LP e MA, 5º e 9º).
  * Texto dos descritores é do OmniProf; fontes públicas: BNCC (MEC), Saeb–BNCC 2022 (Inep, Matemática) e SAEB 2001 (Inep, LP).
- * Matemática (revisão de out/2026): código no padrão do Saeb — OMNI-MA5-N1.2 = 5º ano, Números,
- * eixo cognitivo 1, descritor 2 — com eixo cognitivo e nível de Bloom. Os códigos antigos
- * (OMNI-MA5-D01…) ficam em `substituidos`, para ler avaliações já gravadas.
+ * Revisão de out/2026 (Matemática e Linguagens: LP, Arte, Educação Física, Língua Inglesa): código no padrão do
+ * Saeb — OMNI-MA5-N1.2 = 5º ano, Números, eixo cognitivo 1, descritor 2; OMNI-LP5-L2.3 = 5º ano, Leitura,
+ * eixo cognitivo 2 (analisar), descritor 3; nas faixas, OMNI-AR15-M1.2 — com eixo cognitivo e nível de Bloom.
+ * Os códigos antigos (OMNI-MA5-D01…) ficam em `substituidos`, para ler avaliações já gravadas.
  * Dados em data/matriz-omni/<SIGLA>.json, servidos só para quem está logado em /api/matriz-omni?sigla=XX.
  */
 
@@ -17,8 +18,9 @@ export type DescritorOmni = {
     habilidades_bncc: string[];
     saeb: string[];
     evidencia: string;
-    /** 1 = compreender e aplicar conceitos e procedimentos; 2 = resolver problemas e argumentar (Saeb). */
-    eixo_cognitivo?: 1 | 2;
+    /** Eixo cognitivo do Saeb. Matemática: 1 compreender e aplicar, 2 resolver problemas e argumentar.
+     *  Linguagens (LP, Arte, Educação Física, Inglês): 1 reconhecer, 2 analisar, 3 avaliar, 4 produzir. */
+    eixo_cognitivo?: number;
     /** Taxonomia de Bloom revisada: lembrar, entender, aplicar, analisar, avaliar, criar. */
     bloom?: string;
 };
@@ -27,13 +29,24 @@ export type DescritorSubstituido = DescritorOmni & { substituido_por: string[] }
 
 export type ComponenteOmni = { componente: string; sigla: string; descritores: DescritorOmni[]; substituidos?: DescritorSubstituido[] };
 
-export const NOME_EIXO_COGNITIVO: Record<1 | 2, string> = {
-    1: "Compreender e aplicar conceitos e procedimentos",
-    2: "Resolver problemas e argumentar",
+const EIXOS_COGNITIVOS: Record<string, Record<number, string>> = {
+    MA: { 1: "Compreender e aplicar conceitos e procedimentos", 2: "Resolver problemas e argumentar" },
+    LINGUAGENS: { 1: "Reconhecer", 2: "Analisar", 3: "Avaliar", 4: "Produzir" },
 };
 
-/** Código Omni válido: antigo (OMNI-MA5-D07) ou no padrão do Saeb (OMNI-MA5-N1.2). */
-export const RE_CODIGO_OMNI = /^OMNI-([A-Z]{2})\d{1,2}-(?:D\d{2}|[NAGME][12]\.\d{1,2})$/;
+/** Nome do eixo cognitivo do Saeb para o descritor (pelo componente do código). */
+export function nomeEixoCognitivo(codigo: string, n?: number): string | null {
+    if (!n) return null;
+    const sigla = siglaDoCodigo(codigo);
+    const tabela = sigla === "MA" ? EIXOS_COGNITIVOS.MA : sigla && ["LP", "AR", "EF", "LI"].includes(sigla) ? EIXOS_COGNITIVOS.LINGUAGENS : null;
+    return tabela?.[n] ?? null;
+}
+
+/** Compatibilidade (Matemática). */
+export const NOME_EIXO_COGNITIVO: Record<number, string> = EIXOS_COGNITIVOS.MA;
+
+/** Código Omni válido: antigo (OMNI-MA5-D07) ou no padrão do Saeb (OMNI-MA5-N1.2, OMNI-LP5-L2.3, OMNI-AR15-M1.2). */
+export const RE_CODIGO_OMNI = /^OMNI-([A-Z]{2})\d{1,2}-(?:D\d{2}|[A-Z][1-4]\.\d{1,2})$/;
 
 /** Acha o descritor pelo código, inclusive os substituídos (avaliações antigas). */
 export function descritorPorCodigo(comp: ComponenteOmni | null, codigo: string): DescritorOmni | DescritorSubstituido | null {
@@ -117,7 +130,7 @@ export function blocoParametroOmni(d: DescritorOmni, saeb: { codigo: string; tex
     return [
         "PARÂMETRO DO ITEM (Matriz Omni — avaliação diagnóstica):",
         `- ${d.codigo} (${d.ano}, eixo ${d.eixo}): ${d.descritor}`,
-        ...(d.eixo_cognitivo ? [`- Eixo cognitivo (Saeb): ${NOME_EIXO_COGNITIVO[d.eixo_cognitivo]}${d.bloom ? ` · nível de Bloom: ${d.bloom}` : ""}`] : []),
+        ...(d.eixo_cognitivo ? [`- Eixo cognitivo (Saeb): ${nomeEixoCognitivo(d.codigo, d.eixo_cognitivo) ?? d.eixo_cognitivo}${d.bloom ? ` · nível de Bloom: ${d.bloom}` : ""}`] : []),
         `- Evidência esperada: ${d.evidencia}`,
         ...saeb.map((s) => `- Habilidade do Saeb relacionada ${s.codigo}: ${s.texto}`),
         "Todo item mede ESTE descritor. As habilidades da BNCC abaixo são as que ele cobre.",
