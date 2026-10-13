@@ -298,13 +298,13 @@
    "ano": "1º ano",
    "eixo": "Geometria",
    "eixo_cognitivo": 1,
-   "bloom": "lembrar",
-   "descritor": "Nomear círculo, quadrado, retângulo e triângulo em desenhos apresentados em diferentes posições.",
+   "bloom": "entender",
+   "descritor": "Identificar círculo, quadrado, retângulo OU triângulo no contorno das faces de objetos ou de sólidos geométricos.",
    "habilidades_bncc": [
     "EF01MA14"
    ],
    "saeb": [],
-   "evidencia": "Reconhece como triângulo uma figura de três lados desenhada \"de ponta-cabeça\"."
+   "evidencia": "Carimba a face de uma caixa de sapato no papel e diz que a marca é um retângulo."
   },
   {
    "codigo": "OMNI-MA1-G1.5",
@@ -418,12 +418,12 @@
    "eixo": "Grandezas e medidas",
    "eixo_cognitivo": 1,
    "bloom": "aplicar",
-   "descritor": "Escrever uma data com o dia, o mês e o ano.",
+   "descritor": "Indicar o dia da semana de uma data, consultando o calendário.",
    "habilidades_bncc": [
     "EF01MA18"
    ],
    "saeb": [],
-   "evidencia": "Escreve a data do seu aniversário como 15/08/2026 ou 15 de agosto de 2026."
+   "evidencia": "Procura no calendário e diz que o dia 12 deste mês cai numa quinta-feira."
   },
   {
    "codigo": "OMNI-MA1-M1.9",
@@ -948,7 +948,7 @@
    "eixo": "Geometria",
    "eixo_cognitivo": 2,
    "bloom": "aplicar",
-   "descritor": "Descrever OU esboçar o trajeto de uma pessoa ou de um objeto em mapa, croqui ou planta, seguindo condições dadas.",
+   "descritor": "Descrever OU esboçar o trajeto de uma pessoa ou de um objeto em croqui ou planta de um ambiente conhecido, indicando as mudanças de direção.",
    "habilidades_bncc": [
     "EF02MA12",
     "EF02MA13"
@@ -1180,14 +1180,14 @@
    "eixo": "Grandezas e medidas",
    "eixo_cognitivo": 1,
    "bloom": "aplicar",
-   "descritor": "Escrever uma data com o dia, o mês e o ano.",
+   "descritor": "Identificar datas, dias da semana OU meses do ano em calendário OU escrever uma data com o dia, o mês e o ano.",
    "habilidades_bncc": [
     "EF01MA18"
    ],
    "saeb": [
     "2M1.6"
    ],
-   "evidencia": "Escreve a data de hoje como 13/10/2026."
+   "evidencia": "Escreve a data de hoje como 13/10/2026 e encontra no calendário em que mês fica o feriado de 7 de setembro."
   },
   {
    "codigo": "OMNI-MA2-M1.10",
@@ -1283,7 +1283,7 @@
    "eixo": "Probabilidade e estatística",
    "eixo_cognitivo": 1,
    "bloom": "entender",
-   "descritor": "Ler OU comparar dados apresentados em tabelas simples ou de dupla entrada.",
+   "descritor": "Ler OU comparar dados de uma pesquisa da turma apresentados em tabelas simples ou de dupla entrada.",
    "habilidades_bncc": [
     "EF02MA22",
     "EF01MA21"
@@ -1766,7 +1766,7 @@
    "eixo": "Grandezas e medidas",
    "eixo_cognitivo": 1,
    "bloom": "entender",
-   "descritor": "Ler horas em relógios analógicos OU associar a mesma hora em relógios analógico e digital.",
+   "descritor": "Ler horas em relógios analógicos OU digitais, em horas inteiras, meias horas OU quartos de hora.",
    "habilidades_bncc": [
     "EF03MA23",
     "EF03MA22"
@@ -1806,7 +1806,7 @@
    "eixo": "Grandezas e medidas",
    "eixo_cognitivo": 2,
    "bloom": "entender",
-   "descritor": "Explicar por que a medida de um mesmo objeto muda quando muda a unidade usada.",
+   "descritor": "Explicar por que a medida de um mesmo objeto muda quando se usa outra unidade não padronizada, como palmo, pé OU passo.",
    "habilidades_bncc": [
     "EF03MA17"
    ],
@@ -1871,12 +1871,12 @@
    "eixo": "Probabilidade e estatística",
    "eixo_cognitivo": 1,
    "bloom": "entender",
-   "descritor": "Ler OU comparar dados apresentados em tabelas simples ou de dupla entrada.",
+   "descritor": "Comparar dados de tabelas de dupla entrada, indicando a categoria de maior OU de menor frequência.",
    "habilidades_bncc": [
     "EF03MA27"
    ],
    "saeb": [],
-   "evidencia": "Encontra, em uma tabela de dupla entrada, quantos meninos do 3º A preferem suco."
+   "evidencia": "Diz, pela tabela, qual sabor de suco o 3º A e o 3º B escolheram mais e qual escolheram menos."
   },
   {
    "codigo": "OMNI-MA3-E1.4",
@@ -2477,13 +2477,13 @@
    "ano": "4º ano",
    "eixo": "Probabilidade e estatística",
    "eixo_cognitivo": 1,
-   "bloom": "entender",
-   "descritor": "Ler OU comparar dados apresentados em tabelas simples ou de dupla entrada.",
+   "bloom": "analisar",
+   "descritor": "Analisar dados de uma tabela simples ou de dupla entrada para tirar uma conclusão sobre eles.",
    "habilidades_bncc": [
     "EF04MA27"
    ],
    "saeb": [],
-   "evidencia": "Encontra, numa tabela de dupla entrada, em que mês choveu mais em duas cidades."
+   "evidencia": "Conclui, pela tabela de chuvas de duas cidades, que em julho choveu mais na cidade A do que na B e escreve essa conclusão em uma frase."
   },
   {
    "codigo": "OMNI-MA4-E1.3",
@@ -3073,14 +3073,14 @@
    "eixo": "Geometria",
    "eixo_cognitivo": 2,
    "bloom": "aplicar",
-   "descritor": "Descrever OU esboçar o trajeto de uma pessoa ou de um objeto em mapa, croqui ou planta, seguindo condições dadas.",
+   "descritor": "Descrever OU esboçar o deslocamento de uma pessoa ou de um objeto em mapa ou malha quadriculada, seguindo pontos de referência, direções OU coordenadas dadas.",
    "habilidades_bncc": [
     "EF05MA14"
    ],
    "saeb": [
     "5G2.1"
    ],
-   "evidencia": "Descreve o caminho da entrada até a quadra, dizendo para onde virar em cada esquina."
+   "evidencia": "Traça na malha o caminho da casa B2 até a E5, andando 3 casas para a direita e 3 para cima, e descreve o trajeto com essas indicações."
   },
   {
    "codigo": "OMNI-MA5-G2.2",
@@ -3164,7 +3164,7 @@
    "eixo": "Grandezas e medidas",
    "eixo_cognitivo": 1,
    "bloom": "entender",
-   "descritor": "Ler horas em relógios analógicos OU associar a mesma hora em relógios analógico e digital.",
+   "descritor": "Ler horas em relógios analógicos OU associar a mesma hora em relógios analógico e digital, incluindo horários depois do meio-dia.",
    "habilidades_bncc": [
     "EF04MA22",
     "EF05MA19"
@@ -3195,14 +3195,14 @@
    "eixo": "Grandezas e medidas",
    "eixo_cognitivo": 2,
    "bloom": "entender",
-   "descritor": "Explicar por que a medida de um mesmo objeto muda quando muda a unidade usada.",
+   "descritor": "Explicar por que o número que expressa uma medida muda quando muda a unidade padronizada, como metro e centímetro OU quilograma e grama.",
    "habilidades_bncc": [
     "EF05MA19"
    ],
    "saeb": [
     "5M2.1"
    ],
-   "evidencia": "Explica por que a mesa mede 6 palmos para um colega e 5 palmos para outro."
+   "evidencia": "Explica que a mesma corda mede 2 metros ou 200 centímetros e que o comprimento dela não mudou."
   },
   {
    "codigo": "OMNI-MA5-M2.2",
@@ -3328,14 +3328,14 @@
    "eixo": "Probabilidade e estatística",
    "eixo_cognitivo": 1,
    "bloom": "entender",
-   "descritor": "Ler OU comparar dados apresentados em tabelas simples ou de dupla entrada.",
+   "descritor": "Ler OU comparar dados estatísticos de tabelas simples ou de dupla entrada com informações de outras áreas, como saúde OU trânsito.",
    "habilidades_bncc": [
     "EF05MA24"
    ],
    "saeb": [
     "5E1.2"
    ],
-   "evidencia": "Encontra, em uma tabela de dupla entrada, quantas meninas preferem futebol."
+   "evidencia": "Encontra, numa tabela de vacinação por idade e por ano, em que ano mais crianças de 5 anos foram vacinadas."
   },
   {
    "codigo": "OMNI-MA5-E1.4",
@@ -3388,7 +3388,7 @@
    "eixo": "Probabilidade e estatística",
    "eixo_cognitivo": 1,
    "bloom": "analisar",
-   "descritor": "Inferir a finalidade de uma pesquisa a partir da tabela ou do gráfico com os dados dela.",
+   "descritor": "Inferir a finalidade de uma pesquisa a partir da tabela OU do gráfico de barras, colunas, pictórico OU de linhas com os dados dela.",
    "habilidades_bncc": [
     "EF05MA25"
    ],
@@ -4861,7 +4861,7 @@
    "eixo": "Álgebra",
    "eixo_cognitivo": 2,
    "bloom": "aplicar",
-   "descritor": "Resolver problemas que possam ser representados por sistemas de duas equações de 1º grau com duas incógnitas.",
+   "descritor": "Resolver problemas que possam ser representados por sistemas de duas equações de 1º grau com duas incógnitas, com coeficientes inteiros.",
    "habilidades_bncc": [
     "EF08MA08"
    ],
@@ -5376,14 +5376,14 @@
    "eixo": "Números",
    "eixo_cognitivo": 1,
    "bloom": "entender",
-   "descritor": "Representar frações menores ou maiores que a unidade por meio de figuras OU associar uma fração à figura que a representa.",
+   "descritor": "Representar frações menores ou maiores que a unidade por meio de figuras OU associar uma fração, ou uma fração equivalente a ela, à figura que a representa.",
    "habilidades_bncc": [
     "EF06MA07"
    ],
    "saeb": [
     "9N1.7"
    ],
-   "evidencia": "Escolhe a figura com 7/4 pintado: um retângulo inteiro e mais 3 de 4 partes de outro igual."
+   "evidencia": "Escolhe a figura com 7/4 pintado (um retângulo inteiro e mais 3 de 4 partes de outro igual) e reconhece que 14/8 descreve a mesma figura."
   },
   {
    "codigo": "OMNI-MA9-N1.9",
@@ -5725,14 +5725,14 @@
    "eixo": "Álgebra",
    "eixo_cognitivo": 2,
    "bloom": "aplicar",
-   "descritor": "Resolver problemas que possam ser representados por sistemas de duas equações de 1º grau com duas incógnitas.",
+   "descritor": "Resolver problemas que possam ser representados por sistemas de duas equações de 1º grau com duas incógnitas, incluindo coeficientes decimais OU mais de uma etapa.",
    "habilidades_bncc": [
     "EF08MA08"
    ],
    "saeb": [
     "9A2.3"
    ],
-   "evidencia": "Descobre que um caderno custa R$ 12,00 e uma caneta R$ 5,00, sabendo que 2 cadernos e 3 canetas custam R$ 39,00 e 1 caderno e 2 canetas, R$ 22,00."
+   "evidencia": "Descobre que um caderno custa R$ 12,50 e uma caneta R$ 4,50, sabendo que 2 cadernos e 3 canetas custam R$ 38,50 e 1 caderno e 2 canetas, R$ 21,50."
   },
   {
    "codigo": "OMNI-MA9-A2.5",
@@ -6212,7 +6212,7 @@
    "eixo": "Probabilidade e estatística",
    "eixo_cognitivo": 1,
    "bloom": "analisar",
-   "descritor": "Inferir a finalidade de uma pesquisa a partir da tabela ou do gráfico com os dados dela.",
+   "descritor": "Inferir a finalidade de uma pesquisa a partir da tabela OU do gráfico com os dados dela, incluindo gráficos de setores OU histogramas.",
    "habilidades_bncc": [
     "EF09MA23"
    ],

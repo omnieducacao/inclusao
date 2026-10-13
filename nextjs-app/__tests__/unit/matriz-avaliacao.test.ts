@@ -213,3 +213,18 @@ describe("componentes por etapa", () => {
     expect(componentesDaEtapa("EF", null)).toContain("Língua Inglesa");
   });
 });
+
+describe("Matriz Omni sem descritores repetidos", () => {
+  it("nenhum componente repete o mesmo texto de descritor em anos diferentes", async () => {
+    const fs = await import("fs");
+    for (const s of ["LP", "MA", "CI", "HI", "GE", "AR", "EF", "LI"]) {
+      const { descritores } = JSON.parse(fs.readFileSync(`data/matriz-omni/${s}.json`, "utf8")) as { descritores: Array<{ codigo: string; descritor: string }> };
+      const vistos = new Map<string, string>();
+      for (const d of descritores) {
+        const t = d.descritor.trim().toLowerCase();
+        expect(vistos.get(t), `${d.codigo} repete ${vistos.get(t)}`).toBeUndefined();
+        vistos.set(t, d.codigo);
+      }
+    }
+  });
+});
