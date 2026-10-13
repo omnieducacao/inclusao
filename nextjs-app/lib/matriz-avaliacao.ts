@@ -55,9 +55,10 @@ export function lerSerie(grade: string | null | undefined): SerieLida {
 const COMPONENTES_EF = ["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Arte", "Educação Física", "Língua Inglesa"];
 const COMPONENTES_EM = ["Língua Portuguesa", "Matemática", "Biologia", "Física", "Química", "História", "Geografia", "Filosofia", "Sociologia", "Arte", "Educação Física", "Língua Inglesa"];
 
-export function componentesDaEtapa(etapa: Etapa): string[] {
+/** Componentes avaliáveis. No EF, a BNCC (e a Matriz Omni) só tem Língua Inglesa do 6º ao 9º ano. */
+export function componentesDaEtapa(etapa: Etapa, ano?: number | null): string[] {
   if (etapa === "EM") return COMPONENTES_EM;
-  if (etapa === "EF") return COMPONENTES_EF;
+  if (etapa === "EF") return ano && ano < 6 ? COMPONENTES_EF.filter((c) => c !== "Língua Inglesa") : COMPONENTES_EF;
   return [];
 }
 

@@ -80,7 +80,7 @@ export default function DiagnosticaOmni({ estudantes, inicial, podeConfrontar }:
     );
   }
 
-  const comps = componentesDaEtapa(serie.etapa);
+  const comps = componentesDaEtapa(serie.etapa, serie.ano);
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "end", gap: 12, justifyContent: "space-between" }}>
@@ -165,6 +165,27 @@ function Avaliar({ estudante, componente, existente, onVoltar }: {
   const [vendoConcluida, setVendoConcluida] = useState<boolean>(!!existente?.concluida_em);
   const [questoes, setQuestoes] = useState<Record<string, { carregando: boolean; texto?: string; erro?: string }>>({});
   const [papel, setPapel] = useState(false);
+  // prova em papel já montada para este componente: a professora volta para corrigir sem precisar lembrar os descritores
+  const [provaSalva, setProvaSalva] = useState<{ codigo_curto: string; descritores: Array<{ codigo: string; descritor: string }>; respondidas: number } | null>(null);
+  useEffect(() => {
+    let vivo = true;
+    const q = new URLSearchParams({ studentId: estudante.id, disciplina: componente, tipo: "diagnostica" });
+    fetch(`/api/avaliacao/prova?${q}`).then((r) => r.json()).then((d) => {
+      if (!vivo || !d?.prova?.descritores?.length) return;
+      setProvaSalva({ codigo_curto: d.prova.codigo_curto, descritores: d.prova.descritores, respondidas: Object.keys(d.prova.respostas || {}).length });
+    }).catch(() => {});
+    return () => { vivo = false; };
+  }, [estudante.id, componente]);
+
+  function abrirProvaSalva() {
+    if (!provaSalva) return;
+    setSel(Object.fromEntries(provaSalva.descritores.slice(0, LIMITE).map((d) => {
+      const atual = sel[d.codigo];
+      const item = itens.find((i) => i.codigo === d.codigo);
+      return [d.codigo, atual || { codigo: d.codigo, descritor: d.descritor, eixo: item?.eixo || "", nivel: null, evidencia_observada: "", fonte: "itens" as const }];
+    })));
+    setPapel(true);
+  }
 
   useEffect(() => {
     let vivo = true;
@@ -296,6 +317,20 @@ function Avaliar({ estudante, componente, existente, onVoltar }: {
       </section>
 
       {aviso && <div className="omni-aviso omni-aviso--info"><div><div className="omni-aviso__texto">{aviso}</div></div></div>}
+
+      {provaSalva && !papel && (
+        <div className="omni-aviso omni-aviso--info" role="status">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+            <div className="omni-aviso__texto">
+              Prova em papel montada · código {provaSalva.codigo_curto} · {provaSalva.descritores.length} descritores
+              {provaSalva.respondidas ? " · correção começada" : ""}
+            </div>
+            <button type="button" className="omni-btn omni-btn--secundario omni-btn--pequeno" onClick={abrirProvaSalva}>
+              {provaSalva.respondidas ? "Continuar a correção" : "Abrir para imprimir ou corrigir"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {papel && escolhidos.length > 0 && (
         <ProvaEmPapel

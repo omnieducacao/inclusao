@@ -15,7 +15,10 @@ const TAM: Record<Adaptacoes["fonte"], number> = { normal: 12, ampliada: 16, gra
 /** Troca caracteres que a fonte padrão do PDF não tem. */
 function seguro(t: string): string {
   return (t || "")
-    .replace(/[“”]/g, '"').replace(/[‘’]/g, "'").replace(/[–—]/g, "-").replace(/…/g, "...")
+    .replace(/[“”]/g, '"').replace(/[‘’]/g, "'").replace(/[–—−]/g, "-").replace(/…/g, "...")
+    // símbolos de matemática fora da fonte padrão: sem isso, "15 000 − 4 000" sairia sem o sinal
+    .replace(/≤/g, "<=").replace(/≥/g, ">=").replace(/≠/g, "diferente de").replace(/≈/g, "aprox.")
+    .replace(/⋅|∙/g, "·").replace(/√/g, "raiz de ").replace(/π/g, "pi")
     .replace(/[^\u0000-ÿ]/g, "");
 }
 

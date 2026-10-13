@@ -217,6 +217,37 @@ export function normalizarItens(bruto: unknown, codigosValidos: string[], gerarI
   });
 }
 
+/**
+ * A IA quase sempre põe a certa em "A". Aqui a certa muda de lugar e as letras ficam
+ * equilibradas na prova (a letra menos usada até ali, sem repetir a do item anterior quando dá).
+ */
+export function distribuirGabaritos(itens: ItemProva[], rand: () => number = Math.random): ItemProva[] {
+  const uso: Record<string, number> = { A: 0, B: 0, C: 0, D: 0 };
+  let anterior: string | null = null;
+  return itens.map((item) => {
+    const alts = item.alternativas;
+    if (item.tipo !== "objetiva" || !alts?.length || !item.gabarito) return item;
+    const certa = alts.find((a) => a.letra === item.gabarito);
+    if (!certa) return item;
+    const opcoes = LETRAS.slice(0, alts.length) as readonly Letra[];
+    const menor = Math.min(...opcoes.map((l) => uso[l]));
+    let candidatas = opcoes.filter((l) => uso[l] === menor);
+    if (candidatas.length > 1 && anterior) candidatas = candidatas.filter((l) => l !== anterior);
+    const alvo = candidatas[Math.floor(rand() * candidatas.length)] || opcoes[0];
+    const destino = LETRAS.indexOf(alvo);
+    const outras = alts.filter((a) => a !== certa);
+    // as erradas também trocam de ordem, para não sobrar padrão
+    for (let k = outras.length - 1; k > 0; k--) {
+      const j = Math.floor(rand() * (k + 1));
+      [outras[k], outras[j]] = [outras[j], outras[k]];
+    }
+    outras.splice(destino, 0, certa);
+    uso[alvo]++;
+    anterior = alvo;
+    return { ...item, alternativas: outras.map((a, i) => ({ ...a, letra: LETRAS[i] })), gabarito: alvo };
+  });
+}
+
 export const RUBRICA_PADRAO: NivelRubrica[] = [
   { nivel: 0, criterio: "Não respondeu, nem com mediação." },
   { nivel: 1, criterio: "Reagiu ao tema, sem uma resposta reconhecível." },

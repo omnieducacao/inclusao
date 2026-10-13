@@ -11,7 +11,7 @@ import { blocoParametroOmni } from "@/lib/matriz-omni";
 import { blocoParametroEnem } from "@/lib/matriz-enem";
 import { saebDoItem } from "@/lib/matriz-avaliacao-servidor";
 import type { ItemMatriz } from "@/lib/matriz-avaliacao";
-import { extrairJson, normalizarItens, type ItemProva } from "@/lib/prova";
+import { distribuirGabaritos, extrairJson, normalizarItens, type ItemProva } from "@/lib/prova";
 
 export type EstudanteProva = { name: string; pei_data: Record<string, unknown> | null };
 
@@ -70,8 +70,10 @@ REGRAS DE ITEM:
 - Objetiva: gabarito único e indiscutível; distratores plausíveis que revelam erros reais (diga qual erro em "erro"); alternativas paralelas e de tamanho parecido; sem "todas/nenhuma das anteriores"; sem pegadinha; sem negativas ("exceto", "não") no enunciado.
 - Aberta: comando curto; rubrica 0 a 4 específica para o descritor (0 não fez, 4 fez certo e completo, com autonomia).
 - Observação (práticas corporais e artísticas): descreva a tarefa que o estudante faz e a rubrica 0 a 4 do que observar.
+- O item exige a habilidade: a resposta NUNCA pode estar escrita no texto-base ou no enunciado (ex.: "o banheiro fica à esquerda da cozinha... onde fica o banheiro?" não mede nada). Em localização e geometria sem figura, descreva um percurso, uma grade (linhas e colunas) ou uma sequência de deslocamentos que o estudante precise seguir para chegar à resposta.
+- No item com apoio, o exemplo resolvido usa números ou situação diferentes do que se pede; o estudante ainda precisa fazer.
 - Respeite o tipo pedido para cada descritor.
-- Texto-base só com o necessário, linguagem simples, frases curtas, um comando por item. Nada de imagens, emojis ou tabelas: se precisar de figura ou tabela, descreva em texto curto.
+- Texto-base só quando o estudante precisa dele para responder; nada de frase decorativa. Linguagem simples, frases curtas, UM comando por item (não peça "escreva" e "marque" no mesmo item). Nada de imagens, emojis ou tabelas: se precisar de figura ou tabela, descreva em texto curto.
 - Adeque ao ano e ao perfil. Português do Brasil.
 
 Responda SÓ com o JSON (sem comentários), neste formato:
@@ -89,5 +91,5 @@ export async function gerarItensDaProva(opts: {
     max_tokens: opts.soItem ? 1500 : Math.min(9000, 700 * opts.itens.length * 2 + 600),
   });
   const bruto = extrairJson(restore(texto));
-  return normalizarItens(bruto, opts.itens.map((i) => i.codigo), () => randomUUID());
+  return distribuirGabaritos(normalizarItens(bruto, opts.itens.map((i) => i.codigo), () => randomUUID()));
 }

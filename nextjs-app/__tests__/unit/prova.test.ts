@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { corrigirProva, extrairJson, nivelSugerido, normalizarItens, codigoCurto, type ItemProva, type RespostaItem } from "@/lib/prova";
+import { corrigirProva, extrairJson, nivelSugerido, normalizarItens, codigoCurto, distribuirGabaritos, RUBRICA_PADRAO, type ItemProva, type RespostaItem } from "@/lib/prova";
 import { pdfEstudante, pdfProfessora } from "@/lib/prova-pdf";
 
 const alt = (n: number) => ["A", "B", "C", "D"].slice(0, n).map((l) => ({ letra: l as "A", texto: `opção ${l}` }));
@@ -76,5 +76,41 @@ describe("PDFs da prova", () => {
   it("guia da professora", () => {
     const doc = pdfProfessora(prova, "Laura Teste", prova.descritores);
     expect(doc.getNumberOfPages()).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe("distribuirGabaritos", () => {
+  const obj = (n: number, alts: number): ItemProva => ({
+    id: `i${n}`, codigo: "OMNI-MA4-N1.1", ordem: (n % 2 ? 1 : 2) as 1 | 2, tipo: "objetiva", enunciado: `Q${n}`,
+    alternativas: (["A", "B", "C", "D"] as const).slice(0, alts).map((l, k) => ({ letra: l, texto: k === 0 ? `certa${n}` : `errada${n}-${k}`, ...(k ? { erro: `erro${k}` } : {}) })),
+    gabarito: "A",
+  });
+  it("tira a certa do A, equilibra as letras e preserva o texto da certa", () => {
+    let s = 7; const rand = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
+    const itens = Array.from({ length: 12 }, (_, i) => obj(i, i % 2 ? 3 : 4));
+    const saida = distribuirGabaritos(itens, rand);
+    const cont: Record<string, number> = {};
+    saida.forEach((it, i) => {
+      const certa = it.alternativas!.find((a) => a.letra === it.gabarito)!;
+      expect(certa.texto).toBe(`certa${i}`);
+      expect(certa.erro).toBeUndefined();
+      expect(it.alternativas!.map((a) => a.letra)).toEqual(["A", "B", "C", "D"].slice(0, it.alternativas!.length));
+      cont[it.gabarito!] = (cont[it.gabarito!] || 0) + 1;
+    });
+    expect(Object.keys(cont).length).toBeGreaterThanOrEqual(3);
+    expect(Math.max(...Object.values(cont))).toBeLessThanOrEqual(4);
+    for (let i = 1; i < saida.length; i++) expect(saida[i].gabarito).not.toBe(saida[i - 1].gabarito);
+  });
+  it("não mexe em abertas", () => {
+    const aberta: ItemProva = { id: "x", codigo: "c", ordem: 1, tipo: "aberta", enunciado: "e", rubrica: RUBRICA_PADRAO };
+    expect(distribuirGabaritos([aberta])[0]).toBe(aberta);
+  });
+});
+
+describe("PDF: símbolos de matemática", () => {
+  it("mantém o sinal de menos e troca ≥ por >=", () => {
+    const prova = { id: "x", codigo_curto: "ABC234", tipo: "diagnostica" as const, student_id: "s", disciplina: "Matemática", ano_referencia: "4º ano", descritores: [], respostas: {}, adaptacoes: { fonte: "normal" as const, umaPorPagina: false, linhasResposta: 5 },
+      itens: [{ id: "1", codigo: "c", ordem: 1 as const, tipo: "objetiva" as const, enunciado: "Calcule 15 000 − 4 000 ≥ 3", alternativas: [{ letra: "A" as const, texto: "a" }, { letra: "B" as const, texto: "b" }, { letra: "C" as const, texto: "c" }], gabarito: "A" as const }] };
+    expect(pdfEstudante(prova, "Teste").output()).toContain("15 000 - 4 000 >= 3");
   });
 });

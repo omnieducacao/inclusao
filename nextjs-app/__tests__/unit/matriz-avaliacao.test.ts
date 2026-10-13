@@ -204,3 +204,12 @@ describe("itens da matriz no servidor", () => {
     expect(par?.item.serie).toBe("EF5");
   });
 });
+
+describe("componentes por etapa", () => {
+  it("Língua Inglesa só do 6º ao 9º ano no EF", async () => {
+    const { componentesDaEtapa } = await import("@/lib/matriz-avaliacao");
+    expect(componentesDaEtapa("EF", 4)).not.toContain("Língua Inglesa");
+    expect(componentesDaEtapa("EF", 7)).toContain("Língua Inglesa");
+    expect(componentesDaEtapa("EF", null)).toContain("Língua Inglesa");
+  });
+});
