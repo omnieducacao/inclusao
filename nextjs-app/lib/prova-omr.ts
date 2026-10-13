@@ -175,17 +175,43 @@ function preenchimento(img: ImagemCinza, limiar: number, [cx, cy]: Ponto, r: num
   return total ? escuros / total : 0;
 }
 
+/** Proporção altura/largura entre os centros dos quadrados (269 × 182 mm na folha). */
+const PROPORCAO = (FOLHA.centros[2][1] - FOLHA.centros[0][1]) / (FOLHA.centros[1][0] - FOLHA.centros[0][0]);
+
+/**
+ * Um quadrado achado longe de onde a folha diz que ele deveria estar (outra coisa escura na foto:
+ * borda de mesa, celular, teclado) é descartado. Mede cada lado contra o lado oposto já confirmado,
+ * com folga para a perspectiva da foto.
+ */
+export function descartarImplausiveis(p: Array<Ponto | null>): void {
+  const d = (a: Ponto, b: Ponto) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+  const ok = (r: number) => r > PROPORCAO * 0.65 && r < PROPORCAO * 1.45;
+  const [te, td, be, bd] = p;
+  if (te && td) {
+    const w = d(te, td);
+    if (be && !ok(d(te, be) / w)) p[2] = null;
+    if (bd && !ok(d(td, bd) / w)) p[3] = null;
+  } else if (be && bd) {
+    const w = d(be, bd);
+    if (te && !ok(d(te, be) / w)) p[0] = null;
+    if (td && !ok(d(td, bd) / w)) p[1] = null;
+  }
+}
+
 export type LeituraFolha =
   | { ok: true; respostas: Record<string, RespostaItem>; conferir: number }
   | { ok: false; erro: string };
 
 const MARCADA = 0.42;
 const DUVIDA = 0.22;
+/** Abaixo de DUVIDA, mas com tinta: um pontinho ou um risco. Não conta como resposta, mas a professora confere. */
+const RISCO = 0.07;
 
 function escolher(fills: Array<{ valor: string; f: number }>): { valor: string | null; conferir: boolean } {
   const ordenados = [...fills].sort((a, b) => b.f - a.f);
   const [p, s] = ordenados;
-  if (!p || p.f < DUVIDA) return { valor: null, conferir: false };
+  if (!p || p.f < RISCO) return { valor: null, conferir: false };
+  if (p.f < DUVIDA) return { valor: null, conferir: true };
   if (p.f >= MARCADA && (!s || s.f < MARCADA)) return { valor: p.valor, conferir: false };
   return { valor: p.valor, conferir: true };
 }
@@ -204,8 +230,25 @@ export function lerFolha(img: ImagemCinza, itens: ItemProva[]): LeituraFolha {
     [W - fx, H - fy, W, H, [W, H]],
   ];
   const achados = cantos.map(([x0, y0, x1, y1, c]) => acharMarcador(img, limiar, x0, y0, x1, y1, c, lado));
+  descartarImplausiveis(achados);
+  if (achados.every(Boolean)) {
+    // os quatro precisam fechar um quadrilátero coerente: o 4º perto de onde os outros três o colocam
+    const [te, td, be, bd] = achados as Ponto[];
+    const esperado: Ponto = [td[0] + be[0] - te[0], td[1] + be[1] - te[1]];
+    const w = Math.hypot(td[0] - te[0], td[1] - te[1]);
+    if (Math.hypot(bd[0] - esperado[0], bd[1] - esperado[1]) > w * 0.35) {
+      return { ok: false, erro: "Os quadrados dos cantos não formam a folha: pode haver outra coisa escura na foto. Fotografe só a folha, inteira, sobre uma mesa clara." };
+    }
+  }
   if (achados.some((p) => !p)) {
-    return { ok: false, erro: "Não achei os quatro quadrados pretos dos cantos. Fotografe a folha inteira, de cima, com boa luz e sem sombra." };
+    const nomes = ["de cima à esquerda", "de cima à direita", "de baixo à esquerda", "de baixo à direita"];
+    const faltam = nomes.filter((_, i) => !achados[i]);
+    const dica = !achados[2] && !achados[3] && achados[0] && achados[1]
+      ? " A parte de baixo da folha ficou fora da foto: afaste o celular até a folha inteira aparecer."
+      : !achados[0] && !achados[1] && achados[2] && achados[3]
+        ? " A parte de cima da folha ficou fora da foto: afaste o celular até a folha inteira aparecer."
+        : " Fotografe a folha inteira, de cima, com boa luz e sem sombra.";
+    return { ok: false, erro: `Achei ${4 - faltam.length} dos 4 quadrados pretos dos cantos (faltou ${faltam.join(", ")}).${dica}` };
   }
   const h = homografia(FOLHA.centros, achados as Ponto[]);
   if (!h) return { ok: false, erro: "A foto ficou torta demais. Tente de novo, com o celular paralelo à folha." };

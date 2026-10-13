@@ -17,12 +17,14 @@ function fotografar(marcas: Record<string, string[]>, cantos: Ponto[]): ImagemCi
   const pxParaMm = homografia(cantos, FOLHA.centros)!;
   void mmParaPx;
   const linhas = layoutFolha(itens);
-  const pintadas: Array<{ x: number; y: number }> = [];
+  const pintadas: Array<{ x: number; y: number; r?: number }> = [];
   const contornos: Array<{ x: number; y: number }> = [];
   for (const l of linhas) {
     for (const b of [...l.opcoes, ...l.apoio]) {
       contornos.push(b);
       if ((marcas[l.itemId] || []).includes(b.valor)) pintadas.push(b);
+      // "B." = só um pontinho no meio da bolinha
+      if ((marcas[l.itemId] || []).includes(`${b.valor}.`)) pintadas.push({ ...b, r: 1.1 });
     }
   }
   const px = new Uint8Array(W * H);
@@ -38,7 +40,7 @@ function fotografar(marcas: Record<string, string[]>, cantos: Ponto[]): ImagemCi
         const d = Math.hypot(mx - b.x, my - b.y);
         if (d <= FOLHA.raio && d >= FOLHA.raio - 0.3) v = 70;
       }
-      for (const b of pintadas) if (Math.hypot(mx - b.x, my - b.y) <= FOLHA.raio - 0.4) v = 40 + Math.floor(rnd() * 30);
+      for (const b of pintadas) if (Math.hypot(mx - b.x, my - b.y) <= (b.r ?? FOLHA.raio - 0.4)) v = 40 + Math.floor(rnd() * 30);
       px[y * W + x] = v;
     }
   }
@@ -76,5 +78,30 @@ describe("folha de respostas lida por foto (OMR)", () => {
     const W = 300, H = 420;
     const r = lerFolha({ largura: W, altura: H, px: new Uint8Array(W * H).fill(240) }, itens);
     expect(r.ok).toBe(false);
+  });
+});
+
+describe("quadrados dos cantos fora do lugar", () => {
+  it("descarta um quadrado de baixo que não fecha uma folha A4", async () => {
+    const { descartarImplausiveis } = await import("@/lib/prova-omr");
+    const p: Array<[number, number] | null> = [[100, 100], [1000, 100], [80, 700], null];
+    descartarImplausiveis(p);
+    expect(p[2]).toBeNull();
+    const bom: Array<[number, number] | null> = [[100, 100], [1000, 100], [110, 1430], [990, 1420]];
+    descartarImplausiveis(bom);
+    expect(bom.every(Boolean)).toBe(true);
+  });
+});
+
+describe("marca fraca", () => {
+  it("um pontinho sugere a letra, mas pede para a professora conferir", () => {
+    const img = fotografar({ i1: ["B."], i2: ["C"], i3: ["2"], i4: ["A"] }, [[70, 60], [840, 85], [55, 1215], [860, 1190]]);
+    const r = lerFolha(img, itens);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.respostas.i1.marcada).toBe("B");
+    expect(r.respostas.i1.conferir).toBe(true);
+    expect(r.respostas.i2).toMatchObject({ marcada: "C" });
+    expect(r.respostas.i2.conferir).toBeUndefined();
   });
 });
