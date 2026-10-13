@@ -5,6 +5,7 @@ import { siglaDoCodigo, siglaOmni, type ComponenteOmni } from "@/lib/matriz-omni
 import { lerSerie, componenteOficial, matrizDoComponente, nivelDoComponente, sugestoesDeMeta } from "@/lib/matriz-avaliacao";
 import { itensDaMatriz, itensLegado, maisParecido, itemPorCodigo } from "@/lib/matriz-avaliacao-servidor";
 import { ESCALA_OMNISFERA } from "@/lib/omnisfera-types";
+import { MATRIZES_SAEB } from "@/lib/matriz-saeb";
 
 const dir = join(process.cwd(), "data", "matriz-omni");
 const SIGLAS = ["LP", "MA", "CI", "HI", "GE", "AR", "EF", "LI"];
@@ -31,6 +32,48 @@ describe("Matriz Omni na Omnisfera (onda 17)", () => {
   it("a escala do índice é a mesma da Omnisfera", () => {
     const idx = JSON.parse(readFileSync(join(dir, "indice.json"), "utf8")) as { escala: Array<{ nivel: 0 | 1 | 2 | 3 | 4; label: string }> };
     for (const e of idx.escala) expect(e.label).toBe(ESCALA_OMNISFERA[e.nivel].label);
+  });
+});
+
+describe("Matemática revisada (Saeb–BNCC 2022 + Bloom)", () => {
+  const ma = comps.find((c) => c.sigla === "MA")!;
+  const saeb = MATRIZES_SAEB.filter((m) => m.componente === "Matemática").flatMap((m) => m.descritores.map((d) => d.codigo));
+  const bloom = ["lembrar", "entender", "aplicar", "analisar", "avaliar", "criar"];
+
+  it("código no padrão do Saeb, com eixo cognitivo e Bloom coerentes", () => {
+    for (const d of ma.descritores) {
+      const m = /^OMNI-MA(\d)-([NAGME])([12])\.\d+$/.exec(d.codigo);
+      expect(m, d.codigo).not.toBeNull();
+      expect(d.ano).toBe(`${m![1]}º ano`);
+      expect(d.eixo_cognitivo).toBe(Number(m![3]));
+      expect(bloom).toContain(d.bloom);
+      expect(/^(Compreender|Conhecer|Saber|Entender|Interpretar)\b/.test(d.descritor), d.codigo).toBe(false);
+    }
+  });
+
+  it("cada ano cobre toda a BNCC de Matemática do ano, os cinco eixos e os dois eixos cognitivos", () => {
+    for (let a = 1; a <= 9; a++) {
+      const doAno = ma.descritores.filter((d) => d.ano === `${a}º ano`);
+      const cobertas = new Set(doAno.flatMap((d) => d.habilidades_bncc));
+      for (const h of bnccEf) if (h.startsWith(`EF0${a}MA`)) expect(cobertas.has(h), `${a}º ano ${h}`).toBe(true);
+      expect(new Set(doAno.map((d) => d.eixo)).size).toBe(5);
+      expect(new Set(doAno.map((d) => d.eixo_cognitivo))).toEqual(new Set([1, 2]));
+    }
+  });
+
+  it("2º, 5º e 9º ano cobrem todas as habilidades do Saeb 2022", () => {
+    const cobertos = new Set(ma.descritores.flatMap((d) => d.saeb));
+    expect(saeb.length).toBe(148);
+    for (const s of saeb) expect(cobertos.has(s), s).toBe(true);
+  });
+
+  it("todo código antigo aponta para descritores novos que existem", () => {
+    const novos = new Set(ma.descritores.map((d) => d.codigo));
+    expect(ma.substituidos?.length).toBe(144);
+    for (const d of ma.substituidos!) {
+      expect(d.substituido_por.length).toBeGreaterThan(0);
+      for (const c of d.substituido_por) expect(novos.has(c), `${d.codigo} → ${c}`).toBe(true);
+    }
   });
 });
 
@@ -67,7 +110,7 @@ describe("itens da matriz no servidor", () => {
   it("EF: descritores Omni do ano de referência", async () => {
     const r = await itensDaMatriz({ componente: "Matemática", etapa: "EF", ano: 7 });
     expect(r?.fonte).toBe("omni");
-    expect(r!.itens.length).toBe(16);
+    expect(r!.itens.length).toBeGreaterThanOrEqual(30);
     expect(r!.itens.every((i) => i.codigo.startsWith("OMNI-MA7-"))).toBe(true);
   });
 
@@ -82,8 +125,11 @@ describe("itens da matriz no servidor", () => {
   });
 
   it("acha o item pelo código, mesmo em outro ano de referência", async () => {
-    const it6 = await itemPorCodigo("OMNI-MA6-D01", "Matemática", "EF", 7);
-    expect(it6?.codigo).toBe("OMNI-MA6-D01");
+    const it6 = await itemPorCodigo("OMNI-MA6-N1.1", "Matemática", "EF", 7);
+    expect(it6?.codigo).toBe("OMNI-MA6-N1.1");
+    // código antigo (substituído) continua sendo lido, para avaliações já gravadas
+    const antigo = await itemPorCodigo("OMNI-MA6-D01", "Matemática", "EF", 7);
+    expect(antigo?.codigo).toBe("OMNI-MA6-D01");
     expect(await itemPorCodigo("INVENTADO", "Matemática", "EF", 7)).toBeNull();
   });
 

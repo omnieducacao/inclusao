@@ -316,7 +316,7 @@ function Avaliar({ estudante, componente, existente, onVoltar }: {
                       <input type="checkbox" checked={marcado} disabled={cheio} onChange={() => alternar(i)} style={{ marginTop: 4 }} />
                       <span style={{ font: "400 15px/22px var(--font-sans)", color: "var(--tinta)" }}>
                         {i.descritor}
-                        <span className="omni-apoio" style={{ display: "block", fontSize: 13 }}>{i.codigo}{i.habilidades_bncc.length ? ` · BNCC ${i.habilidades_bncc.join(", ")}` : ""}{i.saeb.length ? ` · SAEB ${i.saeb.join(", ")}` : ""}</span>
+                        <span className="omni-apoio" style={{ display: "block", fontSize: 13 }}>{i.codigo}{i.habilidades_bncc.length ? ` · BNCC ${i.habilidades_bncc.join(", ")}` : ""}{i.saeb.length ? ` · Saeb ${i.saeb.join(", ")}` : ""}{i.bloom ? ` · Bloom: ${i.bloom}` : ""}</span>
                       </span>
                     </label>
                   );

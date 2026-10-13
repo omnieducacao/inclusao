@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { semMigracaoAvaliacao } from "@/lib/avaliacao-servidor";
 import { itensDaMatriz, itensLegado, maisParecido } from "@/lib/matriz-avaliacao-servidor";
+import { RE_CODIGO_OMNI } from "@/lib/matriz-omni";
 
 /**
  * Onda 17 — confronto de qualidade: Matriz Omni × matriz antiga, lado a lado.
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
   const s = await admin();
   if (!s) return NextResponse.json({ error: "Só a administração usa o confronto." }, { status: 403 });
   const b = (await req.json().catch(() => ({}))) as { codigo_omni?: string; ref_legado?: string | null; veredito?: string; comentario?: string };
-  if (!/^OMNI-[A-Z]{2}\d-D\d{2}$/.test(b.codigo_omni || "") || !["melhor", "igual", "pior"].includes(b.veredito || "")) {
+  if (!RE_CODIGO_OMNI.test(b.codigo_omni || "") || !["melhor", "igual", "pior"].includes(b.veredito || "")) {
     return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
   }
   const { error } = await getSupabase().from("confronto_matriz").upsert({

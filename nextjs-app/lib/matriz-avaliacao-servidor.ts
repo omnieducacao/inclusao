@@ -5,7 +5,7 @@
  */
 import { readFile } from "fs/promises";
 import { join } from "path";
-import { descritoresDoAno, type ComponenteOmni } from "@/lib/matriz-omni";
+import { descritorPorCodigo, descritoresDoAno, type ComponenteOmni } from "@/lib/matriz-omni";
 import { areaEnem, type AreaEnem } from "@/lib/matriz-enem";
 import { matrizSaeb } from "@/lib/matriz-saeb";
 import { componenteOficial, matrizDoComponente, type Etapa, type FonteMatriz, type ItemMatriz } from "@/lib/matriz-avaliacao";
@@ -88,20 +88,21 @@ export async function itemPorCodigo(codigo: string, componente: string, etapa: E
     const it = r?.itens.find((i) => i.codigo === codigo);
     if (it) return it;
     if (r?.fonte === "omni") {
-      // o ano de referência pode ser outro: procura no componente inteiro
+      // o ano de referência pode ser outro, ou o código ser antigo (substituído): procura no componente inteiro
       const comp = await lerJson<ComponenteOmni>("matriz-omni", `${matrizDoComponente(componente, etapa)?.chave}.json`);
-      const d = comp?.descritores.find((x) => x.codigo === codigo);
+      const d = descritorPorCodigo(comp, codigo);
       if (d) return d;
     }
   }
   return null;
 }
 
-/** SAEB oficial ligado ao descritor (LP e MA, 5º e 9º ano), para o prompt das questões. */
+/** Saeb oficial ligado ao descritor (LP 2001: 5º e 9º; MA 2022: 2º, 5º e 9º), para o prompt das questões. */
 export function saebDoItem(componente: string, item: ItemMatriz): { codigo: string; texto: string }[] {
   if (!item.saeb.length) return [];
+  const comp = componenteOficial(componente);
   const anoSaeb = /9º/.test(item.ano) || /[6-9]º/.test(item.ano) ? "9º ano" : "5º ano";
-  const m = matrizSaeb(componenteOficial(componente), anoSaeb);
+  const m = matrizSaeb(comp, item.ano) || matrizSaeb(comp, anoSaeb);
   return item.saeb.map((c) => m?.descritores.find((d) => d.codigo === c)).filter(Boolean).map((d) => ({ codigo: d!.codigo, texto: d!.texto }));
 }
 

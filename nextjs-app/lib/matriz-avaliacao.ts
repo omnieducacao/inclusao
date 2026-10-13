@@ -21,6 +21,9 @@ export type ItemMatriz = {
   habilidades_bncc: string[];
   saeb: string[];
   evidencia: string;
+  /** Só na Matriz Omni de Matemática: eixo cognitivo do Saeb (1 ou 2) e nível de Bloom. */
+  eixo_cognitivo?: 1 | 2;
+  bloom?: string;
 };
 
 /** O que fica gravado por descritor avaliado. */

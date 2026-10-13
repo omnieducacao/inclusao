@@ -2,7 +2,10 @@
  * Matriz Omni — matriz de avaliação diagnóstica do Ensino Fundamental (1º ao 9º ano).
  * Estrutura: componente → ano → eixo (unidade temática da BNCC) → descritor Omni →
  * habilidades da BNCC (códigos oficiais) → descritor do SAEB, quando existe (LP e MA, 5º e 9º).
- * Texto dos descritores é do OmniProf; fontes públicas: BNCC (MEC) e SAEB 2001 (INEP).
+ * Texto dos descritores é do OmniProf; fontes públicas: BNCC (MEC), Saeb–BNCC 2022 (Inep, Matemática) e SAEB 2001 (Inep, LP).
+ * Matemática (revisão de out/2026): código no padrão do Saeb — OMNI-MA5-N1.2 = 5º ano, Números,
+ * eixo cognitivo 1, descritor 2 — com eixo cognitivo e nível de Bloom. Os códigos antigos
+ * (OMNI-MA5-D01…) ficam em `substituidos`, para ler avaliações já gravadas.
  * Dados em data/matriz-omni/<SIGLA>.json, servidos só para quem está logado em /api/matriz-omni?sigla=XX.
  */
 
@@ -14,9 +17,29 @@ export type DescritorOmni = {
     habilidades_bncc: string[];
     saeb: string[];
     evidencia: string;
+    /** 1 = compreender e aplicar conceitos e procedimentos; 2 = resolver problemas e argumentar (Saeb). */
+    eixo_cognitivo?: 1 | 2;
+    /** Taxonomia de Bloom revisada: lembrar, entender, aplicar, analisar, avaliar, criar. */
+    bloom?: string;
 };
 
-export type ComponenteOmni = { componente: string; sigla: string; descritores: DescritorOmni[] };
+export type DescritorSubstituido = DescritorOmni & { substituido_por: string[] };
+
+export type ComponenteOmni = { componente: string; sigla: string; descritores: DescritorOmni[]; substituidos?: DescritorSubstituido[] };
+
+export const NOME_EIXO_COGNITIVO: Record<1 | 2, string> = {
+    1: "Compreender e aplicar conceitos e procedimentos",
+    2: "Resolver problemas e argumentar",
+};
+
+/** Código Omni válido: antigo (OMNI-MA5-D07) ou no padrão do Saeb (OMNI-MA5-N1.2). */
+export const RE_CODIGO_OMNI = /^OMNI-([A-Z]{2})\d{1,2}-(?:D\d{2}|[NAGME][12]\.\d{1,2})$/;
+
+/** Acha o descritor pelo código, inclusive os substituídos (avaliações antigas). */
+export function descritorPorCodigo(comp: ComponenteOmni | null, codigo: string): DescritorOmni | DescritorSubstituido | null {
+    if (!comp) return null;
+    return comp.descritores.find((d) => d.codigo === codigo) || comp.substituidos?.find((d) => d.codigo === codigo) || null;
+}
 
 const SIGLA: Record<string, string> = {
     "Língua Portuguesa": "LP",
@@ -63,9 +86,9 @@ export function turmaInicialMatrizOmni(opts: {
     );
 }
 
-/** "OMNI-MA5-D07" → "MA". */
+/** "OMNI-MA5-D07" ou "OMNI-MA5-N1.2" → "MA". */
 export function siglaDoCodigo(codigo: string): string | null {
-    const m = /^OMNI-([A-Z]{2})\d{1,2}-D\d{2}$/.exec(codigo || "");
+    const m = RE_CODIGO_OMNI.exec(codigo || "");
     return m ? m[1] : null;
 }
 
@@ -94,8 +117,9 @@ export function blocoParametroOmni(d: DescritorOmni, saeb: { codigo: string; tex
     return [
         "PARÂMETRO DO ITEM (Matriz Omni — avaliação diagnóstica):",
         `- ${d.codigo} (${d.ano}, eixo ${d.eixo}): ${d.descritor}`,
+        ...(d.eixo_cognitivo ? [`- Eixo cognitivo (Saeb): ${NOME_EIXO_COGNITIVO[d.eixo_cognitivo]}${d.bloom ? ` · nível de Bloom: ${d.bloom}` : ""}`] : []),
         `- Evidência esperada: ${d.evidencia}`,
-        ...saeb.map((s) => `- Descritor do SAEB relacionado ${s.codigo}: ${s.texto}`),
+        ...saeb.map((s) => `- Habilidade do Saeb relacionada ${s.codigo}: ${s.texto}`),
         "Todo item mede ESTE descritor. As habilidades da BNCC abaixo são as que ele cobre.",
     ].join("\n");
 }
