@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * Onda 22: visual do design system — escolha do motor em omni-segmentado (compacto) ou omni-caixa (lista),
+ * sem classes de cor do Tailwind.
+ */
 import type { EngineId } from "@/lib/ai-engines";
 
 const ENGINES: { id: EngineId; label: string }[] = [
@@ -20,26 +24,24 @@ export function EngineSelector({ value, onChange, compact }: Props) {
       <summary style={{ padding: "8px 12px", cursor: "pointer", font: "600 14px/20px var(--font-sans)", color: "var(--tinta-2)" }}>
         Opções avançadas · motor de IA: {ENGINES.find((e) => e.id === value)?.label || value}
       </summary>
-      <div className={`p-3 ${compact ? "flex flex-wrap gap-2" : "space-y-2"}`}>
+      <fieldset
+        className={compact ? "omni-segmentado" : "flex flex-col gap-2"}
+        style={{ margin: 12, ...(compact ? {} : { border: 0, padding: 0 }) }}
+      >
+        <legend className="omni-so-leitor">Motor de IA</legend>
         {ENGINES.map((e) => (
-          <label
-            key={e.id}
-            className={`flex items-center gap-2 cursor-pointer ${
-              compact ? "px-2 py-1 rounded" : "block"
-            } `}
-          >
+          <label key={e.id} className={compact ? undefined : "omni-caixa"} style={compact ? undefined : { fontSize: 15 }}>
             <input
               type="radio"
               name="hub_engine"
               value={e.id}
               checked={value === e.id}
               onChange={() => onChange(e.id)}
-              className="rounded-full border-slate-300 text-cyan-600"
             />
-            <span className="text-sm">{e.label}</span>
+            <span>{e.label}</span>
           </label>
         ))}
-      </div>
+      </fieldset>
     </details>
   );
 }

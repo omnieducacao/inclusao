@@ -1,5 +1,5 @@
 "use client";
-import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Loader2, Play, Pause, X, Megaphone, Download, Camera, ExternalLink } from 'lucide-react';
+import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Play, Pause, X, Megaphone, Download, Camera, ExternalLink } from 'lucide-react';
 
 import { OmniLoader } from "@/components/OmniLoader";
 import { LottieIcon } from "@/components/LottieIcon";
@@ -132,7 +132,7 @@ export function IssueCard({
                   disabled={saving}
                   className="omni-btn omni-btn--primario omni-btn--pequeno"
                 >
-                  {saving ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <Save size={16} aria-hidden />}
+                  {saving ? <OmniLoader size={16} /> : <Save size={16} aria-hidden />}
                   Salvar atualização
                 </button>
               </div>

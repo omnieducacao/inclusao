@@ -1,7 +1,8 @@
 "use client";
 
+import { OmniLoader } from "@/components/OmniLoader";
 import { useState, useEffect, useCallback, useId } from "react";
-import { History, RotateCcw, Clock, Loader2, ArrowLeftRight, ArrowLeft, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
+import { History, RotateCcw, Clock, ArrowLeftRight, ArrowLeft, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import type { PEIData } from "@/lib/pei";
 import { useConfirmar } from "@/components/Confirmar";
 
@@ -332,7 +333,7 @@ export function PEIVersionHistory({
 
                             {loadingDiff ? (
                                 <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, margin: 0 }}>
-                                    <Loader2 size={16} className="animate-spin" aria-hidden />
+                                    <OmniLoader size={16} />
                                     Comparando as versões…
                                 </p>
                             ) : diffs.length === 0 ? (
@@ -381,7 +382,7 @@ export function PEIVersionHistory({
                         <>
                             {loading && (
                                 <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, margin: 0 }}>
-                                    <Loader2 size={16} className="animate-spin" aria-hidden />
+                                    <OmniLoader size={16} />
                                     Carregando as versões…
                                 </p>
                             )}
@@ -474,7 +475,7 @@ export function PEIVersionHistory({
                                                             aria-label={`Voltar o PEI para a versão ${v.version}`}
                                                         >
                                                             {restoring === originalIdx ? (
-                                                                <Loader2 size={16} className="animate-spin" aria-hidden />
+                                                                <OmniLoader size={16} />
                                                             ) : (
                                                                 <RotateCcw size={16} aria-hidden />
                                                             )}

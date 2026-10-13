@@ -1,8 +1,9 @@
 "use client";
 
+import { OmniLoader } from "@/components/OmniLoader";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, X, Loader2 } from "lucide-react";
+import { Eye, X } from "lucide-react";
 import type { SessionPayload } from "@/lib/session";
 
 export function SimulationBanner({ session }: { session: SessionPayload }) {
@@ -55,7 +56,7 @@ export function SimulationBanner({ session }: { session: SessionPayload }) {
                         className="omni-btn omni-btn--pequeno"
                         style={{ background: "var(--sobre-noite)", color: "var(--noite)" }}
                     >
-                        {ending ? <Loader2 aria-hidden className="animate-spin" /> : <X aria-hidden />}
+                        {ending ? <OmniLoader size={18} /> : <X aria-hidden />}
                         Encerrar simulação
                     </button>
                 </div>

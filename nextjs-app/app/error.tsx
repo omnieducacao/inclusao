@@ -1,6 +1,12 @@
 "use client";
 
+/**
+ * Onda 22: visual do design system.
+ * Saíram o gradiente, o emoji e as cores antigas (variáveis --bg e --text, Tailwind). Agora segue o
+ * ErroDoModulo: omni-aviso de erro com omni-btn. A mensagem técnica fica só no console.
+ */
 import { useEffect } from "react";
+import { AlertTriangle, RotateCw } from "lucide-react";
 
 export default function GlobalError({
     error,
@@ -14,46 +20,25 @@ export default function GlobalError({
     }, [error]);
 
     return (
-        <div
-            className="min-h-screen flex items-center justify-center px-6"
-            style={{
-                background: "linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-tertiary) 50%, var(--bg-primary) 100%)",
-            }}
+        <main
+            className="omni-base"
+            style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: "var(--space-6) var(--space-4)", background: "var(--fundo)" }}
         >
-            <div className="max-w-md w-full text-center space-y-6">
-                <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
-                    <span className="text-3xl">⚠️</span>
-                </div>
+            <div className="omni-aviso omni-aviso--erro" role="alert" style={{ width: "100%" }}>
+                <AlertTriangle className="omni-aviso__icone" aria-hidden style={{ width: 22, height: 22 }} />
                 <div>
-                    <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-                        Algo deu errado
-                    </h2>
-                    <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                        Ocorreu um erro inesperado ao carregar a página. Tente recarregar.
+                    <h1 className="omni-aviso__titulo" style={{ margin: 0 }}>Não conseguimos abrir esta página</h1>
+                    <p className="omni-aviso__texto" style={{ margin: 0 }}>
+                        O que já foi salvo continua guardado. Tente de novo; se continuar, avise o suporte.
                     </p>
-                    {error?.message && (
-                        <p className="mt-2 text-xs font-mono p-2 rounded-lg break-all" style={{ color: 'var(--text-muted)', backgroundColor: 'var(--bg-tertiary)' }}>
-                            {error.message}
-                        </p>
-                    )}
-                </div>
-                <div className="flex items-center justify-center gap-3">
-                    <button
-                aria-label="Tentar novamente"
-                        onClick={reset}
-                        className="px-5 py-2.5 bg-linear-to-r from-blue-500 to-indigo-600 text-white text-sm font-semibold rounded-xl hover:from-blue-600 hover:to-indigo-700 shadow-md transition-all"
-                    >
-                        Tentar novamente
-                    </button>
-                    <a
-                        href="/login"
-                        className="px-5 py-2.5 text-sm font-semibold rounded-xl transition-all"
-                        style={{ border: '1px solid var(--border-default)', color: 'var(--text-secondary)' }}
-                    >
-                        Ir para Login
-                    </a>
+                    <div className="omni-aviso__acoes">
+                        <button type="button" className="omni-btn omni-btn--primario omni-btn--pequeno" onClick={reset}>
+                            <RotateCw aria-hidden /> Tentar de novo
+                        </button>
+                        <a href="/login" className="omni-btn omni-btn--secundario omni-btn--pequeno">Ir para o login</a>
+                    </div>
                 </div>
             </div>
-        </div>
+        </main>
     );
 }

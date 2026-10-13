@@ -1,5 +1,5 @@
 "use client";
-import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Loader2, Play, Pause, X, Megaphone, Download, Camera, ExternalLink } from 'lucide-react';
+import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Play, Pause, X, Megaphone, Download, Camera, ExternalLink } from 'lucide-react';
 
 import { OmniLoader } from "@/components/OmniLoader";
 import { LottieIcon } from "@/components/LottieIcon";
@@ -121,7 +121,7 @@ export function UsuariosTab({ workspaces }: { workspaces: Workspace[] }) {
       {/* Tabela */}
       {loading ? (
         <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, padding: "24px 0" }}>
-          <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando usuários…
+          <OmniLoader size={20} /> Carregando usuários…
         </p>
       ) : filteredUsers.length === 0 ? (
         <p className="omni-apoio" style={{ textAlign: "center", padding: "24px 0" }}>Nenhum usuário encontrado.</p>
@@ -162,7 +162,7 @@ export function UsuariosTab({ workspaces }: { workspaces: Workspace[] }) {
                       aria-label={`${user.active ? "Desativar" : "Ativar"} ${user.nome || user.email || "usuário"}`}
                       className="omni-btn omni-btn--secundario omni-btn--pequeno"
                     >
-                      {toggling === user.id ? <Loader2 size={16} className="animate-spin" aria-hidden /> : null}
+                      {toggling === user.id ? <OmniLoader size={16} /> : null}
                       {toggling === user.id ? "Salvando" : user.active ? "Desativar" : "Ativar"}
                     </button>
                   </td>

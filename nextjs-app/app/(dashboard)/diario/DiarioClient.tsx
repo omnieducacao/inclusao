@@ -1,5 +1,6 @@
 "use client";
 
+import TelaCarregando from "@/components/brand/TelaCarregando";
 import { useState, useCallback, useMemo, Suspense, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useConfirmar } from "@/components/Confirmar";
@@ -13,7 +14,7 @@ import dynamic from "next/dynamic";
 const RelatoriosTab = dynamic(() => import("./components/RelatoriosTab"), {
   ssr: false,
   loading: () => (
-    <p className="omni-apoio" role="status" style={{ padding: "40px 0", textAlign: "center" }}>Montando os gráficos…</p>
+    <TelaCarregando variante="secao" mensagens={["Montando os gráficos…"]} />
   )
 });
 
@@ -648,7 +649,7 @@ function RegistroCard({ registro, onDelete }: { registro: RegistroDiario; onDele
 export function DiarioClient({ students, studentId, student }: Props) {
   return (
     <Suspense fallback={
-      <p className="omni-apoio" role="status" style={{ padding: "32px 0", textAlign: "center" }}>Carregando…</p>
+      <TelaCarregando variante="secao" mensagens={["Abrindo o Diário de bordo…"]} />
     }>
       <DiarioClientInner students={students} studentId={studentId} student={student} />
     </Suspense>

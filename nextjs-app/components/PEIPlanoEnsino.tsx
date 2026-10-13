@@ -1,8 +1,10 @@
 "use client";
 
+import TelaCarregando from "@/components/brand/TelaCarregando";
+import { OmniLoader } from "@/components/OmniLoader";
 import React, { useState, useEffect, useCallback } from "react";
 import {
-    BookOpen, Loader2, CheckCircle2, Upload, Link2, FileText,
+    BookOpen, CheckCircle2, Upload, Link2, FileText,
     ExternalLink, Eye, AlertTriangle,
 } from "lucide-react";
 
@@ -137,10 +139,7 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
 
     if (loading) {
         return (
-            <div role="status" style={{ padding: 40, textAlign: "center" }}>
-                <Loader2 size={28} className="animate-spin" aria-hidden style={{ color: "var(--acao)", margin: "0 auto" }} />
-                <p className="omni-apoio" style={{ marginTop: 12 }}>Carregando o plano…</p>
-            </div>
+            <TelaCarregando variante="secao" mensagens={["Carregando o plano de ensino…"]} />
         );
     }
 
@@ -306,7 +305,7 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                                             ) : (
                                                 <button onClick={() => vincularPlano(p)} disabled={saving} aria-busy={saving} type="button"
                                                     className="omni-btn omni-btn--primario omni-btn--pequeno">
-                                                    {saving ? <Loader2 size={16} className="animate-spin" aria-hidden /> : null}
+                                                    {saving ? <OmniLoader size={16} /> : null}
                                                     {saving ? "Vinculando…" : "Usar este plano"}
                                                 </button>
                                             )}
@@ -328,7 +327,7 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                     </div>
                     <div style={bodyS}>
                         <label className="omni-soltar" aria-busy={saving} style={{ cursor: saving ? "wait" : "pointer", opacity: saving ? 0.6 : 1 }}>
-                            {saving ? <Loader2 className="animate-spin" aria-hidden /> : <Upload aria-hidden />}
+                            {saving ? <OmniLoader size={18} /> : <Upload aria-hidden />}
                             <span style={{ fontWeight: 700, color: "var(--tinta)" }}>
                                 {saving ? "Enviando…" : "Arraste o PDF aqui ou clique para escolher"}
                             </span>

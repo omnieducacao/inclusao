@@ -1,5 +1,7 @@
 "use client";
 
+/** Onda 22: visual do design system — avisos flutuantes com omni-toasts/omni-toast; cores só por variáveis. */
+
 import { useState, useEffect, useCallback, createContext, useContext } from "react";
 import { CheckCircle2, XCircle, AlertTriangle, Info, X } from "lucide-react";
 
@@ -29,17 +31,15 @@ const ICONS: Record<ToastType, typeof CheckCircle2> = {
     info: Info,
 };
 
-const STYLES: Record<ToastType, string> = {
-    success: "border-l-emerald-500 text-emerald-500",
-    error: "border-l-red-500 text-red-500",
-    warning: "border-l-amber-500 text-amber-500",
-    info: "border-l-sky-500 text-sky-500",
+/* Cor do ícone sobre o fundo "noite" do toast: as cores puras do símbolo leem bem no escuro */
+const COR_ICONE: Record<ToastType, string> = {
+    success: "var(--encontro-verde)",
+    error: "var(--encontro-vermelho)",
+    warning: "var(--encontro-amarelo)",
+    info: "var(--encontro-azul)",
 };
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
-    const styleClass = STYLES[toast.type];
-    const borderColor = styleClass.split(' ')[0];
-    const iconColor = styleClass.split(' ')[1];
     const Icon = ICONS[toast.type];
 
     useEffect(() => {
@@ -48,20 +48,16 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
     }, [toast.id, toast.duration, onDismiss]);
 
     return (
-        <div
-            role="status"
-            aria-live="polite"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl bg-(--omni-bg-secondary) border border-(--omni-border-default) border-l-4 shadow-(--omni-shadow-lg) animate-slide-up ${borderColor}`}
-            style={{ minWidth: 280, maxWidth: 420 }}
-        >
-            <Icon className={`w-5 h-5 shrink-0 ${iconColor}`} />
-            <span className="text-sm font-medium flex-1 text-(--omni-text-primary)">{toast.message}</span>
+        <div role={toast.type === "error" ? "alert" : "status"} className="omni-toast">
+            <Icon aria-hidden="true" style={{ color: COR_ICONE[toast.type] }} />
+            <span className="omni-toast__texto">{toast.message}</span>
             <button
+                type="button"
                 onClick={() => onDismiss(toast.id)}
-                aria-label="Fechar notificação"
-                className="shrink-0 p-0.5 rounded text-(--omni-text-muted) hover:text-(--omni-text-primary) transition-colors"
+                aria-label="Fechar aviso"
+                className="omni-toast__acao"
             >
-                <X className="w-4 h-4" />
+                <X aria-hidden="true" style={{ width: 16, height: 16 }} />
             </button>
         </div>
     );
@@ -82,9 +78,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     return (
         <ToastContext.Provider value={{ addToast }}>
             {children}
-            {/* Toast Container */}
             {toasts.length > 0 && (
-                <div className="fixed bottom-6 right-6 z-9999 flex flex-col gap-2">
+                <div className="omni-toasts" aria-live="polite" aria-label="Avisos">
                     {toasts.map((toast) => (
                         <ToastItem key={toast.id} toast={toast} onDismiss={dismissToast} />
                     ))}

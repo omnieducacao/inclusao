@@ -1,5 +1,7 @@
 "use client";
 
+/** Onda 22: visual do design system — moldura por variáveis, botão omni-btn, legenda omni-apoio. */
+
 import { useRef, useState, useCallback } from "react";
 import ReactCrop, { type Crop, type PixelCrop, centerCrop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
@@ -96,8 +98,11 @@ export function ImageCropper({ src, onCropComplete, aspect, caption }: Props) {
 
   return (
     <div className="space-y-2">
-      {caption && <p className="text-sm text-slate-600">{caption}</p>}
-      <div className="max-w-full overflow-auto rounded-lg border border-slate-200 bg-slate-50">
+      {caption && <p className="omni-apoio">{caption}</p>}
+      <div
+        className="max-w-full overflow-auto"
+        style={{ border: "1px solid var(--borda)", borderRadius: "var(--o-radius-md)", background: "var(--superficie-2)" }}
+      >
         <ReactCrop
           crop={crop}
           onChange={(c) => setCrop(c)}
@@ -109,7 +114,7 @@ export function ImageCropper({ src, onCropComplete, aspect, caption }: Props) {
           <img
             ref={imgRef}
             src={src}
-            alt="Recorte"
+            alt="Imagem para recortar"
             onLoad={onImageLoad}
             className="max-h-[400px] w-auto"
           />
@@ -119,8 +124,7 @@ export function ImageCropper({ src, onCropComplete, aspect, caption }: Props) {
         type="button"
         onClick={handleApply}
         disabled={!completedCrop}
-        aria-label="Aplicar recorte"
-        className="px-4 py-2 bg-cyan-600 text-white rounded-lg text-sm disabled:opacity-50"
+        className="omni-btn omni-btn--primario omni-btn--pequeno"
       >
         Aplicar recorte
       </button>

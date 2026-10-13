@@ -1,5 +1,6 @@
 "use client";
 
+import TelaCarregando from "@/components/brand/TelaCarregando";
 import { useState, useCallback, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { CabecalhoEstudante, EscolherEstudante } from "@/components/estudante/CabecalhoEstudante";
@@ -666,7 +667,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
 export function PAEEClient({ students, studentId, student }: Props) {
   return (
     <Suspense fallback={
-      <p className="omni-apoio" role="status" style={{ textAlign: "center", padding: "32px 0" }}>Carregando…</p>
+      <TelaCarregando variante="secao" mensagens={["Abrindo o PAEE…"]} />
     }>
       <PAEEClientInner key={studentId ?? "nenhum"} students={students} studentId={studentId} student={student} />
     </Suspense>

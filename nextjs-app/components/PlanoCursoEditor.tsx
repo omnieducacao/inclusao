@@ -1,10 +1,12 @@
 "use client";
 
+import { OmniLoader } from "@/components/OmniLoader";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
-    Save, Loader2, CheckCircle2, BookOpen, Plus, X,
-    Sparkles, GraduationCap, ChevronDown, ChevronRight,
+    Save, CheckCircle2, BookOpen, Plus, X, Check,
+    Sparkles, ChevronDown, ChevronRight,
     Trash2, Edit3, Copy, AlertTriangle } from "lucide-react";
+import TelaCarregando, { CarregandoLinha } from "@/components/brand/TelaCarregando";
 import { useAILoading } from "@/hooks/useAILoading";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { AutoSaveIndicator } from "@/components/AutoSaveIndicator";
@@ -106,83 +108,56 @@ function emptyBloco(): SequenciaBloco {
     };
 }
 
-// ─── Styles CSS -> Tailwind ─────────────────────────────────────────────────────────────
+// ─── Peças do formulário (design system: Pílula, Campo) ────────────────────────
 
-const cardC = "rounded-2xl border border-(--border-default) bg-white dark:bg-slate-900/40 overflow-hidden shadow-sm";
-const headerC = "flex items-center gap-2 px-5 py-3.5 border-b border-slate-100 dark:border-slate-800/60 bg-slate-50 dark:bg-slate-800/30";
-const bodyC = "p-5";
-const labelC = "omni-body-sm font-bold text-slate-600 dark:text-slate-400 mb-2 block";
-const selectC = "w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900/50 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all text-sm cursor-pointer font-sans shadow-sm";
-const textareaC = "w-full min-h-[60px] p-3.5 rounded-xl bg-white dark:bg-slate-900/50 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all omni-body-sm leading-relaxed resize-y font-sans shadow-sm";
-
-// ─── Tag Selector ─────────────────────────────────────────────────────────────
-
-function TagSelector({ options, selected, onToggle, label, color = "#6366f1" }: {
-    options: string[]; selected: string[]; onToggle: (v: string) => void; label: string; color?: string;
+/** Pílulas marcáveis (aria-pressed), como nas escolhas do Hub. */
+function TagSelector({ options, selected, onToggle, label }: {
+    options: string[]; selected: string[]; onToggle: (v: string) => void; label: string;
 }) {
     return (
-        <div>
-            <label className={labelC}>{label}</label>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {options.map(o => {
-                    const active = selected.includes(o);
-                    return (
-                        <button key={o} onClick={() => onToggle(o)} type="button" style={{
-                            padding: "5px 12px", borderRadius: 20, fontSize: 12, fontWeight: 600,
-                            border: active ? `1.5px solid ${color}` : "1px solid var(--border-default, rgba(148,163,184,.15))",
-                            background: active ? `${color}18` : "transparent",
-                            color: active ? color : "var(--text-muted, #94a3b8)",
-                            cursor: "pointer", transition: "all .15s",
-                        }}>
-                            {active ? "✓ " : ""}{o}
-                        </button>
-                    );
-                })}
+        <fieldset className="omni-linha" style={{ border: 0, padding: 0, margin: 0 }}>
+            <legend className="omni-linha__rotulo" style={{ marginBottom: 8 }}>{label}</legend>
+            <div className="omni-linha__opcoes">
+                {options.map(o => (
+                    <button key={o} type="button" className="omni-pilula" aria-pressed={selected.includes(o)} onClick={() => onToggle(o)}>{o}</button>
+                ))}
             </div>
+        </fieldset>
+    );
+}
+
+/** Objetivos pelos níveis da taxonomia de Bloom: escolhe o nível, depois os verbos. */
+function BloomObjectives({ selected, onToggle }: { selected: string[]; onToggle: (v: string) => void }) {
+    const [nivel, setNivel] = useState<string>("");
+    return (
+        <div className="omni-linha">
+            <p className="omni-linha__rotulo">Objetivos de aprendizagem <span className="omni-campo__opcional">(níveis da taxonomia de Bloom)</span></p>
+            <div className="omni-segmentado" role="radiogroup" aria-label="Nível de Bloom" style={{ flexWrap: "wrap" }}>
+                {Object.keys(OBJETIVOS_BLOOM).map(cat => (
+                    <label key={cat}>
+                        <input type="radio" name="nivel-bloom" checked={nivel === cat} onChange={() => setNivel(cat)} onClick={() => nivel === cat && setNivel("")} />
+                        {cat}
+                    </label>
+                ))}
+            </div>
+            {nivel && (
+                <div className="omni-linha__opcoes">
+                    {OBJETIVOS_BLOOM[nivel].map(v => (
+                        <button key={v} type="button" className="omni-pilula" aria-pressed={selected.includes(v)} onClick={() => onToggle(v)}>{v}</button>
+                    ))}
+                </div>
+            )}
+            {selected.length > 0 && <p className="omni-apoio" style={{ margin: 0 }}>Escolhidos: {selected.join(", ")}</p>}
         </div>
     );
 }
 
-function BloomObjectives({ selected, onToggle }: { selected: string[]; onToggle: (v: string) => void }) {
-    const [expandedCat, setExpandedCat] = useState<string | null>(null);
+function Campo({ rotulo, children }: { rotulo: string; children: React.ReactNode }) {
     return (
-        <div>
-            <label className={labelC}>Objetivos de Aprendizagem (Taxonomia de Bloom)</label>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 4 }}>
-                {Object.keys(OBJETIVOS_BLOOM).map(cat => (
-                    <button key={cat} onClick={() => setExpandedCat(expandedCat === cat ? null : cat)} type="button" style={{
-                        padding: "4px 10px", borderRadius: 8, fontSize: 11, fontWeight: 700,
-                        border: expandedCat === cat ? "1.5px solid #8b5cf6" : "1px solid var(--border-default, rgba(148,163,184,.15))",
-                        background: expandedCat === cat ? "rgba(139,92,246,.12)" : "transparent",
-                        color: expandedCat === cat ? "#a78bfa" : "var(--text-muted, #94a3b8)",
-                        cursor: "pointer", transition: "all .15s",
-                    }}>
-                        {cat}
-                    </button>
-                ))}
-            </div>
-            {expandedCat && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 5, padding: "8px 0" }}>
-                    {OBJETIVOS_BLOOM[expandedCat].map(v => {
-                        const active = selected.includes(v);
-                        return (
-                            <button key={v} onClick={() => onToggle(v)} type="button" style={{
-                                padding: "4px 10px", borderRadius: 16, fontSize: 12, fontWeight: 600,
-                                border: active ? "1.5px solid #10b981" : "1px solid var(--border-default, rgba(148,163,184,.12))",
-                                background: active ? "rgba(16,185,129,.12)" : "transparent",
-                                color: active ? "#34d399" : "var(--text-muted, #94a3b8)",
-                                cursor: "pointer", transition: "all .15s",
-                            }}>
-                                {active ? "✓ " : ""}{v}
-                            </button>
-                        );
-                    })}
-                </div>
-            )}
-            {selected.length > 0 && (
-                <div style={{ fontSize: 12, color: "#34d399", marginTop: 4 }}>✓ {selected.join(", ")}</div>
-            )}
-        </div>
+        <label className="omni-campo" style={{ maxWidth: "none" }}>
+            <span className="omni-campo__rotulo">{rotulo}</span>
+            {children}
+        </label>
     );
 }
 
@@ -417,7 +392,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
 
     const deletarPlano = async () => {
         if (!planoId) return;
-        if (!confirm("Tem certeza que deseja apagar este plano de ensino? Esta ação não pode ser desfeita.")) return;
+        if (!confirm("Apagar este plano de ensino? Não dá para desfazer.")) return;
         setDeleting(true); setError("");
         try {
             const res = await fetch(`/api/plano-curso?id=${planoId}`, { method: "DELETE" });
@@ -427,7 +402,7 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
             setPlano({ bimestre: BIMESTRES[0], blocos: [] });
             setSaved(false);
             onSaved?.();
-        } catch (err) { setError(err instanceof Error ? err.message : "Erro ao apagar"); }
+        } catch (err) { setError(err instanceof Error && err.message ? err.message : "Não deu para apagar o plano. Tente de novo."); }
         finally { setDeleting(false); }
     };
 
@@ -448,304 +423,245 @@ export function PlanoCursoEditor({ componente, serie, onSaved }: Props) {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
             setPlanoId(data.plano?.id); setSaved(true); onSaved?.();
-        } catch (err) { setError(err instanceof Error ? err.message : "Erro ao salvar"); }
+        } catch (err) { setError(err instanceof Error && err.message ? err.message : "Não deu para salvar o plano. Tente de novo."); }
         finally { setSaving(false); }
     };
 
-    // ─── Loading ────────────────────────────────────────────────────────
+    // ─── Carregando ─────────────────────────────────────────────────────
 
     if (loading) {
-        return (
-            <div style={{ padding: 40, textAlign: "center" }}>
-                <Loader2 size={28} className="animate-spin" style={{ color: "#0ea5e9", margin: "0 auto" }} />
-                <p style={{ color: "var(--text-muted)", marginTop: 12, fontSize: 13 }}>Carregando plano...</p>
-            </div>
-        );
+        return <TelaCarregando variante="secao" mensagens={["Abrindo o plano de ensino…"]} />;
     }
 
     const totalHabs = plano.blocos.reduce((acc, b) => acc + b.habilidades_bncc.length, 0);
     const canAddBloco = form.habilidades_bncc.length > 0 || form.objetivos.length > 0 || form.objetivos_livre.trim().length > 0;
+    const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* Overlay: ícone Omnisfera + motor trabalhando ao gerar sugestão IA */}
-            {/* AI Loading é controlado via useAILoading (AILoadingOverlay global) */}
-
-            {/* Header */}
-            <div className="bg-linear-to-br from-sky-500 to-sky-600 rounded-2xl p-5 text-white shadow-premium relative overflow-hidden">
-                {/* Auto-save indicator */}
-                <div style={{ position: "absolute", top: 8, right: 12, zIndex: 1 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* Cabeçalho do plano */}
+            <div className="omni-cartao" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <div style={{ minWidth: 0 }}>
+                    <p className="omni-rotulo" style={{ margin: 0 }}>Plano de ensino</p>
+                    <h2 style={{ margin: "2px 0 0", font: "800 22px/28px var(--font-sans)", color: "var(--tinta)" }}>{componente} · {serie}</h2>
+                    <p className="omni-apoio" style={{ margin: "4px 0 0" }}>
+                        {plural(plano.blocos.length, "bloco", "blocos")} na sequência · {plural(totalHabs, "habilidade da BNCC", "habilidades da BNCC")}
+                    </p>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                     <AutoSaveIndicator status={autoSave.status} lastSaved={autoSave.lastSaved} />
-                </div>
-                {/* Efeito de brilho sutíl no header */}
-                <div className="absolute inset-0 bg-white/5 animate-aurora pointer-events-none" />
-
-                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm shadow-inner">
-                            <BookOpen size={24} className="text-white drop-shadow-md" />
-                        </div>
-                        <div>
-                            <h4 className="m-0 text-lg font-bold tracking-tight text-white drop-shadow-sm">Plano de ensino — {componente}</h4>
-                            <p className="m-0 text-sm font-medium text-sky-100">
-                                {serie}{bncc && <> · BNCC integrada ({bnccDisciplinas.length} comp.)</>}
-                                {plano.blocos.length > 0 && <> · {plano.blocos.length} bloco{plano.blocos.length !== 1 ? "s" : ""}</>}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        {saved && <span className="flex items-center gap-1.5 text-xs font-bold text-sky-100 bg-black/20 px-2.5 py-1 rounded-full"><CheckCircle2 size={14} /> Salvo</span>}
-                        {totalHabs > 0 && <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold shadow-inner">{totalHabs} hab.</span>}
-                        {planoId && (
-                            <button
-                                onClick={deletarPlano}
-                                disabled={deleting}
-                                type="button"
-                                className={`btn-premium btn-premium-danger px-3 py-1.5 text-xs rounded-lg ${deleting ? 'opacity-70 cursor-not-allowed' : ''}`}
-                            >
-                                {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={13} strokeWidth={2.5} />} Apagar
-                            </button>
-                        )}
-                    </div>
+                    {saved && autoSave.status === "idle" && <span className="omni-estado omni-estado--sucesso"><CheckCircle2 aria-hidden /> Salvo</span>}
+                    {planoId && (
+                        <button onClick={deletarPlano} disabled={deleting} aria-busy={deleting} type="button" className="omni-btn omni-btn--perigo omni-btn--pequeno">
+                            {deleting ? <OmniLoader size={16} /> : <Trash2 size={16} aria-hidden />} Apagar o plano
+                        </button>
+                    )}
                 </div>
             </div>
 
-            {/* Período toggle */}
-            <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/50">
+            {/* Período */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                <div className="omni-segmentado" role="radiogroup" aria-label="Divisão do ano">
                     {(["bimestre", "trimestre"] as const).map(tipo => (
-                        <button
-                            key={tipo}
-                            onClick={() => { setPeriodoTipo(tipo); setPlano(p => ({ ...p, bimestre: tipo === "bimestre" ? BIMESTRES[0] : TRIMESTRES[0] })); }}
-                            type="button"
-                            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${periodoTipo === tipo ? 'bg-white dark:bg-slate-700 text-sky-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
-                        >
-                            {tipo}
-                        </button>
+                        <label key={tipo}>
+                            <input type="radio" name="periodo-tipo" checked={periodoTipo === tipo} onChange={() => { setPeriodoTipo(tipo); setPlano(p => ({ ...p, bimestre: tipo === "bimestre" ? BIMESTRES[0] : TRIMESTRES[0] })); }} />
+                            {tipo === "bimestre" ? "Bimestres" : "Trimestres"}
+                        </label>
                     ))}
                 </div>
-                <div className="flex gap-2 flex-wrap">
+                <div className="omni-linha__opcoes" role="group" aria-label="Período">
                     {periodos.map(b => (
-                        <button
-                            key={b}
-                            onClick={() => setPlano(p => ({ ...p, bimestre: b }))}
-                            type="button"
-                            className={`px-3.5 py-1.5 rounded-xl omni-body-sm font-bold transition-all border active:scale-95 ${plano.bimestre === b ? 'border-sky-500 bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 shadow-sm' : 'border-slate-200 dark:border-slate-700/50 text-slate-500 hover:border-slate-300 dark:hover:border-slate-600'}`}
-                        >
-                            {b}
-                        </button>
+                        <button key={b} type="button" className="omni-pilula" aria-pressed={plano.bimestre === b} onClick={() => setPlano(p => ({ ...p, bimestre: b }))}>{b}</button>
                     ))}
                 </div>
             </div>
 
-            {/* Split Layout */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
-                {/* LEFT: Form */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                    {/* BNCC */}
-                    {bnccLoading ? (
-                        <div className={`${cardC} p-6 text-center`}>
-                            <Loader2 size={20} className="animate-spin text-indigo-500 mx-auto" />
-                        </div>
-                    ) : bncc ? (
-                        <div className={cardC}>
-                            <div className={headerC}>
-                                <GraduationCap size={16} className="text-indigo-400" />
-                                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">BNCC — Selecione Habilidades</span>
-                            </div>
-                            <div className={`${bodyC} flex flex-col gap-2.5`}>
-                                <div>
-                                    <label className={labelC}>Componente Curricular</label>
-                                    <select value={componenteSel} onChange={e => { setComponenteSel(e.target.value); setUnidadeSel(""); setObjetoSel(""); }} className={selectC}>
-                                        <option value="">— Selecione —</option>
-                                        {bnccDisciplinas.map(d => <option key={d} value={d}>{d}</option>)}
-                                    </select>
-                                </div>
+            <div className="omni-mesa__grade">
+                {/* ESQUERDA: montar um bloco */}
+                <section className="omni-mesa__painel" aria-labelledby="pc-bloco">
+                    <div className="omni-mesa__corpo" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                        <h3 id="pc-bloco" style={{ margin: 0, font: "800 17px/24px var(--font-sans)", color: "var(--tinta)" }}>
+                            {editingIndex !== null ? `Editando o bloco ${editingIndex + 1}` : "Novo bloco da sequência"}
+                        </h3>
+
+                        {/* BNCC */}
+                        {bnccLoading ? (
+                            <CarregandoLinha texto="Carregando a BNCC do ano…" />
+                        ) : bncc ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                                {bnccDisciplinas.length > 1 && (
+                                    <Campo rotulo="Componente curricular">
+                                        <select className="omni-entrada" value={componenteSel} onChange={e => { setComponenteSel(e.target.value); setUnidadeSel(""); setObjetoSel(""); }}>
+                                            <option value="">Escolha</option>
+                                            {bnccDisciplinas.map(d => <option key={d} value={d}>{d}</option>)}
+                                        </select>
+                                    </Campo>
+                                )}
                                 {componenteSel && discData && (
-                                    <div>
-                                        <label className={labelC}>Unidade Temática</label>
-                                        <select value={unidadeSel} onChange={e => { setUnidadeSel(e.target.value); setObjetoSel(""); }} className={selectC}>
-                                            <option value="">— Selecione —</option>
+                                    <Campo rotulo="Unidade temática">
+                                        <select className="omni-entrada" value={unidadeSel} onChange={e => { setUnidadeSel(e.target.value); setObjetoSel(""); }}>
+                                            <option value="">Escolha</option>
                                             {discData.unidades.map(u => <option key={u} value={u}>{u}</option>)}
                                         </select>
-                                    </div>
+                                    </Campo>
                                 )}
                                 {unidadeSel && unidadeData && (
-                                    <div>
-                                        <label className={labelC}>Objeto do Conhecimento</label>
-                                        <select value={objetoSel} onChange={e => setObjetoSel(e.target.value)} className={selectC}>
-                                            <option value="">— Selecione —</option>
+                                    <Campo rotulo="Objeto de conhecimento">
+                                        <select className="omni-entrada" value={objetoSel} onChange={e => setObjetoSel(e.target.value)}>
+                                            <option value="">Escolha</option>
                                             {unidadeData.objetos.map(o => <option key={o} value={o}>{o}</option>)}
                                         </select>
-                                    </div>
+                                    </Campo>
                                 )}
                                 {objetoSel && habsDoObjeto && habsDoObjeto.length > 0 && (
-                                    <div>
-                                        <label className={labelC}>Habilidades ({habsDoObjeto.length})</label>
-                                        <div style={{ maxHeight: 200, overflowY: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
+                                    <div className="omni-linha">
+                                        <p className="omni-linha__rotulo">Habilidades da BNCC ({habsDoObjeto.length})</p>
+                                        <div className="omni-habilidades" role="listbox" aria-label="Habilidades da BNCC" aria-multiselectable>
                                             {habsDoObjeto.map(h => {
                                                 const sel = form.habilidades_bncc.includes(h.codigo);
                                                 return (
-                                                    <label key={h.codigo} style={{
-                                                        display: "flex", alignItems: "flex-start", gap: 8, padding: "6px 10px", borderRadius: 8, cursor: "pointer",
-                                                        background: sel ? "rgba(14,165,233,.08)" : "transparent",
-                                                        border: sel ? "1px solid rgba(14,165,233,.2)" : "1px solid transparent",
-                                                    }}>
-                                                        <input type="checkbox" checked={sel} onChange={() => toggleFormHab(h)} style={{ marginTop: 3, accentColor: "#0ea5e9", width: 16, height: 16, flexShrink: 0 }} />
-                                                        <div style={{ flex: 1 }}>
-                                                            <span style={{ fontSize: 11, fontWeight: 700, color: sel ? "#38bdf8" : "#818cf8", marginRight: 6 }}>{h.codigo}</span>
-                                                            <span style={{ fontSize: 12, color: "var(--text-secondary, #cbd5e1)", lineHeight: 1.4 }}>{h.descricao}</span>
-                                                        </div>
-                                                    </label>
+                                                    <button key={h.codigo} type="button" role="option" aria-selected={sel} className="omni-habilidade" onClick={() => toggleFormHab(h)}>
+                                                        <span className="omni-habilidade__cod">{sel && <Check size={12} aria-hidden style={{ display: "inline", marginRight: 4 }} />}{h.codigo}</span>
+                                                        <span className="omni-habilidade__txt">{h.descricao}</span>
+                                                    </button>
                                                 );
                                             })}
                                         </div>
                                     </div>
                                 )}
                                 {form.habilidades_bncc.length > 0 && (
-                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "8px 10px", borderRadius: 8, background: "rgba(14,165,233,.06)", border: "1px solid rgba(14,165,233,.15)" }}>
+                                    <div className="omni-linha__opcoes" aria-label="Habilidades escolhidas">
                                         {form.habilidades_bncc.map(c => (
-                                            <span key={c} onClick={() => setForm(prev => ({ ...prev, habilidades_bncc: prev.habilidades_bncc.filter(x => x !== c) }))} className="px-2.5 py-1 rounded-md omni-label-xs font-bold text-white uppercase tracking-wider bg-sky-500 cursor-pointer">{c} ✕</span>
+                                            <button key={c} type="button" className="omni-pilula" aria-pressed title="Tirar esta habilidade"
+                                                onClick={() => setForm(prev => ({ ...prev, habilidades_bncc: prev.habilidades_bncc.filter(x => x !== c) }))}>
+                                                {c} <X size={14} aria-hidden style={{ marginLeft: 4 }} />
+                                            </button>
                                         ))}
                                     </div>
                                 )}
                             </div>
-                        </div>
-                    ) : null}
+                        ) : (
+                            <p className="omni-apoio" style={{ margin: 0 }}>Não achamos a BNCC deste ano. Você ainda pode escrever os objetivos abaixo.</p>
+                        )}
 
-                    {/* Objectives */}
-                    <div className={cardC}><div className={`${bodyC} flex flex-col gap-3`}>
                         <BloomObjectives selected={form.objetivos} onToggle={v => toggleFormTag("objetivos", v)} />
-                        <textarea aria-label="Objetivos livres" placeholder="Ou escreva objetivos livres..." value={form.objetivos_livre} onChange={e => setForm(f => ({ ...f, objetivos_livre: e.target.value }))} className={`${textareaC} min-h-[50px]`} />
-                    </div></div>
+                        <Campo rotulo="Objetivos em texto livre">
+                            <textarea className="omni-entrada" rows={2} placeholder="Ou escreva os objetivos com suas palavras" value={form.objetivos_livre} onChange={e => setForm(f => ({ ...f, objetivos_livre: e.target.value }))} />
+                        </Campo>
 
-                    {/* Methodology */}
-                    <div className={cardC}><div className={`${bodyC} flex flex-col gap-2.5`}>
-                        <TagSelector options={METODOLOGIAS} selected={form.metodologias} onToggle={v => toggleFormTag("metodologias", v)} label="Metodologia" color="#8b5cf6" />
-                        <textarea aria-label="Metodologia livre" placeholder="Descreva como aplicar as metodologias neste contexto (a IA preenche automaticamente)..." value={form.metodologia_livre} onChange={e => setForm(f => ({ ...f, metodologia_livre: e.target.value }))} className={`${textareaC} min-h-[60px]`} />
-                    </div></div>
+                        <TagSelector options={METODOLOGIAS} selected={form.metodologias} onToggle={v => toggleFormTag("metodologias", v)} label="Metodologia" />
+                        <Campo rotulo="Como aplicar a metodologia">
+                            <textarea className="omni-entrada" rows={3} placeholder="Como as metodologias entram neste bloco (a sugestão da IA preenche aqui)" value={form.metodologia_livre} onChange={e => setForm(f => ({ ...f, metodologia_livre: e.target.value }))} />
+                        </Campo>
 
-                    {/* Resources */}
-                    <div className={cardC}><div className={bodyC}>
-                        <TagSelector options={RECURSOS} selected={form.recursos} onToggle={v => toggleFormTag("recursos", v)} label="Recursos Didáticos" color="#f59e0b" />
-                    </div></div>
+                        <TagSelector options={RECURSOS} selected={form.recursos} onToggle={v => toggleFormTag("recursos", v)} label="Recursos didáticos" />
 
-                    {/* Evaluation */}
-                    <div className={cardC}><div className={`${bodyC} flex flex-col gap-2.5`}>
-                        <TagSelector options={AVALIACOES} selected={form.avaliacoes} onToggle={v => toggleFormTag("avaliacoes", v)} label="Avaliação" color="#ec4899" />
-                        <textarea aria-label="Avaliação livre" placeholder="Detalhes adicionais..." value={form.avaliacao_livre} onChange={e => setForm(f => ({ ...f, avaliacao_livre: e.target.value }))} className={`${textareaC} min-h-[40px]`} />
-                    </div></div>
+                        <TagSelector options={AVALIACOES} selected={form.avaliacoes} onToggle={v => toggleFormTag("avaliacoes", v)} label="Avaliação" />
+                        <Campo rotulo="Detalhes da avaliação">
+                            <textarea className="omni-entrada" rows={2} placeholder="Critérios, instrumentos, adaptações" value={form.avaliacao_livre} onChange={e => setForm(f => ({ ...f, avaliacao_livre: e.target.value }))} />
+                        </Campo>
 
-                    {iaErro && (
-                        <div className="omni-aviso omni-aviso--erro mt-4" role="alert" style={{ maxWidth: "none" }}>
-                            <AlertTriangle className="omni-aviso__icone" aria-hidden />
-                            <div><div className="omni-aviso__titulo">{iaErro}</div></div>
-                            <span />
-                        </div>
-                    )}
-                    {/* Action buttons */}
-                    <div className="flex gap-2 flex-wrap mt-4">
-                        <button onClick={gerarSugestaoIA} disabled={iaLoading || form.habilidades_bncc.length === 0} type="button" className={`btn-premium px-4 py-2.5 rounded-xl omni-body-sm border-2 border-purple-500/50 hover:border-purple-500 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 ${(form.habilidades_bncc.length === 0 || iaLoading) ? 'opacity-50 cursor-not-allowed active:scale-100' : ''}`}>
-                            {iaLoading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} {iaLoading ? "Sugerindo…" : "Sugerir com IA"}
-                        </button>
-                        <button onClick={addBloco} disabled={!canAddBloco} type="button" className={`btn-premium flex-1 px-4 py-2.5 rounded-xl omni-body-sm hover:shadow-premium-lg ${canAddBloco ? 'btn-premium-primary bg-sky-600 hover:bg-sky-500 border-none' : 'bg-slate-200 dark:bg-slate-800 text-slate-500 cursor-not-allowed opacity-70 border border-slate-300 dark:border-slate-700 active:scale-100'}`}>
-                            <Plus size={16} strokeWidth={2.5} /> {editingIndex !== null ? "Salvar Bloco" : "Adicionar Bloco"}
-                        </button>
-                        {editingIndex !== null && (
-                            <button onClick={() => { setForm(emptyBloco()); setEditingIndex(null); }} type="button" className="btn-premium btn-premium-secondary px-4 py-2.5 rounded-xl omni-body-sm hover:shadow-sm">Cancelar</button>
+                        {iaErro && (
+                            <div className="omni-aviso omni-aviso--erro" role="alert" style={{ maxWidth: "none" }}>
+                                <AlertTriangle className="omni-aviso__icone" aria-hidden />
+                                <div><div className="omni-aviso__titulo">{iaErro}</div></div>
+                                <span />
+                            </div>
                         )}
                     </div>
-                </div>
+                    <div className="omni-mesa__acao">
+                        <button onClick={addBloco} disabled={!canAddBloco} type="button" className="omni-btn omni-btn--primario">
+                            <Plus size={18} aria-hidden /> {editingIndex !== null ? "Salvar o bloco" : "Adicionar à sequência"}
+                        </button>
+                        <div style={{ display: "flex", gap: 8 }}>
+                            <button onClick={gerarSugestaoIA} disabled={iaLoading || form.habilidades_bncc.length === 0} aria-busy={iaLoading} type="button" className="omni-btn omni-btn--secundario" style={{ flex: 1 }}>
+                                {iaLoading ? <OmniLoader size={18} engine="red" /> : <Sparkles size={18} aria-hidden />} {iaLoading ? "Sugerindo…" : "Sugerir com IA"}
+                            </button>
+                            {editingIndex !== null && (
+                                <button onClick={() => { setForm(emptyBloco()); setEditingIndex(null); }} type="button" className="omni-btn omni-btn--discreto">Cancelar</button>
+                            )}
+                        </div>
+                        {form.habilidades_bncc.length === 0 && <p className="omni-mesa__acao-dica">Escolha ao menos uma habilidade para a IA sugerir o resto.</p>}
+                    </div>
+                </section>
 
-                {/* RIGHT: Blocks */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    <div className={headerC}>
-                        <BookOpen size={16} className="text-sky-500" />
-                        <span className="text-sm font-bold text-slate-800 dark:text-slate-200">Sequência Didática — {plano.bimestre}</span>
-                        <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, color: "#0ea5e9", background: "rgba(14,165,233,.1)", padding: "2px 8px", borderRadius: 6 }}>
-                            {plano.blocos.length} bloco{plano.blocos.length !== 1 ? "s" : ""}
-                        </span>
+                {/* DIREITA: a sequência didática */}
+                <section className="omni-mesa__resultado" aria-labelledby="pc-sequencia">
+                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                        <h3 id="pc-sequencia" style={{ margin: 0, font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" }}>Sequência didática · {plano.bimestre}</h3>
+                        <span className="omni-estado omni-estado--neutro">{plural(plano.blocos.length, "bloco", "blocos")}</span>
                     </div>
 
                     {plano.blocos.length === 0 ? (
-                        <div style={{ padding: "40px 20px", textAlign: "center", border: "2px dashed var(--border-default, rgba(148,163,184,.15))", borderRadius: 14, color: "var(--text-muted, #64748b)" }}>
-                            <BookOpen size={32} style={{ margin: "0 auto 12px", opacity: 0.3 }} />
-                            <p style={{ fontSize: 14, fontWeight: 600, margin: "0 0 4px" }}>Nenhum bloco adicionado</p>
-                            <p style={{ fontSize: 12, margin: 0, opacity: 0.7 }}>Selecione habilidades BNCC e preencha o formulário ao lado.</p>
+                        <div className="omni-mesa__vazio">
+                            <BookOpen size={40} aria-hidden style={{ color: "var(--tinta-3)" }} />
+                            <p className="omni-mesa__vazio-titulo">A sequência ainda está vazia</p>
+                            <p className="omni-mesa__vazio-texto">Escolha as habilidades da BNCC, os objetivos e a metodologia ao lado e adicione o primeiro bloco.</p>
                         </div>
                     ) : (
                         <>
                             {plano.blocos.map((bloco, index) => {
-                                const isExpanded = expandedBloco === bloco.id;
+                                const aberto = expandedBloco === bloco.id;
+                                const editando = editingIndex === index;
                                 return (
-                                    <div key={bloco.id} className={`rounded-2xl overflow-hidden shadow-sm bg-white dark:bg-slate-900/40 transition-all ${editingIndex === index ? "border-2 border-purple-500 ring-2 ring-purple-500/20" : "border border-(--border-default)"}`}>
-                                        <button onClick={() => setExpandedBloco(isExpanded ? null : bloco.id)} type="button" style={{
-                                            width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", border: "none",
-                                            background: "var(--bg-tertiary, rgba(15,23,42,.3))", cursor: "pointer", textAlign: "left",
-                                        }}>
-                                            {isExpanded ? <ChevronDown size={14} style={{ color: "var(--omni-primary, #0ea5e9)" }} /> : <ChevronRight size={14} style={{ color: "var(--text-muted)" }} />}
-                                            <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary, #e2e8f0)", flex: 1 }}>
-                                                Bloco {index + 1}
-                                                {bloco.unidade_tematica && <span style={{ fontSize: 11, fontWeight: 500, color: "var(--text-muted, #94a3b8)", marginLeft: 8 }}>{bloco.unidade_tematica.slice(0, 40)}</span>}
+                                    <article key={bloco.id} className="omni-cartao" style={{ padding: 0, gap: 0, overflow: "hidden", outline: editando ? "2px solid var(--acao)" : undefined }}>
+                                        <button onClick={() => setExpandedBloco(aberto ? null : bloco.id)} type="button" aria-expanded={aberto}
+                                            style={{ all: "unset", boxSizing: "border-box", width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "14px 18px", cursor: "pointer" }}>
+                                            {aberto ? <ChevronDown size={18} aria-hidden style={{ color: "var(--acao)" }} /> : <ChevronRight size={18} aria-hidden style={{ color: "var(--tinta-3)" }} />}
+                                            <span style={{ flex: 1, minWidth: 0 }}>
+                                                <span style={{ display: "block", font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>Bloco {index + 1}{editando ? " · editando" : ""}</span>
+                                                {bloco.unidade_tematica && <span className="omni-apoio" style={{ display: "block", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{bloco.unidade_tematica}{bloco.objeto_conhecimento ? ` · ${bloco.objeto_conhecimento}` : ""}</span>}
                                             </span>
-                                            <span style={{ fontSize: 10, fontWeight: 700, color: "#818cf8", background: "rgba(99,102,241,.1)", padding: "2px 6px", borderRadius: 4 }}>{bloco.habilidades_bncc.length} hab.</span>
+                                            <span className="omni-estado omni-estado--info">{plural(bloco.habilidades_bncc.length, "habilidade", "habilidades")}</span>
                                         </button>
-                                        {isExpanded && (
-                                            <div className={`${bodyC} text-xs flex flex-col gap-2.5`}>
-                                                {/* BNCC Decomposition */}
-                                                {(bloco.unidade_tematica || bloco.objeto_conhecimento) && (
-                                                    <div style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(99,102,241,.06)", border: "1px solid rgba(99,102,241,.12)" }}>
-                                                        {bloco.unidade_tematica && (
-                                                            <div style={{ marginBottom: bloco.objeto_conhecimento ? 6 : 0 }}>
-                                                                <span style={{ fontSize: 10, fontWeight: 700, color: "#818cf8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Unidade Temática</span>
-                                                                <p style={{ margin: "2px 0 0", fontSize: 13, fontWeight: 600, color: "var(--text-primary, #e2e8f0)" }}>{bloco.unidade_tematica}</p>
-                                                            </div>
-                                                        )}
-                                                        {bloco.objeto_conhecimento && (
-                                                            <div>
-                                                                <span style={{ fontSize: 10, fontWeight: 700, color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.05em" }}>Objeto do Conhecimento</span>
-                                                                <p style={{ margin: "2px 0 0", fontSize: 13, fontWeight: 600, color: "var(--text-primary, #e2e8f0)" }}>{bloco.objeto_conhecimento}</p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
+                                        {aberto && (
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 14, padding: "4px 18px 18px", borderTop: "1px solid var(--borda)" }}>
                                                 {bloco.habilidades_bncc.length > 0 && (
-                                                    <div>
-                                                        <span style={{ fontWeight: 700, color: "#818cf8", fontSize: 11 }}>Habilidades BNCC ({bloco.habilidades_bncc.length}):</span>
-                                                        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 6 }}>
-                                                            {bloco.habilidades_bncc.map(c => (
-                                                                <div key={c} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "6px 10px", borderRadius: 8, background: "rgba(14,165,233,.05)", border: "1px solid rgba(14,165,233,.1)" }}>
-                                                                    <span style={{ fontSize: 11, fontWeight: 700, color: "#38bdf8", whiteSpace: "nowrap", marginTop: 1 }}>{c}</span>
-                                                                    {bloco.habilidades_descricoes[c] && (
-                                                                        <span style={{ fontSize: 12, color: "var(--text-secondary, #cbd5e1)", lineHeight: 1.4 }}>{bloco.habilidades_descricoes[c]}</span>
-                                                                    )}
-                                                                </div>
-                                                            ))}
-                                                        </div>
+                                                    <div className="omni-linha" style={{ paddingTop: 12 }}>
+                                                        <p className="omni-linha__rotulo">Habilidades da BNCC</p>
+                                                        {bloco.habilidades_bncc.map(c => (
+                                                            <p key={c} style={{ margin: 0, font: "400 14px/20px var(--font-sans)", color: "var(--tinta-2)" }}>
+                                                                <span className="omni-habilidade__cod" style={{ marginRight: 6 }}>{c}</span>{bloco.habilidades_descricoes[c] || ""}
+                                                            </p>
+                                                        ))}
                                                     </div>
                                                 )}
-                                                {(bloco.objetivos.length > 0 || bloco.objetivos_livre) && <div><span style={{ fontWeight: 700, color: "#a78bfa", fontSize: 11 }}>Objetivos:</span><p style={{ margin: "4px 0 0", color: "var(--text-secondary, #cbd5e1)", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{bloco.objetivos_livre || bloco.objetivos.join("; ")}</p></div>}
-                                                {bloco.metodologias.length > 0 && <div><span style={{ fontWeight: 700, color: "#8b5cf6", fontSize: 11 }}>Metodologia:</span>{bloco.metodologia_livre ? <p style={{ margin: "4px 0 0", color: "var(--text-secondary, #cbd5e1)", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{bloco.metodologia_livre}</p> : <p style={{ margin: "2px 0 0", color: "var(--text-secondary, #cbd5e1)" }}>{bloco.metodologias.join(", ")}</p>}</div>}
-                                                {bloco.recursos.length > 0 && <div><span style={{ fontWeight: 700, color: "#f59e0b", fontSize: 11 }}>Recursos:</span><div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>{bloco.recursos.map(r => <span key={r} style={{ padding: "2px 8px", borderRadius: 10, fontSize: 11, background: "rgba(245,158,11,.08)", color: "#fbbf24" }}>{r}</span>)}</div></div>}
-                                                {(bloco.avaliacoes.length > 0 || bloco.avaliacao_livre) && <div><span style={{ fontWeight: 700, color: "#ec4899", fontSize: 11 }}>Avaliação:</span>{bloco.avaliacao_livre ? <p style={{ margin: "4px 0 0", color: "var(--text-secondary, #cbd5e1)", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{bloco.avaliacao_livre}</p> : <p style={{ margin: "2px 0 0", color: "var(--text-secondary, #cbd5e1)" }}>{bloco.avaliacoes.join("; ")}</p>}</div>}
-                                                <div style={{ display: "flex", gap: 6, paddingTop: 6, borderTop: "1px solid var(--border-default, rgba(148,163,184,.08))" }}>
-                                                    <button onClick={() => editBloco(index)} type="button" style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, border: "1px solid var(--border-default)", background: "transparent", color: "#818cf8", cursor: "pointer" }}><Edit3 size={12} /> Editar</button>
-                                                    <button onClick={() => duplicateBloco(index)} type="button" style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, border: "1px solid var(--border-default)", background: "transparent", color: "#94a3b8", cursor: "pointer" }}><Copy size={12} /> Duplicar</button>
-                                                    <button onClick={() => removeBloco(index)} type="button" style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, border: "1px solid rgba(239,68,68,.2)", background: "transparent", color: "#ef4444", cursor: "pointer", marginLeft: "auto" }}><Trash2 size={12} /> Remover</button>
+                                                {(bloco.objetivos.length > 0 || bloco.objetivos_livre) && (
+                                                    <div className="omni-linha"><p className="omni-linha__rotulo">Objetivos</p><p style={{ margin: 0, whiteSpace: "pre-wrap", color: "var(--tinta-2)" }}>{bloco.objetivos_livre || bloco.objetivos.join("; ")}</p></div>
+                                                )}
+                                                {(bloco.metodologias.length > 0 || bloco.metodologia_livre) && (
+                                                    <div className="omni-linha"><p className="omni-linha__rotulo">Metodologia</p><p style={{ margin: 0, whiteSpace: "pre-wrap", color: "var(--tinta-2)" }}>{bloco.metodologia_livre || bloco.metodologias.join(", ")}</p></div>
+                                                )}
+                                                {bloco.recursos.length > 0 && (
+                                                    <div className="omni-linha"><p className="omni-linha__rotulo">Recursos</p><div className="omni-linha__opcoes">{bloco.recursos.map(r => <span key={r} className="omni-estado omni-estado--neutro">{r}</span>)}</div></div>
+                                                )}
+                                                {(bloco.avaliacoes.length > 0 || bloco.avaliacao_livre) && (
+                                                    <div className="omni-linha"><p className="omni-linha__rotulo">Avaliação</p><p style={{ margin: 0, whiteSpace: "pre-wrap", color: "var(--tinta-2)" }}>{bloco.avaliacao_livre || bloco.avaliacoes.join("; ")}</p></div>
+                                                )}
+                                                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", paddingTop: 12, borderTop: "1px solid var(--borda)" }}>
+                                                    <button onClick={() => editBloco(index)} type="button" className="omni-btn omni-btn--secundario omni-btn--pequeno"><Edit3 size={16} aria-hidden /> Editar</button>
+                                                    <button onClick={() => duplicateBloco(index)} type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno"><Copy size={16} aria-hidden /> Duplicar</button>
+                                                    <button onClick={() => removeBloco(index)} type="button" className="omni-btn omni-btn--perigo omni-btn--pequeno" style={{ marginLeft: "auto" }}><Trash2 size={16} aria-hidden /> Tirar da sequência</button>
                                                 </div>
                                             </div>
                                         )}
-                                    </div>
+                                    </article>
                                 );
                             })}
-                            <button onClick={salvar} disabled={saving || plano.blocos.length === 0} type="button" className={`btn-premium w-full mt-4 py-3.5 rounded-xl omni-body hover:shadow-premium-lg transition-all ${(saving || plano.blocos.length === 0) ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 cursor-not-allowed opacity-70 border border-slate-300 dark:border-slate-700 active:scale-100' : 'btn-premium-primary bg-sky-600 hover:bg-sky-500 border-none'}`}>
-                                {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                                {saving ? "Salvando..." : `Salvar Plano (${plano.blocos.length} bloco${plano.blocos.length !== 1 ? "s" : ""})`}
+                            {error && (
+                                <div className="omni-aviso omni-aviso--erro" role="alert" style={{ maxWidth: "none" }}>
+                                    <AlertTriangle className="omni-aviso__icone" aria-hidden />
+                                    <div><div className="omni-aviso__titulo">{error}</div></div>
+                                    <span />
+                                </div>
+                            )}
+                            <button onClick={salvar} disabled={saving || plano.blocos.length === 0} aria-busy={saving} type="button" className="omni-btn omni-btn--primario omni-btn--grande">
+                                {saving ? <OmniLoader size={18} /> : <Save size={18} aria-hidden />}
+                                {saving ? "Salvando…" : `Salvar o plano (${plural(plano.blocos.length, "bloco", "blocos")})`}
                             </button>
-                            {error && <div style={{ padding: "10px 14px", borderRadius: 10, fontSize: 13, background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.2)", color: "#f87171" }}>{error}</div>}
                         </>
                     )}
-                </div>
+                </section>
             </div>
         </div>
     );

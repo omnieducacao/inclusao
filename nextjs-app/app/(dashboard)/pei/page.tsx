@@ -2,7 +2,7 @@ import { getSession } from "@/lib/session";
 import { listClasses, listGrades } from "@/lib/school";
 import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
-import { Skeleton } from "@/components/Skeleton";
+import TelaCarregando from "@/components/brand/TelaCarregando";
 import { getAdminConfig } from "@/lib/getAdminConfig";
 import { getStudentsWithFallback } from "@/lib/getStudentWithFallback";
 import { modoDaEscola } from "@/lib/escola";
@@ -10,7 +10,7 @@ import dynamic from "next/dynamic";
 
 const PEIClient = dynamic(
   () => import("./PEIClient").then(mod => ({ default: mod.PEIClient })),
-  { loading: () => <Skeleton className="min-h-[200px] w-full rounded-2xl" /> }
+  { loading: () => <TelaCarregando variante="secao" mensagens={["Abrindo o PEI…"]} /> }
 );
 
 type Props = { searchParams: Promise<{ student?: string }> };

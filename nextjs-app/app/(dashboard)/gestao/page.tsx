@@ -6,7 +6,7 @@ import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { listMembers, getWorkspaceMaster } from "@/lib/members";
 import { redirect } from "next/navigation";
-import { Skeleton } from "@/components/Skeleton";
+import TelaCarregando from "@/components/brand/TelaCarregando";
 import { getAdminConfig } from "@/lib/getAdminConfig";
 
 export default async function GestaoPage() {
@@ -35,7 +35,7 @@ export default async function GestaoPage() {
           title="Equipe e papéis"
           desc="Membros e permissões do workspace."
         />
-        <Suspense fallback={<Skeleton className="min-h-[200px] w-full rounded-2xl" />}>
+        <Suspense fallback={<TelaCarregando variante="secao" mensagens={["Abrindo a gestão de usuários…"]} />}>
           <GestaoClient
             initialMembers={membersData || []}
             initialMaster={masterData || null}

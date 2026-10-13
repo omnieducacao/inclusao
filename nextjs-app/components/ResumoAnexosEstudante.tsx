@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * Onda 22: visual do design system — caixa em omni-cartao, selo omni-estado, ícones nas cores dos módulos,
+ * sem emojis nem classes de cor do Tailwind; botão com aria-expanded.
+ * PAEE = Plano de Atendimento Educacional Especializado.
+ */
+
 import { useState } from "react";
 import Link from "next/link";
 import { FileText, Map, ClipboardList, ChevronDown, ChevronUp } from "lucide-react";
@@ -21,63 +27,62 @@ export function ResumoAnexosEstudante({
 }: Props) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const itens: string[] = [];
+  const itens: { texto: string; Icone: typeof FileText; cor: string }[] = [];
   if (temRelatorioPei) {
-    itens.push("Texto do PEI");
+    itens.push({ texto: "Texto do PEI", Icone: FileText, cor: "var(--modulo-pei)" });
   }
   if (temJornada) {
-    itens.push("🎮 Jornada gamificada");
+    itens.push({ texto: "Jornada gamificada", Icone: Map, cor: "var(--modulo-hub)" });
   }
   if (pagina === "PAEE" && nCiclosPae > 0) {
-    itens.push(`📋 Ciclos PAEE (${nCiclosPae})`);
+    itens.push({ texto: `Ciclos do PAEE (${nCiclosPae})`, Icone: ClipboardList, cor: "var(--modulo-paee)" });
   }
 
   return (
-    <div className="mt-6 border border-slate-200 rounded-lg bg-white">
+    <div className="omni-cartao mt-6" style={{ padding: 0, gap: 0 }}>
       <button
-            aria-label="Gerenciar anexos do estudante"
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50 transition-colors rounded-t-lg"
+        aria-expanded={isExpanded}
+        className="w-full flex items-center justify-between text-left"
+        style={{ padding: "var(--space-4)", background: "none", border: 0, font: "inherit", color: "var(--tinta)", cursor: "pointer", borderRadius: "inherit" }}
       >
-        <div className="flex items-center gap-2">
-          <ClipboardList className="w-5 h-5 text-slate-600" />
-          <span className="text-sm font-semibold text-slate-700">
+        <span className="flex items-center gap-2">
+          <ClipboardList className="w-5 h-5" aria-hidden="true" style={{ color: "var(--tinta-2)" }} />
+          <span style={{ font: "700 15px/22px var(--font-sans)" }}>
             O que está registrado para este estudante
           </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 px-2 py-1 bg-slate-100 rounded">
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="omni-estado omni-estado--neutro">
             {isExpanded ? "Recolher" : "Expandir"}
           </span>
           {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-slate-400" />
+            <ChevronUp className="w-5 h-5" aria-hidden="true" style={{ color: "var(--tinta-3)" }} />
           ) : (
-            <ChevronDown className="w-5 h-5 text-slate-400" />
+            <ChevronDown className="w-5 h-5" aria-hidden="true" style={{ color: "var(--tinta-3)" }} />
           )}
-        </div>
+        </span>
       </button>
 
       {isExpanded && (
-        <div className="px-4 pb-4 pt-0 border-t border-slate-100">
+        <div style={{ padding: "0 var(--space-4) var(--space-4)", borderTop: "1px solid var(--borda)" }}>
           <div className="mt-4 space-y-2">
-            <p className="text-sm font-semibold text-slate-800">{nomeEstudante}</p>
+            <p className="omni-cartao__titulo" style={{ fontSize: 15 }}>{nomeEstudante}</p>
             {itens.length === 0 ? (
-              <p className="text-xs text-slate-500 italic">Nenhum relatório ou jornada registrado ainda.</p>
+              <p className="omni-apoio">Ainda não há relatório nem jornada registrados.</p>
             ) : (
               <ul className="space-y-1">
-                {itens.map((item, idx) => (
-                  <li key={idx} className="text-sm text-slate-600 flex items-center gap-2">
-                    {item.includes("📄") && <FileText className="w-4 h-4 text-amber-600" />}
-                    {item.includes("🎮") && <Map className="w-4 h-4 text-violet-600" />}
-                    {item.includes("📋") && <ClipboardList className="w-4 h-4 text-slate-600" />}
-                    <span>{item.replace(/^[📄🎮📋]\s*/, "")}</span>
+                {itens.map(({ texto, Icone, cor }) => (
+                  <li key={texto} className="omni-apoio flex items-center gap-2">
+                    <Icone className="w-4 h-4" aria-hidden="true" style={{ color: cor }} />
+                    <span>{texto}</span>
                   </li>
                 ))}
               </ul>
             )}
-            <p className="text-xs text-slate-500 mt-3">
-              Para apagar ou gerir, use a página <Link href="/estudantes" className="text-sky-600 hover:underline font-medium">Estudantes</Link>.
+            <p className="omni-apoio mt-3" style={{ fontSize: 13 }}>
+              Para apagar ou organizar, use a página <Link href="/estudantes" style={{ color: "var(--acao)", fontWeight: 600 }} className="hover:underline">Estudantes</Link>.
             </p>
           </div>
         </div>

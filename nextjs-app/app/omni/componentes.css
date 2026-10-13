@@ -481,3 +481,9 @@ html.high-contrast :is(.omni-aviso,.omni-estado,.omni-cartao--plano,.omni-cartao
 /* Tela de carregamento do Next (app/loading.tsx): só aparece depois de 300 ms, para não piscar em navegação rápida */
 .omni-carregando--atrasado{animation:omni-aparece var(--duracao-base) var(--curva-padrao) .3s both}
 .omni-carregando--pagina{position:fixed;inset:0}
+/* Onda 22: o mesmo carregamento dentro de uma seção (aba, painel, cartão) e na linha (botão, campo) */
+.omni-carregando--secao{position:relative;inset:auto;z-index:auto;min-height:180px;padding:var(--space-6) var(--space-4);background:transparent;gap:var(--space-3)}
+.omni-carregando--secao .omni-carregando__marca,.omni-carregando--secao .omni-carregando__marca svg{width:48px;height:48px}
+.omni-carregando--secao .omni-carregando__texto{font-size:15px;line-height:22px}
+.omni-carregando-linha{display:inline-flex;align-items:center;gap:8px;font:500 14px/20px var(--font-sans);color:var(--tinta-2);vertical-align:middle}
+.omni-carregando-linha svg{flex:none}

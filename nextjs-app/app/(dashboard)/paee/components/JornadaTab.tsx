@@ -1,7 +1,8 @@
 "use client";
+import { OmniLoader } from "@/components/OmniLoader";
 import { useConfirmar } from "@/components/Confirmar";
 import React, { useState, useEffect } from "react";
-import { Trash2, Edit2, FileText, Download, CheckCircle2, AlertTriangle, Sparkles, Loader2, Map, Info } from "lucide-react";
+import { Trash2, Edit2, FileText, Download, CheckCircle2, AlertTriangle, Sparkles, Map, Info } from "lucide-react";
 import type { StudentFull } from "../lib/paee-types";
 import type { CicloPAEE } from "@/lib/paee";
 import { EngineSelector } from "@/components/EngineSelector";
@@ -344,7 +345,7 @@ export function JornadaTab({
         disabled={mapaLoading || !texto.trim()}
         aria-busy={mapaLoading}
       >
-        {mapaLoading ? <Loader2 aria-hidden className="animate-spin" /> : <Map aria-hidden />}
+        {mapaLoading ? <OmniLoader size={18} /> : <Map aria-hidden />}
         {mapaLoading ? "Gerando o mapa…" : "Gerar mapa mental do roteiro"}
       </button>
       {avisoErro(mapaErro)}
@@ -448,7 +449,7 @@ export function JornadaTab({
             disabled={loading || (origemSelecionada === "ciclo" && !cicloExecucao)}
             aria-busy={loading}
           >
-            {loading ? <Loader2 aria-hidden className="animate-spin" /> : <Sparkles aria-hidden />}
+            {loading ? <OmniLoader size={18} /> : <Sparkles aria-hidden />}
             {loading ? "Criando o roteiro…" : "Criar roteiro da jornada"}
           </button>
           {avisoErro(erro)}
@@ -512,7 +513,7 @@ export function JornadaTab({
               disabled={loading || !feedback.trim()}
               aria-busy={loading}
             >
-              {loading ? <Loader2 aria-hidden className="animate-spin" /> : <Sparkles aria-hidden />}
+              {loading ? <OmniLoader size={18} /> : <Sparkles aria-hidden />}
               {loading ? "Reescrevendo…" : "Gerar de novo com os ajustes"}
             </button>
             <button

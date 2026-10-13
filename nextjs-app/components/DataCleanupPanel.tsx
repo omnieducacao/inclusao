@@ -1,7 +1,12 @@
 "use client";
 
+/**
+ * Onda 22: visual do design system — painel em omni-cartao, botões omni-btn, explicação e erro em omni-aviso,
+ * números em cartões planos com omni-estado; cores só por variáveis e textos mais diretos.
+ */
+import { CarregandoLinha } from "@/components/brand/TelaCarregando";
 import React, { useState } from "react";
-import { Trash2, Search, ShieldCheck, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import { Trash2, Search, ShieldCheck, AlertTriangle, CheckCircle2, Info } from "lucide-react";
 
 interface CleanupReport {
     orphaned_pei_disciplinas: number;
@@ -28,10 +33,10 @@ export function DataCleanupPanel() {
                 body: JSON.stringify({ dryRun }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Erro ao executar limpeza");
+            if (!res.ok) throw new Error(data.error || "Não deu para fazer a limpeza. Tente de novo.");
             setReport(data.report);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Erro desconhecido");
+            setError(err instanceof Error ? err.message : "Algo deu errado. Tente de novo.");
         } finally {
             setLoading(false);
         }
@@ -43,140 +48,111 @@ export function DataCleanupPanel() {
         : 0;
 
     return (
-        <div className="rounded-2xl overflow-hidden" style={{
-            backgroundColor: "var(--bg-secondary, #0f172a)",
-            border: "1px solid var(--border-default, rgba(148,163,184,.1))",
-        }}>
-            {/* Header */}
-            <div className="px-6 py-4" style={{
-                borderBottom: "1px solid var(--border-default, rgba(148,163,184,.1))",
-                background: "var(--bg-tertiary, rgba(15,23,42,.6))",
-            }}>
+        <section className="omni-cartao" style={{ padding: 0, gap: 0, overflow: "hidden" }} aria-labelledby="limpeza-titulo">
+            <div style={{ padding: "var(--space-4) var(--space-6)", borderBottom: "1px solid var(--borda)", background: "var(--superficie-2)" }}>
                 <div className="flex items-center gap-3">
-                    <ShieldCheck size={20} style={{ color: "#10b981" }} />
+                    <ShieldCheck size={20} aria-hidden="true" style={{ color: "var(--sucesso)" }} />
                     <div>
-                        <h2 className="text-lg font-bold" style={{ color: "var(--text-primary, #e2e8f0)" }}>
-                            Limpeza de Dados
+                        <h2 id="limpeza-titulo" className="omni-cartao__titulo" style={{ fontSize: 18 }}>
+                            Limpeza de dados
                         </h2>
-                        <p className="text-xs" style={{ color: "var(--text-muted, #64748b)" }}>
-                            Encontrar e remover dados órfãos ou inconsistentes
+                        <p className="omni-apoio">
+                            Encontra e remove dados soltos ou inconsistentes.
                         </p>
                     </div>
                 </div>
             </div>
 
-            <div className="p-6 space-y-6">
-                {/* Explanation */}
-                <div className="p-4 rounded-xl" style={{
-                    background: "rgba(59,130,246,.06)",
-                    border: "1px solid rgba(59,130,246,.15)",
-                }}>
-                    <p className="text-sm" style={{ color: "var(--text-secondary, #94a3b8)", lineHeight: 1.7 }}>
-                        O <strong>garbage collector</strong> verifica a integridade dos dados no banco:
-                    </p>
-                    <ul className="mt-2 space-y-1.5 text-sm" style={{ color: "var(--text-secondary)" }}>
-                        <li>• <strong>PEI por disciplina</strong> sem estudante associado</li>
-                        <li>• <strong>Avaliações diagnósticas</strong> sem estudante associado</li>
-                        <li>• <strong>Planos de ensino</strong> sem vínculo com nenhuma disciplina</li>
-                        <li>• <strong>Referências inválidas</strong> a planos de ensino removidos</li>
-                    </ul>
+            <div className="space-y-6" style={{ padding: "var(--space-6)" }}>
+                <div className="omni-aviso omni-aviso--info" style={{ maxWidth: "none" }}>
+                    <Info className="omni-aviso__icone" aria-hidden="true" />
+                    <div>
+                        <p className="omni-aviso__titulo">O que a verificação procura no banco</p>
+                        <ul className="omni-aviso__texto mt-2 space-y-1.5">
+                            <li>• <strong>PEI (Plano Educacional Individualizado) por disciplina</strong> sem estudante</li>
+                            <li>• <strong>Avaliações diagnósticas</strong> sem estudante</li>
+                            <li>• <strong>Planos de ensino</strong> sem nenhuma disciplina</li>
+                            <li>• <strong>Referências</strong> a planos de ensino que já foram apagados</li>
+                        </ul>
+                    </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
                     <button
-                        aria-label="Executar limpeza"
+                        type="button"
                         onClick={() => runCleanup(true)}
                         disabled={loading}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all"
-                        style={{
-                            background: "linear-gradient(135deg, #2563eb, #3b82f6)",
-                            color: "#fff",
-                            border: "none",
-                            cursor: loading ? "wait" : "pointer",
-                            opacity: loading ? 0.6 : 1,
-                        }}
+                        aria-busy={loading}
+                        className="omni-btn omni-btn--primario"
                     >
-                        {loading ? <Loader2 size={15} className="animate-spin" /> : <Search size={15} />}
+                        {loading ? <CarregandoLinha tamanho={16} /> : <Search aria-hidden="true" />}
                         Verificar (sem apagar)
                     </button>
                     {report && totalOrphans > 0 && (
                         <button
-                            aria-label="Executar limpeza"
+                            type="button"
                             onClick={() => {
-                                if (confirm(`Limpar ${totalOrphans} itens órfãos? Esta ação não pode ser desfeita.`)) {
+                                if (confirm(`Apagar ${totalOrphans} itens soltos? Não dá para desfazer.`)) {
                                     runCleanup(false);
                                 }
                             }}
                             disabled={loading}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all"
-                            style={{
-                                background: "linear-gradient(135deg, #dc2626, #ef4444)",
-                                color: "#fff",
-                                border: "none",
-                                cursor: loading ? "wait" : "pointer",
-                                opacity: loading ? 0.6 : 1,
-                            }}
+                            className="omni-btn omni-btn--perigo"
                         >
-                            <Trash2 size={15} />
+                            <Trash2 aria-hidden="true" />
                             Limpar {totalOrphans} itens
                         </button>
                     )}
                 </div>
 
-                {/* Error */}
                 {error && (
-                    <div className="p-3 rounded-lg flex items-center gap-2" style={{
-                        background: "rgba(239,68,68,.08)",
-                        border: "1px solid rgba(239,68,68,.2)",
-                    }}>
-                        <AlertTriangle size={16} style={{ color: "#ef4444" }} />
-                        <span className="text-sm" style={{ color: "#ef4444" }}>{error}</span>
+                    <div className="omni-aviso omni-aviso--erro" role="alert" style={{ maxWidth: "none" }}>
+                        <AlertTriangle className="omni-aviso__icone" aria-hidden="true" />
+                        <p className="omni-aviso__texto" style={{ marginTop: 0, color: "var(--tinta)" }}>{error}</p>
                     </div>
                 )}
 
-                {/* Report */}
                 {report && (
-                    <div className="space-y-3">
-                        <h3 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
-                            Relatório {report.cleaned ? "(Limpeza executada)" : "(Simulação)"}
+                    <div className="space-y-3" role="status">
+                        <h3 className="omni-cartao__titulo" style={{ fontSize: 15 }}>
+                            Relatório {report.cleaned ? "(limpeza feita)" : "(simulação)"}
                         </h3>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             {[
-                                { label: "PEI Disciplinas órfãs", value: report.orphaned_pei_disciplinas },
-                                { label: "Avaliações órfãs", value: report.orphaned_avaliacoes },
+                                { label: "PEI por disciplina soltos", value: report.orphaned_pei_disciplinas },
+                                { label: "Avaliações soltas", value: report.orphaned_avaliacoes },
                                 { label: "Planos sem vínculo", value: report.unlinked_planos },
-                                { label: "Refs inválidas", value: report.invalid_plano_refs_pei + report.invalid_plano_refs_aval },
+                                { label: "Referências inválidas", value: report.invalid_plano_refs_pei + report.invalid_plano_refs_aval },
                             ].map((item) => (
-                                <div key={item.label} className="p-3 rounded-lg text-center" style={{
-                                    background: item.value > 0 ? "rgba(245,158,11,.08)" : "rgba(16,185,129,.06)",
-                                    border: `1px solid ${item.value > 0 ? "rgba(245,158,11,.2)" : "rgba(16,185,129,.15)"}`,
-                                }}>
-                                    <div className="text-2xl font-black" style={{
-                                        color: item.value > 0 ? "#f59e0b" : "#10b981",
-                                    }}>
+                                <div
+                                    key={item.label}
+                                    className="text-center"
+                                    style={{
+                                        padding: "var(--space-3)",
+                                        borderRadius: "var(--o-radius-md)",
+                                        background: item.value > 0 ? "var(--atencao-suave)" : "var(--sucesso-suave)",
+                                    }}
+                                >
+                                    <div style={{ font: "800 24px/30px var(--font-sans)", color: item.value > 0 ? "var(--atencao)" : "var(--sucesso)" }}>
                                         {item.value}
                                     </div>
-                                    <div className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+                                    <div className="omni-apoio mt-1" style={{ fontSize: 12, lineHeight: "16px" }}>
                                         {item.label}
                                     </div>
                                 </div>
                             ))}
                         </div>
 
-                        {/* Details */}
                         <div className="space-y-2">
                             {report.details.map((detail, i) => (
-                                <div key={i} className="flex items-start gap-2 text-sm" style={{
-                                    color: "var(--text-secondary)",
-                                }}>
+                                <div key={i} className="flex items-start gap-2 omni-apoio">
                                     {detail.startsWith("✅") ? (
-                                        <CheckCircle2 size={14} className="mt-0.5 shrink-0" style={{ color: "#10b981" }} />
+                                        <CheckCircle2 size={14} aria-hidden="true" className="mt-0.5 shrink-0" style={{ color: "var(--sucesso)" }} />
                                     ) : detail.startsWith("⚠️") ? (
-                                        <AlertTriangle size={14} className="mt-0.5 shrink-0" style={{ color: "#f59e0b" }} />
+                                        <AlertTriangle size={14} aria-hidden="true" className="mt-0.5 shrink-0" style={{ color: "var(--atencao)" }} />
                                     ) : detail.startsWith("🧹") ? (
-                                        <Trash2 size={14} className="mt-0.5 shrink-0" style={{ color: "#ef4444" }} />
+                                        <Trash2 size={14} aria-hidden="true" className="mt-0.5 shrink-0" style={{ color: "var(--erro)" }} />
                                     ) : null}
                                     <span>{detail}</span>
                                 </div>
@@ -185,6 +161,6 @@ export function DataCleanupPanel() {
                     </div>
                 )}
             </div>
-        </div>
+        </section>
     );
 }

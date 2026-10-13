@@ -1,5 +1,7 @@
 "use client";
 
+/** Onda 22: visual do design system — avisos flutuantes com omni-toasts/omni-toast; cores só por variáveis. */
+
 import { createContext, useContext, useCallback, useState, useEffect, type ReactNode } from "react";
 import { X, CheckCircle, AlertTriangle, AlertCircle, Info } from "lucide-react";
 
@@ -40,35 +42,15 @@ const icons: Record<ToastType, typeof CheckCircle> = {
     info: Info,
 };
 
-const colors: Record<ToastType, { bg: string; border: string; icon: string; text: string }> = {
-    success: {
-        bg: "var(--bg-secondary)",
-        border: "#10b981",
-        icon: "#10b981",
-        text: "var(--text-primary)",
-    },
-    error: {
-        bg: "var(--bg-secondary)",
-        border: "#ef4444",
-        icon: "#ef4444",
-        text: "var(--text-primary)",
-    },
-    warning: {
-        bg: "var(--bg-secondary)",
-        border: "#f59e0b",
-        icon: "#f59e0b",
-        text: "var(--text-primary)",
-    },
-    info: {
-        bg: "var(--bg-secondary)",
-        border: "#3b82f6",
-        icon: "#3b82f6",
-        text: "var(--text-primary)",
-    },
+/* Cor do ícone sobre o fundo "noite" do toast: as cores puras do símbolo leem bem no escuro */
+const corIcone: Record<ToastType, string> = {
+    success: "var(--encontro-verde)",
+    error: "var(--encontro-vermelho)",
+    warning: "var(--encontro-amarelo)",
+    info: "var(--encontro-azul)",
 };
 
 function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) {
-    const color = colors[toast.type];
     const Icon = icons[toast.type];
 
     useEffect(() => {
@@ -79,35 +61,23 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
     }, [toast.id, toast.duration, onRemove]);
 
     return (
-        <div
-            role="alert"
-            className="flex items-start gap-3 px-4 py-3 rounded-xl shadow-lg animate-slide-in-right min-w-[300px] max-w-[420px]"
-            style={{
-                background: color.bg,
-                borderLeft: `4px solid ${color.border}`,
-                border: `1px solid var(--border-default)`,
-                borderLeftWidth: "4px",
-                borderLeftColor: color.border,
-            }}
-        >
-            <Icon size={18} style={{ color: color.icon }} className="shrink-0 mt-0.5" />
-            <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold" style={{ color: color.text }}>
-                    {toast.title}
-                </div>
+        <div role={toast.type === "error" ? "alert" : "status"} className="omni-toast">
+            <Icon aria-hidden="true" style={{ color: corIcone[toast.type] }} />
+            <div className="omni-toast__texto">
+                <div style={{ fontWeight: 700 }}>{toast.title}</div>
                 {toast.description && (
-                    <div className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                    <div style={{ fontSize: 14, lineHeight: "20px", color: "var(--sobre-noite-2)" }}>
                         {toast.description}
                     </div>
                 )}
             </div>
             <button
+                type="button"
                 onClick={() => onRemove(toast.id)}
-                className="shrink-0 hover:opacity-70 transition-opacity"
-                aria-label="Fechar notificação"
-                style={{ color: "var(--text-muted)" }}
+                className="omni-toast__acao"
+                aria-label="Fechar aviso"
             >
-                <X size={14} />
+                <X aria-hidden="true" style={{ width: 16, height: 16 }} />
             </button>
         </div>
     );
@@ -144,14 +114,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     return (
         <ToastContext.Provider value={{ toast: addToast, success, error, warning, info }}>
             {children}
-            {/* Toast container — fixed bottom-right, accessible */}
             {toasts.length > 0 && (
-                <div
-                    aria-live="polite"
-                    aria-label="Notificações"
-                    className="fixed bottom-6 right-6 z-9999 flex flex-col gap-3"
-                    style={{ pointerEvents: "auto" }}
-                >
+                <div aria-live="polite" aria-label="Avisos" className="omni-toasts">
                     {toasts.map((t) => (
                         <ToastItem key={t.id} toast={t} onRemove={removeToast} />
                     ))}

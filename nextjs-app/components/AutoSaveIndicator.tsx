@@ -1,6 +1,7 @@
 "use client";
 
-import { Save, Loader2, Check, AlertCircle } from "lucide-react";
+import { Check, AlertCircle } from "lucide-react";
+import { CarregandoLinha } from "@/components/brand/TelaCarregando";
 
 type AutoSaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -9,40 +10,25 @@ interface AutoSaveIndicatorProps {
     lastSaved: Date | null;
 }
 
-const statusConfig = {
-    idle: { icon: Save, text: "", color: "var(--text-muted)", animate: false },
-    saving: { icon: Loader2, text: "Salvando...", color: "var(--text-secondary)", animate: true },
-    saved: { icon: Check, text: "Rascunho salvo", color: "#10b981", animate: false },
-    error: { icon: AlertCircle, text: "Erro ao salvar", color: "#ef4444", animate: false },
-};
-
 /**
- * AutoSaveIndicator — Compact inline indicator for auto-save status.
- * Shows "Salvando..." while saving and "Rascunho salvo" after success.
+ * AutoSaveIndicator — aviso curto do salvamento automático (onda 22: visual do design system).
+ * "Salvando…" com o símbolo, "Rascunho salvo (14:32)" ou "Não deu para salvar".
  */
 export function AutoSaveIndicator({ status, lastSaved }: AutoSaveIndicatorProps) {
     if (status === "idle") return null;
+    if (status === "saving") return <CarregandoLinha texto="Salvando…" tamanho={14} />;
 
-    const config = statusConfig[status];
-    const Icon = config.icon;
-
+    const ok = status === "saved";
+    const Icone = ok ? Check : AlertCircle;
     return (
-        <div
-            className="flex items-center gap-1.5 text-xs font-medium transition-opacity duration-300"
-            style={{ color: config.color }}
-            aria-live="polite"
-            role="status"
-        >
-            <Icon
-                size={13}
-                className={config.animate ? "animate-spin" : ""}
-            />
-            <span>{config.text}</span>
-            {status === "saved" && lastSaved && (
-                <span className="opacity-60">
+        <span className="omni-carregando-linha" role="status" aria-live="polite" style={{ color: ok ? "var(--sucesso)" : "var(--erro)" }}>
+            <Icone size={14} aria-hidden />
+            <span>{ok ? "Rascunho salvo" : "Não deu para salvar"}</span>
+            {ok && lastSaved && (
+                <span style={{ color: "var(--tinta-3)" }}>
                     ({lastSaved.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })})
                 </span>
             )}
-        </div>
+        </span>
     );
 }

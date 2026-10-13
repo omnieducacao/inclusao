@@ -3,13 +3,13 @@ import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
 import dynamic from "next/dynamic";
 import type { CicloPAEE } from "@/lib/paee";
-import { Skeleton } from "@/components/Skeleton";
+import TelaCarregando from "@/components/brand/TelaCarregando";
 import { getAdminConfig } from "@/lib/getAdminConfig";
 import { getStudentsWithFallback } from "@/lib/getStudentWithFallback";
 
 const PAEEClient = dynamic(
   () => import("./PAEEClient").then(mod => ({ default: mod.PAEEClient })),
-  { loading: () => <Skeleton className="min-h-[200px] w-full rounded-2xl" /> }
+  { loading: () => <TelaCarregando variante="secao" mensagens={["Abrindo o PAEE…"]} /> }
 );
 
 type Props = { searchParams: Promise<{ student?: string }> };

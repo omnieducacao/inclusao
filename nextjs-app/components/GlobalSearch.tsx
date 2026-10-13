@@ -1,7 +1,8 @@
 "use client";
 
+import { OmniLoader } from "@/components/OmniLoader";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, User, Users, X, Loader2 } from "lucide-react";
+import { Search, User, Users, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 type SearchResult = {
@@ -227,7 +228,7 @@ export function GlobalSearch() {
                         placeholder="Digite o nome de um estudante ou de alguém da equipe"
                         style={{ flex: 1, minWidth: 0, minHeight: 40, border: 0, outline: "none", background: "transparent", font: "400 16px/24px var(--font-sans)", color: "var(--tinta)" }}
                     />
-                    {loading && <Loader2 aria-hidden className="animate-spin" style={{ width: 18, height: 18, flexShrink: 0, color: "var(--acao)" }} />}
+                    {loading && <OmniLoader size={18} />}
                     <button
                         type="button"
                         onClick={() => setOpen(false)}

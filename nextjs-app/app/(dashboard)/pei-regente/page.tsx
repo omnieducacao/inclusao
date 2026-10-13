@@ -1,3 +1,4 @@
+import TelaCarregando from "@/components/brand/TelaCarregando";
 import { Suspense } from "react";
 import { getSession } from "@/lib/session";
 import { PageHero } from "@/components/PageHero";
@@ -35,7 +36,7 @@ export default async function PEIRegentePage() {
                 />
 
                 <Suspense fallback={
-                    <div className="rounded-2xl animate-pulse min-h-[200px] bg-(--omni-bg-secondary) border border-(--omni-border-default)" />
+                    <TelaCarregando variante="secao" mensagens={["Abrindo o PEI do professor…"]} />
                 }>
                     <SafeModuleWrapper fallbackTitle="PEI Professor">
                         {simplificado ? <PEICienciaClient /> : <AbasProfessor ciencia={<PEICienciaClient />} disciplina={<PEIRegenteClient />} />}

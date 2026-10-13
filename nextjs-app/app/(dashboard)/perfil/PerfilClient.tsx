@@ -1,18 +1,23 @@
 "use client";
 
+/**
+ * Onda 22: visual do design system.
+ * Saiu a biblioteca antiga @omni/ds (ProfileCard, Card, Badge, Input, Alert, EmptyState…) e as
+ * cores Tailwind/hex. Agora: cabeçalho no padrão do PageHero, cartões omni-cartao, campos
+ * omni-campo/omni-entrada, selos omni-estado, avisos omni-aviso e botões omni-btn.
+ * O bloco "Meu engajamento" saiu: mostrava números fixos (sequência e conquistas inventadas),
+ * não dados da pessoa.
+ */
 import React, { useState, useEffect } from "react";
 import {
     User, Mail, Phone, Briefcase, Shield, BookOpen,
-    Lock, Eye, EyeOff,
-    GraduationCap, Users, Building2, Flame, Award, Lightbulb
+    Lock, Eye, EyeOff, GraduationCap, Users, Building2,
+    AlertTriangle, CheckCircle2,
 } from "lucide-react";
-import { OmniLoader } from "@/components/OmniLoader";
-import {
-    ProfileCard, StreakCalendar, SkillBadge,
-    Button, Input, Card, Badge, Alert, EmptyState, SectionTitle
-} from "@omni/ds";
+import TelaCarregando, { CarregandoLinha } from "@/components/brand/TelaCarregando";
+import hero from "@/components/PageHero.module.css";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Tipos ────────────────────────────────────────────────────────────────────
 
 interface Vinculo {
     componente: string;
@@ -43,20 +48,26 @@ interface ProfileData {
     alunos_vinculados?: AlunoVinculado[];
 }
 
-// ─── Permission labels ───────────────────────────────────────────────────────
+// ─── Nomes das permissões ────────────────────────────────────────────────────
 
-const PERMISSION_LABELS: Record<string, { label: string; variant: "primary" | "success" | "warning" | "danger" | "default" }> = {
-    can_estudantes: { label: "Estudantes", variant: "primary" },
-    can_pei: { label: "PEI", variant: "primary" },
-    can_pei_professor: { label: "PEI Professor", variant: "success" },
-    can_paee: { label: "PAEE", variant: "danger" },
-    can_hub: { label: "Hub", variant: "success" },
-    can_diario: { label: "Diário", variant: "warning" },
-    can_avaliacao: { label: "Monitoramento", variant: "success" },
-    can_gestao: { label: "Gestão", variant: "primary" },
+const PERMISSION_LABELS: Record<string, string> = {
+    can_estudantes: "Estudantes",
+    can_pei: "PEI (Plano Educacional Individualizado)",
+    can_pei_professor: "PEI do professor",
+    can_paee: "PAEE (Plano de Atendimento Educacional Especializado)",
+    can_hub: "Hub de recursos",
+    can_diario: "Diário de bordo",
+    can_avaliacao: "Monitoramento",
+    can_gestao: "Gestão",
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
+const GRADE: React.CSSProperties = {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+    gap: "var(--space-4)",
+};
+
+// ─── Componente ───────────────────────────────────────────────────────────────
 
 export default function PerfilClient() {
     const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -81,11 +92,11 @@ export default function PerfilClient() {
         e.preventDefault();
         setMessage(null);
         if (novaSenha !== confirmarSenha) {
-            setMessage({ type: "error", text: "As senhas não coincidem." });
+            setMessage({ type: "error", text: "A nova senha e a confirmação estão diferentes. Digite as duas iguais." });
             return;
         }
         if (novaSenha.length < 4) {
-            setMessage({ type: "error", text: "Nova senha deve ter no mínimo 4 caracteres." });
+            setMessage({ type: "error", text: "A nova senha precisa ter pelo menos 4 caracteres." });
             return;
         }
         setSaving(true);
@@ -97,184 +108,169 @@ export default function PerfilClient() {
             });
             const data = await res.json();
             if (res.ok) {
-                setMessage({ type: "success", text: "Senha alterada com sucesso!" });
+                setMessage({ type: "success", text: "Senha alterada. Use a nova senha no próximo acesso." });
                 setSenhaAtual("");
                 setNovaSenha("");
                 setConfirmarSenha("");
             } else {
-                setMessage({ type: "error", text: data.error || "Erro ao alterar senha." });
+                setMessage({ type: "error", text: data.error || "Não deu para alterar a senha. Tente de novo." });
             }
         } catch { /* expected fallback */
-            setMessage({ type: "error", text: "Erro de conexão." });
+            setMessage({ type: "error", text: "Sem conexão com o servidor. Confira a internet e tente de novo." });
         } finally {
             setSaving(false);
         }
     }
 
     if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center py-16 gap-3">
-                <OmniLoader variant="card" />
-            </div>
-        );
+        return <TelaCarregando variante="secao" mensagens={["Carregando seu perfil…"]} />;
     }
 
     if (!profile) {
         return (
-            <EmptyState
-                title="Erro ao carregar perfil"
-                description="Não foi possível carregar seus dados. Tente recarregar a página."
-            />
+            <div className="omni-aviso omni-aviso--erro" role="alert" style={{ maxWidth: "none" }}>
+                <AlertTriangle className="omni-aviso__icone" aria-hidden style={{ width: 22, height: 22 }} />
+                <div>
+                    <div className="omni-aviso__titulo">Não conseguimos carregar seu perfil</div>
+                    <div className="omni-aviso__texto">Recarregue a página para tentar de novo.</div>
+                    <div className="omni-aviso__acoes">
+                        <button type="button" className="omni-btn omni-btn--primario omni-btn--pequeno" onClick={() => window.location.reload()}>
+                            Recarregar
+                        </button>
+                    </div>
+                </div>
+            </div>
         );
     }
 
     const activePerms = Object.entries(profile.permissoes || {}).filter(([, v]) => v);
     const vinculos = profile.vinculos || [];
     const alunos = profile.alunos_vinculados || [];
+    const papel = profile.is_master ? "Coordenador(a)" : "Professor(a)";
 
     return (
-        <div className="flex flex-col gap-5">
-            {/* Header */}
-            <ProfileCard
-                name={profile.nome}
-                role={`${profile.is_master ? "Coordenador(a)" : "Professor(a)"} · ${profile.workspace_name}`}
-                status="online"
-                variant="horizontal"
-                color="#4285F4"
-            />
-
-            {/* Personal Data */}
-            <Card>
-                <SectionTitle title="Dados Pessoais" icon={<User size={16} className="text-sky-500" />} />
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                    <InfoField icon={<User size={14} />} label="Nome" value={profile.nome} />
-                    <InfoField icon={<Mail size={14} />} label="Email" value={profile.email || "—"} />
-                    <InfoField icon={<Phone size={14} />} label="Telefone" value={profile.telefone || "—"} />
-                    <InfoField icon={<Briefcase size={14} />} label="Cargo" value={profile.cargo || "—"} />
-                    <InfoField icon={<Building2 size={14} />} label="Escola" value={profile.workspace_name} />
-                    <InfoField icon={<Shield size={14} />} label="Papel" value={profile.is_master ? "Coordenador(a)" : "Professor(a)"} />
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
+            {/* Cabeçalho no padrão do PageHero */}
+            <header className={`omni-modulo omni-modulo--pei ${hero.cabecalho}`}>
+                <span className={`omni-modulo__selo ${hero.selo}`} aria-hidden="true">
+                    <User />
+                </span>
+                <div className={hero.texto}>
+                    <p className="omni-rotulo">Minha conta</p>
+                    <h1 className={hero.titulo}>{profile.nome}</h1>
+                    <p className={hero.desc}>{papel} · {profile.workspace_name}</p>
                 </div>
-            </Card>
+            </header>
 
-            {/* Gamification - Engajamento */}
-            <Card>
-                <SectionTitle title="Meu Engajamento" icon={<Flame size={16} className="text-orange-500" />} />
-                <div className="flex flex-col lg:flex-row gap-8 items-start mt-4">
-                    <div>
-                        <p className="text-sm font-semibold text-(--omni-text-muted) mb-3">Dias preenchendo o Diário</p>
-                        <StreakCalendar
-                            days={[
-                                { date: new Date().toISOString().slice(0, 10), intensity: 3 },
-                                { date: new Date(Date.now() - 86400000).toISOString().slice(0, 10), intensity: 4 },
-                                { date: new Date(Date.now() - 86400000 * 2).toISOString().slice(0, 10), intensity: 2 }
-                            ]}
-                            weeks={10}
-                            streakCount={12}
-                        />
-                    </div>
-                    <div className="flex-1">
-                        <p className="text-sm font-semibold text-(--omni-text-muted) mb-3">Minhas Conquistas</p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <SkillBadge name="Mestre do PEI" level={3} xp={450} xpNext={500} icon={<Award />} color="#059669" />
-                            <SkillBadge name="Especialista em DUA" level={2} xp={200} xpNext={300} icon={<Lightbulb />} color="#4F5BD5" />
-                        </div>
-                    </div>
-                </div>
-            </Card>
+            {/* Dados pessoais */}
+            <section className="omni-cartao" aria-labelledby="perfil-dados">
+                <TituloCartao id="perfil-dados" icone={<User aria-hidden size={18} />}>Dados pessoais</TituloCartao>
+                <dl style={{ ...GRADE, margin: 0 }}>
+                    <InfoField icon={<User size={16} aria-hidden />} label="Nome" value={profile.nome} />
+                    <InfoField icon={<Mail size={16} aria-hidden />} label="E-mail" value={profile.email || "—"} />
+                    <InfoField icon={<Phone size={16} aria-hidden />} label="Telefone" value={profile.telefone || "—"} />
+                    <InfoField icon={<Briefcase size={16} aria-hidden />} label="Cargo" value={profile.cargo || "—"} />
+                    <InfoField icon={<Building2 size={16} aria-hidden />} label="Escola" value={profile.workspace_name} />
+                    <InfoField icon={<Shield size={16} aria-hidden />} label="Papel" value={papel} />
+                </dl>
+            </section>
 
-            {/* Permissions */}
-            <Card>
-                <SectionTitle title="Permissões" icon={<Shield size={16} className="text-purple-500" />} />
-                <div className="flex flex-wrap gap-2 mt-4">
-                    {activePerms.map(([key]) => {
-                        const perm = PERMISSION_LABELS[key];
-                        if (!perm) return null;
-                        return (
-                            <Badge key={key} variant={perm.variant} size="md">
-                                {perm.label}
-                            </Badge>
-                        );
-                    })}
-                    {activePerms.length === 0 && (
-                        <span className="text-sm text-(--omni-text-muted)">Nenhuma permissão ativa</span>
-                    )}
-                </div>
-            </Card>
+            {/* Permissões */}
+            <section className="omni-cartao" aria-labelledby="perfil-permissoes">
+                <TituloCartao id="perfil-permissoes" icone={<Shield aria-hidden size={18} />}>O que você pode acessar</TituloCartao>
+                {activePerms.length > 0 ? (
+                    <ul style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)", margin: 0, padding: 0, listStyle: "none" }}>
+                        {activePerms.map(([key]) => {
+                            const nome = PERMISSION_LABELS[key];
+                            if (!nome) return null;
+                            return (
+                                <li key={key} className="omni-estado omni-estado--info">{nome}</li>
+                            );
+                        })}
+                    </ul>
+                ) : (
+                    <p className="omni-apoio">Nenhum acesso liberado ainda. Fale com a coordenação.</p>
+                )}
+            </section>
 
-            {/* Teacher Assignments */}
+            {/* Vínculos do professor */}
             {vinculos.length > 0 && (
-                <Card>
-                    <SectionTitle
-                        title="Meus Vínculos"
-                        icon={<GraduationCap size={16} className="text-emerald-500" />}
-                        action={<Badge variant="success" size="sm">{vinculos.length}</Badge>}
-                    />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+                <section className="omni-cartao" aria-labelledby="perfil-vinculos">
+                    <TituloCartao id="perfil-vinculos" icone={<GraduationCap aria-hidden size={18} />} contagem={vinculos.length}>
+                        Meus componentes e turmas
+                    </TituloCartao>
+                    <ul style={{ ...GRADE, gap: "var(--space-3)", margin: 0, padding: 0, listStyle: "none" }}>
                         {vinculos.map((v, i) => (
-                            <Card key={i} variant="flat" padding="sm" className="bg-(--omni-bg-primary) border border-(--omni-border-default)">
-                                <div className="text-sm font-bold text-(--omni-text-primary)">
-                                    {v.componente}
-                                </div>
-                                <div className="text-xs text-(--omni-text-muted) mt-1 flex gap-2">
-                                    <span>{v.serie}</span>
-                                    {v.turma && <span>· Turma {v.turma}</span>}
-                                </div>
-                            </Card>
+                            <li key={i} className="omni-cartao omni-cartao--plano" style={{ padding: "var(--space-4)", gap: "var(--space-1)" }}>
+                                <span style={{ font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>{v.componente}</span>
+                                <span className="omni-apoio">
+                                    {v.serie}{v.turma && ` · Turma ${v.turma}`}
+                                </span>
+                            </li>
                         ))}
-                    </div>
-                </Card>
+                    </ul>
+                </section>
             )}
 
-            {/* Student Links (tutor) */}
+            {/* Estudantes vinculados (tutoria) */}
             {alunos.length > 0 && (
-                <Card>
-                    <SectionTitle
-                        title="Alunos Vinculados"
-                        icon={<Users size={16} className="text-indigo-500" />}
-                        action={<Badge variant="primary" size="sm">{alunos.length}</Badge>}
-                    />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <section className="omni-cartao" aria-labelledby="perfil-alunos">
+                    <TituloCartao id="perfil-alunos" icone={<Users aria-hidden size={18} />} contagem={alunos.length}>
+                        Estudantes que você acompanha
+                    </TituloCartao>
+                    <ul style={{ ...GRADE, gap: "var(--space-3)", margin: 0, padding: 0, listStyle: "none" }}>
                         {alunos.map(a => (
-                            <Card key={a.id} variant="flat" padding="sm" className="bg-(--omni-bg-primary) border border-(--omni-border-default)">
-                                <div className="text-sm font-semibold text-(--omni-text-primary)">{a.name}</div>
-                                <div className="text-xs text-(--omni-text-muted) mt-1">
-                                    {a.grade} {a.class_group && `· Turma ${a.class_group}`}
-                                </div>
-                            </Card>
+                            <li key={a.id} className="omni-cartao omni-cartao--plano" style={{ padding: "var(--space-4)", gap: "var(--space-1)" }}>
+                                <span style={{ font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>{a.name}</span>
+                                <span className="omni-apoio">
+                                    {a.grade}{a.class_group && ` · Turma ${a.class_group}`}
+                                </span>
+                            </li>
                         ))}
-                    </div>
-                </Card>
+                    </ul>
+                </section>
             )}
 
-            {/* Empty vinculos state */}
+            {/* Sem vínculos */}
             {vinculos.length === 0 && alunos.length === 0 && !profile.is_master && (
-                <EmptyState
-                    icon={BookOpen}
-                    title="Nenhum vínculo encontrado"
-                    description="Nenhum vínculo de componente ou aluno encontrado. Peça ao coordenador para configurar em Gestão de Usuários."
-                />
+                <div className="omni-vazio" style={{ gridTemplateColumns: "minmax(0,1fr)" }}>
+                    <div className="omni-vazio__texto">
+                        <BookOpen size={40} aria-hidden style={{ color: "var(--tinta-3)" }} />
+                        <h2 className="omni-vazio__titulo" style={{ margin: 0 }}>Você ainda não tem vínculos</h2>
+                        <p style={{ margin: 0 }}>
+                            Nenhum componente, turma ou estudante está ligado a você. Peça à coordenação para cadastrar em Gestão de usuários.
+                        </p>
+                    </div>
+                </div>
             )}
 
-            {/* Change Password */}
-            <Card>
-                <SectionTitle title="Alterar Senha" icon={<Lock size={16} className="text-red-500" />} />
-                <form onSubmit={handleChangePassword} className="flex flex-col gap-4 max-w-sm mt-4">
+            {/* Alterar senha */}
+            <section className="omni-cartao" aria-labelledby="perfil-senha">
+                <TituloCartao id="perfil-senha" icone={<Lock aria-hidden size={18} />}>Alterar senha</TituloCartao>
+                <form onSubmit={handleChangePassword} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", maxWidth: 400 }}>
                     <PasswordInput
+                        id="perfil-senha-atual"
                         label="Senha atual"
+                        autoComplete="current-password"
                         value={senhaAtual}
                         onChange={setSenhaAtual}
                         show={showSenhaAtual}
                         onToggle={() => setShowSenhaAtual(v => !v)}
                     />
                     <PasswordInput
+                        id="perfil-senha-nova"
                         label="Nova senha"
+                        ajuda="Pelo menos 4 caracteres."
+                        autoComplete="new-password"
                         value={novaSenha}
                         onChange={setNovaSenha}
                         show={showNovaSenha}
                         onToggle={() => setShowNovaSenha(v => !v)}
                     />
                     <PasswordInput
+                        id="perfil-senha-confirmar"
                         label="Confirmar nova senha"
+                        autoComplete="new-password"
                         value={confirmarSenha}
                         onChange={setConfirmarSenha}
                         show={showNovaSenha}
@@ -282,67 +278,95 @@ export default function PerfilClient() {
                     />
 
                     {message && (
-                        <Alert variant={message.type === "success" ? "success" : "error"}>
-                            {message.text}
-                        </Alert>
+                        <div
+                            className={`omni-aviso ${message.type === "success" ? "omni-aviso--sucesso" : "omni-aviso--erro"}`}
+                            role={message.type === "success" ? "status" : "alert"}
+                        >
+                            {message.type === "success"
+                                ? <CheckCircle2 className="omni-aviso__icone" aria-hidden style={{ width: 20, height: 20 }} />
+                                : <AlertTriangle className="omni-aviso__icone" aria-hidden style={{ width: 20, height: 20 }} />}
+                            <div className="omni-aviso__texto">{message.text}</div>
+                        </div>
                     )}
 
-                    <Button
-                        type="submit"
-                        disabled={saving || !senhaAtual || !novaSenha || !confirmarSenha}
-                        variant="primary"
-                        className="w-fit"
-                    >
-                        {saving && <OmniLoader size={16} />}
-                        Alterar Senha
-                    </Button>
+                    <div>
+                        <button
+                            type="submit"
+                            className="omni-btn omni-btn--primario"
+                            disabled={saving || !senhaAtual || !novaSenha || !confirmarSenha}
+                        >
+                            {saving ? <CarregandoLinha texto="Salvando…" /> : "Alterar senha"}
+                        </button>
+                    </div>
                 </form>
-            </Card>
+            </section>
         </div>
     );
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Partes ───────────────────────────────────────────────────────────────────
+
+function TituloCartao({ id, icone, contagem, children }: { id: string; icone: React.ReactNode; contagem?: number; children: React.ReactNode }) {
+    return (
+        <h2 id={id} className="omni-cartao__titulo" style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", margin: 0 }}>
+            <span style={{ color: "var(--tinta-3)", display: "inline-flex" }}>{icone}</span>
+            {children}
+            {contagem !== undefined && (
+                <span className="omni-estado omni-estado--neutro" style={{ marginLeft: "var(--space-1)" }}>{contagem}</span>
+            )}
+        </h2>
+    );
+}
 
 function InfoField({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
     return (
-        <div className="flex items-start gap-2.5">
-            <div className="text-(--omni-text-muted) mt-0.5 shrink-0">{icon}</div>
-            <div>
-                <div className="text-[10px] font-semibold text-(--omni-text-muted) uppercase tracking-wider">
-                    {label}
-                </div>
-                <div className="text-sm font-semibold text-(--omni-text-primary) mt-0.5">
+        <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--space-3)", minWidth: 0 }}>
+            <span style={{ color: "var(--tinta-3)", marginTop: 2, flex: "none", display: "inline-flex" }}>{icon}</span>
+            <div style={{ minWidth: 0 }}>
+                <dt className="omni-rotulo">{label}</dt>
+                <dd style={{ margin: "2px 0 0", font: "600 15px/22px var(--font-sans)", color: "var(--tinta)", overflowWrap: "anywhere" }}>
                     {value}
-                </div>
+                </dd>
             </div>
         </div>
     );
 }
 
-function PasswordInput({ label, value, onChange, show, onToggle }: {
+function PasswordInput({ id, label, ajuda, autoComplete, value, onChange, show, onToggle }: {
+    id: string;
     label: string;
+    ajuda?: string;
+    autoComplete?: string;
     value: string;
     onChange: (v: string) => void;
     show: boolean;
     onToggle: () => void;
 }) {
     return (
-        <Input
-            label={label}
-            type={show ? "text" : "password"}
-            value={value}
-            onChange={e => onChange(e.target.value)}
-            rightIcon={
+        <div className="omni-campo">
+            <label className="omni-campo__rotulo" htmlFor={id}>{label}</label>
+            {ajuda && <span id={`${id}-ajuda`} className="omni-campo__ajuda">{ajuda}</span>}
+            <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+                <input
+                    id={id}
+                    className="omni-entrada"
+                    style={{ flex: 1, minWidth: 0 }}
+                    type={show ? "text" : "password"}
+                    autoComplete={autoComplete}
+                    aria-describedby={ajuda ? `${id}-ajuda` : undefined}
+                    value={value}
+                    onChange={e => onChange(e.target.value)}
+                />
                 <button
-                aria-label="Salvar perfil"
                     type="button"
+                    className="omni-btn omni-btn--discreto omni-btn--icone"
+                    aria-label={show ? `Esconder ${label.toLowerCase()}` : `Mostrar ${label.toLowerCase()}`}
+                    aria-pressed={show}
                     onClick={onToggle}
-                    className="focus:outline-none flex items-center justify-center p-1"
                 >
-                    {show ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {show ? <EyeOff size={18} aria-hidden /> : <Eye size={18} aria-hidden />}
                 </button>
-            }
-        />
+            </div>
+        </div>
     );
 }

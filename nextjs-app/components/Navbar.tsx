@@ -1,5 +1,7 @@
 "use client";
 
+/** Onda 22: visual do design system — tiradas as últimas cores fixas (hex, rgba, Tailwind) e as variáveis antigas --omni-*; esqueleto com omni-esqueleto. */
+
 import Link from "next/link";
 import SimboloOmnisfera from "@/components/SimboloOmnisfera";
 import { useRouter } from "next/navigation";
@@ -82,10 +84,10 @@ function ProfileDropdown({
         className="flex items-center gap-3 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
       >
         <div className="hidden lg:flex flex-col items-end text-right">
-          <span className="omni-body-sm font-semibold leading-tight" style={{ color: 'var(--omni-text-primary)' }}>
+          <span className="omni-body-sm font-semibold leading-tight" style={{ color: 'var(--tinta)' }}>
             {session?.usuario_nome ?? "Admin"}
           </span>
-          <span className="text-[11px] font-medium" style={{ color: 'var(--omni-text-muted)' }}>
+          <span className="text-[11px] font-medium" style={{ color: 'var(--tinta-3)' }}>
             {session?.workspace_name ?? "Plataforma"}
           </span>
         </div>
@@ -99,7 +101,7 @@ function ProfileDropdown({
             viewBox="0 0 24 24"
             stroke="currentColor"
             strokeWidth={2}
-            style={{ color: 'var(--omni-text-muted)' }}
+            style={{ color: 'var(--tinta-3)' }}
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
           </svg>
@@ -111,19 +113,19 @@ function ProfileDropdown({
         <div
           className="absolute top-full right-0 py-2 rounded-xl border min-w-[200px]"
           style={{
-            backgroundColor: 'var(--omni-bg-primary)',
-            borderColor: 'var(--omni-border-default)',
+            backgroundColor: 'var(--superficie)',
+            borderColor: 'var(--borda)',
             zIndex: 9999,
-            boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+            boxShadow: 'var(--sombra-2)',
             marginTop: '2px',
           }}
         >
           {/* User info */}
-          <div className="px-4 py-2.5 border-b" style={{ borderColor: 'var(--omni-border-default)' }}>
-            <div className="omni-body-sm font-semibold" style={{ color: 'var(--omni-text-primary)' }}>
+          <div className="px-4 py-2.5 border-b" style={{ borderColor: 'var(--borda)' }}>
+            <div className="omni-body-sm font-semibold" style={{ color: 'var(--tinta)' }}>
               {session?.usuario_nome ?? "Admin"}
             </div>
-            <div className="text-[11px]" style={{ color: 'var(--omni-text-muted)' }}>
+            <div className="text-[11px]" style={{ color: 'var(--tinta-3)' }}>
               {session?.workspace_name ?? "Plataforma"}
             </div>
           </div>
@@ -134,30 +136,30 @@ function ProfileDropdown({
               href="/perfil"
               className="w-full flex items-center gap-2.5 px-4 py-2.5 omni-body-sm font-medium transition-all text-left"
               style={{
-                color: 'var(--omni-text-primary)',
+                color: 'var(--tinta)',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--omni-bg-hover)';
+                (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--superficie-2)';
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLElement).style.backgroundColor = '';
               }}
             >
-              <svg className="w-[18px] h-[18px] shrink-0" style={{ color: '#4285F4' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-[18px] h-[18px] shrink-0" style={{ color: 'var(--acao)' }} aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               <span>Meu Perfil</span>
             </a>
-            <div className="mx-3 my-1 border-t" style={{ borderColor: 'var(--omni-border-default)' }} />
+            <div className="mx-3 my-1 border-t" style={{ borderColor: 'var(--borda)' }} />
             <button
               onClick={onLogout}
               aria-label="Sair da plataforma"
               className="w-full flex items-center gap-2.5 px-4 py-2.5 omni-body-sm font-medium transition-all text-left"
               style={{
-                color: 'var(--omni-text-primary)',
+                color: 'var(--tinta)',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--omni-bg-hover)';
+                (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--superficie-2)';
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLElement).style.backgroundColor = '';
@@ -165,7 +167,7 @@ function ProfileDropdown({
             >
               {signOutIcon && (() => {
                 const SignOutIcon = signOutIcon;
-                return <SignOutIcon className="w-[18px] h-[18px] shrink-0 text-red-500" weight="regular" />;
+                return <SignOutIcon className="w-[18px] h-[18px] shrink-0" style={{ color: "var(--erro)" }} weight="regular" aria-hidden="true" />;
               })()}
               <span>Sair</span>
             </button>
@@ -205,7 +207,7 @@ export function Navbar({ session }: { session: SessionPayload }) {
 
   // Skeleton navbar during SSR
   const navSkeleton = (
-    <header className="glass-strong sticky top-0 z-50 shadow-premium" style={{ borderBottom: '1px solid var(--omni-border-default)', overflow: 'visible' }}>
+    <header className="glass-strong sticky top-0 z-50 shadow-premium" style={{ borderBottom: '1px solid var(--borda)', overflow: 'visible' }}>
       <div className="max-w-[1920px] mx-auto px-5" style={{ overflow: 'visible' }}>
         <div className="flex items-center h-[68px]" style={{ overflow: 'visible' }}>
           <Link href="/" aria-label="Omnisfera, início" className="omni-topo__marca shrink-0">
@@ -213,10 +215,10 @@ export function Navbar({ session }: { session: SessionPayload }) {
             <span className="omni-topo__nome">omnisfera</span>
           </Link>
           <div className="flex items-center gap-1 ml-auto shrink-0">
-            <div className="w-8 h-8 bg-slate-100 rounded-full animate-pulse" />
+            <span className="omni-esqueleto w-8 h-8" style={{ borderRadius: "50%" }} />
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <div className="w-8 h-8 bg-slate-100 rounded-full animate-pulse" />
+            <span className="omni-esqueleto w-8 h-8" style={{ borderRadius: "50%" }} />
           </div>
         </div>
       </div>
@@ -228,7 +230,7 @@ export function Navbar({ session }: { session: SessionPayload }) {
   }
 
   return (
-    <header className="glass-strong sticky top-0 z-50 shadow-premium" style={{ borderBottom: '1px solid var(--omni-border-default)', overflow: 'visible' }}>
+    <header className="glass-strong sticky top-0 z-50 shadow-premium" style={{ borderBottom: '1px solid var(--borda)', overflow: 'visible' }}>
       <div className="max-w-[1920px] mx-auto px-5" style={{ overflow: 'visible' }}>
         {/* LAYOUT: Logo (esquerda) | Busca+Ícones (direita) | Perfil (extrema direita) */}
         <div className="flex items-center h-[68px]" style={{ overflow: 'visible' }}>
@@ -250,7 +252,7 @@ export function Navbar({ session }: { session: SessionPayload }) {
               type="button"
               onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
               className="flex items-center justify-center w-9 h-9 rounded-lg transition-all hover:scale-105"
-              style={{ color: 'var(--omni-text-muted)', backgroundColor: 'var(--omni-bg-tertiary)', border: '1px solid var(--omni-border-default)' }}
+              style={{ color: 'var(--tinta-3)', backgroundColor: 'var(--superficie-2)', border: '1px solid var(--borda)' }}
               aria-label="Buscar na plataforma (Atalho Command K)"
               aria-keyshortcuts="Control+K Meta+K"
             >

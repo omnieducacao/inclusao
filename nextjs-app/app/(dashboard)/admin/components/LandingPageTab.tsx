@@ -1,7 +1,8 @@
 "use client";
 
+import { OmniLoader } from "@/components/OmniLoader";
 import { useState, useEffect } from "react";
-import { ExternalLink, Globe, Loader2, ToggleLeft, ToggleRight, Info } from "lucide-react";
+import { ExternalLink, Globe, ToggleLeft, ToggleRight, Info } from "lucide-react";
 import { MensagemAdmin, type Mensagem } from "./MensagemAdmin";
 
 /**
@@ -61,7 +62,7 @@ export function LandingPageTab() {
     if (loading) {
         return (
             <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, padding: "48px 0", justifyContent: "center" }}>
-                <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando…
+                <OmniLoader size={20} /> Carregando…
             </p>
         );
     }
@@ -96,7 +97,7 @@ export function LandingPageTab() {
                         style={{ color: enabled ? "var(--acao)" : "var(--tinta-3)", width: 56, height: 56 }}
                     >
                         {saving ? (
-                            <Loader2 size={28} className="animate-spin" aria-hidden />
+                            <OmniLoader size={28} />
                         ) : enabled ? (
                             <ToggleRight size={40} aria-hidden />
                         ) : (

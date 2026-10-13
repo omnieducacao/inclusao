@@ -1,5 +1,5 @@
 "use client";
-import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Loader2, Play, Pause, X, Megaphone, Download, Camera, ExternalLink } from 'lucide-react';
+import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Play, Pause, X, Megaphone, Download, Camera, ExternalLink } from 'lucide-react';
 
 import { OmniLoader } from "@/components/OmniLoader";
 import { LottieIcon } from "@/components/LottieIcon";
@@ -196,7 +196,7 @@ export function AvisosTab({ workspaces }: { workspaces: Workspace[] }) {
                 disabled={submitting}
                 className="omni-btn omni-btn--primario"
               >
-                {submitting ? <Loader2 size={18} className="animate-spin" aria-hidden /> : <Megaphone size={18} aria-hidden />}
+                {submitting ? <OmniLoader size={18} /> : <Megaphone size={18} aria-hidden />}
                 Publicar aviso
               </button>
             </div>
@@ -209,7 +209,7 @@ export function AvisosTab({ workspaces }: { workspaces: Workspace[] }) {
         <h3 id="avisos-lista-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" }}>Avisos publicados</h3>
         {loading ? (
           <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, padding: "24px 0" }}>
-            <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando avisos…
+            <OmniLoader size={20} /> Carregando avisos…
           </p>
         ) : announcements.length === 0 ? (
           <p className="omni-apoio" style={{ textAlign: "center", padding: "24px 0" }}>Nenhum aviso publicado.</p>

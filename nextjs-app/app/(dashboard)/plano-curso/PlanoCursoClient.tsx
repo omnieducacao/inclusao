@@ -1,17 +1,15 @@
 "use client";
 
+/**
+ * Plano de ensino — escolher componente e série (onda 22: visual do design system).
+ * Antes: cartões coloridos por disciplina (biblioteca antiga @omni/ds) e cores fixas.
+ * Agora: um grupo por componente, um cartão por série com o estado do plano (Omni.estado).
+ */
 import React, { useState, useEffect, useCallback } from "react";
-import {
-    BookOpen, Plus, ChevronLeft, CheckCircle2,
-    GraduationCap, FileText, ListChecks, Save,
-} from "lucide-react";
+import { BookOpen, ChevronLeft, CheckCircle2, Plus } from "lucide-react";
 import { PlanoCursoEditor } from "@/components/PlanoCursoEditor";
 import { PageHero } from "@/components/PageHero";
-import { OnboardingPanel } from "@/components/OnboardingPanel";
-import { Card, Button, Badge, EmptyState, SectionTitle } from "@omni/ds";
-import { OmniLoader } from "@/components/OmniLoader";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import TelaCarregando from "@/components/brand/TelaCarregando";
 
 interface ComboItem {
     serie: string;
@@ -33,45 +31,14 @@ interface PlanoExistente {
     updated_at: string;
 }
 
-// ─── Component Colors ─────────────────────────────────────────────────────────
-
-const COMPONENT_COLORS: Record<string, { bg: string; border: string; text: string; accent: string }> = {
-    "Língua Portuguesa": { bg: "var(--color-primary-bg)", border: "var(--color-primary-strong)", text: "#60a5fa", accent: "#3b82f6" },
-    "Matemática": { bg: "var(--color-warning-bg)", border: "var(--color-warning-strong)", text: "#fbbf24", accent: "#f59e0b" },
-    "Ciências": { bg: "var(--color-success-bg)", border: "var(--color-success-strong)", text: "var(--color-success)", accent: "var(--color-success)" },
-    "História": { bg: "var(--color-accent-bg)", border: "var(--color-accent-strong)", text: "#c084fc", accent: "#a855f7" },
-    "Geografia": { bg: "rgba(6,182,212,.08)", border: "rgba(6,182,212,.25)", text: "#22d3ee", accent: "#06b6d4" },
-    "Arte": { bg: "rgba(236,72,153,.08)", border: "rgba(236,72,153,.25)", text: "#f472b6", accent: "#ec4899" },
-    "Educação Física": { bg: "rgba(249,115,22,.08)", border: "rgba(249,115,22,.25)", text: "#fb923c", accent: "#f97316" },
-    "Língua Inglesa": { bg: "var(--color-info-bg)", border: "var(--color-info-strong)", text: "#818cf8", accent: "#6366f1" },
-    "Ensino Religioso": { bg: "rgba(139,92,246,.08)", border: "rgba(139,92,246,.25)", text: "#a78bfa", accent: "#8b5cf6" },
-    "Prática Textual": { bg: "rgba(14,165,233,.08)", border: "rgba(14,165,233,.25)", text: "#38bdf8", accent: "#0ea5e9" },
-    "Literatura": { bg: "rgba(217,70,239,.08)", border: "rgba(217,70,239,.25)", text: "#e879f9", accent: "#d946ef" },
-};
-
-const DEFAULT_COLOR = { bg: "rgba(148,163,184,.08)", border: "rgba(148,163,184,.2)", text: "#94a3b8", accent: "#64748b" };
-
-function getColor(comp: string) {
-    return COMPONENT_COLORS[comp] || DEFAULT_COLOR;
-}
-
-// ─── Main Component ───────────────────────────────────────────────────────────
-
 export default function PlanoCursoClient() {
     const [combos, setCombos] = useState<ComboItem[]>([]);
     const [planos, setPlanos] = useState<PlanoExistente[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isMaster, setIsMaster] = useState(false);
     const [professorName, setProfessorName] = useState("");
     const [selectedCombo, setSelectedCombo] = useState<ComboItem | null>(null);
-    const [showOnboarding, setShowOnboarding] = useState(false);
-
-    useEffect(() => {
-    }, []);
-
-    // ─── Fetch data ─────────────────────────────────────────────────────────
-
     const [erroCarregar, setErroCarregar] = useState(false);
+
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
@@ -80,188 +47,104 @@ export default function PlanoCursoClient() {
                 fetch("/api/plano-curso").then(r => r.json()),
             ]);
             setCombos(compRes.componentes || []);
-            setIsMaster(compRes.is_master || false);
-            setProfessorName(compRes.professor?.name || "Professor");
+            setProfessorName(compRes.professor?.name || "");
             setPlanos(planosRes.planos || []);
             setErroCarregar(false);
         } catch {
-            setErroCarregar(true); // onda 5: antes a tela ficava vazia sem dizer por quê
+            setErroCarregar(true);
+        } finally {
+            setLoading(false);
         }
-        finally { setLoading(false); }
     }, []);
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
-    // ─── Helpers ────────────────────────────────────────────────────────────
+    const planosDe = (componente: string, serie: string) =>
+        planos.filter(p => p.disciplina === componente && p.ano_serie === serie)
+            .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
 
-    function getPlanoCount(componente: string, serie: string): number {
-        return planos.filter(p => p.disciplina === componente && p.ano_serie === serie).length;
-    }
-
-    function getLastUpdated(componente: string, serie: string): string | null {
-        const matching = planos.filter(p => p.disciplina === componente && p.ano_serie === serie);
-        if (matching.length === 0) return null;
-        matching.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
-        return matching[0].updated_at;
-    }
-
-    // Group combos by componente
-    const grouped = combos.reduce<Record<string, ComboItem[]>>((acc, c) => {
-        if (!acc[c.componente]) acc[c.componente] = [];
-        acc[c.componente].push(c);
+    const grupos = combos.reduce<Record<string, ComboItem[]>>((acc, c) => {
+        (acc[c.componente] ||= []).push(c);
         return acc;
     }, {});
 
-    // ─── Loading ────────────────────────────────────────────────────────────
-
-    if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center py-16 gap-3">
-                <OmniLoader variant="card" />
-            </div>
-        );
-    }
-
-    // ─── Editor view ────────────────────────────────────────────────────────
+    if (loading) return <TelaCarregando variante="secao" mensagens={["Buscando seus componentes e planos…"]} />;
 
     if (selectedCombo) {
         return (
-            <div className="flex flex-col gap-4">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => { setSelectedCombo(null); fetchData(); }}
-                    className="w-fit"
-                >
-                    <ChevronLeft size={16} /> Voltar aos componentes
-                </Button>
-
-                <PlanoCursoEditor
-                    componente={selectedCombo.componente}
-                    serie={selectedCombo.serie}
-                    onSaved={() => fetchData()}
-                />
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" style={{ alignSelf: "flex-start" }}
+                    onClick={() => { setSelectedCombo(null); fetchData(); }}>
+                    <ChevronLeft size={18} aria-hidden /> Voltar aos componentes
+                </button>
+                <PlanoCursoEditor componente={selectedCombo.componente} serie={selectedCombo.serie} onSaved={() => fetchData()} />
             </div>
         );
     }
 
-    // ─── Grid view ──────────────────────────────────────────────────────────
-
+    const n = combos.length;
     return (
-        <div className="flex flex-col gap-5">
-            {/* Onboarding Panel */}
-            {showOnboarding && (
-                <OnboardingPanel
-                    moduleKey="plano_curso"
-                    moduleTitle="Bem-vindo ao Plano de ensino"
-                    moduleSubtitle="Organize seu planejamento por componente e série"
-                    accentColor="#0ea5e9"
-                    accentColorLight="#38bdf8"
-                    steps={[
-                        { icon: <GraduationCap size={22} />, title: "Componente", description: "Selecione disciplina e série" },
-                        { icon: <ListChecks size={22} />, title: "Habilidades BNCC", description: "Escolha as habilidades do ano letivo" },
-                        { icon: <FileText size={22} />, title: "Conteúdo", description: "Descreva objetivos e metodologia" },
-                        { icon: <Save size={22} />, title: "Salvar", description: "Salve e disponibilize para o PEI" },
-                    ]}
-                    onStart={() => setShowOnboarding(false)}
-                />
-            )}
-
-            {/* Header — unified PageHero */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             <PageHero
                 route="/plano-curso"
                 title="Plano de ensino"
-                desc={`${professorName} · ${combos.length} componente${combos.length !== 1 ? "s" : ""}/série${combos.length !== 1 ? "s" : ""} vinculado${combos.length !== 1 ? "s" : ""}`}
+                desc={`${professorName ? `${professorName} · ` : ""}${n} ${n === 1 ? "componente e série vinculados" : "componentes e séries vinculados"}`}
             />
 
             {erroCarregar && (
                 <div className="omni-aviso omni-aviso--erro" role="alert" style={{ maxWidth: "none" }}>
                     <div><div className="omni-aviso__titulo">Não conseguimos carregar seus componentes e planos agora.</div>
-                    <div className="omni-aviso__texto">Recarregue a página para tentar de novo.</div></div>
+                        <div className="omni-aviso__texto">Recarregue a página para tentar de novo.</div></div>
                     <span />
                 </div>
             )}
-            {/* Empty state */}
-            {!erroCarregar && combos.length === 0 && (
-                <EmptyState
-                    icon={BookOpen}
-                    title="Nenhum componente vinculado"
-                    description="Você ainda não está vinculado a componentes curriculares e séries. Peça ao coordenador para cadastrar seus vínculos em Gestão de Usuários."
-                />
+
+            {!erroCarregar && n === 0 && (
+                <div className="omni-vazio" style={{ gridTemplateColumns: "minmax(0,1fr)" }}>
+                    <div className="omni-vazio__texto">
+                        <BookOpen size={40} aria-hidden style={{ color: "var(--tinta-3)" }} />
+                        <h2 className="omni-vazio__titulo" style={{ margin: 0 }}>Nenhum componente vinculado</h2>
+                        <p style={{ margin: 0 }}>Você ainda não está ligado a componentes e séries. Peça à coordenação para cadastrar seus vínculos em Gestão de usuários.</p>
+                    </div>
+                </div>
             )}
 
-            {/* Component groups */}
-            {Object.entries(grouped).map(([componente, items]) => {
-                const color = getColor(componente);
-                return (
-                    <div key={componente}>
-                        <div className="flex items-center gap-2 mb-3 pb-2" style={{ borderBottom: `2px solid ${color.border}` }}>
-                            <GraduationCap size={18} style={{ color: color.accent }} />
-                            <h3 className="text-base font-bold m-0" style={{ color: color.text }}>{componente}</h3>
-                            <Badge size="sm" style={{ background: color.bg, color: color.text }}>
-                                {items.length} série{items.length !== 1 ? "s" : ""}
-                            </Badge>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                            {items.map((item) => {
-                                const count = getPlanoCount(item.componente, item.serie);
-                                const lastUpdated = getLastUpdated(item.componente, item.serie);
-                                const hasPlanos = count > 0;
-
-                                return (
-                                    <Card
-                                        key={`${item.componente}:${item.serie}`}
-                                        variant="interactive"
-                                        padding="md"
-                                        className="cursor-pointer"
-                                        style={{
-                                            borderColor: hasPlanos ? color.border : undefined,
-                                            background: hasPlanos ? color.bg : undefined,
-                                        }}
-                                        onClick={() => setSelectedCombo(item)}
-                                    >
-                                        <div className="flex items-center justify-between w-full">
-                                            <span className="text-[15px] font-bold text-(--omni-text-primary)">
-                                                {item.serie}
-                                            </span>
-                                            {hasPlanos ? (
-                                                <CheckCircle2 size={16} style={{ color: color.accent }} />
-                                            ) : (
-                                                <Plus size={16} className="text-(--omni-text-muted)" />
-                                            )}
-                                        </div>
-
-                                        {item.classGroup && (
-                                            <span className="text-xs text-(--omni-text-muted) mt-1">
-                                                Turma {item.classGroup}
-                                            </span>
-                                        )}
-
-                                        {hasPlanos ? (
-                                            <div className="flex items-center gap-1.5 mt-2">
-                                                <FileText size={12} style={{ color: color.text }} />
-                                                <span className="text-xs font-semibold" style={{ color: color.text }}>
-                                                    {count} plano{count !== 1 ? "s" : ""}
-                                                </span>
-                                                {lastUpdated && (
-                                                    <span className="text-[10px] text-(--omni-text-muted)">
-                                                        · {new Date(lastUpdated).toLocaleDateString("pt-BR")}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <span className="text-xs text-(--omni-text-muted) mt-2">
-                                                Criar plano
-                                            </span>
-                                        )}
-                                    </Card>
-                                );
-                            })}
-                        </div>
+            {Object.entries(grupos).map(([componente, itens]) => (
+                <section key={componente} aria-labelledby={`pc-${componente}`} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", paddingBottom: 8, borderBottom: "1px solid var(--borda)" }}>
+                        <h2 id={`pc-${componente}`} style={{ margin: 0, font: "800 18px/24px var(--font-sans)", color: "var(--tinta)" }}>{componente}</h2>
+                        <span className="omni-apoio" style={{ fontSize: 14 }}>{itens.length} {itens.length === 1 ? "série" : "séries"}</span>
                     </div>
-                );
-            })}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
+                        {itens.map((item) => {
+                            const lista = planosDe(item.componente, item.serie);
+                            const tem = lista.length > 0;
+                            return (
+                                <button
+                                    key={`${item.componente}:${item.serie}`}
+                                    type="button"
+                                    className="omni-cartao"
+                                    onClick={() => setSelectedCombo(item)}
+                                    style={{ font: "inherit", textAlign: "left", cursor: "pointer", gap: 8, padding: 18 }}
+                                >
+                                    <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                                        <span className="omni-cartao__titulo">{item.serie}</span>
+                                        {tem ? <CheckCircle2 size={20} aria-hidden style={{ color: "var(--sucesso)" }} /> : <Plus size={20} aria-hidden style={{ color: "var(--acao)" }} />}
+                                    </span>
+                                    {item.classGroup && <span className="omni-apoio" style={{ fontSize: 14 }}>Turma {item.classGroup}</span>}
+                                    {tem ? (
+                                        <span className="omni-estado omni-estado--sucesso" style={{ alignSelf: "flex-start" }}>
+                                            {lista.length === 1 ? "Plano feito" : `${lista.length} planos`} · {new Date(lista[0].updated_at).toLocaleDateString("pt-BR")}
+                                        </span>
+                                    ) : (
+                                        <span className="omni-estado omni-estado--neutro" style={{ alignSelf: "flex-start" }}>Sem plano ainda</span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </section>
+            ))}
         </div>
     );
 }

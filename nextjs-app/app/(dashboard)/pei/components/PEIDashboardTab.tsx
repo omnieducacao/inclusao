@@ -1,5 +1,7 @@
 "use client";
 
+/** Onda 22: visual do design system — aviso inicial em omni-aviso (antes Tailwind azul), cores de situação por variáveis, carregando com CarregandoLinha. */
+
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { calcularProgresso } from "@/hooks/usePEIData";
@@ -14,7 +16,8 @@ import {
 } from "../lib/dashboard-helpers";
 
 import type { PEIData } from "@/lib/pei";
-import { AlertTriangle, Pill } from "lucide-react";
+import { AlertTriangle, Info, Pill } from "lucide-react";
+import { CarregandoLinha } from "@/components/brand/TelaCarregando";
 
 export function DashboardTab({
   peiData,
@@ -69,8 +72,10 @@ export function DashboardTab({
 
   if (!peiData.nome) {
     return (
-      <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-        <p className="text-blue-800 text-sm">Preencha os dados do estudante em Estudo de caso → Dados do estudante para ver o acompanhamento.</p>
+      <div className="omni-aviso omni-aviso--info" role="status" style={{ maxWidth: "none" }}>
+        <Info className="omni-aviso__icone" aria-hidden />
+        <p className="omni-aviso__texto" style={{ marginTop: 0, color: "var(--tinta)" }}>Preencha os dados do estudante em Estudo de caso → Dados do estudante para ver o acompanhamento.</p>
+        <span />
       </div>
     );
   }
@@ -100,7 +105,7 @@ export function DashboardTab({
 
   // Dados enriquecidos para os cards
   const progresso = calcularProgresso();
-  const progrColor = progresso >= 80 ? "#38A169" : progresso >= 50 ? "#D69E2E" : "#E53E3E";
+  const progrColor = progresso >= 80 ? "var(--sucesso)" : progresso >= 50 ? "var(--atencao)" : "var(--erro)";
 
   const diagTxt = (peiData.diagnostico || "Não informado").toString().slice(0, 60);
   const detalhesDiag = (peiData.detalhes_diagnostico || {}) as Record<string, string | string[]>;
@@ -112,7 +117,7 @@ export function DashboardTab({
   const habBncc = peiData.habilidades_bncc_validadas || peiData.habilidades_bncc_selecionadas || [];
   const bnccEI = peiData.bncc_ei_objetivos || [];
   const nHabBncc = (Array.isArray(habBncc) ? habBncc.length : 0) + (Array.isArray(bnccEI) ? bnccEI.length : 0);
-  const bnccColor = nHabBncc > 0 ? "#38A169" : "#CBD5E0";
+  const bnccColor = nHabBncc > 0 ? "var(--sucesso)" : "var(--borda-forte)";
 
   // LBI Compliance
   const lbiChecks = [
@@ -127,7 +132,7 @@ export function DashboardTab({
   ];
   const lbiOk = lbiChecks.filter(c => c.ok).length;
   const lbiPct = Math.round((lbiOk / lbiChecks.length) * 100);
-  const lbiColor = lbiPct >= 75 ? "#38A169" : lbiPct >= 50 ? "#D69E2E" : "#E53E3E";
+  const lbiColor = lbiPct >= 75 ? "var(--sucesso)" : lbiPct >= 50 ? "var(--atencao)" : "var(--erro)";
 
   const nEstratTotal = (peiData.estrategias_acesso || []).length + (peiData.estrategias_ensino || []).length + (peiData.estrategias_avaliacao || []).length;
   const nivelAlfab = peiData.nivel_alfabetizacao || "";
@@ -229,7 +234,7 @@ export function DashboardTab({
           )}
         </div>
         {evolucaoProcessualLoading ? (
-          <p className="omni-apoio" style={{ margin: 0 }}>Carregando a evolução…</p>
+          <CarregandoLinha texto="Carregando a evolução…" />
         ) : evolucaoProcessual && evolucaoProcessual.resumo.total_registros > 0 ? (
           <ul className="flex flex-wrap gap-2" style={{ listStyle: "none", margin: 0, padding: 0 }}>
             {evolucaoProcessual.evolucao.map((e) => (

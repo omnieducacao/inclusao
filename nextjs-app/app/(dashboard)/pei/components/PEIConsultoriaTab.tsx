@@ -4,7 +4,6 @@ import { useConfirmar } from "@/components/Confirmar";
 import React, { useState, useEffect } from "react";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { EngineSelector } from "@/components/EngineSelector";
-import { OmniLoader } from "@/components/OmniLoader";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { detectarNivelEnsino } from "@/lib/pei";
 import type { PEIData } from "@/lib/pei";
@@ -70,12 +69,12 @@ export function ConsultoriaTab({
 
   const nivel = detectarNivelEnsinoLocal(serie);
   const segmentoInfo: Record<string, { nome: string; cor: string; desc: string }> = {
-    EI: { nome: "EI — Educação Infantil", cor: "#4299e1", desc: "Foco: Campos de Experiência (BNCC) e rotina estruturante." },
-    EFI: { nome: "EFAI — Ensino Fundamental Anos Iniciais", cor: "#48bb78", desc: "Foco: alfabetização, numeracia e consolidação de habilidades basais." },
-    EFII: { nome: "EFAF — Ensino Fundamental Anos Finais", cor: "#ed8936", desc: "Foco: autonomia, funções executivas, organização e aprofundamento conceitual." },
-    EM: { nome: "EM — Ensino Médio / EJA", cor: "#9f7aea", desc: "Foco: projeto de vida, áreas do conhecimento e estratégias de estudo." },
+    EI: { nome: "EI — Educação Infantil", cor: "var(--encontro-azul)", desc: "Foco: Campos de Experiência (BNCC) e rotina estruturante." },
+    EFI: { nome: "EFAI — Ensino Fundamental Anos Iniciais", cor: "var(--encontro-verde)", desc: "Foco: alfabetização, numeracia e consolidação de habilidades basais." },
+    EFII: { nome: "EFAF — Ensino Fundamental Anos Finais", cor: "var(--encontro-laranja)", desc: "Foco: autonomia, funções executivas, organização e aprofundamento conceitual." },
+    EM: { nome: "EM — Ensino Médio / EJA", cor: "var(--encontro-roxo)", desc: "Foco: projeto de vida, áreas do conhecimento e estratégias de estudo." },
   };
-  const segInfo = segmentoInfo[nivel] || { nome: "Selecione a Série/Ano", cor: "#718096", desc: "Aguardando seleção..." };
+  const segInfo = segmentoInfo[nivel] || { nome: "Selecione a Série/Ano", cor: "var(--tinta-3)", desc: "Aguardando seleção..." };
 
   const gerar = async (modoPratico: boolean, feedback?: string) => {
     if (!serie) {

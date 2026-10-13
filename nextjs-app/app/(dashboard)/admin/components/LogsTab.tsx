@@ -1,5 +1,5 @@
 "use client";
-import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Loader2, Play, Pause, X, Megaphone, Download, Camera, ExternalLink, ScrollText, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Play, Pause, X, Megaphone, Download, Camera, ExternalLink, ScrollText, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { OmniLoader } from "@/components/OmniLoader";
 import { LottieIcon } from "@/components/LottieIcon";
@@ -92,7 +92,7 @@ export function LogsTab({ workspaces }: { workspaces: Workspace[] }) {
       {/* Tabela */}
       {loading ? (
         <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, padding: "24px 0" }}>
-          <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando registros…
+          <OmniLoader size={20} /> Carregando registros…
         </p>
       ) : logs.length === 0 ? (
         <p className="omni-apoio" style={{ textAlign: "center", padding: "24px 0" }}>Nenhum registro encontrado.</p>

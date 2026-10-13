@@ -1,37 +1,44 @@
 "use client";
 
+/**
+ * Onda 22: visual do design system.
+ * Saíram o Button do @omni/ds e as cores antigas (hex, rgba, variáveis --bg e --text). Agora usa omni-base,
+ * omni-aviso e omni-btn, com texto curto dizendo o que aconteceu e o que fazer.
+ */
 import React from "react";
-import { WifiOff, ArrowLeft } from "lucide-react";
-import { Button } from "@omni/ds";
+import { WifiOff, RotateCw } from "lucide-react";
 
 export default function OfflinePage() {
     return (
-        <div style={{
-            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-            minHeight: "100vh", backgroundColor: "var(--bg-primary, #0f172a)", color: "var(--text-primary, #f8fafc)",
-            padding: 24, textAlign: "center"
-        }}>
-            <div style={{
-                width: 80, height: 80, borderRadius: "50%", background: "rgba(239, 68, 68, 0.1)",
-                display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24
-            }}>
-                <WifiOff size={40} style={{ color: "#ef4444" }} />
+        <main
+            className="omni-base"
+            style={{
+                minHeight: "100vh",
+                display: "grid",
+                placeItems: "center",
+                padding: "var(--space-6) var(--space-4)",
+                background: "var(--fundo)",
+            }}
+        >
+            <div className="omni-aviso omni-aviso--atencao" role="status" style={{ width: "100%" }}>
+                <WifiOff className="omni-aviso__icone" aria-hidden style={{ width: 22, height: 22 }} />
+                <div>
+                    <h1 className="omni-aviso__titulo" style={{ margin: 0 }}>Você está sem internet</h1>
+                    <p className="omni-aviso__texto" style={{ margin: 0 }}>
+                        A Omnisfera precisa de conexão para abrir esta página. O que já foi salvo continua guardado.
+                        Confira o Wi-Fi ou os dados móveis e tente de novo.
+                    </p>
+                    <div className="omni-aviso__acoes">
+                        <button
+                            type="button"
+                            className="omni-btn omni-btn--primario omni-btn--pequeno"
+                            onClick={() => window.location.reload()}
+                        >
+                            <RotateCw aria-hidden /> Tentar de novo
+                        </button>
+                    </div>
+                </div>
             </div>
-
-            <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>Você está offline</h1>
-
-            <p style={{ color: "var(--text-secondary, #94a3b8)", maxWidth: 400, marginBottom: 32, lineHeight: 1.6 }}>
-                A Omnisfera não conseguiu conectar à internet. O aplicativo tentará se reconectar automaticamente
-                assim que a rede for restabelecida, caso a estratégia nativa detecte sua estabilidade.
-            </p>
-
-            <Button
-                variant="primary"
-                onClick={() => window.location.reload()}
-                style={{ display: "flex", alignItems: "center", gap: 8 }}
-            >
-                <ArrowLeft size={16} /> Tentar Reconectar
-            </Button>
-        </div>
+        </main>
     );
 }

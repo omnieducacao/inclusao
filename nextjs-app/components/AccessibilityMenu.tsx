@@ -1,17 +1,21 @@
 "use client";
 
+/** Onda 22: visual do design system — as amostras de tema deixaram de ter hex: cada uma usa data-theme + variáveis. */
+
 import { useState, useRef, useEffect } from "react";
 import { useTheme } from "./ThemeProvider";
 import { Settings2, Eye, Type, Droplet, Moon, Sun, Check, NotebookPen } from "lucide-react";
 import type { PreferenciaTema } from "./ThemeProvider";
 
-// Amostras: o fundo, o texto e a ação de cada tema (valores de tokens.json do design system)
-// "Automático" (padrão) segue o modo claro/escuro do computador ou do celular
-const TEMAS: Array<{ id: PreferenciaTema; nome: string; fundo: string; tinta: string; acao: string }> = [
-    { id: "auto", nome: "Automático", fundo: "linear-gradient(90deg, #f6f4f0 50%, #0d1526 50%)", tinta: "#5d6a80", acao: "#7db6f2" },
-    { id: "light", nome: "Claro", fundo: "#f6f4f0", tinta: "#1b2a4a", acao: "#1d5f9f" },
-    { id: "notebook", nome: "Caderno", fundo: "#faf6f1", tinta: "#1c1917", acao: "#1b5894" },
-    { id: "dark", nome: "Escuro", fundo: "#0d1526", tinta: "#eef1f6", acao: "#7db6f2" },
+// Amostras: o fundo, o texto e a ação de cada tema. Em vez de hex, cada amostra recebe o data-theme do tema
+// que mostra, e as variáveis (--fundo, --tinta, --acao) resolvem para os valores daquele tema, seja qual for o tema atual.
+// "Automático" (padrão) segue o modo claro/escuro do computador ou do celular: metade Claro, metade Escuro.
+type TemaAmostra = "light" | "notebook" | "dark";
+const TEMAS: Array<{ id: PreferenciaTema; nome: string; amostra: TemaAmostra }> = [
+    { id: "auto", nome: "Automático", amostra: "light" },
+    { id: "light", nome: "Claro", amostra: "light" },
+    { id: "notebook", nome: "Caderno", amostra: "notebook" },
+    { id: "dark", nome: "Escuro", amostra: "dark" },
 ];
 
 export function AccessibilityMenu() {
@@ -111,10 +115,18 @@ export function AccessibilityMenu() {
                             {TEMAS.map((t) => (
                                 <label key={t.id} className="omni-tema">
                                     <input type="radio" name="omni-tema" value={t.id} checked={preferencia === t.id} onChange={() => setPreferencia(t.id)} />
-                                    <span className="omni-tema__amostra" style={{ background: t.fundo }} aria-hidden="true">
-                                        <i style={{ width: "45%", background: t.tinta }} />
-                                        <i style={{ width: "25%", background: t.acao }} />
-                                    </span>
+                                    {t.id === "auto" ? (
+                                        <span className="omni-tema__amostra" data-theme="light" style={{ background: "var(--fundo)", position: "relative", overflow: "hidden" }} aria-hidden="true">
+                                            <span data-theme="dark" style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "50%", background: "var(--fundo)" }} />
+                                            <i data-theme="light" style={{ position: "relative", width: "45%", background: "var(--tinta-3)" }} />
+                                            <i data-theme="dark" style={{ position: "relative", width: "25%", background: "var(--acao)" }} />
+                                        </span>
+                                    ) : (
+                                        <span className="omni-tema__amostra" data-theme={t.amostra} style={{ background: "var(--fundo)" }} aria-hidden="true">
+                                            <i style={{ width: "45%", background: "var(--tinta)" }} />
+                                            <i style={{ width: "25%", background: "var(--acao)" }} />
+                                        </span>
+                                    )}
                                     {t.nome}
                                 </label>
                             ))}

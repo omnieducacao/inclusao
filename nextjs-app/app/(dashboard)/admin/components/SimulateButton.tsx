@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Loader2, Play, Pause, X, Megaphone, Download, Camera, ExternalLink } from 'lucide-react';
+import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Play, Pause, X, Megaphone, Download, Camera, ExternalLink } from 'lucide-react';
 
 import { OmniLoader } from "@/components/OmniLoader";
 import { LottieIcon } from "@/components/LottieIcon";
@@ -53,7 +53,7 @@ export function SimulateButton({ workspaceId, workspaceName }: { workspaceId: st
         disabled={loading}
         className="omni-btn omni-btn--secundario omni-btn--pequeno"
       >
-        {loading ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <Eye size={16} aria-hidden />}
+        {loading ? <OmniLoader size={16} /> : <Eye size={16} aria-hidden />}
         Simular
       </button>
       {erro && (

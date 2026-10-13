@@ -7,6 +7,7 @@
  * Agora a evolução vem da avaliação por descritor: a diagnóstica de cada componente e os
  * períodos registrados na processual. O diário de bordo aparece em resumo dos últimos 60 dias.
  */
+import TelaCarregando from "@/components/brand/TelaCarregando";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -232,7 +233,7 @@ function Numero({ rotulo, valor, tom }: { rotulo: string; valor: string; tom?: "
 
 export function MonitoramentoClient({ students, studentId, student }: Props) {
   return (
-    <Suspense fallback={<p className="omni-apoio" role="status">Carregando…</p>}>
+    <Suspense fallback={<TelaCarregando variante="secao" mensagens={["Abrindo o monitoramento…"]} />}>
       <MonitoramentoClientInner students={students} studentId={studentId} student={student} />
     </Suspense>
   );

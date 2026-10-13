@@ -1,5 +1,5 @@
 "use client";
-import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Loader2, Play, Pause, X, Megaphone, Download, Camera, ExternalLink } from 'lucide-react';
+import { Save, Plus, Trash2, Edit2, CheckCircle2, XCircle, AlertTriangle, Eye, Activity, Database, Users, Settings, Lock, FileText, Smartphone, Image as ImageIcon, Link2, Share2, Upload, Play, Pause, X, Megaphone, Download, Camera, ExternalLink } from 'lucide-react';
 
 import { OmniLoader } from "@/components/OmniLoader";
 import { LottieIcon } from "@/components/LottieIcon";
@@ -74,7 +74,7 @@ export function TermoTab() {
     return (
       <div className="omni-cartao">
         <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, padding: "24px 0" }}>
-          <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando termo…
+          <OmniLoader size={20} /> Carregando termo…
         </p>
       </div>
     );
@@ -106,7 +106,7 @@ export function TermoTab() {
             disabled={saving}
             className="omni-btn omni-btn--primario"
           >
-            {saving ? <Loader2 size={18} className="animate-spin" aria-hidden /> : <Save size={18} aria-hidden />}
+            {saving ? <OmniLoader size={18} /> : <Save size={18} aria-hidden />}
             Salvar termo
           </button>
         </div>

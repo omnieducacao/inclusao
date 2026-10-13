@@ -1,13 +1,14 @@
 "use client";
-import React from "react";
-import { ESCALA_OMNISFERA, NivelOmnisfera } from "@/lib/omnisfera-types";
-
 /**
- * Visual rubric guide for level attribution.
- * Shows all 5 Omnisfera levels with support level, description, recommended instrument,
- * AND the corresponding qualitative level (Guia MEC) with score range.
- * Highlights the currently selected level.
+ * Onda 22: visual do design system — cores dos níveis pelas cores do símbolo (--encontro-*),
+ * superfícies e textos por variáveis, seleção com aria-pressed, linhas clicáveis viram botões.
+ *
+ * Guia visual da rubrica para atribuir o nível: os 5 níveis Omnisfera com suporte, descrição,
+ * instrumento recomendado e o nível qualitativo correspondente (Guia MEC, do Ministério da Educação) com a faixa.
  */
+import React from "react";
+import { BarChart3, Wrench } from "lucide-react";
+import { ESCALA_OMNISFERA, NivelOmnisfera } from "@/lib/omnisfera-types";
 
 interface RubricaOmnisferaProps {
     nivelAtual?: NivelOmnisfera;
@@ -15,17 +16,18 @@ interface RubricaOmnisferaProps {
     compact?: boolean;
 }
 
-const LEVEL_COLORS: Record<NivelOmnisfera, { bg: string; border: string; text: string; gradient: string }> = {
-    0: { bg: "rgba(239,68,68,.06)", border: "rgba(239,68,68,.25)", text: "#ef4444", gradient: "linear-gradient(135deg, #dc2626, #ef4444)" },
-    1: { bg: "rgba(245,158,11,.06)", border: "rgba(245,158,11,.25)", text: "#f59e0b", gradient: "linear-gradient(135deg, #d97706, #f59e0b)" },
-    2: { bg: "rgba(59,130,246,.06)", border: "rgba(59,130,246,.25)", text: "#3b82f6", gradient: "linear-gradient(135deg, #2563eb, #3b82f6)" },
-    3: { bg: "rgba(16,185,129,.06)", border: "rgba(16,185,129,.25)", text: "#10b981", gradient: "linear-gradient(135deg, #059669, #10b981)" },
-    4: { bg: "rgba(99,102,241,.06)", border: "rgba(99,102,241,.25)", text: "#6366f1", gradient: "linear-gradient(135deg, #4f46e5, #6366f1)" },
+/* forte: texto e contorno; suave: fundo; pura + sobre: o círculo do nível escolhido (maior contraste) */
+const LEVEL_COLORS: Record<NivelOmnisfera, { forte: string; suave: string; pura: string; sobre: string }> = {
+    0: { forte: "var(--encontro-vermelho-forte)", suave: "var(--encontro-vermelho-suave)", pura: "var(--encontro-vermelho)", sobre: "var(--sobre-encontro-claro)" },
+    1: { forte: "var(--encontro-amarelo-forte)", suave: "var(--encontro-amarelo-suave)", pura: "var(--encontro-amarelo)", sobre: "var(--sobre-encontro)" },
+    2: { forte: "var(--encontro-azul-forte)", suave: "var(--encontro-azul-suave)", pura: "var(--encontro-azul)", sobre: "var(--sobre-encontro-claro)" },
+    3: { forte: "var(--encontro-verde-forte)", suave: "var(--encontro-verde-suave)", pura: "var(--encontro-verde)", sobre: "var(--sobre-encontro)" },
+    4: { forte: "var(--encontro-roxo-forte)", suave: "var(--encontro-roxo-suave)", pura: "var(--encontro-roxo)", sobre: "var(--sobre-encontro-claro)" },
 };
 
 /**
- * Mapping Omnisfera levels → Guia MEC qualitative levels (aligned thresholds).
- * Thresholds: <25%=0, 25-49%=1, 50-69%=2, 70-89%=3, ≥90%=4
+ * Níveis Omnisfera → níveis qualitativos do Guia MEC (faixas alinhadas).
+ * Faixas: <25%=0, 25-49%=1, 50-69%=2, 70-89%=3, ≥90%=4
  */
 const NIVEL_QUALITATIVO: Record<NivelOmnisfera, { label: string; faixa: string; grupo: string }> = {
     0: { label: "Em Processo", faixa: "<25%", grupo: "Defasagem" },
@@ -38,13 +40,22 @@ const NIVEL_QUALITATIVO: Record<NivelOmnisfera, { label: string; faixa: string; 
 export function RubricaOmnisfera({ nivelAtual, onSelect, compact }: RubricaOmnisferaProps) {
     const levels = [0, 1, 2, 3, 4] as NivelOmnisfera[];
 
+    const circulo = (n: NivelOmnisfera, tam: number, selected: boolean): React.CSSProperties => {
+        const c = LEVEL_COLORS[n];
+        return {
+            width: tam, height: tam, borderRadius: "50%", flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: selected ? c.pura : "transparent",
+            color: selected ? c.sobre : c.forte,
+            border: selected ? "none" : `1.5px solid ${c.forte}`,
+            fontSize: tam > 26 ? 14 : 12, fontWeight: 800,
+        };
+    };
+
     if (compact) {
-        // Compact: horizontal level selector (no rubric content)
+        // Compacto: seletor horizontal de nível (sem o conteúdo da rubrica)
         return (
-            <div style={{
-                display: "flex", gap: 6, flexWrap: "wrap",
-                padding: "8px 0",
-            }}>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", padding: "8px 0" }}>
                 {levels.map(n => {
                     const c = LEVEL_COLORS[n];
                     const esc = ESCALA_OMNISFERA[n];
@@ -53,30 +64,23 @@ export function RubricaOmnisfera({ nivelAtual, onSelect, compact }: RubricaOmnis
                     return (
                         <button
                             key={n}
+                            type="button"
                             onClick={() => onSelect?.(n)}
                             aria-label={`Selecionar nível ${n}`}
+                            aria-pressed={selected}
                             title={`${esc.label}: ${esc.descricao} | ${nq.label} (${nq.faixa})`}
                             style={{
-                                flex: 1, minWidth: 70, padding: "8px 6px", borderRadius: 10,
-                                border: selected ? `2px solid ${c.text}` : `1px solid ${c.border}`,
-                                background: selected ? c.bg : "transparent",
+                                flex: 1, minWidth: 70, padding: "8px 6px", borderRadius: "var(--o-radius-md)",
+                                border: selected ? `2px solid ${c.forte}` : "1px solid var(--borda)",
+                                background: selected ? c.suave : "var(--superficie)",
                                 cursor: onSelect ? "pointer" : "default",
-                                transition: "all .2s",
+                                transition: "background-color var(--duracao-rapida), border-color var(--duracao-rapida)",
                                 textAlign: "center",
                             }}
                         >
-                            <div style={{
-                                width: 24, height: 24, borderRadius: "50%", margin: "0 auto 4px",
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                background: selected ? c.gradient : "transparent",
-                                color: selected ? "#fff" : c.text,
-                                fontSize: 12, fontWeight: 800,
-                                border: selected ? "none" : `1.5px solid ${c.border}`,
-                            }}>
-                                {n}
-                            </div>
-                            <div style={{ fontSize: 10, fontWeight: 700, color: c.text }}>{esc.label}</div>
-                            <div style={{ fontSize: 8, color: c.text, opacity: .7 }}>{nq.faixa}</div>
+                            <div style={{ ...circulo(n, 24, selected), margin: "0 auto 4px" }}>{n}</div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: c.forte }}>{esc.label}</div>
+                            <div className="omni-dado" style={{ fontSize: 11, lineHeight: "14px", color: "var(--tinta-3)" }}>{nq.faixa}</div>
                         </button>
                     );
                 })}
@@ -84,20 +88,18 @@ export function RubricaOmnisfera({ nivelAtual, onSelect, compact }: RubricaOmnis
         );
     }
 
-    // Full rubric view
+    // Rubrica completa
     return (
-        <div style={{
-            borderRadius: 12, overflow: "hidden",
-            border: "1px solid var(--border-default, rgba(148,163,184,.12))",
-        }}>
+        <div style={{ borderRadius: "var(--o-radius-md)", overflow: "hidden", border: "1px solid var(--borda)", background: "var(--superficie)" }}>
             <div style={{
                 padding: "10px 14px",
-                background: "var(--bg-tertiary, rgba(15,23,42,.5))",
-                borderBottom: "1px solid var(--border-default, rgba(148,163,184,.12))",
-                fontSize: 12, fontWeight: 700, color: "var(--text-primary)",
+                background: "var(--superficie-2)",
+                borderBottom: "1px solid var(--borda)",
+                fontSize: 13, fontWeight: 700, color: "var(--tinta)",
                 display: "flex", alignItems: "center", gap: 6,
             }}>
-                📊 Rubrica de Correção — Escala Omnisfera + Guia MEC
+                <BarChart3 size={16} aria-hidden="true" style={{ color: "var(--tinta-2)" }} />
+                Rubrica de correção: escala Omnisfera e Guia MEC
             </div>
             <div style={{ padding: 0 }}>
                 {levels.map(n => {
@@ -105,68 +107,51 @@ export function RubricaOmnisfera({ nivelAtual, onSelect, compact }: RubricaOmnis
                     const esc = ESCALA_OMNISFERA[n];
                     const nq = NIVEL_QUALITATIVO[n];
                     const selected = nivelAtual === n;
+                    const Tag = onSelect ? "button" : "div";
 
                     return (
-                        <div
+                        <Tag
                             key={n}
-                            onClick={() => onSelect?.(n)}
+                            {...(onSelect ? { type: "button" as const, onClick: () => onSelect(n), "aria-pressed": selected } : {})}
                             style={{
-                                display: "flex", alignItems: "flex-start", gap: 12,
+                                display: "flex", alignItems: "flex-start", gap: 12, width: "100%", textAlign: "left",
+                                font: "inherit", border: 0,
                                 padding: "10px 14px",
-                                background: selected ? c.bg : "transparent",
-                                borderBottom: n < 4 ? "1px solid var(--border-default, rgba(148,163,184,.08))" : "none",
+                                background: selected ? c.suave : "transparent",
+                                borderBottom: n < 4 ? "1px solid var(--borda)" : "none",
                                 cursor: onSelect ? "pointer" : "default",
-                                transition: "all .15s",
-                                borderLeft: selected ? `3px solid ${c.text}` : "3px solid transparent",
+                                transition: "background-color var(--duracao-rapida)",
+                                borderLeft: selected ? `3px solid ${c.forte}` : "3px solid transparent",
                             }}
                         >
-                            {/* Level badge */}
-                            <div style={{
-                                width: 30, height: 30, borderRadius: "50%", flexShrink: 0,
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                background: selected ? c.gradient : "transparent",
-                                border: selected ? "none" : `1.5px solid ${c.border}`,
-                                color: selected ? "#fff" : c.text,
-                                fontSize: 14, fontWeight: 800,
-                                marginTop: 2,
-                            }}>
-                                {n}
-                            </div>
+                            <div style={{ ...circulo(n, 30, selected), marginTop: 2 }}>{n}</div>
 
-                            {/* Content */}
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2, flexWrap: "wrap" }}>
-                                    <span style={{ fontSize: 13, fontWeight: 700, color: selected ? c.text : "var(--text-primary)" }}>
+                                    <span style={{ fontSize: 14, fontWeight: 700, color: selected ? c.forte : "var(--tinta)" }}>
                                         {esc.label}
                                     </span>
-                                    <span style={{
-                                        fontSize: 9, fontWeight: 600, padding: "1px 5px", borderRadius: 4,
-                                        background: `${c.text}15`, color: c.text,
-                                    }}>
+                                    <span className="omni-estado" style={{ minHeight: 20, padding: "1px 8px", fontSize: 11, lineHeight: "16px", background: c.suave, color: c.forte }}>
                                         {esc.suporte_correspondente}
                                     </span>
-                                    {/* MEC qualitative level badge */}
-                                    <span style={{
-                                        fontSize: 8, fontWeight: 700, padding: "1px 6px", borderRadius: 4,
-                                        background: `${c.text}10`, color: c.text, border: `1px solid ${c.border}`,
-                                        letterSpacing: ".3px", textTransform: "uppercase",
-                                    }}>
+                                    {/* Nível qualitativo do Guia MEC */}
+                                    <span className="omni-rotulo" style={{ fontSize: 10, lineHeight: "14px", padding: "1px 6px", borderRadius: "var(--o-radius-xs)", border: `1px solid ${c.forte}`, color: c.forte }}>
                                         {nq.label} • {nq.faixa}
                                     </span>
                                 </div>
-                                <div style={{ fontSize: 12, color: "var(--text-secondary, #94a3b8)", lineHeight: 1.5 }}>
+                                <div className="omni-apoio" style={{ fontSize: 13 }}>
                                     {esc.descricao}
                                 </div>
                                 <div style={{ display: "flex", gap: 8, marginTop: 4, flexWrap: "wrap", alignItems: "center" }}>
-                                    <span style={{ fontSize: 10, color: "var(--text-muted, #64748b)", fontStyle: "italic" }}>
-                                        🔧 {esc.instrumento_recomendado}
+                                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "var(--tinta-3)", fontStyle: "italic" }}>
+                                        <Wrench size={12} aria-hidden="true" /> {esc.instrumento_recomendado}
                                     </span>
-                                    <span style={{ fontSize: 9, color: c.text, opacity: .6 }}>
+                                    <span style={{ fontSize: 12, color: "var(--tinta-3)" }}>
                                         | Grupo: {nq.grupo}
                                     </span>
                                 </div>
                             </div>
-                        </div>
+                        </Tag>
                     );
                 })}
             </div>

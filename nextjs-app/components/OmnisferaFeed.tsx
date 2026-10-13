@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+/**
+ * Onda 22: visual do design system.
+ * Feed em omni-cartao, categorias com omni-estado, carregando em omni-esqueleto,
+ * ícones lucide no lugar do phosphor e cores só por variáveis (nada de hex/rgba).
+ */
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import type { Icon } from "phosphor-react";
+import { Megaphone, Info, PartyPopper, Building2, ExternalLink, ChevronLeft, ChevronRight, type LucideIcon } from "lucide-react";
 
 type FeedPost = {
     id: string;
@@ -14,11 +19,11 @@ type FeedPost = {
     created_at: string;
 };
 
-const CATEGORY_LABELS: Record<string, { label: string; color: string; iconName: string }> = {
-    instagram: { label: "Feed Integrado", color: "#6366f1", iconName: "Megaphone" },
-    informativo: { label: "Informativo", color: "#3b82f6", iconName: "Info" },
-    comemorativo: { label: "Data Comemorativa", color: "#f59e0b", iconName: "Confetti" },
-    institucional: { label: "Institucional", color: "#8b5cf6", iconName: "BuildingOffice" },
+const CATEGORY_LABELS: Record<string, { label: string; cor: string; suave: string; Icone: LucideIcon }> = {
+    instagram: { label: "Feed integrado", cor: "var(--encontro-roxo-forte)", suave: "var(--encontro-roxo-suave)", Icone: Megaphone },
+    informativo: { label: "Informativo", cor: "var(--info)", suave: "var(--info-suave)", Icone: Info },
+    comemorativo: { label: "Data comemorativa", cor: "var(--atencao)", suave: "var(--atencao-suave)", Icone: PartyPopper },
+    institucional: { label: "Institucional", cor: "var(--encontro-azul-forte)", suave: "var(--encontro-azul-suave)", Icone: Building2 },
 };
 
 function timeAgo(dateStr: string): string {
@@ -39,7 +44,14 @@ function timeAgo(dateStr: string): string {
     return diffM <= 1 ? "há 1 mês" : `há ${diffM} meses`;
 }
 
-// Image carousel for a single post
+/* Botões e selos sobre a foto: fundo "noite" levemente transparente, texto "sobre-noite" */
+const sobreFoto: React.CSSProperties = {
+    background: "var(--noite)",
+    color: "var(--sobre-noite)",
+    opacity: 0.85,
+};
+
+// Carrossel de imagens de um post
 function PostCarousel({ images }: { images: string[] }) {
     const [current, setCurrent] = useState(0);
     const touchStartX = useRef(0);
@@ -48,15 +60,14 @@ function PostCarousel({ images }: { images: string[] }) {
 
     return (
         <div
-            className="relative w-full overflow-hidden rounded-xl"
-            style={{ aspectRatio: "1 / 1", backgroundColor: "var(--bg-tertiary)" }}
+            className="relative w-full overflow-hidden"
+            style={{ aspectRatio: "1 / 1", background: "var(--superficie-2)", borderRadius: "var(--o-radius-md)" }}
             onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
             onTouchEnd={(e) => {
                 const diff = touchStartX.current - e.changedTouches[0].clientX;
                 if (Math.abs(diff) > 50) goTo(current + (diff > 0 ? 1 : -1));
             }}
         >
-            {/* Image */}
             <div
                 className="flex transition-transform duration-300 ease-out h-full"
                 style={{ transform: `translateX(-${current * (100 / images.length)}%)`, width: `${images.length * 100}%` }}
@@ -65,7 +76,7 @@ function PostCarousel({ images }: { images: string[] }) {
                     <div key={i} className="relative w-full h-full shrink-0" style={{ width: `${100 / images.length}%` }}>
                         <Image
                             src={url}
-                            alt={`Slide ${i + 1}`}
+                            alt={`Imagem ${i + 1} de ${images.length}`}
                             fill
                             className="object-cover"
                             sizes="(max-width: 768px) 100vw, 400px"
@@ -75,66 +86,54 @@ function PostCarousel({ images }: { images: string[] }) {
                 ))}
             </div>
 
-            {/* Navigation arrows */}
             {images.length > 1 && (
                 <>
                     {current > 0 && (
                         <button
                             type="button"
                             onClick={() => goTo(current - 1)}
-                            aria-label="Slide anterior"
-                            className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center transition-all hover:scale-110"
-                            style={{ backgroundColor: "rgba(0,0,0,0.5)", color: "white", backdropFilter: "blur(4px)" }}
+                            aria-label="Imagem anterior"
+                            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center"
+                            style={sobreFoto}
                         >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                <path d="M15 19l-7-7 7-7" />
-                            </svg>
+                            <ChevronLeft size={16} aria-hidden="true" />
                         </button>
                     )}
                     {current < images.length - 1 && (
                         <button
                             type="button"
                             onClick={() => goTo(current + 1)}
-                            aria-label="Próximo slide"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center transition-all hover:scale-110"
-                            style={{ backgroundColor: "rgba(0,0,0,0.5)", color: "white", backdropFilter: "blur(4px)" }}
+                            aria-label="Próxima imagem"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center"
+                            style={sobreFoto}
                         >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                <path d="M9 5l7 7-7 7" />
-                            </svg>
+                            <ChevronRight size={16} aria-hidden="true" />
                         </button>
                     )}
+
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+                        {images.map((_, i) => (
+                            <button
+                                key={i}
+                                type="button"
+                                onClick={() => goTo(i)}
+                                aria-label={`Ir para a imagem ${i + 1}`}
+                                aria-current={i === current ? "true" : undefined}
+                                className="rounded-full transition-all duration-200"
+                                style={{
+                                    width: i === current ? "16px" : "6px",
+                                    height: "6px",
+                                    background: "var(--sobre-noite)",
+                                    opacity: i === current ? 1 : 0.55,
+                                }}
+                            />
+                        ))}
+                    </div>
+
+                    <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full omni-dado" style={{ ...sobreFoto, fontSize: 12 }}>
+                        {current + 1}/{images.length}
+                    </div>
                 </>
-            )}
-
-            {/* Dots indicator */}
-            {images.length > 1 && (
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
-                    {images.map((_, i) => (
-                        <button
-                            key={i}
-                            type="button"
-                            onClick={() => goTo(i)}
-                            aria-label={`Ir para slide ${i + 1}`}
-                            className="rounded-full transition-all duration-200"
-                            style={{
-                                width: i === current ? "16px" : "6px",
-                                height: "6px",
-                                backgroundColor: i === current ? "white" : "rgba(255,255,255,0.5)",
-                            }}
-                        />
-                    ))}
-                </div>
-            )}
-
-            {/* Slide counter */}
-            {images.length > 1 && (
-                <div
-                    className="absolute top-2 right-2 px-2 py-0.5 rounded-full omni-label-xs font-bold"
-                    style={{ backgroundColor: "rgba(0,0,0,0.5)", color: "white" }}
-                >
-                    {current + 1}/{images.length}
-                </div>
             )}
         </div>
     );
@@ -143,7 +142,6 @@ function PostCarousel({ images }: { images: string[] }) {
 export function OmnisferaFeed() {
     const [posts, setPosts] = useState<FeedPost[]>([]);
     const [loading, setLoading] = useState(true);
-    const [icons, setIcons] = useState<Record<string, Icon>>({});
 
     useEffect(() => {
         fetch("/api/instagram-feed")
@@ -151,147 +149,93 @@ export function OmnisferaFeed() {
             .then((data) => setPosts(data.posts || []))
             .catch(() => setPosts([]))
             .finally(() => setLoading(false));
-
-        if (typeof window !== "undefined") {
-            import("phosphor-react").then((phosphor) => {
-                setIcons({
-                    Info: phosphor.Info,
-                    Confetti: phosphor.Confetti,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    BuildingOffice: (phosphor as unknown as Record<string, typeof phosphor.Buildings>).BuildingOffice || phosphor.Buildings,
-                    Megaphone: phosphor.Megaphone,
-                    ArrowSquareOut: phosphor.ArrowSquareOut,
-                    Image: phosphor.Image,
-                });
-            });
-        }
     }, []);
 
     if (loading) {
         return (
-            <div className="sidebar-glass-card shadow-premium-md overflow-hidden">
-                <div className="p-4">
-                    <div className="h-4 w-32 rounded animate-pulse mb-3" style={{ backgroundColor: "var(--bg-tertiary)" }} />
-                    <div className="rounded-xl animate-pulse" style={{ backgroundColor: "var(--bg-tertiary)", aspectRatio: "1/1" }} />
-                </div>
+            <div className="omni-cartao" aria-busy="true">
+                <span className="omni-esqueleto" style={{ height: 16, width: 128 }} />
+                <span className="omni-esqueleto" style={{ aspectRatio: "1 / 1", width: "100%" }} />
             </div>
         );
     }
 
     if (posts.length === 0) return null;
 
-    const HeaderIcon = icons.Megaphone;
-
     return (
-        <div className="sidebar-glass-card shadow-premium-md overflow-hidden">
-            {/* Header */}
+        <section className="omni-cartao" style={{ padding: 0, overflow: "hidden" }} aria-label="Feed Omnisfera">
             <div
-                className="px-5 py-3.5 flex items-center justify-between"
-                style={{ borderBottom: "1px solid var(--border-default)", background: "var(--bg-tertiary)" }}
+                className="flex items-center justify-between"
+                style={{ padding: "var(--space-3) var(--space-5)", borderBottom: "1px solid var(--borda)", background: "var(--superficie-2)" }}
             >
-                <h3
-                    className="text-sm font-bold flex items-center gap-2"
-                    style={{ color: "var(--text-primary)" }}
-                >
-                    {HeaderIcon ? (
-                        <HeaderIcon weight="duotone" style={{ width: "18px", height: "18px", color: "#E1306C" }} />
-                    ) : (
-                        <span className="w-[18px] h-[18px] rounded bg-pink-100 animate-pulse" />
-                    )}
+                <h3 className="omni-cartao__titulo flex items-center gap-2" style={{ fontSize: 15 }}>
+                    <Megaphone size={18} aria-hidden="true" style={{ color: "var(--modulo-hub)" }} />
                     Feed Omnisfera
                 </h3>
-                <span className="omni-label-xs font-semibold px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: "rgba(225, 48, 108, 0.1)", color: "#E1306C" }}>
+                <span className="omni-estado omni-estado--neutro">
                     {posts.length} post{posts.length !== 1 ? "s" : ""}
                 </span>
             </div>
 
-            {/* Posts */}
             <div className="p-3 space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar">
                 {posts.map((post) => {
                     const cat = CATEGORY_LABELS[post.category] || CATEGORY_LABELS.instagram;
-                    const CatIcon = icons[cat.iconName];
-                    const LinkIcon = icons.ArrowSquareOut;
+                    const CatIcon = cat.Icone;
 
                     return (
-                        <div
-                            key={post.id}
-                            className="rounded-xl overflow-hidden transition-all duration-200 hover:scale-[1.01]"
-                            style={{
-                                backgroundColor: "var(--bg-secondary)",
-                                border: "1px solid var(--border-default)",
-                                boxShadow: "var(--shadow-xs)",
-                            }}
-                        >
-                            {/* Post header */}
+                        <article key={post.id} className="omni-cartao" style={{ padding: 0, gap: 0, overflow: "hidden" }}>
                             <div className="flex items-center gap-2.5 px-3.5 py-2.5">
                                 <div
                                     className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-                                    style={{
-                                        background: `linear-gradient(135deg, ${cat.color}20, ${cat.color}08)`,
-                                        border: `1.5px solid ${cat.color}30`,
-                                    }}
+                                    style={{ background: cat.suave, color: cat.cor }}
                                 >
-                                    {CatIcon ? (
-                                        <CatIcon weight="duotone" style={{ width: "16px", height: "16px", color: cat.color }} />
-                                    ) : (
-                                        <span className="w-4 h-4 rounded animate-pulse" style={{ backgroundColor: `${cat.color}30` }} />
-                                    )}
+                                    <CatIcon size={16} aria-hidden="true" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-[12px] font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
+                                    <p className="omni-cartao__titulo" style={{ fontSize: 14, lineHeight: "20px" }}>
                                         {post.title || cat.label}
                                     </p>
-                                    <p className="omni-label-xs" style={{ color: "var(--text-muted)" }}>
+                                    <p className="omni-apoio" style={{ fontSize: 12, lineHeight: "16px", color: "var(--tinta-3)" }}>
                                         {timeAgo(post.created_at)}
                                     </p>
                                 </div>
-                                <span
-                                    className="text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0"
-                                    style={{ backgroundColor: `${cat.color}15`, color: cat.color }}
-                                >
+                                <span className="omni-estado shrink-0" style={{ background: cat.suave, color: cat.cor, fontSize: 12 }}>
                                     {cat.label}
                                 </span>
                             </div>
 
-                            {/* Carousel */}
                             {post.images.length > 0 && (
                                 <div className="px-3 pb-2">
                                     <PostCarousel images={post.images} />
                                 </div>
                             )}
 
-                            {/* Caption */}
                             {post.caption && (
                                 <div className="px-3.5 pb-3">
-                                    <p
-                                        className="text-[12px] leading-relaxed"
-                                        style={{ color: "var(--text-secondary)" }}
-                                    >
+                                    <p className="omni-apoio" style={{ fontSize: 13 }}>
                                         {post.caption.length > 200 ? post.caption.slice(0, 200) + "..." : post.caption}
                                     </p>
                                 </div>
                             )}
 
-                            {/* Link externo */}
                             {post.instagram_url && (
                                 <div className="px-3.5 pb-3">
                                     <a
                                         href={post.instagram_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1.5 text-[11px] font-semibold transition-colors hover:opacity-80"
-                                        style={{ color: "#6366f1" }}
+                                        className="omni-btn omni-btn--discreto omni-btn--pequeno"
+                                        style={{ paddingInline: 0 }}
                                     >
-                                        {LinkIcon && <LinkIcon weight="bold" style={{ width: "12px", height: "12px" }} />}
-                                        Ver post original →
+                                        <ExternalLink aria-hidden="true" />
+                                        Ver post original
                                     </a>
                                 </div>
                             )}
-                        </div>
+                        </article>
                     );
                 })}
             </div>
-        </div>
+        </section>
     );
 }

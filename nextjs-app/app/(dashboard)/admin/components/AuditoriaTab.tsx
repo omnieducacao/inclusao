@@ -1,6 +1,7 @@
 "use client";
+import { OmniLoader } from "@/components/OmniLoader";
 import React, { useState, useEffect } from "react";
-import { Loader2, ShieldCheck, Download, Activity, Search, RefreshCw, AlertTriangle, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShieldCheck, Download, Activity, Search, RefreshCw, AlertTriangle, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Workspace } from "../lib/admin-types";
 
 type AuditLogEntry = {
@@ -135,7 +136,7 @@ export function AuditoriaTab({ workspaces, isPlatformAdmin = false }: { workspac
 
             {loading ? (
                 <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "48px 0" }}>
-                    <Loader2 size={20} className="animate-spin" aria-hidden /> Carregando registros de auditoria…
+                    <OmniLoader size={20} /> Carregando registros de auditoria…
                 </p>
             ) : logs.length === 0 ? (
                 <div className="omni-cartao omni-cartao--plano" style={{ alignItems: "center", padding: "48px 16px", border: "1.5px dashed var(--borda-forte)" }}>

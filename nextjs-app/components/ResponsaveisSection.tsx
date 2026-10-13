@@ -1,7 +1,8 @@
 "use client";
 
+import { OmniLoader } from "@/components/OmniLoader";
 import { useState, useEffect, useRef } from "react";
-import { Users, Plus, Link2, Unlink, Loader2, X, AlertTriangle } from "lucide-react";
+import { Users, Plus, Link2, Unlink, X, AlertTriangle } from "lucide-react";
 import { useConfirmar } from "@/components/Confirmar";
 
 /** Janela do design system (dialog nativo com showModal: prende o foco e fecha com Esc). */
@@ -244,7 +245,7 @@ export function ResponsaveisSection({ studentId, studentName, onRefresh }: Props
 
       {loading ? (
         <p className="omni-apoio" role="status" style={{ display: "flex", alignItems: "center", gap: 8, margin: 0, padding: "12px 0" }}>
-          <Loader2 aria-hidden className="animate-spin" style={{ width: 16, height: 16 }} />
+          <OmniLoader size={16} />
           Carregando…
         </p>
       ) : linked.length === 0 ? (
@@ -307,7 +308,7 @@ export function ResponsaveisSection({ studentId, studentName, onRefresh }: Props
                 Cancelar
               </button>
               <button type="button" className="omni-btn omni-btn--primario" onClick={handleCriar} disabled={submitting} aria-busy={submitting}>
-                {submitting && <Loader2 aria-hidden className="animate-spin" />}
+                {submitting && <OmniLoader size={18} />}
                 Cadastrar e vincular
               </button>
             </>

@@ -2,13 +2,13 @@ import { getSession } from "@/lib/session";
 import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
 import dynamic from "next/dynamic";
-import { Skeleton } from "@/components/Skeleton";
+import TelaCarregando from "@/components/brand/TelaCarregando";
 import { getAdminConfig } from "@/lib/getAdminConfig";
 import { getStudentsWithFallback } from "@/lib/getStudentWithFallback";
 
 const DiarioClient = dynamic(
   () => import("./DiarioClient").then(mod => ({ default: mod.DiarioClient })),
-  { loading: () => <Skeleton className="min-h-[200px] w-full rounded-2xl" /> }
+  { loading: () => <TelaCarregando variante="secao" mensagens={["Abrindo o Diário de bordo…"]} /> }
 );
 
 type Props = { searchParams: Promise<{ student?: string }> };

@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { ConfigEscolaClient } from "./ConfigEscolaClient";
-import { Skeleton } from "@/components/Skeleton";
+import TelaCarregando from "@/components/brand/TelaCarregando";
 import { getAdminConfig } from "@/lib/getAdminConfig";
 
 export default async function ConfigEscolaPage() {
@@ -15,7 +15,7 @@ export default async function ConfigEscolaPage() {
           title="Configuração da escola"
           desc="Ano letivo, séries e turmas."
         />
-        <Suspense fallback={<Skeleton className="min-h-[200px] w-full rounded-2xl" />}>
+        <Suspense fallback={<TelaCarregando variante="secao" mensagens={["Abrindo a configuração da escola…"]} />}>
           <ConfigEscolaClient />
         </Suspense>
       </div>
