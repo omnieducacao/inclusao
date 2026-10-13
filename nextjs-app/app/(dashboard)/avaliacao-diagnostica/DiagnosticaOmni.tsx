@@ -16,6 +16,7 @@ import {
   type DescritorAvaliado, type FonteMatriz, type ItemMatriz,
 } from "@/lib/matriz-avaliacao";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
+import ProvaEmPapel from "@/components/avaliacao/ProvaEmPapel";
 
 type Estudante = { id: string; name: string; grade?: string | null; class_group?: string | null };
 type Avaliacao = {
@@ -163,6 +164,7 @@ function Avaliar({ estudante, componente, existente, onVoltar }: {
   const [retorno, setRetorno] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
   const [vendoConcluida, setVendoConcluida] = useState<boolean>(!!existente?.concluida_em);
   const [questoes, setQuestoes] = useState<Record<string, { carregando: boolean; texto?: string; erro?: string }>>({});
+  const [papel, setPapel] = useState(false);
 
   useEffect(() => {
     let vivo = true;
@@ -295,6 +297,21 @@ function Avaliar({ estudante, componente, existente, onVoltar }: {
 
       {aviso && <div className="omni-aviso omni-aviso--info"><div><div className="omni-aviso__texto">{aviso}</div></div></div>}
 
+      {papel && escolhidos.length > 0 && (
+        <ProvaEmPapel
+          estudante={{ id: estudante.id, name: estudante.name }}
+          disciplina={componente}
+          anoReferencia={ano}
+          tipo="diagnostica"
+          descritores={escolhidos.map((d) => ({ codigo: d.codigo, descritor: d.descritor }))}
+          onUsarNiveis={(res) => {
+            for (const r of res) if (r.nivel !== null) mudar(r.codigo, { nivel: r.nivel, evidencia_observada: r.evidencia.slice(0, 600), fonte: "itens" });
+            setPapel(false);
+            setRetorno({ tipo: "ok", texto: "Os níveis da prova entraram nos descritores. Confira e conclua a diagnóstica." });
+          }}
+        />
+      )}
+
       <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", alignItems: "start" }}>
         {/* Escolher os descritores */}
         <section className="omni-cartao" style={{ display: "grid", gap: 12, minWidth: 0 }} aria-labelledby="diag-escolher">
@@ -330,6 +347,14 @@ function Avaliar({ estudante, componente, existente, onVoltar }: {
         {/* Observar e marcar o nível */}
         <section className="omni-cartao" style={{ display: "grid", gap: 14, minWidth: 0 }} aria-labelledby="diag-niveis">
           <h3 id="diag-niveis" style={{ margin: 0, font: "800 17px/24px var(--font-sans)" }}>2. Observe e marque o nível</h3>
+          {escolhidos.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+              <button type="button" className="omni-btn omni-btn--secundario omni-btn--pequeno" aria-expanded={papel} onClick={() => setPapel((v) => !v)}>
+                {papel ? "Fechar a prova em papel" : "Avaliar com prova em papel"}
+              </button>
+              <span className="omni-apoio" style={{ fontSize: 14 }}>Ou observe em sala e marque o nível direto.</span>
+            </div>
+          )}
           {!escolhidos.length && <p className="omni-apoio" style={{ margin: 0 }}>Os descritores escolhidos aparecem aqui. A escala mede quanto apoio o estudante precisa, não nota.</p>}
           {escolhidos.map((d) => {
             const item = itens.find((i) => i.codigo === d.codigo);

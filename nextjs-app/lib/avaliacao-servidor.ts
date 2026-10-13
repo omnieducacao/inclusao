@@ -38,6 +38,9 @@ export async function estudanteParaAvaliar(
 
 export const semMigracaoAvaliacao = (msg?: string) => /matriz|descritores|ano_referencia|concluida_em|diagnostica_id|confronto_matriz/.test(msg || "");
 
+/** Onda 25: a tabela das provas em papel ainda não existe no banco. */
+export const semTabelaProvas = (msg?: string) => /avaliacao_provas/.test(msg || "");
+
 /** Para o PAEE e o PEI: descritores com nível 0–2 nas diagnósticas concluídas do estudante. */
 export async function pontosDeAtencaoDaDiagnostica(workspaceId: string, studentId: string): Promise<Array<{ disciplina: string; codigo: string; descritor: string; nivel: number }>> {
   const { data, error } = await getSupabase()

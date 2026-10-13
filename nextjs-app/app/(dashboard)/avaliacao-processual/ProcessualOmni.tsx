@@ -12,9 +12,10 @@ import { Check } from "lucide-react";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 import { componenteOficial, lerSerie, type DescritorAvaliado } from "@/lib/matriz-avaliacao";
 import { EvolucaoDescritores, NOME_PERIODO } from "@/components/avaliacao/EvolucaoDescritores";
+import ProvaEmPapel from "@/components/avaliacao/ProvaEmPapel";
 
 type Estudante = { id: string; name: string; grade?: string | null };
-type Diagnostica = { id: string; disciplina: string; matriz: string; matriz_versao: string | null; descritores: DescritorAvaliado[]; nivel: number | null; concluida_em: string | null };
+type Diagnostica = { id: string; disciplina: string; matriz: string; matriz_versao: string | null; ano_referencia?: string | null; descritores: DescritorAvaliado[]; nivel: number | null; concluida_em: string | null };
 type Hab = { codigo_omni?: string; codigo_bncc?: string; descricao?: string; nivel_atual: number | null; nivel_anterior: number | null; observacao?: string };
 type Registro = { id: string; disciplina: string; bimestre: number; tipo_periodo: string; ano_letivo: number; habilidades: Hab[]; observacao_geral?: string; matriz?: string };
 
@@ -124,6 +125,7 @@ function Registrar({ estudante, diag, registros, onSalvo }: { estudante: Estudan
 
   const [salvando, setSalvando] = useState(false);
   const [retorno, setRetorno] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
+  const [papel, setPapel] = useState(false);
   const faltam = diag.descritores.filter((d) => niveis[d.codigo]?.nivel == null).length;
 
   async function salvar() {
@@ -164,6 +166,31 @@ function Registrar({ estudante, diag, registros, onSalvo }: { estudante: Estudan
         </label>
         {existente && <span className="omni-estado omni-estado--info">Já registrado: você está editando</span>}
       </div>
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+        <button type="button" className="omni-btn omni-btn--secundario omni-btn--pequeno" aria-expanded={papel} onClick={() => setPapel((v) => !v)}>
+          {papel ? "Fechar a prova em papel" : "Avaliar com prova em papel"}
+        </button>
+        <span className="omni-apoio" style={{ fontSize: 14 }}>Imprima, aplique e corrija pela grade ou por foto; os níveis sugeridos entram aqui embaixo.</span>
+      </div>
+      {papel && (
+        <ProvaEmPapel
+          estudante={{ id: estudante.id, name: estudante.name }}
+          disciplina={diag.disciplina}
+          anoReferencia={Number(/(\d)/.exec(diag.ano_referencia || "")?.[1]) || null}
+          tipo="processual"
+          descritores={diag.descritores.map((d) => ({ codigo: d.codigo, descritor: d.descritor }))}
+          onUsarNiveis={(res) => {
+            setNiveis((s) => {
+              const n = { ...s };
+              for (const r of res) if (r.nivel !== null) n[r.codigo] = { nivel: r.nivel, observacao: r.evidencia.slice(0, 300) };
+              return n;
+            });
+            setPapel(false);
+            setRetorno({ tipo: "ok", texto: "Os níveis da prova entraram nos descritores. Confira e salve o período." });
+          }}
+        />
+      )}
 
       {diag.descritores.map((d) => {
         const ant = nivelAnterior(d.codigo);
