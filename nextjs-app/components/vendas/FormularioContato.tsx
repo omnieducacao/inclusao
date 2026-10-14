@@ -2,7 +2,8 @@
 
 /**
  * Formulário de contato comercial (onda 39). Usado em /contato e, depois, na entrada da demonstração.
- * Grava em /api/public/contato. Campos obrigatórios: nome, e-mail, escola, cargo e consentimento (LGPD).
+ * Grava em /api/public/contato: cada envio vira um contato (lead) na aba Contatos do admin.
+ * Obrigatórios: nome, e-mail, WhatsApp/telefone, escola, cargo e consentimento (LGPD).
  */
 import { useId, useState } from "react";
 import Link from "next/link";
@@ -60,7 +61,7 @@ export function FormularioContato({ origem = "contato", papelDemo = null, textoB
         <CheckCircle2 className="omni-aviso__icone" aria-hidden />
         <div>
           <div className="omni-aviso__titulo">Recebemos o seu contato</div>
-          <div className="omni-aviso__texto">A nossa equipe vai responder pelo e-mail informado. Enquanto isso, você pode <Link href="/demonstracao">ver a demonstração</Link>.</div>
+          <div className="omni-aviso__texto">A nossa equipe vai falar com você pelo WhatsApp, telefone ou e-mail que você informou. Enquanto isso, você pode <Link href="/demonstracao">ver a demonstração</Link>.</div>
         </div>
       </div>
     );
@@ -93,14 +94,14 @@ export function FormularioContato({ origem = "contato", papelDemo = null, textoB
       <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))" }}>
         {campo("nome", "Nome", <input {...attrs("nome")} autoComplete="name" required />)}
         {campo("email", "E-mail", <input {...attrs("email")} type="email" autoComplete="email" inputMode="email" required />)}
-        {campo("escola", "Escola ou rede", <input {...attrs("escola")} autoComplete="organization" required />)}
+        {campo("escola", "Nome da escola ou rede", <input {...attrs("escola")} autoComplete="organization" required />)}
         {campo("cargo", "Cargo", (
           <select {...attrs("cargo")} defaultValue="" required>
             <option value="" disabled>Escolha</option>
             {CARGOS.map((c) => <option key={c}>{c}</option>)}
           </select>
         ))}
-        {campo("telefone", "WhatsApp ou telefone", <input {...attrs("telefone")} type="tel" autoComplete="tel" inputMode="tel" placeholder="(81) 99999-9999" />, true)}
+        {campo("telefone", "WhatsApp ou telefone", <input {...attrs("telefone")} type="tel" autoComplete="tel" inputMode="tel" placeholder="(81) 99999-9999" required />)}
         {campo("tipo_instituicao", "Tipo", (
           <select {...attrs("tipo_instituicao")} defaultValue="">
             <option value="">Escolha</option>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ehRobo, telefoneValido, validarLead } from "@/lib/leads";
 
-const base = { nome: "Ana Fictícia", email: "Ana@Escola.org", escola: "Escola Teste", cargo: "Coordenação", consentimento: true };
+const base = { nome: "Ana Fictícia", email: "Ana@Escola.org", telefone: "(81) 99999-1234", escola: "Escola Teste", cargo: "Coordenação", consentimento: true };
 
 describe("validarLead", () => {
   it("aceita o mínimo e normaliza e-mail e espaços", () => {
@@ -21,8 +21,11 @@ describe("validarLead", () => {
     if (!r.ok) expect(Object.keys(r.erros).sort()).toEqual(["cargo", "consentimento", "email"]);
   });
 
-  it("confere o telefone só quando informado", () => {
-    expect(validarLead({ ...base, telefone: "" }).ok).toBe(true);
+  it("exige telefone com DDD", () => {
+    const sem = validarLead({ ...base, telefone: "" });
+    expect(sem.ok).toBe(false);
+    if (!sem.ok) expect(sem.erros.telefone).toMatch(/WhatsApp/);
+    expect(validarLead({ ...base, escola: "" }).ok).toBe(false);
     expect(validarLead({ ...base, telefone: "(81) 99999-1234" }).ok).toBe(true);
     expect(validarLead({ ...base, telefone: "1234" }).ok).toBe(false);
   });

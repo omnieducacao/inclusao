@@ -34,7 +34,7 @@ export const ROTULO_STATUS: Record<StatusLead, string> = {
 export type LeadEntrada = {
   nome: string;
   email: string;
-  telefone: string | null;
+  telefone: string;
   escola: string;
   cargo: string;
   tipo_instituicao: string | null;
@@ -81,14 +81,16 @@ export function validarLead(body: unknown): ResultadoLead {
   const email = texto(b.email, 160).toLowerCase();
   const escola = texto(b.escola, 160);
   const cargo = daLista(b.cargo, CARGOS);
-  const telefone = opcional(b.telefone, 30);
+  const telefone = texto(b.telefone, 30);
   const origem = b.origem === "demonstracao" ? "demonstracao" : "contato";
 
   if (nome.length < 2) erros.nome = "Escreva o seu nome.";
   if (!EMAIL.test(email)) erros.email = "Confira o e-mail.";
   if (escola.length < 2) erros.escola = "Escreva o nome da escola ou da rede.";
   if (!cargo) erros.cargo = "Escolha o seu cargo.";
-  if (telefone && !telefoneValido(telefone)) erros.telefone = "Confira o telefone, com DDD.";
+  // por enquanto o retorno é feito por telefone/WhatsApp ou e-mail, então os dois são obrigatórios
+  if (!telefone) erros.telefone = "Escreva um WhatsApp ou telefone com DDD.";
+  else if (!telefoneValido(telefone)) erros.telefone = "Confira o telefone, com DDD.";
   if (b.consentimento !== true) erros.consentimento = "Para entrarmos em contato, marque a autorização.";
 
   if (Object.keys(erros).length) return { ok: false, erros };
