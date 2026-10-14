@@ -614,3 +614,63 @@ svg.grow .vl{font-family:var(--f);font-weight:800;font-size:17px;fill:var(--ink)
 .trio-f figcaption{font-size:18px;color:var(--ink2)}
 .trio-f figcaption b{color:var(--ink)}
 @media (max-width:700px){.trio-g{grid-template-columns:1fr 1fr}.trio-f:nth-child(3){grid-column:1/-1}.trio-f:nth-child(3) img{aspect-ratio:16/10}.trio-f:nth-child(2){margin-top:28px}}
+
+/* ---------- lapidação: fluidez e microinterações (onda 48) ---------- */
+/* navegação entre páginas do site: a nova página surge, o topo fica parado */
+@view-transition{navigation:auto}
+.top{view-transition-name:omni-topo}
+::view-transition-old(root){animation:.28s cubic-bezier(.4,0,.2,1) both omni-sai}
+::view-transition-new(root){animation:.42s cubic-bezier(.2,.8,.2,1) both omni-entra}
+@keyframes omni-sai{to{opacity:0;transform:translateY(-6px)}}
+@keyframes omni-entra{from{opacity:0;transform:translateY(10px)}}
+
+/* linha de leitura nas cores do símbolo */
+.omni-progresso{position:fixed;top:0;left:0;right:0;height:3px;z-index:60;transform-origin:left center;transform:scaleX(var(--pr,0));background:linear-gradient(90deg,var(--c6),var(--c5),var(--c4),var(--c1),var(--c3),var(--c2));pointer-events:none}
+
+/* topo mais compacto ao rolar */
+.top{transition:box-shadow .4s ease,background .4s ease,border-color .4s ease}
+.top .wrap{transition:min-height .4s cubic-bezier(.2,.8,.2,1)}
+.top.scrolled .wrap{min-height:58px}
+.top.scrolled{box-shadow:0 10px 30px -22px rgba(27,42,74,.45)}
+.nav > a,.nav summary{transition:background .25s ease,color .25s ease}
+.nav summary::after{transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+@media (hover:hover) and (min-width:981px){
+  .nav details[open] .drop{animation:omni-drop .32s cubic-bezier(.2,.8,.2,1)}
+}
+@keyframes omni-drop{from{opacity:0;transform:translateX(-50%) translateY(-8px) scale(.98)}}
+
+/* botões: sobem, afundam ao clicar e deixam uma onda */
+.btn{position:relative;overflow:hidden;isolation:isolate;transition:transform .3s cubic-bezier(.2,.8,.2,1),background .3s ease,color .3s ease,box-shadow .3s ease,border-color .3s ease}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 26px -16px rgba(27,42,74,.5)}
+.btn:active{transform:translateY(0) scale(.97);transition-duration:.08s}
+.btn .onda{position:absolute;z-index:-1;border-radius:50%;background:currentColor;opacity:.2;transform:scale(0);animation:omni-onda .65s cubic-bezier(.2,.8,.2,1) forwards;pointer-events:none}
+@keyframes omni-onda{to{transform:scale(2.4);opacity:0}}
+
+/* cartões: levantam com calma e respondem ao toque */
+.person,.pcard,.role,.news,.truth,.next a,.trow{transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s ease,border-color .3s ease,background .3s ease}
+@media (hover:hover){.person:hover,.pcard:hover,.news:hover,.next a:hover,.trow:hover{transform:translateY(-4px);box-shadow:var(--shadow)}.role:hover{transform:translateY(-4px)}}
+.person:active,.pcard:active,.role:active,.news:active,.truth:active{transform:scale(.985);transition-duration:.1s}
+
+/* entradas em cascata (o atraso vem do plataforma.js) */
+.rv{transition-delay:var(--rv-d,0ms)}
+
+/* perguntas e blocos que abrem: abrem deslizando (onde o navegador permite) */
+:root{interpolate-size:allow-keywords}
+.pq::details-content,.fg-details::details-content{block-size:0;overflow:hidden;transition:block-size .4s cubic-bezier(.2,.8,.2,1),content-visibility .4s allow-discrete}
+.pq[open]::details-content,.fg-details[open]::details-content{block-size:auto}
+
+/* ciclo da jornada: cada bolinha leva à sua etapa */
+.jor-ciclo li{cursor:pointer}
+.jor-ciclo li:hover i{transform:scale(1.25)}
+.jor-ciclo li.cur:hover i{transform:scale(1.45)}
+.jor-ciclo li:focus-visible{outline-offset:6px}
+
+/* foco visível com transição suave */
+:focus-visible{transition:outline-offset .15s ease}
+
+@media (prefers-reduced-motion: reduce){
+  @view-transition{navigation:none}
+  .omni-progresso{display:none}
+  .btn:hover,.person:hover,.pcard:hover,.news:hover,.role:hover{transform:none}
+  .rv{transition-delay:0ms}
+}

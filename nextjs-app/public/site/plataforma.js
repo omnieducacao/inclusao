@@ -112,3 +112,25 @@ document.querySelectorAll('.rio').forEach(r=>{
       const p=(r.top+r.height/2-vh/2)/(vh/2+r.height/2);f.firstElementChild.style.setProperty('--py',(p*-28).toFixed(1)+'px')})}
   addEventListener('scroll',()=>{if(!pend){pend=true;requestAnimationFrame(tick)}},{passive:true});tick();
 })();
+
+/* ---------------------------------------------------------------- 5. lapidação (onda 48) */
+(function(){
+  const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // linha de leitura no topo
+  if(!rm){const b=document.createElement('div');b.className='omni-progresso';b.setAttribute('aria-hidden','true');document.body.appendChild(b);
+    let pend=false;const up=()=>{pend=false;const h=document.documentElement.scrollHeight-innerHeight;b.style.setProperty('--pr',h>0?Math.min(1,scrollY/h).toFixed(4):'0')};
+    addEventListener('scroll',()=>{if(!pend){pend=true;requestAnimationFrame(up)}},{passive:true});addEventListener('resize',up);up()}
+  // entradas em cascata: irmãos aparecem um depois do outro
+  if(!rm)document.querySelectorAll('.rv').forEach(el=>{const p=el.parentElement;if(!p)return;const irm=[...p.children].filter(c=>c.classList.contains('rv'));
+    if(irm.length>1)el.style.setProperty('--rv-d',Math.min(irm.indexOf(el)*80,480)+'ms')});
+  // onda no ponto do clique dos botões
+  if(!rm)document.addEventListener('pointerdown',e=>{const b=e.target.closest('.btn');if(!b)return;const r=b.getBoundingClientRect(),s=Math.max(r.width,r.height);
+    const o=document.createElement('span');o.className='onda';o.setAttribute('aria-hidden','true');
+    o.style.cssText=`width:${s}px;height:${s}px;left:${e.clientX-r.left-s/2}px;top:${e.clientY-r.top-s/2}px`;b.appendChild(o);setTimeout(()=>o.remove(),700)});
+  // ciclo da jornada: clicar na bolinha leva à etapa
+  const jor=document.getElementById('jornada');
+  if(jor){const steps=[...jor.querySelectorAll('.js')];
+    jor.querySelectorAll('.jor-ciclo li').forEach((li,i)=>{li.setAttribute('role','button');li.tabIndex=0;li.setAttribute('aria-label','Ir para a etapa '+(i+1)+': '+li.textContent.trim());
+      const go=()=>{const s=steps[i];if(!s)return;const y=s.getBoundingClientRect().top+scrollY-innerHeight*.4;scrollTo({top:y,behavior:rm?'auto':'smooth'})};
+      li.addEventListener('click',go);li.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}})})}
+})();
