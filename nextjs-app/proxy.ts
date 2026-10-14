@@ -5,7 +5,7 @@ import { getSecret } from "@/lib/jwt-secret";
 import { checkRateLimit } from "@/lib/upstash-rate-limit"; // V5 Rate Limiter
 
 
-const PUBLIC_PATHS = ["/login", "/landing", "/demonstracao", "/contato", "/privacidade", "/seguranca", "/site/", "/api/auth/login", "/api/auth/admin-login", "/api/public/contato", "/api/vitals", "/api/health"];
+const PUBLIC_PATHS = ["/login", "/demonstracao", "/contato", "/privacidade", "/seguranca", "/site/", "/api/auth/login", "/api/auth/admin-login", "/api/public/contato", "/api/vitals", "/api/health"];
 
 // Família (responsáveis): só enxerga a área /familia e as APIs feitas para ela.
 // Tudo o mais é negado aqui, antes de chegar às rotas, para que um esquecimento numa rota
@@ -29,7 +29,6 @@ const SITE_PAGES = new Set([
   "dislexia-discalculia-tdah", "altas-habilidades", "visual-surdez-fisica", "dua-e-caa",
   "pei-e-aee", "adaptar-e-avaliar", "perfis", "formacao", "checklists", "glossario",
   "fontes", "sobre", "na-midia", "videos",
-  "inclusao", // onda 38: o início do conteúdo sobre inclusão saiu de "/" para "/inclusao"
 ]);
 
 export async function proxy(request: NextRequest) {
@@ -74,6 +73,11 @@ export async function proxy(request: NextRequest) {
   }
   // --- V5 RATE LIMITING FIREWALL END ---
 
+  // /inclusao e /landing existiram por um tempo (ondas 38 a 42); hoje tudo está no início do site.
+  if (pathname === "/inclusao" || pathname === "/landing") {
+    return NextResponse.redirect(new URL("/", request.url), 308);
+  }
+
   // Páginas do site informativo: públicas para todos, com ou sem sessão.
   const pagina = pathname.replace(/^\/+|\/+$/g, "");
   if (SITE_PAGES.has(pagina)) {
@@ -86,9 +90,10 @@ export async function proxy(request: NextRequest) {
 
   const token = request.cookies.get("omnisfera_session")?.value;
   if (!token) {
-    // Sem sessão, a raiz mostra a home de vendas (onda 38); quem tem sessão segue para o app.
+    // Sem sessão, a raiz mostra o site: primeiro o conteúdo sobre inclusão, depois a plataforma (onda 43).
+    // Quem tem sessão segue para o app.
     if (pathname === "/") {
-      return NextResponse.rewrite(new URL("/landing", request.url));
+      return NextResponse.rewrite(new URL("/site/index.html", request.url));
     }
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);

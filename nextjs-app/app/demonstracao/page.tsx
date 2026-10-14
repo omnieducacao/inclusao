@@ -25,7 +25,7 @@ export default function DemonstracaoPage() {
                     Enquanto isso, veja os vídeos de cada papel ou peça uma apresentação com a nossa equipe.
                 </p>
                 <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 12 }}>
-                    <Link href="/#como-funciona" className="omni-btn omni-btn--secundario omni-btn--grande">
+                    <Link href="/#jornada" className="omni-btn omni-btn--secundario omni-btn--grande">
                         <PlayCircle aria-hidden /> Ver os vídeos
                     </Link>
                     <Link href="/contato" className="omni-btn omni-btn--primario omni-btn--grande">
