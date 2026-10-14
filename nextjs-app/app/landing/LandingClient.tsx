@@ -10,11 +10,19 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   ArrowRight, BookOpen, Brain, ChartLine, CheckCircle2, FileText, Layers, Lock, Accessibility, NotebookPen,
-  Smartphone, Sparkles, Users, House, School, Landmark, GraduationCap, ExternalLink,
+  Smartphone, Sparkles, Users, House, GraduationCap, ExternalLink,
 } from "lucide-react";
 import SimboloOmnisfera from "@/components/SimboloOmnisfera";
 import { OmniEducacaoSignature } from "@/components/Footer";
+import {
+  IlustracaoSala, IlustracaoGaveta, IlustracaoParede, IlustracaoEspalhado, IlustracaoEscola, IlustracaoRede,
+  IlustracaoProfessora, Petalas,
+} from "@/components/vendas/Ilustracoes";
 import s from "./landing.module.css";
+
+type Var = React.CSSProperties & Record<`--${string}`, string | number>;
+/** posição na sequência de entrada (escalonamento orgânico) */
+const ordem = (i: number): Var => ({ "--i": i });
 
 const NORMAS = [
   { data: "20 de outubro de 2025", nome: "Decreto 12.686", texto: "Institui a Política Nacional de Educação Especial Inclusiva e faz do estudo de caso a porta de entrada." },
@@ -26,7 +34,7 @@ const CICLO = ["Estudo de caso", "PEI", "PAEE", "Diário de bordo", "Avaliação
 
 const PAPEIS = [
   {
-    video: "paee",
+    video: "pei",
     titulo: "Professor(a) do AEE",
     itens: [
       "Faz o estudo de caso e constrói o PEI em quatro etapas, com a IA escrevendo o rascunho.",
@@ -122,9 +130,31 @@ function VideoNaTela({ id, rotulo }: { id: string; rotulo: string }) {
   );
 }
 
+/**
+ * Entrada orgânica (onda 41): cada bloco marcado com data-revelar sobe e aparece quando chega à tela,
+ * em sequência (--i). Sem JavaScript ou com "reduzir movimento", tudo já aparece de uma vez.
+ */
+function useRevelar() {
+  const raiz = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = raiz.current;
+    if (!el || matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
+    el.dataset.anim = "on";
+    const io = new IntersectionObserver((entradas) => {
+      for (const e of entradas) {
+        if (e.isIntersecting) { (e.target as HTMLElement).dataset.visivel = ""; io.unobserve(e.target); }
+      }
+    }, { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
+    el.querySelectorAll("[data-revelar]").forEach((n) => io.observe(n));
+    return () => io.disconnect();
+  }, []);
+  return raiz;
+}
+
 export default function LandingClient() {
+  const raiz = useRevelar();
   return (
-    <div className="omni-base" style={{ minHeight: "100dvh", background: "var(--fundo)", color: "var(--tinta)" }}>
+    <div ref={raiz} className={`omni-base ${s.raiz}`} style={{ minHeight: "100dvh", background: "var(--fundo)", color: "var(--tinta)" }}>
       <a href="#conteudo" className="omni-pular">Pular para o conteúdo</a>
 
       {/* ══════ TOPO ══════ */}
@@ -149,11 +179,11 @@ export default function LandingClient() {
       <main id="conteudo">
         {/* ══════ ABERTURA ══════ */}
         <section className={s.abertura} aria-labelledby="titulo-abertura">
-          <i aria-hidden className={s.circulo} style={{ width: 340, height: 340, background: "var(--encontro-vermelho)", top: -140, left: -100 }} />
-          <i aria-hidden className={s.circulo} style={{ width: 280, height: 280, background: "var(--encontro-verde)", top: "10%", right: -120 }} />
-          <i aria-hidden className={s.circulo} style={{ width: 200, height: 200, background: "var(--encontro-amarelo)", bottom: -80, left: "38%" }} />
+          <i aria-hidden className={s.bolha} style={{ width: 360, height: 340, background: "var(--encontro-vermelho)", top: -150, left: -110 }} />
+          <i aria-hidden className={s.bolha} style={{ width: 300, height: 280, background: "var(--encontro-verde)", top: "8%", right: -130, animationDelay: "-6s" }} />
+          <i aria-hidden className={s.bolha} style={{ width: 220, height: 200, background: "var(--encontro-amarelo)", bottom: -90, left: "36%", animationDelay: "-12s" }} />
           <div className={`${s.secao} ${s.aberturaGrade}`}>
-            <div>
+            <div className={s.entrada}>
               <span className={s.rotulo}>Plataforma de inclusão escolar</span>
               <h1 id="titulo-abertura" className={s.h1}>
                 O PEI, o AEE e a sala de aula <em>no mesmo lugar</em>.
@@ -171,24 +201,23 @@ export default function LandingClient() {
               </div>
               <p className={s.nota}>Para escolas particulares e redes públicas · funciona no computador, no tablet e no celular</p>
             </div>
-            <figure className={s.tela}>
-              <VideoNaTela id="pei" rotulo="Vídeo curto: o PEI construído em quatro etapas, com dados fictícios" />
-              <figcaption>O PEI em quatro etapas · exemplo com dados fictícios</figcaption>
-            </figure>
+            <div className={s.cenaAbertura}>
+              <IlustracaoSala className={s.sala} />
+            </div>
           </div>
         </section>
 
         {/* ══════ POR QUE AGORA ══════ */}
         <section className={`${s.faixa} ${s.faixaClara}`} aria-labelledby="titulo-agora">
           <div className={s.secao}>
-            <div className={s.cabeca}>
+            <div className={s.cabeca} data-revelar>
               <span className={s.rotulo}>Por que agora</span>
               <h2 id="titulo-agora" className={s.h2}>PEI e PAEE agora são obrigatórios. Papel e planilha não dão conta.</h2>
               <p className={s.intro}>Em menos de um ano, a política de educação especial mudou. Toda escola precisa fazer o estudo de caso, ter PEI e PAEE para cada estudante do público da educação especial e mostrar que eles chegam à sala de aula.</p>
             </div>
             <ol className={s.normas}>
-              {NORMAS.map((n) => (
-                <li key={n.nome} className={s.norma}>
+              {NORMAS.map((n, i) => (
+                <li key={n.nome} className={s.norma} data-revelar style={ordem(i)}>
                   <span className={s.normaData}>{n.data}</span>
                   <span className={s.normaNome}>{n.nome}</span>
                   <p className={s.normaTexto}>{n.texto}</p>
@@ -196,15 +225,18 @@ export default function LandingClient() {
               ))}
             </ol>
             <div className={s.dores}>
-              <div className={s.dor}>
+              <div className={s.dor} data-revelar style={ordem(0)}>
+                <IlustracaoGaveta />
                 <h3>O PEI fica na gaveta</h3>
                 <p>Escrito uma vez no Word, ninguém revisa e o professor da sala nunca lê.</p>
               </div>
-              <div className={s.dor}>
+              <div className={s.dor} data-revelar style={ordem(1)}>
+                <IlustracaoParede />
                 <h3>O AEE e a sala não se falam</h3>
                 <p>O que se planeja no atendimento não vira adaptação na aula, e vice-versa.</p>
               </div>
-              <div className={s.dor}>
+              <div className={s.dor} data-revelar style={ordem(2)}>
+                <IlustracaoEspalhado />
                 <h3>A coordenação não enxerga</h3>
                 <p>Na hora da reunião com a família ou da supervisão, o histórico está espalhado em grupos de mensagem.</p>
               </div>
@@ -215,22 +247,22 @@ export default function LandingClient() {
         {/* ══════ COMO FUNCIONA ══════ */}
         <section id="como-funciona" className={s.faixa} aria-labelledby="titulo-como">
           <div className={s.secao}>
-            <div className={s.cabeca}>
+            <div className={s.cabeca} data-revelar>
               <span className={s.rotulo}>Como funciona</span>
               <h2 id="titulo-como" className={s.h2}>Um ciclo, três papéis, tudo ligado.</h2>
               <p className={s.intro}>Cada etapa entrega para a próxima. O que o AEE planeja chega ao professor regente, e o que acontece na sala volta para a avaliação.</p>
             </div>
-            <ol className={s.ciclo} aria-label="O ciclo da inclusão na Omnisfera">
+            <ol className={s.ciclo} aria-label="O ciclo da inclusão na Omnisfera" data-revelar>
               {CICLO.map((etapa, i) => (
-                <li key={etapa}>
+                <li key={etapa} style={ordem(i)}>
                   <span className={s.etapa}>{etapa}</span>
                   {i < CICLO.length - 1 && <ArrowRight aria-hidden className={s.seta} width={18} height={18} />}
                 </li>
               ))}
             </ol>
             <div className={s.papeis}>
-              {PAPEIS.map((p) => (
-                <article key={p.titulo} className={s.papel}>
+              {PAPEIS.map((p, i) => (
+                <article key={p.titulo} className={s.papel} data-revelar style={ordem(i)}>
                   <VideoNaTela id={p.video} rotulo={`Vídeo curto: o dia a dia de ${p.titulo.toLowerCase()} na Omnisfera, com dados fictícios`} />
                   <h3>{p.titulo}</h3>
                   <ul>{p.itens.map((t) => <li key={t}>{t}</li>)}</ul>
@@ -243,22 +275,22 @@ export default function LandingClient() {
         {/* ══════ O QUE A ESCOLA GANHA ══════ */}
         <section className={`${s.faixa} ${s.faixaClara}`} aria-labelledby="titulo-ganhos">
           <div className={s.secao}>
-            <div className={s.cabeca}>
+            <div className={s.cabeca} data-revelar>
               <span className={s.rotulo}>O que a escola ganha</span>
               <h2 id="titulo-ganhos" className={s.h2}>Menos tempo escrevendo, mais tempo com o estudante.</h2>
             </div>
             <div className={s.grade3}>
-              <div className="omni-cartao omni-cartao--plano">
+              <div className="omni-cartao omni-cartao--plano" data-revelar style={ordem(0)}>
                 <span className={s.ganhoNumero}>01 · Tempo</span>
                 <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>O texto sai pronto para revisar</h3>
                 <p className="omni-cartao__texto" style={{ margin: 0 }}>A IA escreve o rascunho do PEI, do PAEE e das adaptações a partir do estudo de caso. O professor revisa em vez de começar do zero.</p>
               </div>
-              <div className="omni-cartao omni-cartao--plano">
+              <div className="omni-cartao omni-cartao--plano" data-revelar style={ordem(1)}>
                 <span className={s.ganhoNumero}>02 · Continuidade</span>
                 <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>O planejado chega à sala</h3>
                 <p className="omni-cartao__texto" style={{ margin: 0 }}>O professor regente recebe o PEI, dá ciência e adapta a sua disciplina. A coordenação vê quem já fez a sua parte.</p>
               </div>
-              <div className="omni-cartao omni-cartao--plano">
+              <div className="omni-cartao omni-cartao--plano" data-revelar style={ordem(2)}>
                 <span className={s.ganhoNumero}>03 · Registro</span>
                 <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>O histórico está num lugar só</h3>
                 <p className="omni-cartao__texto" style={{ margin: 0 }}>Atendimentos, avaliações e versões do PEI ficam guardados por estudante, prontos para a reunião com a família ou a supervisão.</p>
@@ -270,13 +302,13 @@ export default function LandingClient() {
         {/* ══════ MÓDULOS ══════ */}
         <section className={s.faixa} aria-labelledby="titulo-modulos">
           <div className={s.secao}>
-            <div className={s.cabeca}>
+            <div className={s.cabeca} data-revelar>
               <span className={s.rotulo}>Módulos</span>
               <h2 id="titulo-modulos" className={s.h2}>Tudo o que a inclusão pede, conectado.</h2>
             </div>
             <div className={s.grade3}>
-              {MODULOS.map((m) => (
-                <div key={m.titulo} className={`omni-cartao omni-modulo omni-modulo--${m.cor}`}>
+              {MODULOS.map((m, i) => (
+                <div key={m.titulo} className={`omni-cartao omni-modulo omni-modulo--${m.cor}`} data-revelar style={ordem(i % 3)}>
                   <span className="omni-modulo__selo" aria-hidden><m.Icone /></span>
                   <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>{m.titulo}</h3>
                   <p className="omni-cartao__texto" style={{ margin: 0 }}>{m.texto}</p>
@@ -289,12 +321,12 @@ export default function LandingClient() {
         {/* ══════ IA E CONFIANÇA ══════ */}
         <section className={`${s.faixa} ${s.faixaClara}`} aria-labelledby="titulo-ia">
           <div className={`${s.secao} ${s.ia}`}>
-            <div>
+            <div data-revelar>
               <span className={s.rotulo}>Inteligência artificial com responsabilidade</span>
               <h2 id="titulo-ia" className={s.h2}>A IA rascunha. O professor decide.</h2>
               <p className={s.intro}>A Omnisfera usa cinco motores de IA (inteligência artificial), cada um no que faz melhor. Se um falha, outro assume.</p>
             </div>
-            <ul className={s.lista}>
+            <ul className={s.lista} data-revelar style={ordem(1)}>
               <li><CheckCircle2 aria-hidden /><span><strong>Todo texto é revisável.</strong> Nada vai para o PEI sem a aprovação de quem é responsável por ele.</span></li>
               <li><CheckCircle2 aria-hidden /><span><strong>A plataforma avisa quando algo mudou.</strong> Se o estudo de caso muda depois que o texto foi gerado, aparece o aviso para refazer.</span></li>
               <li><Lock aria-hidden /><span><strong>LGPD (Lei Geral de Proteção de Dados).</strong> Dados separados por escola, acesso por papel e registro de quem acessou, exportou ou apagou. <Link href="/seguranca">Ver segurança e privacidade</Link>.</span></li>
@@ -307,18 +339,18 @@ export default function LandingClient() {
         {/* ══════ PARA QUEM ══════ */}
         <section id="para-quem" className={s.faixa} aria-labelledby="titulo-quem">
           <div className={s.secao}>
-            <div className={s.cabeca}>
+            <div className={s.cabeca} data-revelar>
               <span className={s.rotulo}>Para quem</span>
               <h2 id="titulo-quem" className={s.h2}>Uma escola ou uma rede inteira.</h2>
             </div>
             <div className={s.publico}>
-              <div className="omni-cartao omni-modulo omni-modulo--pei">
-                <span className="omni-modulo__selo" aria-hidden><School /></span>
+              <div className={`omni-cartao omni-modulo omni-modulo--pei ${s.cartaoIlustrado}`} data-revelar style={ordem(0)}>
+                <IlustracaoEscola />
                 <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Escolas particulares</h3>
                 <p className="omni-cartao__texto" style={{ margin: 0 }}>Para a direção e a coordenação que precisam cumprir a nova política, mostrar o trabalho às famílias e dar ao professor da sala um caminho claro para cada estudante.</p>
               </div>
-              <div className="omni-cartao omni-modulo omni-modulo--paee">
-                <span className="omni-modulo__selo" aria-hidden><Landmark /></span>
+              <div className={`omni-cartao omni-modulo omni-modulo--paee ${s.cartaoIlustrado}`} data-revelar style={ordem(1)}>
+                <IlustracaoRede />
                 <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Redes municipais e estaduais</h3>
                 <p className="omni-cartao__texto" style={{ margin: 0 }}>Para secretarias de educação que querem o mesmo padrão de estudo de caso, PEI e PAEE em todas as escolas, com cada escola enxergando só os seus estudantes.</p>
               </div>
@@ -330,7 +362,7 @@ export default function LandingClient() {
         {/* A Omnisfera é da escola; o professor que gostou dos recursos e quer usar sozinho vai para o OmniProf (assinatura individual). */}
         <section id="professor" className={s.faixa} aria-labelledby="titulo-professor">
           <div className={`${s.secao} ${s.omniprof}`}>
-            <div>
+            <div data-revelar>
               <span className={s.rotulo}>É professor(a)?</span>
               <h2 id="titulo-professor" className={s.h2}>Gostou dos recursos? Use por conta própria com o OmniProf.</h2>
               <p className={s.intro}>
@@ -343,6 +375,8 @@ export default function LandingClient() {
                 <Link href="/contato" className="omni-btn omni-btn--discreto omni-btn--grande">Indicar a Omnisfera para a minha escola</Link>
               </div>
             </div>
+            <div data-revelar style={ordem(1)} className={s.omniprofLado}>
+            <IlustracaoProfessora />
             <ul className={s.lista}>
               <li><GraduationCap aria-hidden /><span><strong>Adaptar provas e atividades</strong> para cada estudante, a partir da ficha dele, inclusive a foto de uma página do livro.</span></li>
               <li><Sparkles aria-hidden /><span><strong>Criar aulas, questões e avaliações</strong> alinhadas às habilidades oficiais da BNCC, com questões que trazem imagens.</span></li>
@@ -350,19 +384,20 @@ export default function LandingClient() {
               <li><Users aria-hidden /><span><strong>Educação Infantil</strong> com projetos e atividades ilustradas.</span></li>
               <li><BookOpen aria-hidden /><span><strong>Formação</strong> em inclusão escolar, no mesmo jeito do nosso conteúdo gratuito.</span></li>
             </ul>
+            </div>
           </div>
         </section>
 
         {/* ══════ PERGUNTAS ══════ */}
         <section id="perguntas" className={`${s.faixa} ${s.faixaClara}`} aria-labelledby="titulo-perguntas">
           <div className={`${s.secao} ${s.estreita}`}>
-            <div className={s.cabeca}>
+            <div className={s.cabeca} data-revelar>
               <span className={s.rotulo}>Perguntas frequentes</span>
               <h2 id="titulo-perguntas" className={s.h2}>Antes de conversar com a gente</h2>
             </div>
             <div className={s.perguntas}>
-              {PERGUNTAS.map((q) => (
-                <details key={q.p}>
+              {PERGUNTAS.map((q, i) => (
+                <details key={q.p} data-revelar style={ordem(i)}>
                   <summary>{q.p}</summary>
                   <p>{q.r}</p>
                 </details>
@@ -373,7 +408,8 @@ export default function LandingClient() {
 
         {/* ══════ FECHAMENTO ══════ */}
         <section className={s.faixa} aria-labelledby="titulo-fecho" style={{ paddingInline: 16 }}>
-          <div className={s.fecho}>
+          <div className={s.fecho} data-revelar>
+            <svg className={s.fechoSimbolo} viewBox="0 0 120 120" aria-hidden="true"><Petalas cx={60} cy={60} r={17} espalha={60} /></svg>
             <h2 id="titulo-fecho">Veja a Omnisfera funcionando na sua escola.</h2>
             <p>Entre na demonstração com dados fictícios ou peça uma apresentação com a nossa equipe. O valor é sob consulta, de acordo com o tamanho da escola ou da rede.</p>
             <div className={s.ctas} style={{ justifyContent: "center", marginTop: 8 }}>
