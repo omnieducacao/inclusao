@@ -71,6 +71,11 @@
 .lista li svg { width: 20px; height: 20px; margin-top: 2px; color: var(--sucesso); }
 .lista strong { color: var(--tinta); }
 
+/* OmniProf (professor que quer assinar sozinho) */
+.omniprof { display: grid; gap: 40px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; }
+@media (max-width: 860px) { .omniprof { grid-template-columns: minmax(0, 1fr); } }
+.omniprof .lista li svg { color: var(--acao); }
+
 /* para quem */
 .publico { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); }
 

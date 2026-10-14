@@ -10,7 +10,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   ArrowRight, BookOpen, Brain, ChartLine, CheckCircle2, FileText, Layers, Lock, Accessibility, NotebookPen,
-  Smartphone, Sparkles, Users, House, School, Landmark,
+  Smartphone, Sparkles, Users, House, School, Landmark, GraduationCap, ExternalLink,
 } from "lucide-react";
 import SimboloOmnisfera from "@/components/SimboloOmnisfera";
 import { OmniEducacaoSignature } from "@/components/Footer";
@@ -88,6 +88,10 @@ const PERGUNTAS = [
     r: "A configuração é guiada em passos: ano letivo, turmas, equipe e estudantes. Cada módulo tem um vídeo curto e um passo a passo que abrem na primeira visita.",
   },
   {
+    p: "Sou professor(a). Posso assinar sozinho(a)?",
+    r: "A Omnisfera é contratada pela escola ou pela rede. Para usar por conta própria, o caminho é o OmniProf (omniprof.net): ferramentas de IA para o dia a dia da aula, com recursos de inclusão a partir da ficha de cada estudante.",
+  },
+  {
     p: "Quanto custa?",
     r: "O valor depende do tamanho da escola ou da rede. Conte o seu cenário para a nossa equipe e enviamos uma proposta.",
   },
@@ -132,6 +136,7 @@ export default function LandingClient() {
         <nav className={s.nav} aria-label="Seções da página">
           <a href="#como-funciona">Como funciona</a>
           <a href="#para-quem">Para quem</a>
+          <a href="#professor">Para professores</a>
           <a href="#perguntas">Perguntas</a>
           <Link href="/inclusao">Sobre inclusão</Link>
         </nav>
@@ -321,6 +326,33 @@ export default function LandingClient() {
           </div>
         </section>
 
+        {/* ══════ PARA O PROFESSOR: OMNIPROF ══════ */}
+        {/* A Omnisfera é da escola; o professor que gostou dos recursos e quer usar sozinho vai para o OmniProf (assinatura individual). */}
+        <section id="professor" className={s.faixa} aria-labelledby="titulo-professor">
+          <div className={`${s.secao} ${s.omniprof}`}>
+            <div>
+              <span className={s.rotulo}>É professor(a)?</span>
+              <h2 id="titulo-professor" className={s.h2}>Gostou dos recursos? Use por conta própria com o OmniProf.</h2>
+              <p className={s.intro}>
+                A Omnisfera é contratada pela escola. Se a sua escola ainda não tem, você pode assinar o OmniProf, a plataforma da mesma equipe feita para o professor: muito mais ferramentas de IA para o dia a dia da aula, incluindo os recursos de inclusão.
+              </p>
+              <div className={s.ctas}>
+                <a href="https://www.omniprof.net" target="_blank" rel="noopener" className="omni-btn omni-btn--primario omni-btn--grande">
+                  Conhecer o OmniProf <ExternalLink aria-hidden />
+                </a>
+                <Link href="/contato" className="omni-btn omni-btn--discreto omni-btn--grande">Indicar a Omnisfera para a minha escola</Link>
+              </div>
+            </div>
+            <ul className={s.lista}>
+              <li><GraduationCap aria-hidden /><span><strong>Adaptar provas e atividades</strong> para cada estudante, a partir da ficha dele, inclusive a foto de uma página do livro.</span></li>
+              <li><Sparkles aria-hidden /><span><strong>Criar aulas, questões e avaliações</strong> alinhadas às habilidades oficiais da BNCC, com questões que trazem imagens.</span></li>
+              <li><Brain aria-hidden /><span><strong>Criar itens</strong> com base na Matriz Omni, a mesma matriz da avaliação diagnóstica da Omnisfera.</span></li>
+              <li><Users aria-hidden /><span><strong>Educação Infantil</strong> com projetos e atividades ilustradas.</span></li>
+              <li><BookOpen aria-hidden /><span><strong>Formação</strong> em inclusão escolar, no mesmo jeito do nosso conteúdo gratuito.</span></li>
+            </ul>
+          </div>
+        </section>
+
         {/* ══════ PERGUNTAS ══════ */}
         <section id="perguntas" className={`${s.faixa} ${s.faixaClara}`} aria-labelledby="titulo-perguntas">
           <div className={`${s.secao} ${s.estreita}`}>
@@ -361,6 +393,7 @@ export default function LandingClient() {
           <Link href="/seguranca">Segurança</Link>
           <Link href="/privacidade">Privacidade</Link>
           <Link href="/contato">Contato</Link>
+          <a href="https://www.omniprof.net" target="_blank" rel="noopener">OmniProf, para professores</a>
           <Link href="/login">Entrar</Link>
         </nav>
         <OmniEducacaoSignature variant="full" />
