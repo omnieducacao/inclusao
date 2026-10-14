@@ -5,13 +5,15 @@ import {
     BookOpen, AlertTriangle, ChevronRight,
     FileText, Brain, ClipboardCheck, CheckCircle2, ArrowLeft,
     Sparkles, School, ExternalLink, Target, RotateCcw,
-    BarChart3, Ruler, Accessibility, PencilLine, Save,
+    BarChart3, Ruler, Accessibility, PencilLine,
     type LucideIcon,
 } from "lucide-react";
 import { useConfirmar } from "@/components/Confirmar";
 import { OmniLoader } from "@/components/OmniLoader";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { PEIPlanoEnsino } from "@/components/PEIPlanoEnsino";
+import { ProximosPassos } from "@/components/jornada/ProximosPassos";
+import { usePermissoes } from "@/components/jornada/PermissoesProvider";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { OnboardingPanel, OnboardingResetButton } from "@/components/OnboardingPanel";
 import { iniciais } from "@/lib/inicio";
@@ -26,6 +28,7 @@ interface AlunoDisc {
     professor_regente_nome: string;
     fase_status: FaseStatusPEIDisciplina;
     has_plano: boolean;
+    plano_ensino_id?: string | null;
     has_avaliacao: boolean;
     nivel_omnisfera: number | null;
     avaliacao_status: string;
@@ -83,19 +86,32 @@ export function PEIRegenteClient() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [adaptacaoSugestao, setAdaptacaoSugestao] = useState<Record<string, any> | null>(null);
     const [adaptacaoMeta, setAdaptacaoMeta] = useState<{ plano_encontrado: boolean; nivel_diag: number | null } | null>(null);
-    const [versionSaveStatus, setVersionSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
     const [transitioning, setTransitioning] = useState(false);
     const [toast, setToast] = useState<string | null>(null);
     const { confirmar, dialogo } = useConfirmar();
+    const pode = usePermissoes();
 
-    const fetchData = useCallback(async () => {
-        setLoading(true);
+    // silencioso: atualiza sem trocar a tela pelo carregando (antes o refetch desmontava a etapa aberta,
+    // e a diagnóstica já aplicada disparava o avanço de novo, em laço)
+    const fetchData = useCallback(async (silencioso = false) => {
+        if (!silencioso) setLoading(true);
         setError("");
         try {
             const res = await fetch("/api/pei-regente/meus-alunos");
             const json = await res.json();
             if (!res.ok) throw new Error(json.error || "Erro ao buscar dados");
             setData(json);
+            // a etapa aberta passa a ver os dados novos (fase, plano, diagnóstica)
+            const alunos = (json as DataResponse).alunos || [];
+            setSelectedAluno((atual) => (atual ? alunos.find((a) => a.id === atual.id) || atual : atual));
+            setSelectedDisc((atual) => {
+                if (!atual?.id) return atual;
+                for (const al of alunos) {
+                    const d = al.disciplinas.find((x) => x.id === atual.id);
+                    if (d) return d;
+                }
+                return atual;
+            });
         } catch (err) {
             setError(err instanceof Error ? err.message : "Erro de conexão");
         } finally {
@@ -143,7 +159,7 @@ export function PEIRegenteClient() {
                     <div className="omni-aviso__titulo">Não foi possível carregar as disciplinas</div>
                     <div className="omni-aviso__texto">{error}</div>
                     <div className="omni-aviso__acoes">
-                        <button type="button" onClick={fetchData} className="omni-btn omni-btn--secundario omni-btn--pequeno">
+                        <button type="button" onClick={() => fetchData()} className="omni-btn omni-btn--secundario omni-btn--pequeno">
                             <RotateCcw size={16} aria-hidden /> Tentar de novo
                         </button>
                     </div>
@@ -236,6 +252,7 @@ export function PEIRegenteClient() {
                             studentId={selectedAluno.id}
                             disciplina={selectedDisc.disciplina}
                             anoSerie={selectedAluno.grade || "6º Ano"}
+                            planoVinculadoId={selectedDisc.plano_ensino_id || null}
                             onPlanoSaved={async (planoId: string) => {
                                 setTransitioning(true);
                                 // Link plano_ensino_id to pei_disciplinas AND advance status
@@ -260,12 +277,13 @@ export function PEIRegenteClient() {
                                                 }),
                                             });
                                         }
-                                        setToast("Plano vinculado. Próxima etapa: avaliação diagnóstica.");
+                                        setToast("Plano vinculado. Agora, a avaliação diagnóstica.");
                                         setTimeout(() => setToast(null), 3000);
                                     } catch { /* silent */ }
                                 }
-                                await fetchData();
+                                await fetchData(true);
                                 setTransitioning(false);
+                                if (selectedDisc.fase_status === "plano_ensino") setActiveStep("diagnostica");
                             }}
                         />
                     )}
@@ -276,8 +294,10 @@ export function PEIRegenteClient() {
                             studentName={selectedAluno.name}
                             disciplina={selectedDisc.disciplina}
                             onLinked={async () => {
+                                // só avança quem ainda está na fase da diagnóstica; depois disso, nada a fazer
+                                if (!selectedDisc.id || selectedDisc.is_virtual || selectedDisc.fase_status !== "diagnostica") return;
                                 setTransitioning(true);
-                                if (selectedDisc.id && !selectedDisc.is_virtual && selectedDisc.fase_status === "diagnostica") {
+                                {
                                     await fetch("/api/pei/disciplina", {
                                         method: "PATCH",
                                         headers: { "Content-Type": "application/json" },
@@ -286,11 +306,12 @@ export function PEIRegenteClient() {
                                             fase_status: "pei_disciplina",
                                         }),
                                     }).catch(() => { });
-                                    setToast("Avaliação diagnóstica aplicada. Próxima etapa: PEI da disciplina.");
+                                    setToast("Avaliação diagnóstica aplicada. Agora, o PEI da disciplina.");
                                     setTimeout(() => setToast(null), 3000);
                                 }
-                                await fetchData();
+                                await fetchData(true);
                                 setTransitioning(false);
+                                setActiveStep("pei");
                             }}
                         />
                     )}
@@ -593,82 +614,50 @@ export function PEIRegenteClient() {
                                         )}
 
                                         <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
-                                            <a
-                                                href={`/pei?student=${selectedAluno.id}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="omni-btn omni-btn--secundario"
-                                            >
-                                                <ExternalLink size={16} aria-hidden />
-                                                Abrir o PEI completo
-                                                <span className="omni-so-leitor"> (abre em nova aba)</span>
-                                            </a>
-
                                             {/* Finalizar PEI desta disciplina e enviar para consolidar */}
-                                            {selectedDisc.id && !selectedDisc.is_virtual && (
+                                            {selectedDisc.id && !selectedDisc.is_virtual && selectedDisc.fase_status !== "concluido" && (
                                                 <FinalizarPeiDisciplinaButton
                                                     studentId={selectedAluno.id}
                                                     disciplina={selectedDisc.disciplina}
                                                     peiDisciplinaId={selectedDisc.id}
                                                     adaptacaoSugestao={adaptacaoSugestao}
-                                                    onFinalizado={() => { fetchData(); setAdaptacaoSugestao(null); }}
+                                                    onFinalizado={() => {
+                                                        fetchData(true);
+                                                        setToast(`${selectedDisc.disciplina} enviada à coordenação.`);
+                                                        setTimeout(() => setToast(null), 3000);
+                                                    }}
                                                 />
                                             )}
 
-                                            {/* Auto-save version */}
-                                            <button
-                                                type="button"
-                                                onClick={async () => {
-                                                    setVersionSaveStatus('saving');
-                                                    try {
-                                                        const res = await fetch('/api/pei/versions', {
-                                                            method: 'POST',
-                                                            headers: { 'Content-Type': 'application/json' },
-                                                            body: JSON.stringify({
-                                                                studentId: selectedAluno.id,
-                                                                label: `Adaptação ${selectedDisc.disciplina} — ${new Date().toLocaleDateString('pt-BR')}`,
-                                                            }),
-                                                        });
-                                                        setVersionSaveStatus(res.ok ? 'saved' : 'error');
-                                                    } catch { setVersionSaveStatus('error'); }
-                                                    setTimeout(() => setVersionSaveStatus('idle'), 3000);
-                                                }}
-                                                disabled={versionSaveStatus === 'saving'}
-                                                aria-busy={versionSaveStatus === 'saving'}
-                                                className="omni-btn omni-btn--discreto"
-                                            >
-                                                {versionSaveStatus === 'saved' ? <CheckCircle2 size={16} aria-hidden />
-                                                    : versionSaveStatus === 'error' ? <AlertTriangle size={16} aria-hidden />
-                                                        : <Save size={16} aria-hidden />}
-                                                {versionSaveStatus === 'saving' ? 'Guardando…'
-                                                    : versionSaveStatus === 'saved' ? 'Versão guardada'
-                                                        : versionSaveStatus === 'error' ? 'Não deu para guardar. Tente de novo'
-                                                            : 'Guardar uma versão do PEI'}
-                                            </button>
-                                            <span className="omni-so-leitor" role="status">
-                                                {versionSaveStatus === 'saved' ? 'Versão do PEI guardada.' : versionSaveStatus === 'error' ? 'Não foi possível guardar a versão.' : ''}
-                                            </span>
+                                            {/* o PEI completo só para quem edita o PEI; o professor lê o PEI na aba "Ler e dar ciência" */}
+                                            {pode.can_pei ? (
+                                                <a href={`/pei?student=${selectedAluno.id}`} target="_blank" rel="noopener noreferrer" className="omni-btn omni-btn--secundario">
+                                                    <ExternalLink size={16} aria-hidden />
+                                                    Abrir o PEI completo
+                                                    <span className="omni-so-leitor"> (abre em nova aba)</span>
+                                                </a>
+                                            ) : (
+                                                <a href="/pei-professor" className="omni-btn omni-btn--secundario">
+                                                    <FileText size={16} aria-hidden /> Ler o PEI
+                                                </a>
+                                            )}
+
                                         </div>
                                     </div>
                                 )}
                             </section>
 
-                            {/* Info about full PEI */}
-                            <div className="omni-cartao omni-cartao--plano" style={{ padding: 16, gap: 6 }}>
-                                <p className="omni-apoio" style={{ margin: 0 }}>
-                                    As adaptações sugeridas acima podem ser aplicadas no <strong>PEI completo do estudante</strong>,
-                                    no módulo PEI.
-                                </p>
-                                <a
-                                    href={`/pei?student=${selectedAluno.id}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "700 14px/20px var(--font-sans)", color: "var(--acao)" }}
-                                >
-                                    <ExternalLink size={14} aria-hidden /> Ir para o PEI completo
-                                    <span className="omni-so-leitor"> (abre em nova aba)</span>
-                                </a>
-                            </div>
+                            {selectedDisc.fase_status === "concluido" && (
+                                <div className="omni-aviso omni-aviso--sucesso" role="status" style={{ maxWidth: "none", margin: 0 }}>
+                                    <CheckCircle2 className="omni-aviso__icone" aria-hidden />
+                                    <div>
+                                        <div className="omni-aviso__titulo">Você já enviou {selectedDisc.disciplina} à coordenação</div>
+                                        <div className="omni-aviso__texto">A coordenação junta a sua adaptação ao PEI do estudante. Se ela devolver com um recado, ele aparece na lista das suas disciplinas.</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <ProximosPassos atual="pei-professor" studentId={selectedAluno.id} titulo="Para levar à sala de aula" />
                         </div>
                     )}
                 </div>
@@ -800,6 +789,11 @@ export function PEIRegenteClient() {
                                     </div>
                                 )}
 
+                                {disc.is_virtual && (
+                                    <p className="omni-apoio" style={{ margin: "0 20px 12px", fontSize: 14 }}>
+                                        A coordenação ainda não enviou o PEI desta disciplina para você. A avaliação diagnóstica já pode ser feita; o plano e o PEI da disciplina abrem quando o PEI chegar.
+                                    </p>
+                                )}
                                 {/* Pipeline steps */}
                                 <ol style={{ listStyle: "none", margin: 0, padding: "0 20px 16px", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                                     {steps.map((s, i) => (
@@ -846,7 +840,7 @@ export function PEIRegenteClient() {
                         Para cada disciplina: plano de ensino, avaliação diagnóstica e as adaptações da disciplina no PEI. {data.alunos.length} estudante{data.alunos.length !== 1 ? "s" : ""} com o PEI já enviado aos professores.
                     </p>
                 </div>
-                <button type="button" onClick={fetchData} className="omni-btn omni-btn--discreto omni-btn--pequeno">Atualizar</button>
+                <button type="button" onClick={() => fetchData()} className="omni-btn omni-btn--discreto omni-btn--pequeno">Atualizar</button>
             </div>
             <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 10 }}>
                 {alunosOrdenados.map((aluno) => {

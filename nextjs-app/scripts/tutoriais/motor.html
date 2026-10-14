@@ -6,7 +6,7 @@
 <!--
   Motor dos vídeos curtos dos tutoriais (lib/tutoriais.ts). Desenha a tela da Omnisfera quadro a quadro:
   render(t) monta o estado da cena no segundo t, sem relógio, para o gravar.py tirar 30 quadros por segundo.
-  Uso: motor.html?v=<cena>  (estudantes, pei, paee, hub, diario, avaliacao, evolucao). Estudante fictício.
+  Uso: motor.html?v=<cena>  (estudantes, pei, paee, hub, diario, avaliacao, evolucao, pei-professor, plano-de-ensino). Estudante fictício.
 -->
 <style>
 @font-face { font-family: "Jakarta"; src: url("PlusJakartaSans.ttf") format("truetype"); font-weight: 200 800; }
@@ -136,8 +136,10 @@ function legenda(t) {
 
 // ─── menu lateral ────────────────────────────────────────────────────────────
 const MENU = [["", "Início"], ["Acompanhar o estudante", "Estudantes", "PEI", "PAEE", "Diário de bordo"], ["Planejar e avaliar", "Hub de recursos", "Avaliação", "Evolução e dados"]];
-function menu(ativo) {
-  $("#lado").innerHTML = MENU.map((g) => (g[0] ? `<div class="grupo">${g[0]}</div>` : "") + g.slice(1).map((i) => `<div class="item${i === ativo ? " on" : ""}">${i}</div>`).join("")).join("");
+// o professor regente vê outro menu (lib/papeis.ts: PEI do professor, Diário, Hub, Plano de ensino, Avaliação, Evolução)
+const MENU_REGENTE = [["", "Início"], ["Acompanhar o estudante", "PEI do professor", "Diário de bordo"], ["Planejar e avaliar", "Hub de recursos", "Plano de ensino", "Avaliação", "Evolução e dados"]];
+function menu(ativo, lista = MENU) {
+  $("#lado").innerHTML = lista.map((g) => (g[0] ? `<div class="grupo">${g[0]}</div>` : "") + g.slice(1).map((i) => `<div class="item${i === ativo ? " on" : ""}">${i}</div>`).join("")).join("");
 }
 const PROX = (titulo, itens) => `<div class="prox" id="prox"><div class="rot">${titulo}</div>${itens.map(([a, b], i) => `<div class="ir" id="ir${i}"><span>${a}<small>${b}</small></span><span class="seta">→</span></div>`).join("")}</div>`;
 const CAB = (h, s) => `<h1>${h}</h1><p class="sub">${s}</p>`;
@@ -338,12 +340,97 @@ const CENAS = {
       marca($("#ir0"), "pulso", t, 9.6);
     },
   },
+
+  "pei-professor": {
+    menu: "PEI do professor", menuLista: MENU_REGENTE, dur: 13,
+    html: CAB("PEI do professor", "Leia os PEIs dos seus estudantes e dê ciência; depois, faça a parte da sua disciplina.") + `
+      <div class="linha" style="gap:4px;margin-bottom:12px;border-bottom:1px solid var(--borda)">
+        <span id="aba1" style="padding:7px 12px;font-size:12.5px;font-weight:700;border-bottom:2px solid var(--acao);color:var(--acao)">Ler e dar ciência</span>
+        <span id="aba2" style="padding:7px 12px;font-size:12.5px;font-weight:700;color:var(--tinta-3);border-bottom:2px solid transparent">Minha disciplina</span>
+      </div>
+      <div id="ciencia" class="cartao" style="display:grid;gap:10px">
+        <div class="linha"><div style="flex:1"><b style="font-size:14px">Lucas Final</b><div class="sub" style="margin:0">4º ano · Turma A · PEI versão 1</div></div><span class="chip in" id="stc">Para ler</span><span class="btn" id="ler">Ler o PEI ▾</span></div>
+        <div id="leitura" style="display:grid;gap:8px;border-top:1px solid var(--borda);padding-top:10px">
+          <div class="linha" style="align-items:flex-start;gap:18px">
+            <div><div class="rot">Interesse do estudante</div><span style="font-size:12.5px">Dinossauros</span></div>
+            <div style="flex:1"><div class="rot">Estratégias de ensino</div><div class="linha" style="flex-wrap:wrap;gap:5px">${["Instruções curtas, uma por vez", "Apoio visual", "Pausas de 5 min"].map((x) => `<span class="chip">${x}</span>`).join("")}</div></div>
+          </div>
+          <div><div class="rot">Na avaliação</div><div class="linha" style="gap:5px">${["Tempo extra", "Leitura do enunciado"].map((x) => `<span class="chip">${x}</span>`).join("")}</div></div>
+          <span class="btn pri" id="ciente" style="justify-self:start">Li e estou ciente</span>
+        </div>
+      </div>
+      <div id="disc" class="cartao" style="position:absolute;left:22px;right:22px;top:158px;display:grid;gap:10px">
+        <div class="linha"><b style="font-size:14px;flex:1">Lucas Final · Matemática</b><span class="chip in" id="fase">PEI da disciplina</span></div>
+        <div class="passos" style="margin:0">${[["1", "Plano de ensino"], ["2", "Avaliação diagnóstica"], ["3", "PEI da disciplina"]].map(([a, b], i) => `<div class="passo ${i < 2 ? "feito" : "on"}" id="p${i}"><b>${i < 2 ? "Feito" : "Agora"}</b>${b}</div>`).join("")}</div>
+        <div class="linha" style="justify-content:space-between"><div class="rot" style="margin:0">Metas do bimestre para a disciplina</div><span class="btn pri" id="sugerir">✦ Sugerir adaptações</span></div>
+        <div class="ia" id="adapt" style="min-height:70px;background:var(--fundo);border-radius:9px;padding:8px 10px"></div>
+        <div class="linha"><span class="btn pri" id="enviar">Concluir e enviar à coordenação</span><span class="chip ok" id="enviado">Enviado à coordenação</span></div>
+      </div>`,
+    setup() {
+      CAMINHO = [{ t: 0, alvo: [700, 520] }, { t: 1.0, alvo: "#ler", clica: true }, { t: 3.6, alvo: "#ciente", clica: true }, { t: 5.0, alvo: "#aba2", clica: true }, { t: 6.4, alvo: "#sugerir", clica: true }, { t: 10.6, alvo: "#enviar", clica: true }];
+      LEGENDAS = [{ t: .3, n: 1, txt: "Leia o PEI do estudante" }, { t: 3.4, n: 2, txt: "Registre que está ciente" }, { t: 4.9, n: 3, txt: "Na sua disciplina, a IA sugere as adaptações" }, { t: 10.4, n: 4, txt: "Revise e envie à coordenação" }];
+    },
+    anim(t) {
+      aperta($("#ler"), t, 1.0);
+      const lt = $("#leitura"); lt.style.display = t < 1.2 ? "none" : "grid"; if (t >= 1.2) aparece(lt, t, 1.2);
+      aperta($("#ciente"), t, 3.6);
+      const st = $("#stc"); st.textContent = t >= 3.8 ? "Ciente" : "Para ler"; st.className = "chip " + (t >= 3.8 ? "ok" : "in");
+      const a1 = $("#aba1"), a2 = $("#aba2"), na2 = t >= 5.0;
+      a1.style.color = na2 ? "var(--tinta-3)" : "var(--acao)"; a1.style.borderBottomColor = na2 ? "transparent" : "var(--acao)";
+      a2.style.color = na2 ? "var(--acao)" : "var(--tinta-3)"; a2.style.borderBottomColor = na2 ? "var(--acao)" : "transparent";
+      $("#ciencia").style.opacity = t < 5.1 ? 1 : 0;
+      const d = $("#disc"); d.style.opacity = t < 5.1 ? 0 : ease(prog(t, 5.1, .35));
+      aperta($("#sugerir"), t, 6.4);
+      digita($("#adapt"), "Meta: comparar números até 1.000 com apoio de material concreto.\nEnsino: uma instrução por vez; exemplos com dinossauros.\nAvaliação: 5 questões em vez de 10, enunciado lido em voz alta.", t, 6.8, 70);
+      aperta($("#enviar"), t, 10.6);
+      const e = $("#enviado"); e.style.opacity = t < 10.9 ? 0 : 1; aparece(e, t, 10.9);
+      const f = $("#fase"); f.textContent = t >= 10.9 ? "Concluído" : "PEI da disciplina"; f.className = "chip " + (t >= 10.9 ? "ok" : "in");
+      const p3 = $("#p2"); const ok3 = t >= 10.9; p3.className = "passo " + (ok3 ? "feito" : "on"); p3.querySelector("b").textContent = ok3 ? "Feito" : "Agora";
+    },
+  },
+
+  "plano-de-ensino": {
+    menu: "Plano de ensino", menuLista: MENU_REGENTE, dur: 11,
+    html: CAB("Plano de ensino", "O planejamento de cada componente e série, que o PEI da disciplina adapta.") + `
+      <div id="lista" style="display:grid;gap:8px">
+        <b style="font-size:15px">Matemática</b>
+        <div class="grade" style="grid-template-columns:repeat(3,1fr)">${[["4º ano · Turma A", "Sem plano ainda", ""], ["5º ano · Turma A", "Plano feito", "ok"], ["5º ano · Turma B", "Plano feito", "ok"]].map(([a, b, c], i) => `<div class="cartao" id="s${i}" style="display:grid;gap:6px"><b style="font-size:13px">${a}</b><span class="chip ${c}">${b}</span></div>`).join("")}</div>
+      </div>
+      <div id="editor" class="grade" style="grid-template-columns:1.05fr 1fr;position:absolute;left:22px;right:22px;top:92px">
+        <div class="cartao" style="display:grid;gap:8px"><div class="rot">Novo bloco da sequência · Matemática · 4º ano</div>
+          <div class="linha"><label class="campo" style="flex:1">Período<div class="entrada" id="per"></div></label><label class="campo" style="flex:1">Unidade temática<div class="entrada" id="ut"></div></label></div>
+          <label class="campo">Habilidades da BNCC<div class="linha" style="gap:5px;min-height:30px"><span class="chip in" id="hab">EF04MA01 · ler, escrever e ordenar números</span></div></label>
+          <span class="btn" id="iaB" style="justify-self:start">✦ Sugerir com IA</span>
+          <div class="ia" id="sug" style="min-height:64px"></div>
+          <span class="btn pri" id="add" style="justify-self:start">Adicionar à sequência</span></div>
+        <div class="cartao" style="display:grid;gap:8px;align-content:start"><div class="linha" style="justify-content:space-between"><div class="rot" style="margin:0">Sequência do 1º bimestre</div><span class="chip ok" id="salvo">Salvo</span></div>
+          <div id="bloco" style="padding:8px 10px;border-radius:9px;background:var(--acao-suave)"><b style="font-size:12.5px">Números · EF04MA01</b><div class="sub" style="margin:2px 0 0">Jogo de cartas para ordenar números até 10.000</div></div>
+          <div class="sub" id="vazia" style="margin:0">A sequência ainda está vazia.</div>
+        </div>
+      </div>`,
+    setup() {
+      CAMINHO = [{ t: 0, alvo: [700, 520] }, { t: 1.0, alvo: "#s0", clica: true }, { t: 2.0, alvo: "#per", clica: true }, { t: 3.6, alvo: "#hab", clica: true }, { t: 4.6, alvo: "#iaB", clica: true }, { t: 8.0, alvo: "#add", clica: true }, { t: 9.4, alvo: "#bloco" }];
+      LEGENDAS = [{ t: .3, n: 1, txt: "Escolha componente e série" }, { t: 1.9, n: 2, txt: "Período, unidade e habilidades da BNCC" }, { t: 4.5, n: 3, txt: "A IA sugere objetivos, metodologia e avaliação" }, { t: 7.9, n: 4, txt: "Cada bloco entra na sequência" }];
+    },
+    anim(t) {
+      aperta($("#s0"), t, 1.0); $("#lista").style.opacity = t < 1.3 ? 1 : 0;
+      const ed = $("#editor"); ed.style.opacity = t < 1.3 ? 0 : ease(prog(t, 1.3, .35));
+      digita($("#per"), "1º bimestre", t, 2.1, 18); digita($("#ut"), "Números", t, 2.8, 14);
+      const h = $("#hab"); h.style.opacity = t < 3.7 ? 0 : 1; aparece(h, t, 3.7);
+      aperta($("#iaB"), t, 4.6);
+      digita($("#sug"), "Objetivo: ler e ordenar números até 10.000.\nMetodologia: jogo de cartas em duplas.\nAvaliação: registro da ordem no caderno.", t, 5.0, 60);
+      aperta($("#add"), t, 8.0);
+      const b = $("#bloco"); b.style.opacity = t < 8.3 ? 0 : 1; aparece(b, t, 8.3);
+      $("#vazia").style.display = t < 8.3 ? "block" : "none";
+      const s = $("#salvo"); s.style.opacity = t < 9.2 ? 0 : 1;
+    },
+  },
 };
 
 // ─── montagem ───────────────────────────────────────────────────────────────
 const nome = new URLSearchParams(location.search).get("v") || "pei";
 const CENA = CENAS[nome];
-menu(CENA.menu);
+menu(CENA.menu, CENA.menuLista);
 $("#conteudo").innerHTML = CENA.html;
 CENA.setup();
 window.DURACAO = CENA.dur;

@@ -10,6 +10,7 @@ import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { ProximosPassos } from "@/components/jornada/ProximosPassos";
 import { useStudentRealtime } from "@/hooks/useStudentRealtime";
 import Link from "next/link";
+import { usePermissoes } from "@/components/jornada/PermissoesProvider";
 import { metasDoCicloAtivo, objetivosComMetas, metasNoRegistro, type MetaDoCiclo } from "@/lib/paee";
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -351,6 +352,7 @@ function NovoRegistroTab({
   const [proximosPassos, setProximosPassos] = useState("");
   const [encaminhamentos, setEncaminhamentos] = useState("");
   const [alertaRegente, setAlertaRegente] = useState(false);
+  const pode = usePermissoes();
   const [saving, setSaving] = useState(false);
   const [erroAtividade, setErroAtividade] = useState(false);
   // Onda 5: o registro avisa se salvou ou não (antes só limpava os campos, e a falha era silenciosa)
@@ -499,13 +501,14 @@ function NovoRegistroTab({
           </div>
         </details>
 
-        <label className="flex items-start gap-3" style={{ padding: "var(--space-3)", border: "1px solid var(--borda)", borderRadius: "var(--o-radius-md)", cursor: "pointer" }}>
+        {/* o aviso é do AEE para a sala de aula: o próprio professor regente não precisa avisar a si mesmo */}
+        {pode.can_paee && <label className="flex items-start gap-3" style={{ padding: "var(--space-3)", border: "1px solid var(--borda)", borderRadius: "var(--o-radius-md)", cursor: "pointer" }}>
           <input type="checkbox" checked={alertaRegente} onChange={(e) => setAlertaRegente(e.target.checked)} style={{ marginTop: 4 }} />
           <span>
             <span style={{ font: "700 15px/22px var(--font-sans)", color: "var(--tinta)", display: "block" }}>Avisar o professor da sala</span>
-            <span className="omni-apoio">Para algo importante que ele precisa saber logo (mudança de comportamento, crise, um avanço). O professor recebe um aviso no sino, e o recado fica no PEI por 30 dias.</span>
+            <span className="omni-apoio">Para algo importante que ele precisa saber logo (mudança de comportamento, crise, um avanço). O professor da sala recebe um aviso no sino por 7 dias e vê o recado neste diário.</span>
           </span>
-        </label>
+        </label>}
 
         <button type="submit" className="omni-btn omni-btn--primario" disabled={saving}>{saving ? "Salvando…" : "Registrar atendimento"}</button>
       </form>

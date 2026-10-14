@@ -40,6 +40,8 @@ interface Props {
     disciplina: string;
     anoSerie: string;
     onPlanoSaved?: (planoId: string) => void;
+    /** O plano ligado a esta disciplina do PEI (pei_disciplinas.plano_ensino_id). Só ele conta como "Vinculado". */
+    planoVinculadoId?: string | null;
 }
 
 // ─── Estilos (Onda 18: variáveis do design system) ───────────────────────────
@@ -59,7 +61,7 @@ const rotuloBlocoS: React.CSSProperties = { fontWeight: 700, color: "var(--tinta
 
 // ─── Componente Principal ─────────────────────────────────────────────────────
 
-export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }: Props) {
+export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved, planoVinculadoId = null }: Props) {
     const [loading, setLoading] = useState(true);
     const [planosDisponiveis, setPlanosDisponiveis] = useState<PlanoVinculado[]>([]);
     const [planoVinculado, setPlanoVinculado] = useState<PlanoVinculado | null>(null);
@@ -84,45 +86,29 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                 .then(r => r.json()).catch(() => ({ planos: [] })),
         ]).then(([cursoData, peiData]) => {
             setPlanosDisponiveis(cursoData.planos || []);
-            const peiPlanos = peiData.planos || [];
-            if (peiPlanos.length > 0) {
-                setPlanoVinculado(peiPlanos[0]);
-                setSaved(true);
-            }
+            // antes, qualquer plano da disciplina/série contava como vinculado e o botão "Usar este plano" sumia;
+            // agora vale só o plano ligado a esta disciplina do PEI
+            const todos: PlanoVinculado[] = [...(cursoData.planos || []), ...(peiData.planos || [])];
+            const ligado = planoVinculadoId ? todos.find((p) => p.id === planoVinculadoId) : undefined;
+            setPlanoVinculado(ligado || null);
+            setSaved(Boolean(ligado));
         }).finally(() => setLoading(false));
-    }, [disciplina, anoSerie]);
+    }, [disciplina, anoSerie, planoVinculadoId]);
 
     // ─── Link plan ──────────────────────────────────────────────────────
 
+    // usar um plano = ligar o plano existente a esta disciplina do PEI (quem grava a ligação é o onPlanoSaved);
+    // antes copiava o plano numa linha nova, e o Plano de ensino passava a mostrar "2 planos"
     const vincularPlano = useCallback(async (plano: PlanoVinculado) => {
         setSaving(true); setError("");
         try {
-            // Ensure conteudo is a string (it may be a parsed object from jsonb)
-            const conteudoStr = plano.conteudo
-                ? (typeof plano.conteudo === "string" ? plano.conteudo : JSON.stringify(plano.conteudo))
-                : null;
-
-            const res = await fetch("/api/pei/plano-ensino", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    id: planoVinculado?.id || undefined,
-                    disciplina, ano_serie: anoSerie,
-                    conteudo: conteudoStr,
-                    habilidades_bncc: plano.habilidades_bncc,
-                    bimestre: plano.bimestre,
-                }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Erro ao vincular plano");
-            setPlanoVinculado({ ...plano, id: data.plano?.id || plano.id });
+            setPlanoVinculado(plano);
             setSaved(true);
-            onPlanoSaved?.(data.plano?.id);
+            await onPlanoSaved?.(plano.id);
         } catch (err) {
-            console.error("vincularPlano error:", err);
             setError(err instanceof Error ? err.message : "Erro ao vincular plano");
         } finally { setSaving(false); }
-    }, [disciplina, anoSerie, planoVinculado, onPlanoSaved]);
+    }, [onPlanoSaved]);
 
     // ─── Parse blocos ───────────────────────────────────────────────────
 
@@ -282,7 +268,7 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                             <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8 }}>
                                 {planosDisponiveis.map(p => {
                                     const blocos = parseBlocos(p.conteudo);
-                                    const isLinked = planoVinculado?.conteudo === p.conteudo;
+                                    const isLinked = planoVinculado?.id === p.id;
                                     return (
                                         <li key={p.id} style={{
                                             display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",

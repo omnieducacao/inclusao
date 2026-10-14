@@ -77,7 +77,8 @@ export function pendenciasDoInicio(
     const valendo = vig && (vig.status === "vigente" || vig.status === "em_revisao") && vig.versao > 0;
 
     // Ciência: professor do vínculo que ainda não leu a versão atual
-    if (cientes && valendo && !cientes.has(`${s.id}:${vig.versao}`)) {
+    // só PEI vigente: em revisão o botão "Li e estou ciente" não aparece, e a pendência ficava sem saída
+    if (cientes && vig?.status === "vigente" && vig.versao > 0 && !cientes.has(`${s.id}:${vig.versao}`)) {
       out.push({
         ...base, tipo: "ciencia", estado: "Para ler",
         texto: `Ler o PEI de ${s.name} (versão ${vig.versao}) e dar ciência`,

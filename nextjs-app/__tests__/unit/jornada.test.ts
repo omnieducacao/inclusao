@@ -40,3 +40,13 @@ describe("Início: passagem do PEI para o AEE", () => {
     expect(sem.some((x) => x.tipo === "sem_paee")).toBe(false);
   });
 });
+
+describe("Jornada do professor regente", () => {
+  it("depois da avaliação e do Hub, o regente volta para a sua disciplina", async () => {
+    const { proximosPassos } = await import("@/lib/jornada");
+    const regente = { can_pei_professor: true, can_hub: true, can_diario: true, can_avaliacao: true };
+    expect(proximosPassos("avaliacao", regente, "x").map((p) => p.href)).toEqual(["/evolucao?student=x", "/pei-professor?aba=disciplina&student=x"]);
+    expect(proximosPassos("hub", regente, "x").map((p) => p.id)).toEqual(["diario", "pei-professor"]);
+    expect(proximosPassos("plano-de-ensino", regente).map((p) => p.href)).toEqual(["/pei-professor?aba=disciplina", "/hub"]);
+  });
+});

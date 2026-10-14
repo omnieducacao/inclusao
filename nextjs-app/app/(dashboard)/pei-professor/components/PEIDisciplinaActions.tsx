@@ -70,17 +70,11 @@ export function FinalizarPeiDisciplinaButton({
     };
 
     if (finalizado) {
+        // antes abria o PEI geral (que o professor não edita); agora confirma o envio
         return (
-            <a
-                href={`/pei?student=${studentId}&tab=consolidacao`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="omni-btn omni-btn--primario"
-            >
-                <ExternalLink size={16} aria-hidden />
-                Abrir a consolidação no PEI geral
-                <span className="omni-so-leitor"> (abre em nova aba)</span>
-            </a>
+            <span className="omni-estado omni-estado--sucesso" role="status">
+                <CheckCircle2 aria-hidden /> Enviado à coordenação
+            </span>
         );
     }
 
@@ -145,7 +139,7 @@ export function FinalizarPeiDisciplinaButton({
                 </div>
             )}
             <span className="omni-apoio" style={{ fontSize: 13 }}>
-                A adaptação vai para o especialista do AEE juntar no PEI oficial.
+                A coordenação junta a sua adaptação ao PEI do estudante.
             </span>
         </div>
     );
@@ -157,7 +151,7 @@ export function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina
     studentId: string; studentName: string; disciplina: string; onLinked?: () => void;
 }) {
     const [loading, setLoading] = useState(true);
-    const [avaliacao, setAvaliacao] = useState<{ id: string; nivel: number | null; status: string; questoes: number; updated_at: string } | null>(null);
+    const [avaliacao, setAvaliacao] = useState<{ id: string; nivel: number | null; status: string; questoes: number; itens: string; updated_at: string } | null>(null);
 
     useEffect(() => {
         if (!studentId || !disciplina) { setTimeout(() => setLoading(false), 0); return; }
@@ -171,7 +165,9 @@ export function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina
                         id: av.id,
                         nivel: av.nivel_omnisfera_identificado,
                         status: av.status || "pendente",
-                        questoes: av.questoes_geradas?.questoes?.length || 0,
+                        // a diagnóstica nova avalia descritores; as antigas tinham questões geradas
+                        questoes: (Array.isArray(av.descritores) && av.descritores.length) || av.questoes_geradas?.questoes?.length || 0,
+                        itens: Array.isArray(av.descritores) && av.descritores.length ? "descritores" : "questões",
                         updated_at: av.updated_at || av.created_at,
                     });
                 }
@@ -237,7 +233,7 @@ export function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina
                             Nível Omnisfera: {avaliacao.nivel} — {ESCALA_OMNISFERA[avaliacao.nivel as NivelOmnisfera]?.label}
                         </div>
                         <div className="omni-apoio" style={{ fontSize: 14 }}>
-                            {avaliacao.questoes} questões · {new Date(avaliacao.updated_at).toLocaleDateString("pt-BR")}
+                            {avaliacao.questoes > 0 ? `${avaliacao.questoes} ${avaliacao.itens} · ` : ""}{new Date(avaliacao.updated_at).toLocaleDateString("pt-BR")}
                         </div>
                     </div>
                 </div>
@@ -250,7 +246,7 @@ export function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina
                     <div>
                         <div className="omni-aviso__titulo">A avaliação foi criada, mas ainda não foi aplicada</div>
                         <div className="omni-aviso__texto">
-                            {avaliacao.questoes} questões. Aplique com o estudante na página Avaliação diagnóstica.
+                            {avaliacao.questoes > 0 ? `${avaliacao.questoes} ${avaliacao.itens}. ` : ""}Conclua com o estudante na página Avaliação diagnóstica.
                         </div>
                         <div className="omni-aviso__acoes">
                             <a href={linkDiagnostica} className="omni-btn omni-btn--primario omni-btn--pequeno">

@@ -3,6 +3,7 @@ import { decryptField } from "@/lib/encryption";
 import type { Session } from "@supabase/supabase-js";
 import { logger } from "@/lib/logger";
 import { memberIdDaSessao } from "@/lib/session";
+import { componenteOficial } from "@/lib/matriz-avaliacao";
 
 /**
  * Retorna os estudantes vinculados ao professor logado,
@@ -179,8 +180,12 @@ export async function getAlunosRegente(session: any) {
     (extraStudents || []).forEach(s => studentsMap.set(s.id, s));
 
     const avaliacoesMap = new Map<string, { nivel: number | null; status: string }>();
+    // o nome do componente é normalizado dos dois lados ("Português" = "Língua Portuguesa"); uma aplicada vale mais que uma pendente
     (avaliacoes || []).forEach(a => {
-        avaliacoesMap.set(`${a.student_id}:${a.disciplina}`, {
+        const k = `${a.student_id}:${componenteOficial(a.disciplina || "")}`;
+        const atual = avaliacoesMap.get(k);
+        if (atual?.status === "aplicada" && a.status !== "aplicada") return;
+        avaliacoesMap.set(k, {
             nivel: a.nivel_omnisfera_identificado,
             status: a.status || "pendente",
         });
@@ -224,6 +229,7 @@ export async function getAlunosRegente(session: any) {
             professor_regente_nome: string;
             fase_status: string;
             has_plano: boolean;
+            plano_ensino_id?: string | null;
             has_avaliacao: boolean;
             nivel_omnisfera: number | null;
             avaliacao_status: string;
@@ -254,7 +260,7 @@ export async function getAlunosRegente(session: any) {
             });
         }
 
-        const key = `${d.student_id}:${d.disciplina}`;
+        const key = `${d.student_id}:${componenteOficial(d.disciplina || "")}`;
         const avData = avaliacoesMap.get(key);
         const hasPlano = !!d.plano_ensino_id;
 
@@ -264,6 +270,7 @@ export async function getAlunosRegente(session: any) {
             professor_regente_nome: d.professor_regente_nome,
             fase_status: d.fase_status || "plano_ensino",
             has_plano: hasPlano,
+            plano_ensino_id: d.plano_ensino_id || null,
             has_avaliacao: !!avData,
             nivel_omnisfera: avData?.nivel || null,
             avaliacao_status: avData?.status || "pendente",
@@ -303,7 +310,7 @@ export async function getAlunosRegente(session: any) {
 
         // Criar entradas virtuais para cada disciplina do professor
         for (const disc of profDisciplinas) {
-            const key = `${s.id}:${disc}`;
+            const key = `${s.id}:${componenteOficial(disc)}`;
             const avData = avaliacoesMap.get(key);
             entry.disciplinas.push({
                 id: `virtual_${s.id}_${disc}`,

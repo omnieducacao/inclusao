@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { componenteOficial } from "@/lib/matriz-avaliacao";
 import { chatCompletionText } from "@/lib/ai-engines";
 import {
     buildContextoAluno,
@@ -85,17 +86,21 @@ export async function GET(req: Request) {
         .eq("student_id", studentId)
         .eq("workspace_id", session.workspace_id);
 
-    if (disciplina) {
-        query = query.eq("disciplina", disciplina);
-    }
-
     const { data, error } = await query.order("created_at", { ascending: false });
 
     if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ avaliacoes: data || [] });
+    // a diagnóstica nova grava o nome oficial do componente ("Língua Portuguesa"); a disciplina do professor pode vir como "Português"
+    let lista = (data || []) as Array<{ disciplina?: string | null; status?: string | null }>;
+    if (disciplina) {
+        const alvo = componenteOficial(disciplina);
+        lista = lista.filter((a) => componenteOficial(a.disciplina || "") === alvo);
+        // a aplicada primeiro (a tela usa a primeira)
+        lista.sort((a, b) => Number(b.status === "aplicada") - Number(a.status === "aplicada"));
+    }
+    return NextResponse.json({ avaliacoes: lista });
 }
 
 export async function POST(req: Request) {

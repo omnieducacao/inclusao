@@ -99,22 +99,27 @@ export const TUTORIAIS: Record<EtapaId, Tutorial> = {
   },
   "pei-professor": {
     id: "pei-professor",
-    paraQue: "Para o professor regente: ler o PEI, dar ciência e fazer a parte da sua disciplina.",
+    paraQue: "Para o professor da sala: ler o PEI de cada estudante, dar ciência e fazer a parte da sua disciplina.",
     passos: [
-      { titulo: "Ler e dar ciência", texto: "Leia o PEI vigente de cada estudante da sua turma e confirme a ciência." },
-      { titulo: "Minha disciplina", texto: "Siga as três etapas: plano de ensino, diagnóstica da disciplina e PEI da disciplina." },
-      { titulo: "Crie o material", texto: "Use o Hub para adaptar atividades e provas a partir do PEI." },
+      { titulo: "Ler e dar ciência", texto: "Na aba \"Ler e dar ciência\", abra \"Ler o PEI\": interesses, potencialidades e as estratégias de acesso, de ensino e de avaliação. Depois, \"Li e estou ciente\". Quando o PEI muda de versão, a leitura é pedida de novo." },
+      { titulo: "Minha disciplina: plano de ensino", texto: "Na aba \"Minha disciplina\", escolha o estudante e a disciplina. Em \"Plano de ensino\", use o plano da turma (\"Usar este plano\") ou crie um no módulo Plano de ensino." },
+      { titulo: "Avaliação diagnóstica", texto: "Avalie o estudante na sua disciplina. Com a diagnóstica concluída, a disciplina segue para o PEI da disciplina." },
+      { titulo: "PEI da disciplina", texto: "\"Sugerir adaptações\" cruza o plano da turma com o nível do estudante. Revise e use \"Concluir e enviar à coordenação\", com um recado se quiser." },
+      { titulo: "Leve para a sala", texto: "Crie atividades e provas adaptadas no Hub e registre no Diário o que observou." },
     ],
-    video: false,
+    dica: "Se a coordenação devolver uma disciplina com um recado, ele aparece em \"Minha disciplina\" e no sino.",
+    video: true,
   },
   "plano-de-ensino": {
     id: "plano-de-ensino",
-    paraQue: "O planejamento do componente e da série, que o PEI da disciplina adapta.",
+    paraQue: "O planejamento do componente e da série para a turma toda. O PEI da disciplina parte dele para adaptar.",
     passos: [
-      { titulo: "Escolha componente e série", texto: "Aparecem os que a coordenação ligou a você em Equipe e papéis." },
-      { titulo: "Monte o plano", texto: "Habilidades da BNCC, objetivos e avaliação de cada período." },
+      { titulo: "Escolha componente e série", texto: "Aparecem os componentes que a coordenação ligou a você em Equipe e papéis. Cada série mostra \"Sem plano ainda\" ou \"Plano feito\"." },
+      { titulo: "Monte a sequência", texto: "Escolha o período, a unidade temática, o objeto de conhecimento e as habilidades da BNCC. \"Sugerir com IA\" propõe objetivos, metodologia, recursos e avaliação; você ajusta." },
+      { titulo: "Adicione os blocos", texto: "\"Adicionar à sequência\" guarda cada bloco. O plano salva sozinho." },
+      { titulo: "Use no PEI da disciplina", texto: "No PEI do professor, em \"Minha disciplina\", o plano aparece para ser usado com cada estudante." },
     ],
-    video: false,
+    video: true,
   },
 };
 

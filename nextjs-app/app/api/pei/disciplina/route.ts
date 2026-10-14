@@ -16,6 +16,13 @@ import { logger } from "@/lib/logger";
  * Body: { id, fase_status, feedback_professor? } | { id, devolutiva } (coordenação) | { id, devolutiva_lida: true }
  */
 
+/** Quem coordena o PEI mexe em qualquer disciplina; o professor só na própria. */
+function coordenaPei(session: NonNullable<Awaited<ReturnType<typeof getSession>>>): boolean {
+    const m = (session.member || {}) as Record<string, unknown>;
+    return Boolean(session.is_platform_admin || session.user_role === "master" || m.can_pei);
+}
+const NENHUM = "00000000-0000-0000-0000-000000000000";
+
 export async function GET(req: Request) {
     const session = await getSession();
     if (!session?.workspace_id) {
@@ -189,8 +196,9 @@ export async function PATCH(req: Request) {
     const sb = getSupabase();
     const atualizar = (campos: Record<string, unknown>) => {
         let q = sb.from("pei_disciplinas").update(campos).eq("id", id).eq("workspace_id", session.workspace_id);
-        // A devolutiva só conta como lida quando quem abre é o professor da disciplina
-        if (devolutiva_lida) q = q.eq("professor_regente_id", memberIdDaSessao(session) || "00000000-0000-0000-0000-000000000000");
+        // A devolutiva só conta como lida quando quem abre é o professor da disciplina;
+        // mudar a fase (concluir, voltar) também só o professor da disciplina ou a coordenação
+        if (devolutiva_lida || (devolutiva === undefined && !coordenaPei(session))) q = q.eq("professor_regente_id", memberIdDaSessao(session) || NENHUM);
         return q.select().maybeSingle();
     };
     let { data, error } = await atualizar(updateFields);
@@ -206,6 +214,10 @@ export async function PATCH(req: Request) {
     if (error) {
         logger.error({ err: error }, "PATCH /api/pei/disciplina:");
         return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    if (!data && !devolutiva_lida && devolutiva === undefined && !coordenaPei(session)) {
+        return NextResponse.json({ error: "Só o professor desta disciplina ou a coordenação pode mudar a fase." }, { status: 403 });
     }
 
     return NextResponse.json({ ok: true, pei_disciplina: data });
@@ -230,11 +242,14 @@ export async function DELETE(req: Request) {
     }
 
     const sb = getSupabase();
-    const { error } = await sb
+    let del = sb
         .from("pei_disciplinas")
         .delete()
         .eq("id", id)
         .eq("workspace_id", session.workspace_id);
+    // recomeçar uma disciplina: o professor dela ou a coordenação
+    if (!coordenaPei(session)) del = del.eq("professor_regente_id", memberIdDaSessao(session) || NENHUM);
+    const { error } = await del;
 
     if (error) {
         logger.error({ err: error }, "DELETE /api/pei/disciplina:");

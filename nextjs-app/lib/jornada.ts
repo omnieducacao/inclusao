@@ -23,11 +23,11 @@ export const JORNADA: Record<EtapaId, Etapa> = {
   estudantes: { id: "estudantes", rota: "/estudantes", titulo: "Estudantes", resumo: "Cadastre o estudante e abra a ficha dele.", permissao: "can_estudantes", depois: ["pei"] },
   pei: { id: "pei", rota: "/pei", titulo: "PEI", resumo: "Estudo de caso, barreiras, metas e estratégias do estudante.", permissao: "can_pei", depois: ["paee", "avaliacao", "hub"] },
   paee: { id: "paee", rota: "/paee", titulo: "Planejar o AEE (PAEE)", resumo: "Transforme as metas do PEI em ciclos de atendimento.", permissao: "can_paee", depois: ["diario", "hub"] },
-  hub: { id: "hub", rota: "/hub", titulo: "Criar materiais no Hub", resumo: "Atividades e recursos adaptados ao PEI do estudante.", permissao: "can_hub", depois: ["diario", "paee"] },
+  hub: { id: "hub", rota: "/hub", titulo: "Criar materiais no Hub", resumo: "Atividades e recursos adaptados ao PEI do estudante.", permissao: "can_hub", depois: ["diario", "paee", "pei-professor"] },
   diario: { id: "diario", rota: "/diario", titulo: "Registrar no Diário de bordo", resumo: "Anote cada atendimento: o que fez e como o estudante respondeu.", permissao: "can_diario", depois: ["avaliacao", "evolucao"] },
-  avaliacao: { id: "avaliacao", rota: "/avaliacao-diagnostica", titulo: "Avaliar", resumo: "Diagnóstica no começo e processual a cada período, descritor por descritor.", permissao: "can_avaliacao", depois: ["evolucao", "pei"] },
+  avaliacao: { id: "avaliacao", rota: "/avaliacao-diagnostica", titulo: "Avaliar", resumo: "Diagnóstica no começo e processual a cada período, descritor por descritor.", permissao: "can_avaliacao", depois: ["evolucao", "pei", "pei-professor"] },
   evolucao: { id: "evolucao", rota: "/evolucao", titulo: "Ver a evolução", resumo: "Avaliações, diário e PAEE juntos, para decidir os próximos passos.", permissao: "can_avaliacao", depois: ["pei", "paee"] },
-  "pei-professor": { id: "pei-professor", rota: "/pei-professor", titulo: "PEI do professor", resumo: "Leia o PEI, dê ciência e faça a parte da sua disciplina.", permissao: "can_pei_professor", depois: ["hub", "avaliacao"] },
+  "pei-professor": { id: "pei-professor", rota: "/pei-professor?aba=disciplina", titulo: "PEI da sua disciplina", resumo: "Plano de ensino, diagnóstica e as adaptações da sua disciplina no PEI.", permissao: "can_pei_professor", depois: ["hub", "avaliacao"] },
   "plano-de-ensino": { id: "plano-de-ensino", rota: "/plano-de-ensino", titulo: "Plano de ensino", resumo: "O planejamento do componente, que o PEI da disciplina adapta.", permissao: "can_pei_professor", depois: ["pei-professor", "hub"] },
 };
 
@@ -41,7 +41,7 @@ export type Passo = { id: EtapaId; href: string; titulo: string; resumo: string 
 
 /** Os próximos passos a partir de uma etapa, só com o que a pessoa pode abrir. */
 export function proximosPassos(atual: EtapaId, pode: Partial<Record<Permissao, boolean>>, studentId?: string | null, max = 2): Passo[] {
-  const q = studentId ? `?student=${encodeURIComponent(studentId)}` : "";
+  const sid = studentId ? `student=${encodeURIComponent(studentId)}` : "";
   return JORNADA[atual].depois
     .map((id) => JORNADA[id])
     .filter((e) => pode[e.permissao])
@@ -50,7 +50,8 @@ export function proximosPassos(atual: EtapaId, pode: Partial<Record<Permissao, b
       const volta = e.id === "pei" ? VOLTA_AO_PEI[atual] : undefined;
       return {
         id: e.id,
-        href: `${e.rota}${q}${volta && q ? volta.sufixo : ""}`,
+        // a rota pode já ter parâmetros (/pei-professor?aba=disciplina)
+        href: `${e.rota}${sid ? (e.rota.includes("?") ? "&" : "?") + sid : ""}${volta && sid ? volta.sufixo : ""}`,
         titulo: volta?.titulo ?? e.titulo,
         resumo: volta?.resumo ?? e.resumo,
       };

@@ -25,16 +25,16 @@ type Announcement = {
  * NotificationBell — shows a bell icon with a badge count.
  * Fetches notifications on hover/click from /api/notifications.
  */
-// Onda 16: o professor vai para o PEI do professor; o alerta do AEE abre a ficha do estudante
+// Onda 16: o professor vai para o PEI do professor; o alerta do AEE abre o diário do estudante (onde está o recado)
 function destinoDaNotificacao(id: string, type: string, studentId: string): string {
     if (id.startsWith("pei-devolutiva-")) return "/pei-professor?aba=disciplina";
     if (id.startsWith("pei-ciencia-")) return "/pei-professor";
-    if (id.startsWith("diario-alerta-")) return `/estudantes/${studentId}`;
+    if (id.startsWith("diario-alerta-")) return `/diario?student=${studentId}`;
     return type === "diario" ? `/diario?student=${studentId}` : `/pei?student=${studentId}`;
 }
 function rotuloDaNotificacao(id: string, type: string): string {
     if (id.startsWith("pei-devolutiva-") || id.startsWith("pei-ciencia-")) return "Abrir PEI do professor";
-    if (id.startsWith("diario-alerta-")) return "Abrir a ficha";
+    if (id.startsWith("diario-alerta-")) return "Ver o recado no diário";
     return type === "diario" ? "Ir para Diário" : "Ir para PEI";
 }
 

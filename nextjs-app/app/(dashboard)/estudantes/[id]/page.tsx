@@ -10,7 +10,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import { ArrowLeft, BookOpen, Brain, ChartLine, FileText, Layers, NotebookPen, Sparkles } from "lucide-react";
-import { getSession } from "@/lib/session";
+import { getSession, memberIdDaSessao } from "@/lib/session";
+import { cicloAtivo as cicloEmAndamento } from "@/lib/paee";
 import { getStudent } from "@/lib/students";
 import { getSupabase } from "@/lib/supabase";
 import { vinculoDaSessao, vinculoInclui, turmasDaEscola } from "@/lib/turmas";
@@ -53,9 +54,17 @@ export default async function FichaEstudantePage({ params }: Props) {
   const pei = (student.pei_data || {}) as Record<string, unknown>;
   const situacao = situacaoDoPei(pei, hoje);
   const ciclos = (student.paee_ciclos || []) as Array<{ status?: string; tipo?: string }>;
-  const cicloAtivo = ciclos.find((c) => c.status === "ativo");
+  const cicloAtivo = cicloEmAndamento(student.paee_ciclos as unknown[] | null, (student as { planejamento_ativo?: string | null }).planejamento_ativo);
   const registros = (student.daily_logs || []) as Array<{ data_sessao?: string }>;
   const ultimoRegistro = registros.map((r) => r.data_sessao || "").filter(Boolean).sort().pop();
+
+  // ciência desta pessoa na versão atual do PEI (antes o cartão dizia "Para ler" mesmo depois da ciência)
+  const memberId = memberIdDaSessao(session);
+  const versaoAtual = situacao.versao || 0;
+  const ciente = memberId && versaoAtual
+    ? Boolean((await getSupabase().from("pei_ciencias").select("student_id").eq("workspace_id", session.workspace_id)
+      .eq("member_id", memberId).eq("student_id", id).eq("versao", versaoAtual).limit(1)).data?.length)
+    : false;
 
   const [materiais, diagnosticas, processuais] = await Promise.all([
     contar("hub_generated_content", session.workspace_id, id),
@@ -75,8 +84,8 @@ export default async function FichaEstudantePage({ params }: Props) {
     },
     {
       href: "/pei-professor", titulo: "PEI do professor", cor: "pei", Icone: BookOpen, permissao: "can_pei_professor",
-      estado: situacao.versao ? { texto: "Para ler", tom: "info" } : { texto: "Sem versão", tom: "neutro" },
-      resumo: situacao.versao ? "Leia o PEI vigente e registre a ciência." : "Aparece aqui quando o PEI estiver vigente.",
+      estado: !situacao.versao ? { texto: "Sem versão", tom: "neutro" } : ciente ? { texto: "Ciente", tom: "sucesso" } : { texto: "Para ler", tom: "info" },
+      resumo: !situacao.versao ? "Aparece aqui quando o PEI estiver vigente." : ciente ? `Você deu ciência da versão ${situacao.versao}.` : "Leia o PEI vigente e registre a ciência.",
       acao: "Abrir",
     },
     {

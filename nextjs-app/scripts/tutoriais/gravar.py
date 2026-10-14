@@ -11,8 +11,8 @@ AQUI = pathlib.Path(__file__).resolve().parent
 SAIDA = AQUI.parent.parent / "public" / "tutoriais"
 SAIDA.mkdir(parents=True, exist_ok=True)
 FPS = 30
-CENAS = sys.argv[1:] or ["estudantes", "pei", "paee", "hub", "diario", "avaliacao", "evolucao"]
-CAPA_EM = {"estudantes": 7.5, "pei": 9.9, "paee": 7.9, "hub": 8.9, "diario": 8.6, "avaliacao": 8.2, "evolucao": 6.5}
+CENAS = sys.argv[1:] or ["estudantes", "pei", "paee", "hub", "diario", "avaliacao", "evolucao", "pei-professor", "plano-de-ensino"]
+CAPA_EM = {"estudantes": 7.5, "pei": 9.9, "paee": 7.9, "hub": 8.9, "diario": 8.6, "avaliacao": 8.2, "evolucao": 6.5, "pei-professor": 9.8, "plano-de-ensino": 9.6}
 
 with sync_playwright() as p:
     b = p.chromium.launch()
