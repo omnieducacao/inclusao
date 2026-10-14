@@ -262,7 +262,13 @@ function PEIDoEstudante({
           )}
         </footer>
         {/* o PEI não termina aqui: depois de vigente, a jornada segue para o AEE, a avaliação e os materiais */}
-        {etapa >= 3 && <div style={{ marginTop: 16 }}><ProximosPassos atual="pei" studentId={currentStudentId} titulo="Com o PEI vigente, o próximo passo" /></div>}
+        {/* só depois que o PEI valeu: antes disso, o próximo passo é torná-lo vigente (botão acima) */}
+        {etapa >= 3 && (estados[3].feito || estados[3].texto === "Em revisão") && (
+          <div style={{ marginTop: 16 }}>
+            <ProximosPassos atual="pei" studentId={currentStudentId}
+              titulo={estados[3].feito ? "Com o PEI vigente, o próximo passo" : "Enquanto o PEI está em revisão, o atendimento continua"} />
+          </div>
+        )}
       </section>
     </div>
   );

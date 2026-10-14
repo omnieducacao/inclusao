@@ -16,7 +16,7 @@ import { CabecalhoEstudante, EscolherEstudante } from "@/components/estudante/Ca
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { EvolucaoDescritores, type DiagnosticaEvolucao, type RegistroEvolucao } from "@/components/avaliacao/EvolucaoDescritores";
 import { lerSerie } from "@/lib/matriz-avaliacao";
-import { resumoPaee, badgeStatus } from "@/lib/paee";
+import { resumoPaee, badgeStatus, trabalhoPorMeta } from "@/lib/paee";
 import { ProximosPassos } from "@/components/jornada/ProximosPassos";
 
 type Student = { id: string; name: string; grade?: string | null; class_group?: string | null };
@@ -132,6 +132,7 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
   const peiData = student.pei_data || {};
   const diario = resumoDoDiario((student.daily_logs || []) as RegistroDiario[]);
   const paee = resumoPaee(student.paee_ciclos);
+  const porMeta = trabalhoPorMeta(student.paee_ciclos, (student.daily_logs || []) as Array<{ data_sessao?: string; objetivos_trabalhados?: string }>);
   const ehInfantil = lerSerie(student.grade).etapa === "EI";
 
   return (
@@ -240,6 +241,26 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
               <Numero rotulo="Frequência" valor={paee.atual.frequencia || "—"} />
               <Numero rotulo="Metas do PEI no ciclo" valor={String(paee.atual.metas)} />
             </dl>
+            {porMeta.length > 0 && (
+              <div style={{ display: "grid", gap: 8 }}>
+                <h3 style={{ margin: 0, font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>Cada meta no diário de bordo</h3>
+                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 6 }}>
+                  {porMeta.map((m) => (
+                    <li key={m.id + m.descricao} style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "4px 12px", alignItems: "baseline", padding: "8px 12px", borderRadius: "var(--o-radius-md)", background: "var(--superficie-2)" }}>
+                      <span style={{ flex: "1 1 220px", minWidth: 0, font: "400 15px/22px var(--font-sans)", color: "var(--tinta)" }}>{m.descricao}</span>
+                      <span className={m.atendimentos ? "omni-apoio" : "omni-estado omni-estado--atencao"} style={{ fontSize: 14 }}>
+                        {m.atendimentos
+                          ? `${m.atendimentos} ${m.atendimentos === 1 ? "atendimento" : "atendimentos"} · última em ${fmtData(m.ultima)}`
+                          : "Ainda não registrada"}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {porMeta.some((m) => !m.atendimentos) && (
+                  <p className="omni-apoio" style={{ margin: 0, fontSize: 14 }}>No diário, marque as metas trabalhadas em cada atendimento.</p>
+                )}
+              </div>
+            )}
           </>
         ) : paee.total > 0 ? (
           <p className="omni-apoio" style={{ margin: 0 }}>Nenhum ciclo em andamento agora.</p>

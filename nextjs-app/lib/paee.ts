@@ -255,3 +255,72 @@ export function resumoPaee(ciclos: unknown[] | null | undefined, hoje: Date = ne
   }
   return { total: lista.length, concluidos: lista.filter((c) => c.status === "concluido").length, atual };
 }
+
+// ─── Diário de bordo ↔ metas do ciclo do AEE ────────────────────────────────
+// O registro do diário guarda as metas trabalhadas no próprio texto de "objetivos_trabalhados",
+// uma por linha, com este prefixo (sem mudar o banco). Assim a linha do tempo e os relatórios continuam legíveis.
+export const PREFIXO_META_AEE = "Meta do AEE: ";
+
+export type MetaDoCiclo = { id: string; descricao: string };
+
+/** O ciclo em andamento (status "ativo"), o mais recente. */
+export function cicloAtivo(ciclos: unknown[] | null | undefined): CicloPAEE | null {
+  const lista = (Array.isArray(ciclos) ? ciclos : []).filter((c): c is CicloPAEE => !!c && typeof c === "object" && (c as CicloPAEE).status === "ativo");
+  lista.sort((a, b) => String(b.atualizado_em || b.criado_em || "").localeCompare(String(a.atualizado_em || a.criado_em || "")));
+  return lista[0] || null;
+}
+
+/** As metas do PEI que o ciclo ativo trabalha. */
+export function metasDoCicloAtivo(ciclos: unknown[] | null | undefined): MetaDoCiclo[] {
+  const c = cicloAtivo(ciclos);
+  const metas = c?.config_ciclo?.metas_selecionadas || [];
+  const vistas = new Set<string>();
+  return metas
+    .filter((m) => m && m.selecionada !== false && String(m.descricao || "").trim())
+    .map((m) => ({ id: m.id, descricao: limparMeta(m.descricao) }))
+    .filter((m) => (vistas.has(m.descricao) ? false : (vistas.add(m.descricao), true)));
+}
+
+function limparMeta(s: string): string {
+  return String(s).replace(/\s+/g, " ").trim();
+}
+
+/** Monta o texto de "objetivos trabalhados": as metas marcadas (uma por linha, com prefixo) e o texto livre. */
+export function objetivosComMetas(metas: string[], livre: string): string {
+  const linhas = metas.map((m) => PREFIXO_META_AEE + limparMeta(m));
+  const resto = livre.trim();
+  return [...linhas, ...(resto ? [resto] : [])].join("\n");
+}
+
+/** As metas do AEE registradas num texto de objetivos. */
+export function metasNoRegistro(objetivos: string | null | undefined): string[] {
+  return String(objetivos || "")
+    .split("\n")
+    .filter((l) => l.startsWith(PREFIXO_META_AEE))
+    .map((l) => limparMeta(l.slice(PREFIXO_META_AEE.length)))
+    .filter(Boolean);
+}
+
+export type TrabalhoDaMeta = MetaDoCiclo & { atendimentos: number; ultima: string | null };
+
+/** Para cada meta do ciclo ativo: em quantos atendimentos do diário (desde o início do ciclo) ela foi trabalhada, e quando foi a última vez. */
+export function trabalhoPorMeta(
+  ciclos: unknown[] | null | undefined,
+  registros: Array<{ data_sessao?: string; objetivos_trabalhados?: string }> | null | undefined,
+): TrabalhoDaMeta[] {
+  const metas = metasDoCicloAtivo(ciclos);
+  if (!metas.length) return [];
+  const inicio = (cicloAtivo(ciclos)?.config_ciclo?.data_inicio || "").slice(0, 10);
+  const conta = new Map<string, { n: number; ultima: string | null }>();
+  for (const r of registros || []) {
+    const data = String(r?.data_sessao || "").slice(0, 10);
+    if (inicio && data && data < inicio) continue;
+    for (const m of new Set(metasNoRegistro(r?.objetivos_trabalhados))) {
+      const atual = conta.get(m) || { n: 0, ultima: null };
+      atual.n += 1;
+      if (data && (!atual.ultima || data > atual.ultima)) atual.ultima = data;
+      conta.set(m, atual);
+    }
+  }
+  return metas.map((m) => ({ ...m, atendimentos: conta.get(m.descricao)?.n || 0, ultima: conta.get(m.descricao)?.ultima || null }));
+}

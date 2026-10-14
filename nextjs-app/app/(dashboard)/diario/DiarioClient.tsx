@@ -9,6 +9,8 @@ import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { ProximosPassos } from "@/components/jornada/ProximosPassos";
 import { useStudentRealtime } from "@/hooks/useStudentRealtime";
+import Link from "next/link";
+import { metasDoCicloAtivo, objetivosComMetas, metasNoRegistro, type MetaDoCiclo } from "@/lib/paee";
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
 
@@ -24,6 +26,7 @@ type StudentFull = Student & {
   grade?: string | null;
   daily_logs?: RegistroDiario[];
   pei_data?: Record<string, unknown>;
+  paee_ciclos?: unknown[];
 };
 
 type RegistroDiario = {
@@ -211,7 +214,7 @@ function DiarioClientInner({ students, studentId, student }: Props) {
 
       {(activeTab === "novo" || activeTab === "lista") && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          <NovoRegistroTab studentId={student.id} onSave={saveRegistro} ultimo={registrosOrdenados[0]} />
+          <NovoRegistroTab studentId={student.id} onSave={saveRegistro} ultimo={registrosOrdenados[0]} metasCiclo={metasDoCicloAtivo(student.paee_ciclos)} />
           <ListaTab registros={registrosOrdenados} onDelete={deleteRegistro} />
         </div>
       )}
@@ -320,9 +323,12 @@ function NovoRegistroTab({
   studentId,
   onSave,
   ultimo,
+  metasCiclo = [],
 }: {
   studentId: string;
   onSave: (r: RegistroDiario) => Promise<boolean>;
+  /** Metas do ciclo do AEE em andamento: o registro diz quais foram trabalhadas (Evolução conta por meta). */
+  metasCiclo?: MetaDoCiclo[];
   /** Onda 9: duração e modalidade começam iguais às do último atendimento (substitui a aba Configurações) */
   ultimo?: RegistroDiario;
 }) {
@@ -333,6 +339,7 @@ function NovoRegistroTab({
   const [engajamento, setEngajamento] = useState(3);
   const [atividade, setAtividade] = useState("");
   const [objetivos, setObjetivos] = useState("");
+  const [metasMarcadas, setMetasMarcadas] = useState<string[]>([]);
   const [estrategias, setEstrategias] = useState("");
   const [recursos, setRecursos] = useState("");
   const [nivelDificuldade, setNivelDificuldade] = useState("adequado");
@@ -365,7 +372,7 @@ function NovoRegistroTab({
       duracao_minutos: duracao,
       modalidade_atendimento: modalidade,
       atividade_principal: atividade,
-      objetivos_trabalhados: objetivos,
+      objetivos_trabalhados: objetivosComMetas(metasMarcadas, objetivos),
       estrategias_utilizadas: estrategias,
       recursos_materiais: recursos,
       engajamento_aluno: engajamento,
@@ -380,7 +387,7 @@ function NovoRegistroTab({
     };
     const ok = await onSave(reg);
     if (ok) {
-      setAtividade(""); setObjetivos(""); setEstrategias(""); setRecursos("");
+      setAtividade(""); setObjetivos(""); setMetasMarcadas([]); setEstrategias(""); setRecursos("");
       setPontosPositivos(""); setDificuldades(""); setObservacoes("");
       setProximosPassos(""); setEncaminhamentos(""); setAlertaRegente(false); setEngajamento(3);
       setRetorno({ tipo: "ok", texto: `Atendimento de ${new Date(dataSessao + "T12:00:00").toLocaleDateString("pt-BR")} registrado. Ele já aparece na linha do tempo.` });
@@ -427,6 +434,26 @@ function NovoRegistroTab({
             placeholder="Ex.: jogo de memória com sílabas; leitura compartilhada do livro da turma" />
           {erroAtividade && <span id="diario-atividade-erro" className="omni-campo__erro">Escreva o que foi feito para salvar.</span>}
         </div>
+
+        <fieldset className="omni-campo" style={{ maxWidth: "none", border: 0, padding: 0, margin: 0 }}>
+          <legend className="omni-campo__rotulo" style={{ marginBottom: 6 }}>Metas do ciclo do AEE trabalhadas hoje</legend>
+          {metasCiclo.length > 0 ? (
+            <div style={{ display: "grid", gap: 6 }}>
+              {metasCiclo.map((m) => (
+                <label key={m.id + m.descricao} className="omni-caixa" style={{ alignItems: "flex-start" }}>
+                  <input type="checkbox" checked={metasMarcadas.includes(m.descricao)}
+                    onChange={(e) => setMetasMarcadas((prev) => e.target.checked ? [...prev, m.descricao] : prev.filter((x) => x !== m.descricao))} />
+                  <span>{m.descricao}</span>
+                </label>
+              ))}
+              <span className="omni-apoio" style={{ fontSize: 14 }}>Em Evolução e dados, cada meta mostra em quantos atendimentos foi trabalhada.</span>
+            </div>
+          ) : (
+            <p className="omni-apoio" style={{ margin: 0, fontSize: 14 }}>
+              Sem ciclo do AEE em andamento. <Link href={`/paee?student=${studentId}`}>Planeje no PAEE</Link> para ligar cada atendimento às metas do PEI.
+            </p>
+          )}
+        </fieldset>
 
         <fieldset className="omni-campo" style={{ maxWidth: "none", border: 0, padding: 0, margin: 0 }}>
           <legend className="omni-campo__rotulo" style={{ marginBottom: 6 }}>Engajamento do estudante</legend>
@@ -626,7 +653,8 @@ function RegistroCard({ registro, onDelete }: { registro: RegistroDiario; onDele
       {expand && (
         <div id={idDetalhe} style={{ padding: "12px 16px 16px", borderTop: "1px solid var(--borda)", display: "grid", gap: 6, font: "400 14px/20px var(--font-sans)", color: "var(--tinta-2)" }}>
           {linha("O que foi feito", registro.atividade_principal)}
-          {linha("Objetivos", registro.objetivos_trabalhados)}
+          {linha("Metas do AEE", metasNoRegistro(registro.objetivos_trabalhados).join("; "))}
+          {linha("Objetivos", String(registro.objetivos_trabalhados || "").split("\n").filter((l) => !metasNoRegistro(l).length).join("\n"))}
           {linha("Estratégias", registro.estrategias_utilizadas)}
           {linha("Recursos", registro.recursos_materiais)}
           {linha("O que foi bem", registro.pontos_positivos)}

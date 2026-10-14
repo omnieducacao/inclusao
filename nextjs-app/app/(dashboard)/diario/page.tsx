@@ -44,6 +44,7 @@ export default async function DiarioPage({ searchParams }: Props) {
                 class_group: student.class_group,
                 daily_logs: (student.daily_logs || []) as Record<string, unknown>[],
                 pei_data: (student.pei_data || {}) as Record<string, unknown>,
+                paee_ciclos: (student.paee_ciclos || []) as unknown[],
               }
               : null
           }

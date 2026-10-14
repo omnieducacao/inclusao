@@ -68,7 +68,7 @@ export const TUTORIAIS: Record<EtapaId, Tutorial> = {
     id: "diario",
     paraQue: "Registrar cada atendimento em poucos toques, para não depender da memória na hora de avaliar e revisar.",
     passos: [
-      { titulo: "Registre", texto: "Data, duração, como foi (individual, grupo, observação em sala), o que foi feito e como o estudante respondeu (engajamento de 1 a 5)." },
+      { titulo: "Registre", texto: "Data, duração, como foi (individual, grupo, observação em sala), o que foi feito, as metas do ciclo do AEE trabalhadas e como o estudante respondeu (engajamento de 1 a 5)." },
       { titulo: "Acompanhe na linha do tempo", texto: "Os registros ficam ao lado do formulário, do mais recente para o mais antigo." },
       { titulo: "Analise e gere relatórios", texto: "Em \"Análise\", filtre por período e modalidade. Em \"Relatórios\", a IA resume o período." },
     ],
@@ -92,7 +92,7 @@ export const TUTORIAIS: Record<EtapaId, Tutorial> = {
     paraQue: "Juntar avaliações, diário e PAEE para decidir os próximos passos com cada estudante.",
     passos: [
       { titulo: "Visão da escola", texto: "Sem estudante escolhido, a tela mostra quem precisa de atenção: revisões vencidas ou chegando, PEIs em rascunho e PEIs vigentes sem ciclo de AEE." },
-      { titulo: "Escolha o estudante", texto: "Veja a evolução por componente (da diagnóstica a cada período), o resumo do diário e o ciclo do PAEE em andamento." },
+      { titulo: "Escolha o estudante", texto: "Veja a evolução por componente (da diagnóstica a cada período), o resumo do diário e o ciclo do PAEE em andamento, com quantas vezes cada meta foi trabalhada." },
       { titulo: "Volte ao PEI", texto: "Com o que a evolução mostrou, revise metas e estratégias no PEI." },
     ],
     video: true,
