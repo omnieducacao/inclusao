@@ -109,6 +109,10 @@ a.omni-cartao:hover,button.omni-cartao:hover{box-shadow:var(--sombra-2);border-c
 .omni-estado--erro{background:var(--erro-suave);color:var(--erro)}
 .omni-estado--info{background:var(--info-suave);color:var(--info)}
 .omni-estado--neutro{background:var(--superficie-2);color:var(--tinta-2);border-color:var(--borda)}
+/* Onda 37: no celular o selo quebra linha em vez de passar da tela */
+@media (max-width:640px){.omni-estado{white-space:normal;max-width:100%}}
+/* Onda 37: elementos flutuantes que só cabem em telas grandes */
+@media (max-width:640px){.omni-so-tela-grande{display:none!important}}
 
 /* ───────────────────────── Aviso e toast ───────────────────────── */
 .omni-aviso{display:grid;grid-template-columns:auto 1fr auto;gap:var(--space-3);align-items:start;padding:var(--space-4);border-radius:var(--o-radius-md);border:1px solid var(--borda);background:var(--superficie);color:var(--tinta);max-width:var(--largura-formulario)}

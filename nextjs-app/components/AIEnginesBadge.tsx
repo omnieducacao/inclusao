@@ -53,7 +53,8 @@ export function AIEnginesBadge({ engines }: { engines?: EngineId[] } = {}) {
   };
 
   return (
-    <div style={{ position: "fixed", bottom: 20, right: 20, zIndex: 40, display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+    // Onda 37: no celular a pílula flutuante cobria botões do fim dos formulários
+    <div className="omni-so-tela-grande" style={{ position: "fixed", bottom: 20, right: 20, zIndex: 40, display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
       {/* Painel aberto */}
       {isExpanded && (
         <div

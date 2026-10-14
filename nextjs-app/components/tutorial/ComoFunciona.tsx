@@ -6,7 +6,7 @@
  * O vídeo só baixa e toca quando aparece na tela; com movimento reduzido ou economia de dados, fica a capa com o botão de tocar.
  */
 import { useEffect, useRef, useState } from "react";
-import { PlayCircle } from "lucide-react";
+import { Maximize2, PlayCircle } from "lucide-react";
 import { tutorialDe, videoDoTutorial, type TutorialId } from "@/lib/tutoriais";
 
 const chave = (id: string) => `omni:tutorial:${id}:visto`;
@@ -44,6 +44,20 @@ export function ComoFunciona({ modulo }: { modulo: TutorialId }) {
     return () => io.disconnect();
   }, [aberto, modulo]);
 
+  // Onda 37: o vídeo mostra a tela do computador; no celular fica pequeno demais, então dá para ampliar
+  const ampliar = () => {
+    const v = ref.current as (HTMLVideoElement & { webkitEnterFullscreen?: () => void }) | null;
+    if (!v) return;
+    v.play().catch(() => {});
+    if (typeof v.requestFullscreen === "function") {
+      v.requestFullscreen()
+        .then(() => (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> })?.lock?.("landscape").catch(() => {}))
+        .catch(() => v.webkitEnterFullscreen?.());
+    } else {
+      v.webkitEnterFullscreen?.(); // iPhone
+    }
+  };
+
   if (!t) return null;
   return (
     <details
@@ -68,13 +82,19 @@ export function ComoFunciona({ modulo }: { modulo: TutorialId }) {
               playsInline
               preload="none"
               poster={video.capa}
+              onClick={ampliar}
               aria-label={`Vídeo curto mostrando como usar: ${t.paraQue}`}
-              style={{ width: "100%", height: "auto", aspectRatio: "16 / 10", borderRadius: "var(--o-radius-md)", border: "1px solid var(--borda)", background: "var(--superficie-2)" }}
+              style={{ width: "100%", height: "auto", aspectRatio: "16 / 10", borderRadius: "var(--o-radius-md)", border: "1px solid var(--borda)", background: "var(--superficie-2)", cursor: "zoom-in" }}
             >
               <source src={video.webm} type="video/webm" />
               <source src={video.mp4} type="video/mp4" />
             </video>
-            <figcaption className="omni-apoio" style={{ fontSize: 13 }}>Exemplo com dados fictícios · sem som</figcaption>
+            <figcaption className="omni-apoio" style={{ fontSize: 13, display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+              <span>Exemplo com dados fictícios · sem som</span>
+              <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" onClick={ampliar}>
+                <Maximize2 aria-hidden /> Ver em tela cheia
+              </button>
+            </figcaption>
           </figure>
         )}
         <div style={{ display: "grid", gap: 10, minWidth: 0 }}>
