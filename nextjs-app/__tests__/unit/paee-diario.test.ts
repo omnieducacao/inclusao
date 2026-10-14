@@ -57,3 +57,25 @@ describe("Ciclo em andamento pelo planejamento_ativo", () => {
     expect(cicloAtivo(salvos, "c")).toBeNull();
   });
 });
+
+describe("Metas de ciclos antigos", () => {
+  it("tira o negrito do markdown e descarta títulos de seção", () => {
+    const antigos = [{ ciclo_id: "v", status: "rascunho", config_ciclo: { metas_selecionadas: [
+      { id: "1", tipo: "G", descricao: "**Linguagens**:" },
+      { id: "2", tipo: "G", descricao: "**Foco do ano atual**: Fortalecer a comunicação" },
+      { id: "3", tipo: "G", descricao: "Criação de ambientes previsíveis." },
+    ] } }];
+    expect(metasDoCicloAtivo(antigos, "v").map((m) => m.descricao)).toEqual(["Foco do ano atual: Fortalecer a comunicação", "Criação de ambientes previsíveis."]);
+  });
+});
+
+describe("Ciclo vencido e frequência", () => {
+  it("marca o ciclo cujo período já terminou e escreve a frequência por extenso", async () => {
+    const { resumoPaee, rotuloFrequencia } = await import("@/lib/paee");
+    const c = [{ ciclo_id: "a", status: "rascunho", config_ciclo: { data_inicio: "2026-01-28", data_fim: "2026-04-22", frequencia: "2x_semana" } }];
+    expect(resumoPaee(c, new Date(2026, 9, 14), "a").atual?.encerrado).toBe(true);
+    expect(resumoPaee(c, new Date(2026, 3, 1), "a").atual?.encerrado).toBe(false);
+    expect(rotuloFrequencia("2x_semana")).toBe("2 vezes por semana");
+    expect(rotuloFrequencia("Semanal")).toBe("Semanal");
+  });
+});

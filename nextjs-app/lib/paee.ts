@@ -182,6 +182,15 @@ export function criarCronogramaBasico(
 
 export const FREQUENCIAS = ["1x_semana", "2x_semana", "3x_semana", "diario"] as const;
 
+/** "2x_semana" (ciclos antigos) → "2 vezes por semana"; o que já vem escrito ("Semanal") fica como está. */
+export function rotuloFrequencia(f: string | null | undefined): string {
+  const v = String(f || "").trim();
+  const m = /^(\d+)x_semana$/.exec(v);
+  if (m) return m[1] === "1" ? "1 vez por semana" : `${m[1]} vezes por semana`;
+  if (v === "diario") return "Diária";
+  return v;
+}
+
 export function fmtDataIso(d: string | undefined): string {
   if (!d) return "-";
   try {
@@ -221,6 +230,8 @@ export type ResumoPaee = {
     semanas: number | null;
     /** Semana em que o ciclo está hoje (1…semanas), ou null se não deu para calcular. */
     semanaAtual: number | null;
+    /** O período do ciclo já terminou (data de fim antes de hoje): hora de concluir e planejar o próximo. */
+    encerrado: boolean;
     metas: number;
   };
 };
@@ -252,6 +263,10 @@ export function resumoPaee(ciclos: unknown[] | null | undefined, hoje: Date = ne
       fim: cfg.data_fim || null,
       semanas,
       semanaAtual,
+      encerrado: (() => {
+        const f = /^(\d{4})-(\d{2})-(\d{2})/.exec(cfg.data_fim || "");
+        return !!f && Date.UTC(Number(f[1]), Number(f[2]) - 1, Number(f[3])) < Date.UTC(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+      })(),
       metas: (cfg.metas_selecionadas || []).filter((x) => x.selecionada !== false).length,
     };
   }
@@ -290,11 +305,13 @@ export function metasDoCicloAtivo(ciclos: unknown[] | null | undefined, planejam
   return metas
     .filter((m) => m && m.selecionada !== false && String(m.descricao || "").trim())
     .map((m) => ({ id: m.id, descricao: limparMeta(m.descricao) }))
+    // ciclos antigos (antes da Onda 16) guardaram linhas soltas do texto do PEI: títulos de seção ("Linguagens:") não são metas
+    .filter((m) => m.descricao.length >= 6 && !m.descricao.endsWith(":"))
     .filter((m) => (vistas.has(m.descricao) ? false : (vistas.add(m.descricao), true)));
 }
 
 function limparMeta(s: string): string {
-  return String(s).replace(/\s+/g, " ").trim();
+  return String(s).replace(/\*\*/g, "").replace(/\s+/g, " ").trim();
 }
 
 /** Monta o texto de "objetivos trabalhados": as metas marcadas (uma por linha, com prefixo) e o texto livre. */

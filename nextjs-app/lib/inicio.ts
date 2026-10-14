@@ -86,11 +86,14 @@ export function pendenciasDoInicio(
     }
 
     // PEI valendo e nenhum ciclo do AEE em andamento: a passagem do PEI para o atendimento (PAEE)
-    const temCicloAtivo = Boolean(cicloAtivo(s.paee_ciclos, s.planejamento_ativo));
+    // ciclo cujo período já terminou também pede o próximo ciclo
+    const ciclo = cicloAtivo(s.paee_ciclos, s.planejamento_ativo);
+    const fimCiclo = String(ciclo?.config_ciclo?.data_fim || "").slice(0, 10);
+    const temCicloAtivo = Boolean(ciclo) && !(fimCiclo && fimCiclo < hoje);
     if (editaPaee && valendo && !temCicloAtivo) {
       out.push({
         ...base, tipo: "sem_paee", estado: "AEE sem ciclo",
-        texto: `O PEI de ${s.name} está valendo; falta planejar o ciclo do AEE`,
+        texto: ciclo ? `O ciclo do AEE de ${s.name} terminou; falta planejar o próximo` : `O PEI de ${s.name} está valendo; falta planejar o ciclo do AEE`,
         acao: "Planejar o AEE", href: `/paee?student=${s.id}`,
       });
     }

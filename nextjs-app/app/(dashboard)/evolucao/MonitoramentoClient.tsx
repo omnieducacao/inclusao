@@ -16,7 +16,7 @@ import { CabecalhoEstudante, EscolherEstudante } from "@/components/estudante/Ca
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { EvolucaoDescritores, type DiagnosticaEvolucao, type RegistroEvolucao } from "@/components/avaliacao/EvolucaoDescritores";
 import { lerSerie } from "@/lib/matriz-avaliacao";
-import { resumoPaee, badgeStatus, trabalhoPorMeta } from "@/lib/paee";
+import { resumoPaee, badgeStatus, trabalhoPorMeta, rotuloFrequencia } from "@/lib/paee";
 import { ProximosPassos } from "@/components/jornada/ProximosPassos";
 
 type Student = { id: string; name: string; grade?: string | null; class_group?: string | null };
@@ -238,9 +238,16 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
             <dl style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, margin: 0 }}>
               <Numero rotulo="Semana" valor={paee.atual.semanaAtual && paee.atual.semanas ? `${paee.atual.semanaAtual} de ${paee.atual.semanas}` : paee.atual.semanas ? `${paee.atual.semanas} semanas` : "—"} />
               <Numero rotulo="Período" valor={paee.atual.inicio ? `${fmtData(paee.atual.inicio)} a ${fmtData(paee.atual.fim)}` : "—"} />
-              <Numero rotulo="Frequência" valor={paee.atual.frequencia || "—"} />
+              <Numero rotulo="Frequência" valor={rotuloFrequencia(paee.atual.frequencia) || "—"} />
               <Numero rotulo="Metas do PEI no ciclo" valor={String(paee.atual.metas)} />
             </dl>
+            {paee.atual.encerrado && (
+              <div className="omni-aviso omni-aviso--atencao" role="status" style={{ maxWidth: "none", margin: 0 }}>
+                <div><div className="omni-aviso__texto">
+                  O período deste ciclo terminou em {fmtData(paee.atual.fim)}. Com o que o diário e a avaliação mostraram, <Link href={`/paee?student=${student.id}`}>planeje o próximo ciclo no PAEE</Link>.
+                </div></div>
+              </div>
+            )}
             {porMeta.length > 0 && (
               <div style={{ display: "grid", gap: 8 }}>
                 <h3 style={{ margin: 0, font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>Cada meta no diário de bordo</h3>
