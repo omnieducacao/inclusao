@@ -101,3 +101,14 @@ document.querySelectorAll('.rio').forEach(r=>{
   r.addEventListener('focusin',()=>r.classList.add('pausa'));r.addEventListener('focusout',()=>r.classList.remove('pausa'));
 });
 })();
+
+/* ---------------------------------------------------------------- 4. profundidade nas pausas com foto (onda 45) */
+(function(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const figs=[...document.querySelectorAll('.intl-fig')];if(!figs.length)return;
+  let pend=false;
+  function tick(){pend=false;const vh=innerHeight;
+    figs.forEach(f=>{const r=f.getBoundingClientRect();if(r.bottom<0||r.top>vh)return;
+      const p=(r.top+r.height/2-vh/2)/(vh/2+r.height/2);f.firstElementChild.style.setProperty('--py',(p*-28).toFixed(1)+'px')})}
+  addEventListener('scroll',()=>{if(!pend){pend=true;requestAnimationFrame(tick)}},{passive:true});tick();
+})();
