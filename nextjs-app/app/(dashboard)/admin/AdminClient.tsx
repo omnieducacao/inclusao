@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { SessionPayload } from "@/lib/session";
-import { School, Users, Cpu, BarChart3, ScrollText, ShieldCheck, Megaphone, FileText, Bug, Camera, Palette, PanelTop, Globe, RefreshCw } from "lucide-react";
+import { School, Users, Cpu, BarChart3, ScrollText, ShieldCheck, Megaphone, FileText, Bug, Camera, Palette, PanelTop, Globe, Inbox, RefreshCw } from "lucide-react";
 import { MensagemAdmin, type Mensagem } from "./components/MensagemAdmin";
 import { EscolasTab } from "./components/EscolasTab";
 import { WorkspaceCard } from "./components/WorkspaceCard";
@@ -20,6 +20,7 @@ import { AparenciaTab } from "./components/AparenciaTab";
 import { TopbarTab } from "./components/TopbarTab";
 import { AuditoriaTab } from "./components/AuditoriaTab";
 import { LandingPageTab } from "./components/LandingPageTab";
+import { LeadsTab } from "./components/LeadsTab";
 
 type Workspace = {
   id: string;
@@ -35,7 +36,7 @@ type Workspace = {
   created_at?: string;
 };
 
-type TabId = "escolas" | "usuarios" | "uso-ia" | "dashboard" | "logs" | "auditoria" | "avisos" | "termo" | "bugs" | "instagram" | "aparencia" | "topbar" | "landing";
+type TabId = "escolas" | "usuarios" | "uso-ia" | "dashboard" | "logs" | "auditoria" | "avisos" | "termo" | "bugs" | "instagram" | "aparencia" | "topbar" | "landing" | "contatos";
 
 const SEGMENT_OPTIONS: Record<string, string> = {
   EI: "Educação Infantil",
@@ -180,6 +181,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
     { id: "aparencia", label: "Aparência", Icone: Palette },
     { id: "topbar", label: "Barra do topo", Icone: PanelTop },
     { id: "landing", label: "Página inicial", Icone: Globe },
+    { id: "contatos", label: "Contatos", Icone: Inbox },
   ];
 
   return (
@@ -244,6 +246,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
       {activeTab === "aparencia" && <AparenciaTab />}
       {activeTab === "topbar" && <TopbarTab />}
       {activeTab === "landing" && <LandingPageTab />}
+      {activeTab === "contatos" && <LeadsTab />}
       </div>
     </div>
 
