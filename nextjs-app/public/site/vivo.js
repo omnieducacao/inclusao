@@ -70,46 +70,68 @@ if(hero){
   go();
 }
 
-/* ---------------------------------------------------------------- 2. da barreira ao encontro */
+/* ---------------------------------------------------------------- 2. da barreira ao encontro
+   Onda 47: mais fluida. O desenho segue a rolagem com inércia (não salta), as barreiras entram e saem
+   uma de cada vez, os círculos respiram e entram em espiral para formar o símbolo, que segue girando devagar. */
 const story=document.getElementById('historia');
 if(story){
   const cv=story.querySelector('canvas'),steps=[...story.querySelectorAll('.st')];let S=fit(cv);
   const LBL=JSON.parse(story.dataset.rotulos),BAR=JSON.parse(story.dataset.barreiras);
   addEventListener('resize',()=>{S=fit(cv)});
+  if('ResizeObserver' in window)new ResizeObserver(()=>{S=fit(cv)}).observe(cv);
+  const ease=x=>{x=Math.max(0,Math.min(1,x));return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2};
   function prog(){ // progresso contínuo 0..3 ao longo dos passos
     const mid=innerHeight*.55;let p=0;
     steps.forEach((s,i)=>{const r=s.getBoundingClientRect();if(r.top<mid)p=i+Math.min(1,(mid-r.top)/r.height)});
     return Math.max(0,Math.min(3.999,p-0.2))}
-  function frame(){
-    const p=rm?Math.round(prog()):prog(),i=Math.floor(p),f=p-i;
-    steps.forEach((s,k)=>s.classList.toggle('on',k===Math.min(3,Math.round(p))));
+  let pd=prog(),last=performance.now(),t0=last,vis=true,ang=0;
+  if('IntersectionObserver' in window)new IntersectionObserver(es=>{vis=es[0].isIntersecting}).observe(story);
+  function frame(now){
+    requestAnimationFrame(frame);
+    if(!vis)return;
+    const dt=Math.min(50,now-last)/16.67;last=now;const t=(now-t0)/1000;
+    const alvo=prog();
+    pd=rm?Math.round(alvo):pd+(alvo-pd)*(1-Math.pow(1-.085,dt)); // inércia: aproxima sem saltar
+    const p=pd,i=Math.min(3,Math.floor(p)),f=p-i;
+    steps.forEach((s,k)=>s.classList.toggle('on',k===Math.min(3,Math.round(alvo))));
     const {ctx,w,h}=S,cx=w/2,cy=h/2,U=Math.min(w,h)/2;
     const spreadD=U*.54,spreadR=U*.15,symR=U*.36,symD=symR/.875;
-    const label=(t,x,y)=>{const tw=ctx.measureText(t).width;ctx.fillText(t,Math.max(tw/2+4,Math.min(w-tw/2-4,x)),y)};
-    const gathering=i===3?sm(f*2.4):0;
-    const barVis=k=>i===0?sm((f-.55)/.45):i===1?1:i===2?1-sm(f*7-k):0;
-    const dim=i===1?.35:i===2?.35*(1-sm(f*1.2)):0;
+    const pad=8,label=(tx,x,y)=>{const tw=ctx.measureText(tx).width;ctx.fillText(tx,Math.max(tw/2+pad,Math.min(w-tw/2-pad,x)),y)};
+    // juntar: só no último passo, com aceleração e desaceleração suaves
+    const gathering=i===3?ease(f*1.6):0;
+    // barreiras: entram uma a uma no fim do passo 1, ficam no 2 e saem uma a uma no 3
+    const barVis=k=>i===0?ease((f-.45)/.45*1.4-k*.08):i===1?1:i===2?1-ease(f*2.4-k*.26):0;
+    const dim=i===1?.35*ease(f*3):i===2?.35*(1-ease(f*1.3)):0;
     ctx.clearRect(0,0,w,h);
-    const bg=bgOf(document.body),ink=getComputedStyle(document.body).getPropertyValue('--ink').trim()||'#1b2a4a',mut=getComputedStyle(document.body).getPropertyValue('--mut').trim();
-    const cs=[0,1,2,3,4,5].map(k=>{const a=(k*60)*Math.PI/180,D=lerp(spreadD,symD,gathering),r=lerp(spreadR,symR,gathering);
-      const wob=rm?0:Math.sin(performance.now()/900+k)*2*(1-gathering);
-      return {x:cx+D*Math.sin(a)+wob,y:cy-D*Math.cos(a),r,k,a:1-dim}});
-    // barreiras: seis paredes entre os estudantes e o centro
+    const st=getComputedStyle(document.body),bg=bgOf(document.body),ink=st.getPropertyValue('--ink').trim()||'#1b2a4a',mut=st.getPropertyValue('--mut').trim();
+    // o conjunto gira devagar; ao se encontrar, entra em espiral e depois segue girando
+    if(!rm)ang+=dt*(.0016+.0024*gathering);                 // giro contínuo, um pouco mais rápido depois do encontro
+    const espiral=rm?0:Math.sin(gathering*Math.PI)*.55;      // no meio do encontro, os círculos entram girando
+    const giro=ang+espiral;
+    const cs=[0,1,2,3,4,5].map(k=>{
+      const a=(k*60)*Math.PI/180+giro;
+      const resp=rm?0:Math.sin(t*1.3+k*1.7)*U*.012*(1-gathering);
+      const empurra=(i===1||i===2)&&!rm?Math.sin(t*2.1+k)*U*.008*barVis(k):0; // encosta nas barreiras
+      const D=lerp(spreadD,symD,gathering)+resp+empurra,r=lerp(spreadR,symR,gathering)*(1+(rm?0:Math.sin(t*1.7+k)*.025*(1-gathering)));
+      return {x:cx+D*Math.sin(a),y:cy-D*Math.cos(a),r,k,a:1-dim}});
+    // barreiras: crescem do centro para fora e somem encolhendo, com transparência
     {ctx.lineCap='round';
-      for(let k=0;k<6;k++){const a=((k*60)+30)*Math.PI/180;const vis=barVis(k);if(vis<=0)continue;
-        const r1=U*.15,r2=U*.15+U*.5*vis;ctx.strokeStyle=ink;ctx.globalAlpha=.85;ctx.lineWidth=Math.max(6,U*.035);
+      ctx.font=`600 ${Math.max(11,U*.045)}px "JetBrains Mono",monospace`;ctx.textAlign='center';
+      for(let k=0;k<6;k++){const v=barVis(k);if(v<=.002)continue;
+        const a=((k*60)+30)*Math.PI/180+giro;
+        const r1=U*.15+U*.08*(1-v),r2=r1+U*.5*v;
+        ctx.strokeStyle=ink;ctx.globalAlpha=.85*Math.min(1,v*1.6);ctx.lineWidth=Math.max(6,U*.035)*(.6+.4*v);
         ctx.beginPath();ctx.moveTo(cx+r1*Math.sin(a),cy-r1*Math.cos(a));ctx.lineTo(cx+r2*Math.sin(a),cy-r2*Math.cos(a));ctx.stroke();
-        ctx.globalAlpha=vis;ctx.fillStyle=ink;ctx.font=`600 ${Math.max(11,U*.045)}px "JetBrains Mono",monospace`;ctx.textAlign='center';
+        ctx.globalAlpha=ease(v);ctx.fillStyle=ink;
         const lr=U*.8;label(BAR[k],cx+lr*Math.sin(a),cy-lr*Math.cos(a)+4)}
       ctx.globalAlpha=1}
     paint(ctx,cs,bg,{luz:true});
-    // rótulos dos estudantes (passo 1)
-    const la=i===0?1-sm((f-.45)/.3):0;
-    if(la>0&&gathering===0){ctx.globalAlpha=la;ctx.fillStyle=ink;ctx.font=`600 ${Math.max(12,U*.05)}px "Plus Jakarta Sans",sans-serif`;ctx.textAlign='center';
-      cs.forEach((c,k)=>{const a=(k*60)*Math.PI/180,lr=spreadD+spreadR+U*.09;const lines=LBL[k].split('|');
+    // rótulos dos estudantes (passo 1), somem devagar quando as barreiras chegam
+    const la=i===0?1-ease((f-.35)/.35):0;
+    if(la>.01&&gathering===0){ctx.globalAlpha=la;ctx.fillStyle=ink;ctx.font=`600 ${Math.max(12,U*.05)}px "Plus Jakarta Sans",sans-serif`;ctx.textAlign='center';
+      cs.forEach((c,k)=>{const a=Math.atan2(c.x-cx,cy-c.y),lr=Math.hypot(c.x-cx,c.y-cy)+spreadR+U*.09;const lines=LBL[k].split('|');
         lines.forEach((ln,j)=>label(ln,cx+lr*Math.sin(a),cy-lr*Math.cos(a)+(j-(lines.length-1)/2)*U*.06+4))});ctx.globalAlpha=1}
-    if(i===3&&gathering>.9){ctx.globalAlpha=sm((gathering-.9)*10);ctx.fillStyle=mut;ctx.font=`600 ${Math.max(12,U*.05)}px "Plus Jakarta Sans",sans-serif`;ctx.textAlign='center';ctx.fillText('o espaço comum',cx,cy+symD+symR+U*.12);ctx.globalAlpha=1}
-    requestAnimationFrame(frame);
+    if(gathering>.85){ctx.globalAlpha=ease((gathering-.85)/.15);ctx.fillStyle=mut;ctx.font=`600 ${Math.max(12,U*.05)}px "Plus Jakarta Sans",sans-serif`;ctx.textAlign='center';ctx.fillText('o espaço comum',cx,cy+symD+symR+U*.12);ctx.globalAlpha=1}
   }
   requestAnimationFrame(frame);
 }
