@@ -10,6 +10,7 @@ import { MemberSimulationBanner } from "@/components/MemberSimulationBanner";
 import { AnnouncementModal } from "@/components/AnnouncementModal";
 import { PermissoesProvider } from "@/components/jornada/PermissoesProvider";
 import { podeVer } from "@/lib/navegacao";
+import { getEnabledModules, permissoesDesligadas } from "@/lib/modules";
 import type { Permissao } from "@/lib/jornada";
 
 const PERMISSOES: Permissao[] = ["can_estudantes", "can_pei", "can_pei_professor", "can_paee", "can_hub", "can_diario", "can_avaliacao", "can_gestao"];
@@ -27,7 +28,9 @@ export default async function DashboardLayout({
     redirect("/familia");
   }
 
-  const pode = Object.fromEntries(PERMISSOES.map((p) => [p, podeVer({ permissao: p }, session)]));
+  // módulos que a escola não tem somem do menu e dos "próximos passos" (o admin fora de simulação vê tudo)
+  const desligadas = permissoesDesligadas(await getEnabledModules(session.workspace_id ?? null, Boolean(session.is_platform_admin && !session.simulating_workspace_id)));
+  const pode = Object.fromEntries(PERMISSOES.map((p) => [p, podeVer({ permissao: p }, session) && !desligadas.includes(p)]));
 
   return (
     <PermissoesProvider pode={pode}>
@@ -45,7 +48,7 @@ export default async function DashboardLayout({
         {/* Onda 6: topo com logo, busca, sino e perfil; a navegação vai para a barra lateral */}
         <Navbar session={session} />
         <div className="omni-moldura">
-          <BarraLateral session={session} />
+          <BarraLateral session={session} desligadas={desligadas} />
           <div className="flex-1 min-w-0 flex flex-col">
             <main id="main-content" className="w-full max-w-[1320px] mx-auto px-4 sm:px-6 py-6 flex-1">{children}</main>
             <div className="w-full px-6">

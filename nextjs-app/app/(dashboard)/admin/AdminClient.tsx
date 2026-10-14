@@ -128,7 +128,7 @@ export function AdminClient({ session }: { session: SessionPayload }) {
 
       if (res.ok) {
         const data = await res.json();
-        setMensagem({ tipo: "sucesso", titulo: `Escola "${data.workspace.name}" criada`, texto: `PIN: ${data.pin}. Guarde este PIN: ele é o acesso da escola.` });
+        setMensagem({ tipo: "sucesso", titulo: `Escola "${data.workspace.name}" criada`, texto: "Para a escola entrar: use \"Simular\" nesta escola, abra Equipe e papéis e crie a conta da coordenação com e-mail e senha. A entrada da escola é sempre com e-mail e senha." });
         setNewSchoolName("");
         setNewSchoolSegments([]);
         setNewSchoolEngines([]);

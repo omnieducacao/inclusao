@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getSession, memberIdDaSessao } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { modoDaEscola } from "@/lib/escola";
+import { getEnabledModules, permissoesDesligadas } from "@/lib/modules";
 import { Navbar } from "@/components/Navbar";
 import { TermsOfUseModal } from "@/components/TermsOfUseModal";
 import { SimulationBanner } from "@/components/SimulationBanner";
@@ -33,8 +34,11 @@ export default async function RootPage() {
 
   const sessionNonNull = session;
 
+  // módulos que a escola não tem não aparecem no Início (mesma regra do menu)
+  const desligadas = permissoesDesligadas(await getEnabledModules(sessionNonNull.workspace_id ?? null, Boolean(sessionNonNull.is_platform_admin && !sessionNonNull.simulating_workspace_id)));
   function canAccessModule(permission?: string): boolean {
     if (!permission) return true;
+    if (desligadas.includes(permission)) return false;
     if (sessionNonNull.is_platform_admin) return true;
     if (sessionNonNull.user_role === "master") return true;
     const member = sessionNonNull.member as Record<string, boolean> | undefined;

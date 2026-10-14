@@ -72,8 +72,8 @@ export function MasterSetupForm({
                 Criar a conta da coordenação
             </h2>
             <p className="omni-cartao__texto" style={{ margin: 0 }}>
-                Hoje a escola entra na Omnisfera com um código numérico (PIN). Crie a conta principal da coordenação
-                para liberar a gestão da equipe. Depois disso, a entrada passa a ser com e-mail e senha.
+                A escola entra na Omnisfera com e-mail e senha. Crie aqui a conta principal da coordenação: com ela,
+                a coordenação entra, convida a equipe e configura a escola.
             </p>
             <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12, maxWidth: 480 }} noValidate>
                 {campo("Nome completo", false, <input type="text" autoComplete="name" value={nome} onChange={(e) => setNome(e.target.value)} className="omni-entrada" aria-required="true" />)}

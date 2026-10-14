@@ -138,6 +138,7 @@ function legenda(t) {
 const MENU = [["", "Início"], ["Acompanhar o estudante", "Estudantes", "PEI", "PAEE", "Diário de bordo"], ["Planejar e avaliar", "Hub de recursos", "Avaliação", "Evolução e dados"]];
 // o professor regente vê outro menu (lib/papeis.ts: PEI do professor, Diário, Hub, Plano de ensino, Avaliação, Evolução)
 const MENU_REGENTE = [["", "Início"], ["Acompanhar o estudante", "PEI do professor", "Diário de bordo"], ["Planejar e avaliar", "Hub de recursos", "Plano de ensino", "Avaliação", "Evolução e dados"]];
+const MENU_GESTAO = [["", "Início"], ["Acompanhar o estudante", "Estudantes", "PEI", "PAEE"], ["Planejar e avaliar", "Avaliação", "Evolução e dados"], ["Gestão da escola", "PGI", "Equipe e papéis", "Configuração da escola"]];
 function menu(ativo, lista = MENU) {
   $("#lado").innerHTML = lista.map((g) => (g[0] ? `<div class="grupo">${g[0]}</div>` : "") + g.slice(1).map((i) => `<div class="item${i === ativo ? " on" : ""}">${i}</div>`).join("")).join("");
 }
@@ -423,6 +424,69 @@ const CENAS = {
       const b = $("#bloco"); b.style.opacity = t < 8.3 ? 0 : 1; aparece(b, t, 8.3);
       $("#vazia").style.display = t < 8.3 ? "block" : "none";
       const s = $("#salvo"); s.style.opacity = t < 9.2 ? 0 : 1;
+    },
+  },
+
+  "config-escola": {
+    menu: "Configuração da escola", menuLista: MENU_GESTAO, dur: 12,
+    html: CAB("Configuração da escola", "Ano letivo, séries e turmas, e como a escola trabalha a inclusão.") + `
+      <div class="passos">${[["1", "Ano letivo"], ["2", "Séries"], ["3", "Turmas"], ["4", "Equipe"]].map(([a, b], i) => `<div class="passo" id="f${i + 1}"><b>Passo ${a}</b>${b}</div>`).join("")}</div>
+      <div class="grade" style="grid-template-columns:1fr 1fr">
+        <div class="cartao" style="display:grid;gap:8px"><div class="rot">1. Ano letivo</div>
+          <div class="linha"><div class="entrada" id="ano" style="flex:1"></div><span class="btn pri" id="addAno">Adicionar ano letivo</span></div>
+          <div class="rot" style="margin-top:6px">2. Séries que a escola oferece</div>
+          <div class="linha" style="flex-wrap:wrap;gap:6px">${["1º ano", "2º ano", "3º ano", "4º ano", "5º ano"].map((x, i) => `<span class="linha" style="gap:5px;font-size:12px"><span class="caixa" id="c${i}"></span>${x}</span>`).join("")}</div>
+          <span class="btn" id="salvarS" style="justify-self:start">Salvar séries</span></div>
+        <div class="cartao" style="display:grid;gap:8px;align-content:start"><div class="rot">3. Turmas de 2026</div>
+          <div class="linha"><label class="campo" style="flex:1">Série<div class="entrada" id="ser"></div></label><label class="campo" style="width:70px">Turma<div class="entrada" id="tur"></div></label></div>
+          <span class="btn pri" id="addT" style="justify-self:start">Adicionar turma</span>
+          <div class="linha" id="turmas" style="gap:6px"><b style="font-size:12.5px;width:60px">4º ano</b><span class="chip in" id="tA">A</span><span class="chip in" id="tB">B</span></div>
+        </div>
+      </div>
+      <div class="cartao" id="modo" style="margin-top:10px;display:grid;gap:6px"><div class="rot">Como a escola trabalha</div>
+        <div class="linha"><span class="chip in" id="mc">Completo · o PEI vai a cada professor</span><span class="chip">Simplificado · um PEI único, com ciência</span></div></div>`,
+    setup() {
+      CAMINHO = [{ t: 0, alvo: [700, 520] }, { t: 1.0, alvo: "#ano", clica: true }, { t: 2.2, alvo: "#addAno", clica: true }, { t: 3.4, alvo: "#c3", clica: true }, { t: 3.9, alvo: "#c4", clica: true }, { t: 4.8, alvo: "#salvarS", clica: true }, { t: 6.0, alvo: "#ser", clica: true }, { t: 7.6, alvo: "#addT", clica: true }, { t: 10.0, alvo: "#mc" }];
+      LEGENDAS = [{ t: .3, n: 1, txt: "Comece pelo ano letivo" }, { t: 3.2, n: 2, txt: "Marque as séries que a escola oferece" }, { t: 5.8, n: 3, txt: "Crie as turmas" }, { t: 9.6, n: 4, txt: "Escolha como a escola trabalha" }];
+    },
+    anim(t) {
+      digita($("#ano"), "2026", t, 1.2, 10); aperta($("#addAno"), t, 2.2);
+      [1, 2, 3, 4].forEach((n, i) => { const f = $("#f" + n); const feito = [2.4, 5.0, 7.9, 99][i]; f.classList.toggle("feito", t >= feito); f.classList.toggle("on", t < feito && t >= [0, 2.4, 5.0, 7.9][i]); });
+      marca($("#c3"), "on", t, 3.4); marca($("#c4"), "on", t, 3.9); aperta($("#salvarS"), t, 4.8);
+      digita($("#ser"), "4º ano", t, 6.2, 12); digita($("#tur"), "B", t, 6.9, 8); aperta($("#addT"), t, 7.6);
+      $("#tA").style.opacity = t < 7.0 ? 0 : 1; const b = $("#tB"); b.style.opacity = t < 7.9 ? 0 : 1; aparece(b, t, 7.9);
+      marca($("#mc"), "pulso", t, 10.0);
+    },
+  },
+
+  equipe: {
+    menu: "Equipe e papéis", menuLista: MENU_GESTAO, dur: 12,
+    html: CAB("Equipe e papéis", "Quem trabalha na escola, o papel de cada um e os estudantes com quem trabalha.") + `
+      <div class="linha" style="justify-content:space-between;margin-bottom:10px"><div class="linha" style="gap:14px;font-size:12.5px;font-weight:700"><span style="color:var(--acao)" id="cnt">Equipe (3)</span><span style="color:var(--tinta-3)">Famílias (2)</span></div><span class="btn pri" id="convidar">+ Convidar pessoa</span></div>
+      <div class="cartao" id="lista" style="padding:0">${[["Marta Lima", "Coordenação"], ["Paula Andrade", "Professor do AEE"], ["Rafael Costa", "Professor"]].map(([n, p]) => `<div class="linha" style="padding:10px 14px;border-bottom:1px solid var(--borda)"><b style="flex:1;font-size:13px">${n}</b><span class="chip">${p}</span></div>`).join("")}
+        <div class="linha" id="nova" style="padding:10px 14px;background:var(--acao-suave)"><b style="flex:1;font-size:13px">Joana Ribeiro</b><span class="chip in">Professor · 4º ano A · Matemática</span></div></div>
+      <div class="cartao" id="form" style="position:absolute;left:120px;top:84px;width:520px;box-shadow:0 18px 50px rgba(27,42,74,.2);display:grid;gap:9px">
+        <b>Convidar pessoa · Equipe da escola</b>
+        <div class="linha"><label class="campo" style="flex:1">Nome<div class="entrada" id="nome"></div></label><label class="campo" style="flex:1">E-mail<div class="entrada" id="mail"></div></label></div>
+        <label class="campo">Papel na escola<div class="linha" style="gap:5px;flex-wrap:wrap">${["Direção", "Coordenação", "Professor", "Professor do AEE", "Profissional de apoio"].map((x, i) => `<span class="chip" id="p${i}">${x}</span>`).join("")}</div></label>
+        <label class="campo">Vínculo com estudantes<div class="linha" style="gap:5px"><span class="chip" id="v0">Toda a escola</span><span class="chip" id="v1">As turmas em que dá aula</span><span class="chip">Estudantes escolhidos</span></div></label>
+        <div class="linha" id="tc" style="gap:6px"><span class="entrada" style="flex:1">4º ano · A</span><span class="entrada" style="flex:1">Matemática</span></div>
+        <div class="linha" style="justify-content:flex-end"><span class="btn pri" id="cad">Cadastrar pessoa</span></div>
+      </div>`,
+    setup() {
+      CAMINHO = [{ t: 0, alvo: [700, 520] }, { t: 1.0, alvo: "#convidar", clica: true }, { t: 2.0, alvo: "#nome", clica: true }, { t: 4.6, alvo: "#p2", clica: true }, { t: 6.0, alvo: "#v1", clica: true }, { t: 8.4, alvo: "#cad", clica: true }, { t: 10.2, alvo: "#nova" }];
+      LEGENDAS = [{ t: .3, n: 1, txt: "Convide cada pessoa da equipe" }, { t: 4.4, n: 2, txt: "O papel já define as páginas que ela abre" }, { t: 5.8, n: 3, txt: "O vínculo leva o PEI ao professor certo" }, { t: 8.6, n: 4, txt: "Pronto: ela entra com e-mail e senha" }];
+    },
+    anim(t) {
+      aperta($("#convidar"), t, 1.0);
+      const f = $("#form"); f.style.opacity = t < 1.3 ? 0 : t < 8.6 ? ease(prog(t, 1.3, .3)) : 1 - ease(prog(t, 8.6, .3));
+      digita($("#nome"), "Joana Ribeiro", t, 2.2, 14); digita($("#mail"), "joana@escola.edu.br", t, 3.2, 20);
+      $$("[id^=p]").forEach((el, i) => { if (el.id.length === 2) el.className = "chip" + (i === 2 && t >= 4.6 ? " in" : ""); });
+      $("#v0").className = "chip"; $("#v1").className = "chip" + (t >= 6.0 ? " in" : "");
+      const tc = $("#tc"); tc.style.opacity = t < 6.3 ? 0 : 1; aparece(tc, t, 6.3);
+      aperta($("#cad"), t, 8.4);
+      const n = $("#nova"); n.style.opacity = t < 8.9 ? 0 : 1; aparece(n, t, 8.9);
+      $("#cnt").textContent = t >= 8.9 ? "Equipe (4)" : "Equipe (3)";
     },
   },
 };

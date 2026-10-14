@@ -134,18 +134,18 @@ export const TUTORIAIS: Record<TutorialId, Tutorial> = {
       { titulo: "Como a escola trabalha", texto: "Completo: o PEI vai a cada professor, que faz a parte da sua disciplina. Simplificado: um PEI único, que os professores leem e dão ciência. Aqui também se liga a área da família." },
     ],
     dica: "Depois das turmas, cadastre a equipe em Equipe e papéis.",
-    video: false,
+    video: true,
   },
   equipe: {
     id: "equipe",
     paraQue: "Quem trabalha na escola, o papel de cada um, as páginas que abre e os estudantes com quem trabalha.",
     passos: [
-      { titulo: "Convide", texto: "\"Convidar pessoa\" → \"Equipe da escola\". Nome, e-mail e o papel na escola (Direção, Coordenação, Professor, Professor do AEE, Profissional de apoio). O papel já marca as páginas que a pessoa abre." },
+      { titulo: "Convide", texto: "\"Convidar pessoa\" → \"Equipe da escola\". Nome, e-mail, uma senha inicial e o papel na escola (Direção, Coordenação, Professor, Professor do AEE, Profissional de apoio). O papel já marca as páginas que a pessoa abre." },
       { titulo: "Vínculo com estudantes", texto: "Toda a escola, as turmas em que dá aula (com os componentes curriculares) ou estudantes escolhidos um a um. É o vínculo que leva o PEI ao professor certo." },
       { titulo: "Famílias", texto: "Com a área da família ligada, \"Convidar pessoa\" → \"Família\" cadastra o responsável e o estudante dele." },
     ],
     dica: "Professor sem turma e componente não recebe PEI para a disciplina dele.",
-    video: false,
+    video: true,
   },
   pgi: {
     id: "pgi",

@@ -11,12 +11,13 @@ export const ENGINE_OPTIONS: Record<string, string> = {
   yellow: "OmniYellow (Gemini)",
   orange: "OmniOrange (OpenAI)",
 };
+// os mesmos nomes do menu; desligar um módulo tira essas telas do menu da escola (lib/modules.ts)
 export const MODULE_OPTIONS: Array<[string, string]> = [
-  ["pei", "Estratégias & PEI"],
-  ["paee", "Plano de Ação (AEE)"],
-  ["hub", "Hub de Recursos"],
-  ["diario", "Diário de Bordo"],
-  ["avaliacao", "Evolução & Dados"],
+  ["pei", "PEI e PEI do professor (e Plano de ensino)"],
+  ["paee", "PAEE"],
+  ["hub", "Hub de recursos"],
+  ["diario", "Diário de bordo"],
+  ["avaliacao", "Avaliação e Evolução e dados"],
 ];
 export const FEED_CATEGORIES = [
   { value: "Novidade", label: "Novidade" },

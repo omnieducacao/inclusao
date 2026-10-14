@@ -58,7 +58,7 @@ export const GRUPOS_NAVEGACAO: Grupo[] = [
   },
 ];
 
-function gruposDaSessao(session: Partial<SessionPayload>): Grupo[] {
+function gruposDaSessao(session: Partial<SessionPayload>, desligadas: string[] = []): Grupo[] {
   // Admin da plataforma fora de uma escola: só Início e Administração
   if (session.is_platform_admin && !session.simulating_workspace_id) {
     return [
@@ -66,7 +66,7 @@ function gruposDaSessao(session: Partial<SessionPayload>): Grupo[] {
       { titulo: "Plataforma", itens: [{ href: "/admin", nome: "Administração", Icone: Settings }] },
     ];
   }
-  return GRUPOS_NAVEGACAO.map((g) => ({ ...g, itens: g.itens.filter((i) => podeVer(i, session)) })).filter((g) => g.itens.length > 0);
+  return GRUPOS_NAVEGACAO.map((g) => ({ ...g, itens: g.itens.filter((i) => podeVer(i, session) && !(i.permissao && desligadas.includes(i.permissao))) })).filter((g) => g.itens.length > 0);
 }
 
 function ativo(pathname: string, href: string): boolean {
@@ -101,9 +101,9 @@ function Lista({ grupos, pathname, onNavegar }: { grupos: Grupo[]; pathname: str
   );
 }
 
-export function BarraLateral({ session }: { session: Partial<SessionPayload> }) {
+export function BarraLateral({ session, desligadas = [] }: { session: Partial<SessionPayload>; desligadas?: string[] }) {
   const pathname = usePathname() || "/";
-  const grupos = gruposDaSessao(session);
+  const grupos = gruposDaSessao(session, desligadas);
   const [aberta, setAberta] = useState(false);
   const botao = useRef<HTMLButtonElement | null>(null);
   const gaveta = useRef<HTMLDivElement | null>(null);

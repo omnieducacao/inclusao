@@ -10,12 +10,26 @@ export const MODULE_KEYS = ["pei", "paee", "hub", "diario", "avaliacao"] as cons
 export type ModuleKey = typeof MODULE_KEYS[number];
 
 export const MODULE_LABELS: Record<ModuleKey, string> = {
-  pei: "Estratégias & PEI",
-  paee: "Plano de Ação (AEE)",
-  hub: "Hub de Recursos",
-  diario: "Diário de Bordo",
-  avaliacao: "Monitoramento & Avaliação",
+  pei: "PEI e PEI do professor",
+  paee: "PAEE (AEE em ciclos)",
+  hub: "Hub de recursos",
+  diario: "Diário de bordo",
+  avaliacao: "Avaliação e Evolução",
 };
+
+/** As permissões de cada módulo da escola: módulo desligado = essas telas somem para todos da escola. */
+export const PERMISSOES_DO_MODULO: Record<ModuleKey, string[]> = {
+  pei: ["can_pei", "can_pei_professor"],
+  paee: ["can_paee"],
+  hub: ["can_hub"],
+  diario: ["can_diario"],
+  avaliacao: ["can_avaliacao"],
+};
+
+/** Permissões desligadas pelos módulos que a escola não contratou (antes os interruptores do admin não tinham efeito). */
+export function permissoesDesligadas(habilitados: readonly string[]): string[] {
+  return MODULE_KEYS.filter((m) => !habilitados.includes(m)).flatMap((m) => PERMISSOES_DO_MODULO[m]);
+}
 
 /**
  * Retorna lista de módulos habilitados para o workspace
