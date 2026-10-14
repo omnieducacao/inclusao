@@ -30,6 +30,8 @@ export function FormularioContato({ origem = "contato", papelDemo = null, textoB
   const [erros, setErros] = useState<Record<string, string>>({});
   const [erroGeral, setErroGeral] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  // onda 50: ao redirecionar (demonstração), o botão segue ocupado até a nova página abrir
+  const [abrindo, setAbrindo] = useState(false);
   const [enviado, setEnviado] = useState(false);
 
   async function enviar(e: React.FormEvent<HTMLFormElement>) {
@@ -54,7 +56,7 @@ export function FormularioContato({ origem = "contato", papelDemo = null, textoB
         if (primeiro) document.getElementById(`${uid}-${primeiro}`)?.focus();
         return;
       }
-      if (data.redirect) { window.location.href = data.redirect; return; }
+      if (data.redirect) { setAbrindo(true); window.location.href = data.redirect; return; }
       setEnviado(true);
       aoEnviar?.(data.id ?? null);
     } catch {
@@ -150,8 +152,8 @@ export function FormularioContato({ origem = "contato", papelDemo = null, textoB
       </div>
 
       <div>
-        <button type="submit" className="omni-btn omni-btn--primario omni-btn--grande" disabled={enviando}>
-          <Send aria-hidden /> {enviando ? "Enviando…" : textoBotao}
+        <button type="submit" className="omni-btn omni-btn--primario omni-btn--grande" disabled={enviando || abrindo} aria-busy={enviando || abrindo}>
+          <Send aria-hidden /> {abrindo ? "Abrindo a demonstração…" : enviando ? "Enviando…" : textoBotao}
         </button>
       </div>
     </form>

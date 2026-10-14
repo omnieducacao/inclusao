@@ -58,7 +58,10 @@ if(orb){
     paint(ctx,pap,night);
     // nomes dos papéis
     ctx.font=`700 ${Math.max(12,U*.042)}px "Plus Jakarta Sans",system-ui,sans-serif`;ctx.textAlign='center';ctx.fillStyle='#eef1f6';
-    pap.forEach(p=>{const ty=p.y+p.r+Math.max(16,U*.05);const tw=ctx.measureText(p.t).width;ctx.fillText(p.t,Math.max(tw/2+6,Math.min(w-tw/2-6,p.x)),Math.min(h-6,ty))});
+    // onda 50: nomes não se sobrepõem (no celular a órbita é estreita)
+    const fs=Math.max(12,U*.042),lb=pap.map(p=>{const tw=ctx.measureText(p.t).width;return {t:p.t,w:tw,x:Math.max(tw/2+6,Math.min(w-tw/2-6,p.x)),y:p.y+p.r+Math.max(16,U*.05)}}).sort((a,b)=>a.y-b.y);
+    lb.forEach((l,i)=>{for(let k=0;k<i;k++){const o=lb[k];if(Math.abs(l.x-o.x)<(l.w+o.w)/2+8&&Math.abs(l.y-o.y)<fs*1.25)l.y=o.y+fs*1.3}
+      ctx.fillText(l.t,l.x,Math.min(h-6,l.y))});
     if(!rm&&vis)requestAnimationFrame(frame);
   }
   const go=()=>{last=performance.now();requestAnimationFrame(frame)};

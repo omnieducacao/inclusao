@@ -32,3 +32,20 @@ export function demoPaginaBloqueada(pathname: string): boolean {
 }
 
 export const MENSAGEM_DEMO = "Na demonstração nada é salvo. Para usar com os seus estudantes, fale com a nossa equipe.";
+
+/**
+ * Onda 51: na demonstração, as telas que pedem um estudante já abrem com a Beatriz Almeida
+ * (a estudante com a jornada completa: estudo de caso, PEI, PAEE, diário e avaliação).
+ * O visitante continua podendo trocar de estudante.
+ */
+export const DEMO_ESTUDANTE_PADRAO = process.env.DEMO_ESTUDANTE_PADRAO || "2ff78d50-afdc-426f-ba23-22fa090f536b";
+const TELAS_COM_ESTUDANTE = ["/pei", "/paee", "/hub", "/diario", "/avaliacao-diagnostica"];
+
+/** Devolve a URL com o estudante padrão, ou null quando a tela não precisa (ou já tem estudante). */
+export function demoComEstudante(url: URL): URL | null {
+  if (!TELAS_COM_ESTUDANTE.includes(url.pathname)) return null;
+  if (url.searchParams.get("student") || url.searchParams.get("studentId")) return null;
+  const nova = new URL(url.toString());
+  nova.searchParams.set("student", DEMO_ESTUDANTE_PADRAO);
+  return nova;
+}

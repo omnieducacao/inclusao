@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { demoPaginaBloqueada, demoPodeChamar, papelDemoValido, PAPEIS_DEMO } from "@/lib/demo";
+import { DEMO_ESTUDANTE_PADRAO, demoComEstudante, demoPaginaBloqueada, demoPodeChamar, papelDemoValido, PAPEIS_DEMO } from "@/lib/demo";
 import { moduloDaRota } from "@/lib/demo-modulos";
 
 describe("demonstração só leitura", () => {
@@ -33,5 +33,26 @@ describe("demonstração só leitura", () => {
     expect(moduloDaRota("/avaliacao-diagnostica")).toBe("Avaliação");
     expect(moduloDaRota("/")).toBe("Início");
     expect(moduloDaRota("/qualquer")).toBeNull();
+  });
+});
+
+describe("demonstração abre as telas com a estudante padrão (onda 51)", () => {
+  const u = (p: string) => new URL("https://www.omnisfera.net" + p);
+  it("acrescenta o estudante nas telas que pedem um", () => {
+    for (const p of ["/pei", "/paee", "/hub", "/diario", "/avaliacao-diagnostica"]) {
+      expect(demoComEstudante(u(p))?.searchParams.get("student")).toBe(DEMO_ESTUDANTE_PADRAO);
+    }
+  });
+  it("mantém os outros parâmetros", () => {
+    const r = demoComEstudante(u("/hub?ferramenta=adaptar-prova"));
+    expect(r?.searchParams.get("ferramenta")).toBe("adaptar-prova");
+    expect(r?.searchParams.get("student")).toBe(DEMO_ESTUDANTE_PADRAO);
+  });
+  it("não mexe quando já há estudante ou em outras telas", () => {
+    expect(demoComEstudante(u("/paee?student=abc"))).toBeNull();
+    expect(demoComEstudante(u("/pei?studentId=abc"))).toBeNull();
+    expect(demoComEstudante(u("/evolucao"))).toBeNull();
+    expect(demoComEstudante(u("/estudantes"))).toBeNull();
+    expect(demoComEstudante(u("/pei/algo"))).toBeNull();
   });
 });

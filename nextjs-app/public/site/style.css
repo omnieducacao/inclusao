@@ -677,3 +677,6 @@ svg.grow .vl{font-family:var(--f);font-weight:800;font-size:17px;fill:var(--ink)
 
 /* sobre: chamada para a demonstração (onda 49) */
 .about .ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+
+/* onda 50: a dica do mouse some em telas de toque */
+@media (hover:none){.hero .hint{display:none}}

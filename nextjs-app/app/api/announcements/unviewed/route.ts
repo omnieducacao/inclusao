@@ -22,6 +22,11 @@ export async function GET() {
                 ? `family_${session.family_responsible_id}`
                 : session.usuario_nome;
 
+        // Demonstração (onda 50): sem avisos — a sessão é só leitura e o aviso voltaria em toda tela
+        if (session.is_demo) {
+            return NextResponse.json({ announcements: [] });
+        }
+
         // Platform admins don't have workspace context
         if (session.is_platform_admin || !workspaceId || !userIdentifier) {
             return NextResponse.json({ announcements: [] });

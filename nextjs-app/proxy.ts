@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 import { getSecret } from "@/lib/jwt-secret";
 import { checkRateLimit } from "@/lib/upstash-rate-limit"; // V5 Rate Limiter
-import { demoPaginaBloqueada, demoPodeChamar, MENSAGEM_DEMO } from "@/lib/demo";
+import { demoComEstudante, demoPaginaBloqueada, demoPodeChamar, MENSAGEM_DEMO } from "@/lib/demo";
 
 
 const PUBLIC_PATHS = ["/login", "/demonstracao", "/contato", "/privacidade", "/seguranca", "/site/", "/api/auth/login", "/api/auth/admin-login", "/api/public/contato", "/api/public/demonstracao", "/api/vitals", "/api/health"];
@@ -106,9 +106,13 @@ export async function proxy(request: NextRequest) {
     // Demonstração (onda 44): só leitura. Toda chamada que muda dados é recusada com uma mensagem clara.
     if (payload.is_demo) {
       if (!demoPodeChamar(pathname, request.method)) {
-        return NextResponse.json({ error: MENSAGEM_DEMO, demo: true }, { status: 403 });
+        return NextResponse.json({ error: MENSAGEM_DEMO, demo: true }, { status: 403, headers: { "x-omni-demo": "1" } });
       }
       if (demoPaginaBloqueada(pathname)) return NextResponse.redirect(new URL("/", request.url));
+      if (request.method === "GET") {
+        const comEstudante = demoComEstudante(request.nextUrl);
+        if (comEstudante) return NextResponse.redirect(comEstudante);
+      }
     }
     if (payload.user_role === "family" && !familiaPode(pathname)) {
       if (pathname.startsWith("/api/")) {
@@ -127,5 +131,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|_vercel|favicon.ico|robots\\.txt|manifest\\.json|sitemap\\.xml|sw\\.js|workbox-.*\\.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|_vercel|favicon.ico|robots\\.txt|manifest\\.json|sitemap\\.xml|sw\\.js|workbox-.*\\.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|mp4|webm)$).*)"],
 };
