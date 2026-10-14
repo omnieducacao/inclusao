@@ -176,8 +176,12 @@ function PAEEClientInner({ students, studentId, student }: Props) {
       const ciclo = ciclos.find((c) => c.ciclo_id === cicloId);
       if (!ciclo) return false;
       const cfg = ciclo.config_ciclo || {};
+      // o ciclo escolhido passa a "ativo" também dentro da lista (antes só a coluna do estudante mudava e o seletor seguia dizendo "Rascunho")
+      const atualizados = ciclos.map((c) =>
+        c.ciclo_id === cicloId ? { ...c, status: "ativo" as const, atualizado_em: new Date().toISOString() }
+          : c.status === "ativo" ? { ...c, status: "rascunho" as const } : c);
       await mutation.updatePAEECiclos(student.id, {
-        paee_ciclos: ciclos,
+        paee_ciclos: atualizados,
         planejamento_ativo: cicloId,
         status_planejamento: "ativo",
         data_inicio_ciclo: cfg.data_inicio ?? null,

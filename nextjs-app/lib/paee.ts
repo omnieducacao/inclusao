@@ -226,10 +226,12 @@ export type ResumoPaee = {
 };
 
 /** Resumo do PAEE para "Evolução e dados": ciclo em andamento, semana atual e quantos já terminaram. */
-export function resumoPaee(ciclos: unknown[] | null | undefined, hoje: Date = new Date()): ResumoPaee {
+export function resumoPaee(ciclos: unknown[] | null | undefined, hoje: Date = new Date(), planejamentoAtivo?: string | null): ResumoPaee {
   const lista = (Array.isArray(ciclos) ? ciclos : []).filter((c): c is CicloPAEE => !!c && typeof c === "object") as CicloPAEE[];
   const recente = (a: CicloPAEE, b: CicloPAEE) => String(b.atualizado_em || b.criado_em || "").localeCompare(String(a.atualizado_em || a.criado_em || ""));
-  const ativo = lista.filter((c) => c.status === "ativo").sort(recente)[0] || lista.filter((c) => c.status === "rascunho").sort(recente)[0] || null;
+  const emAndamento = cicloAtivo(lista, planejamentoAtivo);
+  // o ciclo marcado como atual na tela do PAEE conta como ativo, mesmo que o status interno tenha ficado "rascunho"
+  const ativo = emAndamento ? { ...emAndamento, status: "ativo" as const } : lista.filter((c) => c.status === "rascunho").sort(recente)[0] || null;
   let atual: ResumoPaee["atual"] = null;
   if (ativo) {
     const cfg = ativo.config_ciclo || {};
@@ -263,16 +265,26 @@ export const PREFIXO_META_AEE = "Meta do AEE: ";
 
 export type MetaDoCiclo = { id: string; descricao: string };
 
-/** O ciclo em andamento (status "ativo"), o mais recente. */
-export function cicloAtivo(ciclos: unknown[] | null | undefined): CicloPAEE | null {
-  const lista = (Array.isArray(ciclos) ? ciclos : []).filter((c): c is CicloPAEE => !!c && typeof c === "object" && (c as CicloPAEE).status === "ativo");
-  lista.sort((a, b) => String(b.atualizado_em || b.criado_em || "").localeCompare(String(a.atualizado_em || a.criado_em || "")));
-  return lista[0] || null;
+/**
+ * O ciclo em andamento. A tela do PAEE marca o ciclo atual em students.planejamento_ativo (o id do ciclo):
+ * ao salvar um ciclo e em "Definir como ativo". O status dentro do ciclo pode continuar "rascunho",
+ * então o id manda; sem id, vale o ciclo mais recente com status "ativo". Concluído ou arquivado não conta.
+ */
+export function cicloAtivo(ciclos: unknown[] | null | undefined, planejamentoAtivo?: string | null): CicloPAEE | null {
+  const lista = (Array.isArray(ciclos) ? ciclos : []).filter((c): c is CicloPAEE => !!c && typeof c === "object") as CicloPAEE[];
+  const fechado = (c: CicloPAEE) => c.status === "concluido" || c.status === "arquivado";
+  if (planejamentoAtivo) {
+    const doId = lista.find((c) => c.ciclo_id === planejamentoAtivo);
+    if (doId && !fechado(doId)) return doId;
+  }
+  const ativos = lista.filter((c) => c.status === "ativo");
+  ativos.sort((a, b) => String(b.atualizado_em || b.criado_em || "").localeCompare(String(a.atualizado_em || a.criado_em || "")));
+  return ativos[0] || null;
 }
 
 /** As metas do PEI que o ciclo ativo trabalha. */
-export function metasDoCicloAtivo(ciclos: unknown[] | null | undefined): MetaDoCiclo[] {
-  const c = cicloAtivo(ciclos);
+export function metasDoCicloAtivo(ciclos: unknown[] | null | undefined, planejamentoAtivo?: string | null): MetaDoCiclo[] {
+  const c = cicloAtivo(ciclos, planejamentoAtivo);
   const metas = c?.config_ciclo?.metas_selecionadas || [];
   const vistas = new Set<string>();
   return metas
@@ -307,10 +319,11 @@ export type TrabalhoDaMeta = MetaDoCiclo & { atendimentos: number; ultima: strin
 export function trabalhoPorMeta(
   ciclos: unknown[] | null | undefined,
   registros: Array<{ data_sessao?: string; objetivos_trabalhados?: string }> | null | undefined,
+  planejamentoAtivo?: string | null,
 ): TrabalhoDaMeta[] {
-  const metas = metasDoCicloAtivo(ciclos);
+  const metas = metasDoCicloAtivo(ciclos, planejamentoAtivo);
   if (!metas.length) return [];
-  const inicio = (cicloAtivo(ciclos)?.config_ciclo?.data_inicio || "").slice(0, 10);
+  const inicio = (cicloAtivo(ciclos, planejamentoAtivo)?.config_ciclo?.data_inicio || "").slice(0, 10);
   const conta = new Map<string, { n: number; ultima: string | null }>();
   for (const r of registros || []) {
     const data = String(r?.data_sessao || "").slice(0, 10);

@@ -38,3 +38,22 @@ describe("Diário ↔ metas do ciclo do AEE", () => {
     expect(r.map((m) => [m.atendimentos, m.ultima])).toEqual([[2, "2026-10-08"], [1, "2026-10-08"]]);
   });
 });
+
+describe("Ciclo em andamento pelo planejamento_ativo", () => {
+  const salvos = [
+    { ciclo_id: "a", status: "rascunho", criado_em: "2026-09-01", config_ciclo: { data_inicio: "2026-09-01", metas_selecionadas: [{ id: "x", tipo: "t", descricao: "Meta A" }] } },
+    { ciclo_id: "b", status: "rascunho", criado_em: "2026-10-01", config_ciclo: { metas_selecionadas: [{ id: "y", tipo: "t", descricao: "Meta B" }] } },
+    { ciclo_id: "c", status: "concluido", config_ciclo: { metas_selecionadas: [{ id: "z", tipo: "t", descricao: "Meta C" }] } },
+  ];
+  it("o id marcado como atual vale, mesmo com status interno rascunho", async () => {
+    const { cicloAtivo, resumoPaee } = await import("@/lib/paee");
+    expect(cicloAtivo(salvos, "a")?.ciclo_id).toBe("a");
+    expect(metasDoCicloAtivo(salvos, "b").map((m) => m.descricao)).toEqual(["Meta B"]);
+    expect(resumoPaee(salvos, new Date(2026, 9, 14), "a").atual?.status).toBe("ativo");
+  });
+  it("sem id, rascunho não conta como em andamento; concluído também não", async () => {
+    const { cicloAtivo } = await import("@/lib/paee");
+    expect(cicloAtivo(salvos, null)).toBeNull();
+    expect(cicloAtivo(salvos, "c")).toBeNull();
+  });
+});

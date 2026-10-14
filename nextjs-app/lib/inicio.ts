@@ -10,6 +10,7 @@
  * Função pura para poder testar; a página busca os dados e chama esta função.
  */
 import type { Vigencia } from "./estudo-caso";
+import { cicloAtivo } from "@/lib/paee";
 
 export type TipoPendencia = "revisao_vencida" | "ciencia" | "rascunho" | "sem_paee" | "revisao_proxima" | "sem_pei";
 
@@ -32,6 +33,7 @@ export type EstudanteInicio = {
   grade: string | null;
   pei_data?: Record<string, unknown> | null;
   paee_ciclos?: unknown[] | null;
+  planejamento_ativo?: string | null;
 };
 
 const ORDEM: TipoPendencia[] = ["revisao_vencida", "ciencia", "rascunho", "sem_paee", "revisao_proxima", "sem_pei"];
@@ -84,7 +86,7 @@ export function pendenciasDoInicio(
     }
 
     // PEI valendo e nenhum ciclo do AEE em andamento: a passagem do PEI para o atendimento (PAEE)
-    const temCicloAtivo = ((s.paee_ciclos || []) as Array<{ status?: string }>).some((c) => c?.status === "ativo");
+    const temCicloAtivo = Boolean(cicloAtivo(s.paee_ciclos, s.planejamento_ativo));
     if (editaPaee && valendo && !temCicloAtivo) {
       out.push({
         ...base, tipo: "sem_paee", estado: "AEE sem ciclo",

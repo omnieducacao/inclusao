@@ -131,8 +131,8 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
 
   const peiData = student.pei_data || {};
   const diario = resumoDoDiario((student.daily_logs || []) as RegistroDiario[]);
-  const paee = resumoPaee(student.paee_ciclos);
-  const porMeta = trabalhoPorMeta(student.paee_ciclos, (student.daily_logs || []) as Array<{ data_sessao?: string; objetivos_trabalhados?: string }>);
+  const paee = resumoPaee(student.paee_ciclos, new Date(), student.planejamento_ativo);
+  const porMeta = trabalhoPorMeta(student.paee_ciclos, (student.daily_logs || []) as Array<{ data_sessao?: string; objetivos_trabalhados?: string }>, student.planejamento_ativo);
   const ehInfantil = lerSerie(student.grade).etapa === "EI";
 
   return (

@@ -2,6 +2,7 @@ import { getSession } from "@/lib/session";
 import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
 import TelaCarregando from "@/components/brand/TelaCarregando";
+import { cicloAtivo } from "@/lib/paee";
 import { getAdminConfig } from "@/lib/getAdminConfig";
 import { getStudentsWithFallback } from "@/lib/getStudentWithFallback";
 import dynamic from "next/dynamic";
@@ -30,7 +31,7 @@ export default async function MonitoramentoPage({ searchParams }: Props) {
   const linhas: LinhaVisao[] = studentId ? [] : students.map((s) => ({
     id: s.id, name: s.name, grade: s.grade, class_group: s.class_group,
     pei: situacaoDoPei(s.pei_data, hoje),
-    paeeAtivo: ((s.paee_ciclos || []) as Array<{ status?: string }>).some((c) => c.status === "ativo"),
+    paeeAtivo: Boolean(cicloAtivo(s.paee_ciclos, s.planejamento_ativo)),
   }));
 
   return (

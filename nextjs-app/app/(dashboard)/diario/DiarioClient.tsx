@@ -27,6 +27,7 @@ type StudentFull = Student & {
   daily_logs?: RegistroDiario[];
   pei_data?: Record<string, unknown>;
   paee_ciclos?: unknown[];
+  planejamento_ativo?: string | null;
 };
 
 type RegistroDiario = {
@@ -214,7 +215,7 @@ function DiarioClientInner({ students, studentId, student }: Props) {
 
       {(activeTab === "novo" || activeTab === "lista") && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          <NovoRegistroTab studentId={student.id} onSave={saveRegistro} ultimo={registrosOrdenados[0]} metasCiclo={metasDoCicloAtivo(student.paee_ciclos)} />
+          <NovoRegistroTab studentId={student.id} onSave={saveRegistro} ultimo={registrosOrdenados[0]} metasCiclo={metasDoCicloAtivo(student.paee_ciclos, student.planejamento_ativo)} />
           <ListaTab registros={registrosOrdenados} onDelete={deleteRegistro} />
         </div>
       )}
