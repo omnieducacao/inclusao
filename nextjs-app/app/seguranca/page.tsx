@@ -43,7 +43,7 @@ export default function SegurancaPage() {
             <a href="#conteudo" className="omni-pular">Pular para o conteúdo</a>
 
             <header className="omni-topo">
-                <Link href="/landing" className="omni-topo__marca" aria-label="Omnisfera, página inicial">
+                <Link href="/" className="omni-topo__marca" aria-label="Omnisfera, página inicial">
                     <SimboloOmnisfera tamanho={34} />
                     <span className="omni-topo__nome" aria-hidden>omnisfera</span>
                 </Link>
@@ -106,7 +106,7 @@ export default function SegurancaPage() {
                     <p style={{ margin: 0, font: "400 17px/28px var(--font-sans)", color: "var(--tinta-2)" }}>
                         A Omnisfera usa modelos de inteligência artificial (IA) de vários fornecedores (DeepSeek, Kimi, Claude, Gemini e OpenAI). Antes de cada pedido sair para a IA, o nome do estudante é trocado por um apelido e volta só na resposta, dentro da plataforma. Diagnóstico não entra nos textos gerados. E todo conteúdo da IA é uma sugestão: a professora revisa antes de usar.
                     </p>
-                    <Link href="/landing" className="omni-btn omni-btn--secundario omni-btn--grande" style={{ marginTop: 16 }}>
+                    <Link href="/" className="omni-btn omni-btn--secundario omni-btn--grande" style={{ marginTop: 16 }}>
                         <ArrowLeft aria-hidden /> Voltar para a página inicial
                     </Link>
                 </section>

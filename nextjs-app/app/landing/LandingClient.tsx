@@ -1,363 +1,370 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+/**
+ * Home de vendas da Omnisfera (onda 38).
+ * Quem chega sem login em "/" vê esta página (o proxy.ts reescreve para /landing).
+ * O conteúdo gratuito sobre inclusão continua em /inclusao (site estático em public/site).
+ * Ordem das seções = as perguntas de quem decide a compra: o problema, como funciona, se dá para confiar, como começar.
+ */
+import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { ArrowRight, GraduationCap, Layers, Brain, Sparkles, ChartLine, NotebookPen, Lock, Accessibility, Zap } from "lucide-react";
+import {
+  ArrowRight, BookOpen, Brain, ChartLine, CheckCircle2, FileText, Layers, Lock, Accessibility, NotebookPen,
+  Smartphone, Sparkles, Users, House, School, Landmark,
+} from "lucide-react";
 import SimboloOmnisfera from "@/components/SimboloOmnisfera";
 import { OmniEducacaoSignature } from "@/components/Footer";
+import s from "./landing.module.css";
 
-type LandingProps = {
-    stats: { schools: number; students: number; peis: number };
-};
+const NORMAS = [
+  { data: "20 de outubro de 2025", nome: "Decreto 12.686", texto: "Institui a Política Nacional de Educação Especial Inclusiva e faz do estudo de caso a porta de entrada." },
+  { data: "8 de dezembro de 2025", nome: "Decreto 12.773", texto: "Coloca o PEI ao lado do PAEE e amplia a formação do professor do AEE." },
+  { data: "15 de maio de 2026", nome: "Portaria MEC 421", texto: "Regulamenta PAEE e PEI e estende a dispensa de laudo à matrícula." },
+];
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-/* Animated counter hook                                    */
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function useAnimatedCounter(target: number, duration = 2000) {
-    const [count, setCount] = useState(0);
-    const ref = useRef<HTMLDivElement>(null);
+const CICLO = ["Estudo de caso", "PEI", "PAEE", "Diário de bordo", "Avaliação", "Evolução"];
 
-    useEffect(() => {
-        if (target === 0) return;
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (!entry.isIntersecting) return;
-                let start = 0;
-                const step = Math.max(1, Math.ceil(target / (duration / 16)));
-                const timer = setInterval(() => {
-                    start += step;
-                    if (start >= target) {
-                        setCount(target);
-                        clearInterval(timer);
-                    } else {
-                        setCount(start);
-                    }
-                }, 16);
-                observer.disconnect();
-            },
-            { threshold: 0.3 }
-        );
-        if (ref.current) observer.observe(ref.current);
-        return () => observer.disconnect();
-    }, [target, duration]);
+const PAPEIS = [
+  {
+    video: "paee",
+    titulo: "Professor(a) do AEE",
+    itens: [
+      "Faz o estudo de caso e constrói o PEI em quatro etapas, com a IA escrevendo o rascunho.",
+      "Transforma as metas do PEI em ciclos de atendimento (PAEE).",
+      "Registra cada atendimento no diário em poucos toques, ligado às metas.",
+    ],
+  },
+  {
+    video: "pei-professor",
+    titulo: "Professor(a) regente",
+    itens: [
+      "Lê o PEI de cada estudante da turma e dá ciência.",
+      "Faz a avaliação diagnóstica da sua disciplina, descritor por descritor.",
+      "Adapta o plano de ensino e cria atividades com a IA, a partir do PEI.",
+    ],
+  },
+  {
+    video: "evolucao",
+    titulo: "Coordenação e gestão",
+    itens: [
+      "Configura a escola, as turmas e a equipe, cada pessoa com o seu papel.",
+      "Envia o PEI aos professores e consolida o que cada disciplina fez.",
+      "Acompanha a evolução de cada estudante e libera o resumo para a família.",
+    ],
+  },
+];
 
-    return { count, ref };
+const MODULOS = [
+  { Icone: Users, titulo: "Estudantes", texto: "A ficha de cada estudante reúne tudo o que já foi feito com ele.", cor: "pei" },
+  { Icone: FileText, titulo: "PEI", texto: "Plano Educacional Individualizado em quatro etapas, do estudo de caso à revisão.", cor: "pei" },
+  { Icone: BookOpen, titulo: "PEI do professor", texto: "A parte de cada disciplina, feita por quem dá a aula.", cor: "pei" },
+  { Icone: Layers, titulo: "PAEE", texto: "Plano de Atendimento Educacional Especializado em ciclos, com metas do PEI.", cor: "paee" },
+  { Icone: NotebookPen, titulo: "Diário de bordo", texto: "Cada atendimento registrado, com frequência e metas trabalhadas.", cor: "diario" },
+  { Icone: Brain, titulo: "Avaliação", texto: "Diagnóstica e processual, com questões alinhadas à BNCC (Base Nacional Comum Curricular) e ao SAEB.", cor: "hub" },
+  { Icone: Sparkles, titulo: "Hub de recursos", texto: "Atividades, provas adaptadas e materiais criados a partir do PEI.", cor: "hub" },
+  { Icone: ChartLine, titulo: "Evolução e dados", texto: "Avaliações, diário e PAEE juntos para decidir os próximos passos.", cor: "monitoramento" },
+  { Icone: House, titulo: "Família", texto: "A família recebe um resumo do PEI em linguagem simples, quando a escola libera.", cor: "gestao" },
+];
+
+const PERGUNTAS = [
+  {
+    p: "Precisa de laudo para usar?",
+    r: "Não. Desde o Decreto 12.686, quem define os apoios é o estudo de caso feito pela escola. A Omnisfera começa por ele; o laudo, quando existe, entra como mais uma informação.",
+  },
+  {
+    p: "A IA escreve o PEI sozinha?",
+    r: "Não. A IA escreve um rascunho a partir do estudo de caso, e o professor revisa, muda e aprova. Se o estudo de caso mudar depois, a plataforma avisa que o texto precisa ser refeito.",
+  },
+  {
+    p: "Quem vê os dados de cada estudante?",
+    r: "Cada escola só vê os seus estudantes, e cada pessoa só vê o que o seu papel permite. A família vê apenas o resumo que a escola liberou.",
+  },
+  {
+    p: "Funciona no celular?",
+    r: "Sim. Todas as telas funcionam no celular e no tablet, e o diário foi pensado para registrar o atendimento ali mesmo.",
+  },
+  {
+    p: "Como a escola começa?",
+    r: "A configuração é guiada em passos: ano letivo, turmas, equipe e estudantes. Cada módulo tem um vídeo curto e um passo a passo que abrem na primeira visita.",
+  },
+  {
+    p: "Quanto custa?",
+    r: "O valor depende do tamanho da escola ou da rede. Conte o seu cenário para a nossa equipe e enviamos uma proposta.",
+  },
+];
+
+/** Vídeo curto que só baixa e toca quando aparece na tela (e fica parado com movimento reduzido). */
+function VideoNaTela({ id, rotulo }: { id: string; rotulo: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
+      v.controls = true;
+      return;
+    }
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) v.play().catch(() => { v.controls = true; });
+      else v.pause();
+    }, { threshold: 0.4 });
+    io.observe(v);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <video ref={ref} muted loop playsInline preload="none" poster={`/tutoriais/${id}.webp`} aria-label={rotulo}>
+      <source src={`/tutoriais/${id}.webm`} type="video/webm" />
+      <source src={`/tutoriais/${id}.mp4`} type="video/mp4" />
+    </video>
+  );
 }
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-/* Modules data                                             */
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-// Onda 20: ícones do lucide (antes eram emojis) e cores dos módulos do design system
-const MODULES = [
-    {
-        Icone: GraduationCap,
-        title: "PEI — Plano Educacional Individualizado",
-        desc: "Construção guiada por inteligência artificial (IA), com barreiras, potencialidades e habilidades da BNCC (Base Nacional Comum Curricular).",
-        modulo: "pei",
-    },
-    {
-        Icone: Layers,
-        title: "PAEE — Plano de Atendimento Educacional Especializado",
-        desc: "Atendimento educacional especializado com relatórios contextualizados.",
-        modulo: "paee",
-    },
-    {
-        Icone: Brain,
-        title: "Avaliação diagnóstica",
-        desc: "Criação de questões com IA, baseadas na BNCC e na matriz do SAEB (Sistema de Avaliação da Educação Básica) e do CAEd (Centro de Políticas Públicas e Avaliação da Educação).",
-        modulo: "hub",
-    },
-    {
-        Icone: Sparkles,
-        title: "Hub de inclusão",
-        desc: "Crie atividades, jogos, mapas mentais e imagens com inteligência artificial.",
-        modulo: "hub",
-    },
-    {
-        Icone: ChartLine,
-        title: "Monitoramento e evolução",
-        desc: "Indicadores, relatórios de progresso e acompanhamento ao longo do tempo.",
-        modulo: "monitoramento",
-    },
-    {
-        Icone: NotebookPen,
-        title: "Diário de bordo",
-        desc: "Registro de observações, evidências e intervenções pedagógicas.",
-        modulo: "diario",
-    },
-];
+export default function LandingClient() {
+  return (
+    <div className="omni-base" style={{ minHeight: "100dvh", background: "var(--fundo)", color: "var(--tinta)" }}>
+      <a href="#conteudo" className="omni-pular">Pular para o conteúdo</a>
 
-const ENGINES = [
-    { name: "OmniRed", desc: "DeepSeek — raciocínio profundo", color: "var(--encontro-vermelho)" },
-    { name: "OmniBlue", desc: "Kimi — textos longos", color: "var(--encontro-azul)" },
-    { name: "OmniGreen", desc: "Claude — sensibilidade pedagógica", color: "var(--encontro-verde)" },
-    { name: "OmniYellow", desc: "Gemini — imagens e outros formatos", color: "var(--encontro-amarelo)" },
-    { name: "OmniOrange", desc: "GPT — leitura de documentos e laudos", color: "var(--encontro-laranja)" },
-];
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-/* Scroll-reveal wrapper                                    */
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function Reveal({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-    const ref = useRef<HTMLDivElement>(null);
-    const [visible, setVisible] = useState(false);
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setVisible(true);
-                    observer.disconnect();
-                }
-            },
-            { threshold: 0.15 }
-        );
-        if (ref.current) observer.observe(ref.current);
-        return () => observer.disconnect();
-    }, []);
-
-    return (
-        <div
-            ref={ref}
-            className={className}
-            style={{
-                opacity: visible ? 1 : 0,
-                transform: visible ? "translateY(0)" : "translateY(32px)",
-                transition: "opacity 0.7s ease-out, transform 0.7s ease-out",
-            }}
-        >
-            {children}
+      {/* ══════ TOPO ══════ */}
+      <header className="omni-topo">
+        <Link href="/" className="omni-topo__marca" aria-label="Omnisfera, página inicial">
+          <SimboloOmnisfera tamanho={34} />
+          <span className="omni-topo__nome" aria-hidden>omnisfera</span>
+        </Link>
+        <nav className={s.nav} aria-label="Seções da página">
+          <a href="#como-funciona">Como funciona</a>
+          <a href="#para-quem">Para quem</a>
+          <a href="#perguntas">Perguntas</a>
+          <Link href="/inclusao">Sobre inclusão</Link>
+        </nav>
+        <div className="omni-topo__acoes">
+          <Link href="/login" className={`omni-btn omni-btn--discreto omni-btn--pequeno ${s.soGrande}`}>Entrar</Link>
+          <Link href="/contato" className="omni-btn omni-btn--primario omni-btn--pequeno">Falar com a equipe</Link>
         </div>
-    );
-}
+      </header>
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-/* Main Component                                           */
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-export default function LandingClient({ stats }: LandingProps) {
-    const schoolsCounter = useAnimatedCounter(stats.schools);
-    const studentsCounter = useAnimatedCounter(stats.students);
-    const peisCounter = useAnimatedCounter(stats.peis);
-
-    const h2: React.CSSProperties = { margin: "0 0 16px", font: "800 clamp(28px, 4.5vw, 38px)/1.15 var(--font-sans)", letterSpacing: "-.03em", color: "var(--tinta)" };
-    const intro: React.CSSProperties = { margin: "0 auto", maxWidth: "56ch", font: "400 17px/28px var(--font-sans)", color: "var(--tinta-2)" };
-    const secao: React.CSSProperties = { maxWidth: 1180, margin: "0 auto", padding: "0 16px" };
-    const numero: React.CSSProperties = { margin: "0 0 4px", font: "800 40px/1 var(--font-sans)", letterSpacing: "-.03em", fontVariantNumeric: "tabular-nums" };
-    const legendaNumero: React.CSSProperties = { margin: 0, font: "600 14px/20px var(--font-sans)", color: "var(--tinta-2)" };
-
-    return (
-        <div className="omni-base" style={{ minHeight: "100dvh", background: "var(--fundo)", color: "var(--tinta)" }}>
-            <a href="#conteudo" className="omni-pular">Pular para o conteúdo</a>
-
-            {/* ══════ TOPO ══════ */}
-            <header className="omni-topo">
-                <Link href="/landing" className="omni-topo__marca" aria-label="Omnisfera, página inicial">
-                    <SimboloOmnisfera tamanho={34} />
-                    <span className="omni-topo__nome" aria-hidden>omnisfera</span>
+      <main id="conteudo">
+        {/* ══════ ABERTURA ══════ */}
+        <section className={s.abertura} aria-labelledby="titulo-abertura">
+          <i aria-hidden className={s.circulo} style={{ width: 340, height: 340, background: "var(--encontro-vermelho)", top: -140, left: -100 }} />
+          <i aria-hidden className={s.circulo} style={{ width: 280, height: 280, background: "var(--encontro-verde)", top: "10%", right: -120 }} />
+          <i aria-hidden className={s.circulo} style={{ width: 200, height: 200, background: "var(--encontro-amarelo)", bottom: -80, left: "38%" }} />
+          <div className={`${s.secao} ${s.aberturaGrade}`}>
+            <div>
+              <span className={s.rotulo}>Plataforma de inclusão escolar</span>
+              <h1 id="titulo-abertura" className={s.h1}>
+                O PEI, o AEE e a sala de aula <em>no mesmo lugar</em>.
+              </h1>
+              <p className={s.lead}>
+                A Omnisfera organiza a inclusão da escola: do estudo de caso ao PEI e ao PAEE, do atendimento no AEE (Atendimento Educacional Especializado) à aula do professor regente, com a coordenação acompanhando tudo.
+              </p>
+              <div className={s.ctas}>
+                <Link href="/demonstracao" className="omni-btn omni-btn--primario omni-btn--grande">
+                  Ver a demonstração <ArrowRight aria-hidden />
                 </Link>
-                <div className="omni-topo__acoes">
-                    <Link href="/login" className="omni-btn omni-btn--primario omni-btn--pequeno">
-                        Entrar na plataforma
-                    </Link>
+                <Link href="/contato" className="omni-btn omni-btn--secundario omni-btn--grande">
+                  Falar com a equipe
+                </Link>
+              </div>
+              <p className={s.nota}>Para escolas particulares e redes públicas · funciona no computador, no tablet e no celular</p>
+            </div>
+            <figure className={s.tela}>
+              <VideoNaTela id="pei" rotulo="Vídeo curto: o PEI construído em quatro etapas, com dados fictícios" />
+              <figcaption>O PEI em quatro etapas · exemplo com dados fictícios</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        {/* ══════ POR QUE AGORA ══════ */}
+        <section className={`${s.faixa} ${s.faixaClara}`} aria-labelledby="titulo-agora">
+          <div className={s.secao}>
+            <div className={s.cabeca}>
+              <span className={s.rotulo}>Por que agora</span>
+              <h2 id="titulo-agora" className={s.h2}>PEI e PAEE agora são obrigatórios. Papel e planilha não dão conta.</h2>
+              <p className={s.intro}>Em menos de um ano, a política de educação especial mudou. Toda escola precisa fazer o estudo de caso, ter PEI e PAEE para cada estudante do público da educação especial e mostrar que eles chegam à sala de aula.</p>
+            </div>
+            <ol className={s.normas}>
+              {NORMAS.map((n) => (
+                <li key={n.nome} className={s.norma}>
+                  <span className={s.normaData}>{n.data}</span>
+                  <span className={s.normaNome}>{n.nome}</span>
+                  <p className={s.normaTexto}>{n.texto}</p>
+                </li>
+              ))}
+            </ol>
+            <div className={s.dores}>
+              <div className={s.dor}>
+                <h3>O PEI fica na gaveta</h3>
+                <p>Escrito uma vez no Word, ninguém revisa e o professor da sala nunca lê.</p>
+              </div>
+              <div className={s.dor}>
+                <h3>O AEE e a sala não se falam</h3>
+                <p>O que se planeja no atendimento não vira adaptação na aula, e vice-versa.</p>
+              </div>
+              <div className={s.dor}>
+                <h3>A coordenação não enxerga</h3>
+                <p>Na hora da reunião com a família ou da supervisão, o histórico está espalhado em grupos de mensagem.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ══════ COMO FUNCIONA ══════ */}
+        <section id="como-funciona" className={s.faixa} aria-labelledby="titulo-como">
+          <div className={s.secao}>
+            <div className={s.cabeca}>
+              <span className={s.rotulo}>Como funciona</span>
+              <h2 id="titulo-como" className={s.h2}>Um ciclo, três papéis, tudo ligado.</h2>
+              <p className={s.intro}>Cada etapa entrega para a próxima. O que o AEE planeja chega ao professor regente, e o que acontece na sala volta para a avaliação.</p>
+            </div>
+            <ol className={s.ciclo} aria-label="O ciclo da inclusão na Omnisfera">
+              {CICLO.map((etapa, i) => (
+                <li key={etapa}>
+                  <span className={s.etapa}>{etapa}</span>
+                  {i < CICLO.length - 1 && <ArrowRight aria-hidden className={s.seta} width={18} height={18} />}
+                </li>
+              ))}
+            </ol>
+            <div className={s.papeis}>
+              {PAPEIS.map((p) => (
+                <article key={p.titulo} className={s.papel}>
+                  <VideoNaTela id={p.video} rotulo={`Vídeo curto: o dia a dia de ${p.titulo.toLowerCase()} na Omnisfera, com dados fictícios`} />
+                  <h3>{p.titulo}</h3>
+                  <ul>{p.itens.map((t) => <li key={t}>{t}</li>)}</ul>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ══════ O QUE A ESCOLA GANHA ══════ */}
+        <section className={`${s.faixa} ${s.faixaClara}`} aria-labelledby="titulo-ganhos">
+          <div className={s.secao}>
+            <div className={s.cabeca}>
+              <span className={s.rotulo}>O que a escola ganha</span>
+              <h2 id="titulo-ganhos" className={s.h2}>Menos tempo escrevendo, mais tempo com o estudante.</h2>
+            </div>
+            <div className={s.grade3}>
+              <div className="omni-cartao omni-cartao--plano">
+                <span className={s.ganhoNumero}>01 · Tempo</span>
+                <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>O texto sai pronto para revisar</h3>
+                <p className="omni-cartao__texto" style={{ margin: 0 }}>A IA escreve o rascunho do PEI, do PAEE e das adaptações a partir do estudo de caso. O professor revisa em vez de começar do zero.</p>
+              </div>
+              <div className="omni-cartao omni-cartao--plano">
+                <span className={s.ganhoNumero}>02 · Continuidade</span>
+                <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>O planejado chega à sala</h3>
+                <p className="omni-cartao__texto" style={{ margin: 0 }}>O professor regente recebe o PEI, dá ciência e adapta a sua disciplina. A coordenação vê quem já fez a sua parte.</p>
+              </div>
+              <div className="omni-cartao omni-cartao--plano">
+                <span className={s.ganhoNumero}>03 · Registro</span>
+                <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>O histórico está num lugar só</h3>
+                <p className="omni-cartao__texto" style={{ margin: 0 }}>Atendimentos, avaliações e versões do PEI ficam guardados por estudante, prontos para a reunião com a família ou a supervisão.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ══════ MÓDULOS ══════ */}
+        <section className={s.faixa} aria-labelledby="titulo-modulos">
+          <div className={s.secao}>
+            <div className={s.cabeca}>
+              <span className={s.rotulo}>Módulos</span>
+              <h2 id="titulo-modulos" className={s.h2}>Tudo o que a inclusão pede, conectado.</h2>
+            </div>
+            <div className={s.grade3}>
+              {MODULOS.map((m) => (
+                <div key={m.titulo} className={`omni-cartao omni-modulo omni-modulo--${m.cor}`}>
+                  <span className="omni-modulo__selo" aria-hidden><m.Icone /></span>
+                  <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>{m.titulo}</h3>
+                  <p className="omni-cartao__texto" style={{ margin: 0 }}>{m.texto}</p>
                 </div>
-            </header>
+              ))}
+            </div>
+          </div>
+        </section>
 
-            <main id="conteudo">
-                {/* ══════ ABERTURA ══════ */}
-                <section style={{ position: "relative", overflow: "hidden", isolation: "isolate" }}>
-                    {/* círculos de fundo, como no login */}
-                    <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: -1, pointerEvents: "none" }}>
-                        <i style={{ position: "absolute", width: 340, height: 340, borderRadius: "50%", opacity: 0.12, background: "var(--encontro-vermelho)", top: -120, left: -80 }} />
-                        <i style={{ position: "absolute", width: 260, height: 260, borderRadius: "50%", opacity: 0.12, background: "var(--encontro-azul)", bottom: -90, left: "22%" }} />
-                        <i style={{ position: "absolute", width: 300, height: 300, borderRadius: "50%", opacity: 0.12, background: "var(--encontro-verde)", top: "12%", right: -110 }} />
-                        <i style={{ position: "absolute", width: 180, height: 180, borderRadius: "50%", opacity: 0.12, background: "var(--encontro-amarelo)", bottom: "12%", right: "18%" }} />
-                        <i style={{ position: "absolute", width: 140, height: 140, borderRadius: "50%", opacity: 0.12, background: "var(--encontro-roxo)", top: "46%", left: "44%" }} />
-                    </div>
+        {/* ══════ IA E CONFIANÇA ══════ */}
+        <section className={`${s.faixa} ${s.faixaClara}`} aria-labelledby="titulo-ia">
+          <div className={`${s.secao} ${s.ia}`}>
+            <div>
+              <span className={s.rotulo}>Inteligência artificial com responsabilidade</span>
+              <h2 id="titulo-ia" className={s.h2}>A IA rascunha. O professor decide.</h2>
+              <p className={s.intro}>A Omnisfera usa cinco motores de IA (inteligência artificial), cada um no que faz melhor. Se um falha, outro assume.</p>
+            </div>
+            <ul className={s.lista}>
+              <li><CheckCircle2 aria-hidden /><span><strong>Todo texto é revisável.</strong> Nada vai para o PEI sem a aprovação de quem é responsável por ele.</span></li>
+              <li><CheckCircle2 aria-hidden /><span><strong>A plataforma avisa quando algo mudou.</strong> Se o estudo de caso muda depois que o texto foi gerado, aparece o aviso para refazer.</span></li>
+              <li><Lock aria-hidden /><span><strong>LGPD (Lei Geral de Proteção de Dados).</strong> Dados separados por escola, acesso por papel e registro de quem acessou, exportou ou apagou. <Link href="/seguranca">Ver segurança e privacidade</Link>.</span></li>
+              <li><Accessibility aria-hidden /><span><strong>Acessível.</strong> Segue as WCAG (diretrizes internacionais de acessibilidade na web), com navegação por teclado, alto contraste e tema escuro.</span></li>
+              <li><Smartphone aria-hidden /><span><strong>Leve.</strong> Feita para abrir rápido em computadores e conexões de escola, e no celular.</span></li>
+            </ul>
+          </div>
+        </section>
 
-                    <div style={{ ...secao, padding: "72px 16px 88px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 24 }}>
-                        <SimboloOmnisfera tamanho={120} animado />
-                        <span className="omni-estado omni-estado--sucesso">
-                            <span aria-hidden style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--sucesso)" }} />
-                            Plataforma ativa · 5 motores de IA
-                        </span>
+        {/* ══════ PARA QUEM ══════ */}
+        <section id="para-quem" className={s.faixa} aria-labelledby="titulo-quem">
+          <div className={s.secao}>
+            <div className={s.cabeca}>
+              <span className={s.rotulo}>Para quem</span>
+              <h2 id="titulo-quem" className={s.h2}>Uma escola ou uma rede inteira.</h2>
+            </div>
+            <div className={s.publico}>
+              <div className="omni-cartao omni-modulo omni-modulo--pei">
+                <span className="omni-modulo__selo" aria-hidden><School /></span>
+                <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Escolas particulares</h3>
+                <p className="omni-cartao__texto" style={{ margin: 0 }}>Para a direção e a coordenação que precisam cumprir a nova política, mostrar o trabalho às famílias e dar ao professor da sala um caminho claro para cada estudante.</p>
+              </div>
+              <div className="omni-cartao omni-modulo omni-modulo--paee">
+                <span className="omni-modulo__selo" aria-hidden><Landmark /></span>
+                <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Redes municipais e estaduais</h3>
+                <p className="omni-cartao__texto" style={{ margin: 0 }}>Para secretarias de educação que querem o mesmo padrão de estudo de caso, PEI e PAEE em todas as escolas, com cada escola enxergando só os seus estudantes.</p>
+              </div>
+            </div>
+          </div>
+        </section>
 
-                        <h1 style={{ margin: 0, maxWidth: "18ch", font: "800 clamp(36px, 7vw, 64px)/1.05 var(--font-sans)", letterSpacing: "-.04em", color: "var(--tinta)" }}>
-                            Educação inclusiva <span style={{ color: "var(--acao)" }}>com inteligência artificial</span>
-                        </h1>
+        {/* ══════ PERGUNTAS ══════ */}
+        <section id="perguntas" className={`${s.faixa} ${s.faixaClara}`} aria-labelledby="titulo-perguntas">
+          <div className={`${s.secao} ${s.estreita}`}>
+            <div className={s.cabeca}>
+              <span className={s.rotulo}>Perguntas frequentes</span>
+              <h2 id="titulo-perguntas" className={s.h2}>Antes de conversar com a gente</h2>
+            </div>
+            <div className={s.perguntas}>
+              {PERGUNTAS.map((q) => (
+                <details key={q.p}>
+                  <summary>{q.p}</summary>
+                  <p>{q.r}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
 
-                        <p style={{ margin: 0, maxWidth: "52ch", font: "400 clamp(17px, 2.2vw, 20px)/1.6 var(--font-sans)", color: "var(--tinta-2)" }}>
-                            A plataforma mais completa do Brasil para a inclusão escolar. PEI, PAEE, avaliações diagnósticas, Hub de atividades e muito mais, tudo integrado com 5 motores de inteligência artificial (IA).
-                        </p>
+        {/* ══════ FECHAMENTO ══════ */}
+        <section className={s.faixa} aria-labelledby="titulo-fecho" style={{ paddingInline: 16 }}>
+          <div className={s.fecho}>
+            <h2 id="titulo-fecho">Veja a Omnisfera funcionando na sua escola.</h2>
+            <p>Entre na demonstração com dados fictícios ou peça uma apresentação com a nossa equipe. O valor é sob consulta, de acordo com o tamanho da escola ou da rede.</p>
+            <div className={s.ctas} style={{ justifyContent: "center", marginTop: 8 }}>
+              <Link href="/demonstracao" className={`omni-btn omni-btn--grande ${s.claro}`}>Ver a demonstração <ArrowRight aria-hidden /></Link>
+              <Link href="/contato" className={`omni-btn omni-btn--grande ${s.contorno}`}>Falar com a equipe</Link>
+            </div>
+            <Link href="/inclusao" className={s.linkFecho}>Ou leia o nosso conteúdo gratuito sobre inclusão escolar</Link>
+          </div>
+        </section>
+      </main>
 
-                        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 12 }}>
-                            <Link href="/login" className="omni-btn omni-btn--primario omni-btn--grande">
-                                Começar agora <ArrowRight aria-hidden />
-                            </Link>
-                            <a href="#modulos" className="omni-btn omni-btn--secundario omni-btn--grande">
-                                Conhecer os módulos
-                            </a>
-                        </div>
-                    </div>
-                </section>
-
-                {/* ══════ NÚMEROS ══════ */}
-                {(stats.schools > 0 || stats.students > 0) && (
-                    <section aria-label="A Omnisfera em números" style={{ background: "var(--superficie)", borderBlock: "1px solid var(--borda)" }}>
-                        <div style={{ ...secao, maxWidth: 960, padding: "48px 16px", display: "grid", gap: 32, gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", textAlign: "center" }}>
-                            <div ref={schoolsCounter.ref}>
-                                <p style={{ ...numero, color: "var(--encontro-azul-forte)" }}>{schoolsCounter.count}+</p>
-                                <p style={legendaNumero}>Escolas cadastradas</p>
-                            </div>
-                            <div ref={studentsCounter.ref}>
-                                <p style={{ ...numero, color: "var(--encontro-verde-forte)" }}>{studentsCounter.count}+</p>
-                                <p style={legendaNumero}>Estudantes acompanhados</p>
-                            </div>
-                            <div ref={peisCounter.ref}>
-                                <p style={{ ...numero, color: "var(--encontro-vermelho-forte)" }}>{peisCounter.count}+</p>
-                                <p style={legendaNumero}>PEIs construídos com IA</p>
-                            </div>
-                        </div>
-                    </section>
-                )}
-
-                {/* ══════ MÓDULOS ══════ */}
-                <section id="modulos" aria-labelledby="titulo-modulos" style={{ padding: "80px 0" }}>
-                    <div style={secao}>
-                        <Reveal>
-                            <div style={{ textAlign: "center", marginBottom: 48 }}>
-                                <span className="omni-rotulo" style={{ color: "var(--acao)" }}>Módulos</span>
-                                <h2 id="titulo-modulos" style={{ ...h2, marginTop: 8 }}>Tudo o que a sua escola precisa</h2>
-                                <p style={intro}>
-                                    Módulos integrados que cobrem todo o ciclo da inclusão, do planejamento à avaliação.
-                                </p>
-                            </div>
-                        </Reveal>
-
-                        <div style={{ display: "grid", gap: 20, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))" }}>
-                            {MODULES.map((mod, i) => (
-                                <Reveal key={mod.title}>
-                                    <div
-                                        className={`omni-cartao omni-modulo omni-modulo--${mod.modulo}`}
-                                        style={{ height: "100%", transitionDelay: `${i * 80}ms` }}
-                                    >
-                                        <span className="omni-modulo__selo" aria-hidden>
-                                            <mod.Icone />
-                                        </span>
-                                        <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>{mod.title}</h3>
-                                        <p className="omni-cartao__texto" style={{ margin: 0 }}>{mod.desc}</p>
-                                    </div>
-                                </Reveal>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-
-                {/* ══════ MOTORES ══════ */}
-                <section aria-labelledby="titulo-motores" style={{ padding: "80px 0", background: "var(--superficie-2)", borderBlock: "1px solid var(--borda)" }}>
-                    <div style={{ ...secao, maxWidth: 1000 }}>
-                        <Reveal>
-                            <div style={{ textAlign: "center", marginBottom: 48 }}>
-                                <span className="omni-rotulo" style={{ color: "var(--acao)" }}>Inteligência artificial</span>
-                                <h2 id="titulo-motores" style={{ ...h2, marginTop: 8 }}>5 motores de IA</h2>
-                                <p style={intro}>
-                                    Cada motor é especialista em um aspecto diferente da inclusão. O professor escolhe qual usar em cada situação.
-                                </p>
-                            </div>
-                        </Reveal>
-
-                        <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 12 }}>
-                            {ENGINES.map((engine) => (
-                                <li key={engine.name}>
-                                    <Reveal>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 20px", background: "var(--superficie)", border: "1px solid var(--borda)", borderRadius: "var(--o-radius-md)" }}>
-                                            <span aria-hidden style={{ width: 14, height: 14, borderRadius: "50%", flexShrink: 0, background: engine.color }} />
-                                            <div>
-                                                <p style={{ margin: 0, font: "700 15px/20px var(--font-sans)", color: "var(--tinta)" }}>{engine.name}</p>
-                                                <p style={{ margin: 0, font: "400 13px/18px var(--font-sans)", color: "var(--tinta-2)" }}>{engine.desc}</p>
-                                            </div>
-                                        </div>
-                                    </Reveal>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </section>
-
-                {/* ══════ CONFIANÇA E SEGURANÇA ══════ */}
-                <section aria-labelledby="titulo-confianca" style={{ padding: "88px 0" }}>
-                    <div style={secao}>
-                        <Reveal>
-                            <div style={{ textAlign: "center", marginBottom: 48 }}>
-                                <span className="omni-rotulo" style={{ color: "var(--acao)" }}>Segurança</span>
-                                <h2 id="titulo-confianca" style={{ ...h2, marginTop: 8 }}>Tecnologia em que você pode confiar</h2>
-                                <p style={{ ...intro, maxWidth: "62ch" }}>
-                                    A Omnisfera cuida de toda a infraestrutura complexa, da privacidade dos dados e da acessibilidade, por trás dos panos, para que os professores foquem 100% no ser humano.
-                                </p>
-                            </div>
-                        </Reveal>
-
-                        <div style={{ display: "grid", gap: 20, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", marginBottom: 32 }}>
-                            <Reveal>
-                                <div className="omni-cartao omni-modulo omni-modulo--diario" style={{ height: "100%", alignItems: "center", textAlign: "center" }}>
-                                    <span className="omni-modulo__selo" aria-hidden><Lock /></span>
-                                    <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Conformidade com a LGPD</h3>
-                                    <p className="omni-cartao__texto" style={{ margin: 0 }}>
-                                        LGPD é a Lei Geral de Proteção de Dados. Laudos médicos e PDIs (Planos de Desenvolvimento Individual) ficam guardados no Supabase, criptografados, separados por escola e com registro de quem acessou, exportou ou apagou dados.
-                                    </p>
-                                </div>
-                            </Reveal>
-                            <Reveal>
-                                <div className="omni-cartao omni-modulo omni-modulo--pei" style={{ height: "100%", alignItems: "center", textAlign: "center" }}>
-                                    <span className="omni-modulo__selo" aria-hidden><Accessibility /></span>
-                                    <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Acessibilidade como regra (WCAG)</h3>
-                                    <p className="omni-cartao__texto" style={{ margin: 0 }}>
-                                        Segue as WCAG, diretrizes internacionais de acessibilidade na web. Design pensado desde o início para navegação por teclado e adaptado para pessoas com TDAH (Transtorno do Déficit de Atenção com Hiperatividade) e outras pessoas neurodivergentes.
-                                    </p>
-                                </div>
-                            </Reveal>
-                            <Reveal>
-                                <div className="omni-cartao omni-modulo omni-modulo--monitoramento" style={{ height: "100%", alignItems: "center", textAlign: "center" }}>
-                                    <span className="omni-modulo__selo" aria-hidden><Zap /></span>
-                                    <h3 className="omni-cartao__titulo" style={{ margin: 0 }}>Rápida na escola</h3>
-                                    <p className="omni-cartao__texto" style={{ margin: 0 }}>
-                                        Pensada para abrir rápido mesmo em computadores e conexões de escola, no computador, no tablet ou no celular.
-                                    </p>
-                                </div>
-                            </Reveal>
-                        </div>
-
-                        <Reveal>
-                            <div style={{ textAlign: "center" }}>
-                                <Link href="/seguranca" className="omni-btn omni-btn--discreto">
-                                    Saiba mais sobre segurança e privacidade <ArrowRight aria-hidden />
-                                </Link>
-                            </div>
-                        </Reveal>
-                    </div>
-                </section>
-
-                {/* ══════ CHAMADA FINAL ══════ */}
-                <section aria-labelledby="titulo-chamada" style={{ padding: "0 16px 88px" }}>
-                    <Reveal>
-                        <div style={{ maxWidth: 820, margin: "0 auto", textAlign: "center", padding: "clamp(32px, 6vw, 56px)", background: "var(--noite)", color: "var(--sobre-noite)", borderRadius: "var(--o-radius-xl) var(--o-radius-xl) var(--o-radius-xl) var(--o-radius-xs)", display: "grid", justifyItems: "center", gap: 16 }}>
-                            <h2 id="titulo-chamada" style={{ margin: 0, font: "800 clamp(26px, 4vw, 36px)/1.15 var(--font-sans)", letterSpacing: "-.03em", color: "var(--sobre-noite)" }}>
-                                Pronto para transformar a inclusão na sua escola?
-                            </h2>
-                            <p style={{ margin: 0, maxWidth: "56ch", font: "400 17px/28px var(--font-sans)", color: "var(--sobre-noite-2)" }}>
-                                Entre na plataforma e comece a construir PEIs, gerar avaliações diagnósticas e criar atividades adaptadas com inteligência artificial.
-                            </p>
-                            <Link href="/login" className="omni-btn omni-btn--grande" style={{ marginTop: 8, background: "var(--sobre-noite)", color: "var(--noite)" }}>
-                                Entrar na Omnisfera <ArrowRight aria-hidden />
-                            </Link>
-                        </div>
-                    </Reveal>
-                </section>
-            </main>
-
-            {/* ══════ RODAPÉ ══════ */}
-            <footer style={{ padding: "24px 16px 32px", borderTop: "1px solid var(--borda)", background: "var(--superficie)" }}>
-                <OmniEducacaoSignature variant="full" />
-            </footer>
-        </div>
-    );
+      {/* ══════ RODAPÉ ══════ */}
+      <footer className={s.rodape}>
+        <nav className={s.rodapeLinks} aria-label="Rodapé">
+          <Link href="/inclusao">Conteúdo sobre inclusão</Link>
+          <Link href="/formacao">Formação gratuita</Link>
+          <Link href="/seguranca">Segurança</Link>
+          <Link href="/privacidade">Privacidade</Link>
+          <Link href="/contato">Contato</Link>
+          <Link href="/login">Entrar</Link>
+        </nav>
+        <OmniEducacaoSignature variant="full" />
+      </footer>
+    </div>
+  );
 }

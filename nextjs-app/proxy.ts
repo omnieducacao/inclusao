@@ -5,7 +5,7 @@ import { getSecret } from "@/lib/jwt-secret";
 import { checkRateLimit } from "@/lib/upstash-rate-limit"; // V5 Rate Limiter
 
 
-const PUBLIC_PATHS = ["/login", "/landing", "/privacidade", "/seguranca", "/site/", "/api/auth/login", "/api/auth/admin-login", "/api/vitals", "/api/health"];
+const PUBLIC_PATHS = ["/login", "/landing", "/demonstracao", "/contato", "/privacidade", "/seguranca", "/site/", "/api/auth/login", "/api/auth/admin-login", "/api/vitals", "/api/health"];
 
 // Família (responsáveis): só enxerga a área /familia e as APIs feitas para ela.
 // Tudo o mais é negado aqui, antes de chegar às rotas, para que um esquecimento numa rota
@@ -29,6 +29,7 @@ const SITE_PAGES = new Set([
   "dislexia-discalculia-tdah", "altas-habilidades", "visual-surdez-fisica", "dua-e-caa",
   "pei-e-aee", "adaptar-e-avaliar", "perfis", "formacao", "checklists", "glossario",
   "fontes", "sobre", "na-midia", "videos",
+  "inclusao", // onda 38: o início do conteúdo sobre inclusão saiu de "/" para "/inclusao"
 ]);
 
 export async function proxy(request: NextRequest) {
@@ -85,9 +86,9 @@ export async function proxy(request: NextRequest) {
 
   const token = request.cookies.get("omnisfera_session")?.value;
   if (!token) {
-    // Sem sessão, a raiz mostra o site informativo; quem tem sessão segue para o app.
+    // Sem sessão, a raiz mostra a home de vendas (onda 38); quem tem sessão segue para o app.
     if (pathname === "/") {
-      return NextResponse.rewrite(new URL("/site/index.html", request.url));
+      return NextResponse.rewrite(new URL("/landing", request.url));
     }
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);

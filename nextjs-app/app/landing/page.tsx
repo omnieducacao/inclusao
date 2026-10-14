@@ -4,20 +4,33 @@ import { getSupabase } from "@/lib/supabase";
 import LandingClient from "./LandingClient";
 
 export const metadata = {
-    title: "Omnisfera — Educação Inclusiva com Inteligência Artificial",
+    title: "Omnisfera — PEI, AEE e sala de aula no mesmo lugar",
     description:
-        "Plataforma completa de inclusão educacional com IA. PEI, PAEE, avaliações diagnósticas, Hub de atividades e gestão escolar inclusiva.",
+        "Plataforma de inclusão escolar: estudo de caso, PEI, PAEE, diário de bordo, avaliações e acompanhamento da coordenação, com inteligência artificial. Para escolas particulares e redes públicas.",
+    alternates: { canonical: "https://omnisfera.net/" },
+    openGraph: {
+        title: "Omnisfera — PEI, AEE e sala de aula no mesmo lugar",
+        description: "A plataforma que organiza a inclusão da escola, do estudo de caso à sala de aula.",
+        url: "https://omnisfera.net/",
+        siteName: "Omnisfera",
+        locale: "pt_BR",
+        type: "website",
+        images: ["https://omnisfera.net/site/og.png"],
+    },
 };
 
+/**
+ * Home de vendas (onda 38). O proxy.ts mostra esta página em "/" para quem não está logado.
+ * Chave "landing_page_enabled" (Administração → Página inicial): desligada, quem chega vai para o
+ * conteúdo sobre inclusão (/inclusao), como era antes.
+ */
 export default async function LandingPage() {
-    // Se já logado, redireciona para dashboard
     const session = await getSession();
     if (session?.workspace_id) {
         redirect("/");
     }
 
-    // Verificar se landing page está habilitada
-    let enabled = false;
+    let enabled = true;
     try {
         const sb = getSupabase();
         const { data } = await sb
@@ -25,36 +38,13 @@ export default async function LandingPage() {
             .select("value")
             .eq("key", "landing_page_enabled")
             .maybeSingle();
-        enabled = data?.value === "true" || data?.value === true;
+        if (data) enabled = data.value === "true" || data.value === true;
     } catch {
-        // Se erro, default para desabilitada
+        // erro de leitura: mostra a home
     }
-
-    // Se desabilitada, redireciona para login
     if (!enabled) {
-        redirect("/login");
+        redirect("/inclusao");
     }
 
-    // Buscar stats públicas para contadores
-    let stats = { schools: 0, students: 0, peis: 0 };
-    try {
-        const sb = getSupabase();
-        const [schoolsRes, studentsRes, peisRes] = await Promise.all([
-            sb.from("workspaces").select("id", { count: "exact", head: true }),
-            sb.from("students").select("id", { count: "exact", head: true }),
-            sb
-                .from("students")
-                .select("id", { count: "exact", head: true })
-                .not("pei_data", "is", null),
-        ]);
-        stats = {
-            schools: schoolsRes.count || 0,
-            students: studentsRes.count || 0,
-            peis: peisRes.count || 0,
-        };
-    } catch {
-        /* fallback to zeros */
-    }
-
-    return <LandingClient stats={stats} />;
+    return <LandingClient />;
 }

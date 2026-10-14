@@ -74,8 +74,8 @@ export function LandingPageTab() {
             </h3>
 
             <p className="omni-apoio" style={{ maxWidth: 640 }}>
-                Quando ligada, quem abre a plataforma sem ter entrado vê uma página de apresentação
-                da Omnisfera antes da tela de entrada.
+                Quando ligada, quem abre omnisfera.net sem ter entrado vê a home de apresentação da
+                Omnisfera, com a demonstração e o contato. Desligada, vê o conteúdo sobre inclusão.
             </p>
 
             <MensagemAdmin mensagem={mensagem} onFechar={() => setMensagem(null)} />
@@ -110,8 +110,8 @@ export function LandingPageTab() {
                         </p>
                         <p className="omni-apoio" style={{ fontSize: 13 }}>
                             {enabled
-                                ? "Visitantes veem a página de apresentação antes de entrar."
-                                : "Visitantes vão direto para a tela de entrada."}
+                                ? "Visitantes veem a home de apresentação da Omnisfera."
+                                : "Visitantes veem o conteúdo sobre inclusão (/inclusao)."}
                         </p>
                     </div>
                 </div>
@@ -139,9 +139,10 @@ export function LandingPageTab() {
                 <div>
                     <div className="omni-aviso__titulo">Como funciona</div>
                     <div className="omni-aviso__texto">
-                        Quando ligada, a plataforma manda quem ainda não entrou para <code>/landing</code>.
-                        Lá aparecem a apresentação, os módulos, os motores de IA e um botão &quot;Entrar&quot;.
-                        Quem já entrou não é afetado e vê o painel normalmente.
+                        Quem ainda não entrou e abre o endereço principal vê a home de apresentação: o problema que a
+                        Omnisfera resolve, os vídeos dos três papéis, os módulos, as perguntas frequentes e os botões
+                        &quot;Ver a demonstração&quot; e &quot;Falar com a equipe&quot;. Desligada, o endereço principal leva ao
+                        conteúdo sobre inclusão. Quem já entrou não é afetado e vê o painel normalmente.
                     </div>
                 </div>
             </div>
