@@ -17,9 +17,15 @@ type Props = {
   /** chamado depois de gravar (a demonstração usa para entrar) */
   aoEnviar?: (id: string | null) => void;
   mostrarMensagem?: boolean;
+  /** onde gravar (o contato ou a entrada da demonstração) */
+  endpoint?: string;
+  /** campos a mais enviados junto (ex.: o papel escolhido na demonstração) */
+  extra?: Record<string, unknown>;
+  /** antes de enviar: devolve uma mensagem de erro para impedir o envio */
+  conferir?: () => string | null;
 };
 
-export function FormularioContato({ origem = "contato", papelDemo = null, textoBotao = "Enviar", aoEnviar, mostrarMensagem = true }: Props) {
+export function FormularioContato({ origem = "contato", papelDemo = null, textoBotao = "Enviar", aoEnviar, mostrarMensagem = true, endpoint = "/api/public/contato", extra, conferir }: Props) {
   const uid = useId();
   const [erros, setErros] = useState<Record<string, string>>({});
   const [erroGeral, setErroGeral] = useState<string | null>(null);
@@ -33,11 +39,13 @@ export function FormularioContato({ origem = "contato", papelDemo = null, textoB
       nome: f.get("nome"), email: f.get("email"), telefone: f.get("telefone"), escola: f.get("escola"),
       cargo: f.get("cargo"), tipo_instituicao: f.get("tipo_instituicao"), faixa_estudantes: f.get("faixa_estudantes"),
       cidade: f.get("cidade"), uf: f.get("uf"), mensagem: f.get("mensagem"), site: f.get("site"),
-      consentimento: f.get("consentimento") === "sim", origem, papel_demo: papelDemo,
+      consentimento: f.get("consentimento") === "sim", origem, papel_demo: papelDemo, ...(extra || {}),
     };
+    const antes = conferir?.();
+    if (antes) { setErroGeral(antes); return; }
     setEnviando(true); setErroGeral(null); setErros({});
     try {
-      const res = await fetch("/api/public/contato", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) });
+      const res = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setErros(data.erros || {});
@@ -46,6 +54,7 @@ export function FormularioContato({ origem = "contato", papelDemo = null, textoB
         if (primeiro) document.getElementById(`${uid}-${primeiro}`)?.focus();
         return;
       }
+      if (data.redirect) { window.location.href = data.redirect; return; }
       setEnviado(true);
       aoEnviar?.(data.id ?? null);
     } catch {

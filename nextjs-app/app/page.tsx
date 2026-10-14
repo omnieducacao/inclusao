@@ -7,6 +7,7 @@ import { Navbar } from "@/components/Navbar";
 import { TermsOfUseModal } from "@/components/TermsOfUseModal";
 import { SimulationBanner } from "@/components/SimulationBanner";
 import { MemberSimulationBanner } from "@/components/MemberSimulationBanner";
+import { DemoFaixa } from "@/components/DemoFaixa";
 import { OmnisferaFeed } from "@/components/OmnisferaFeed";
 import { OmniEducacaoSignature } from "@/components/Footer";
 import { logger } from "@/lib/logger";
@@ -213,6 +214,7 @@ export default async function RootPage() {
     <div className="min-h-screen" style={{ background: "var(--fundo)" }}>
       <SimulationBanner session={sessionNonNull} />
       <MemberSimulationBanner session={sessionNonNull} />
+      <DemoFaixa session={sessionNonNull} />
       <Navbar session={sessionNonNull} />
       <Inicio
         saudacao={saudacao()}

@@ -20,13 +20,17 @@ export type SessionPayload = {
   simulating_member_id?: string;
   simulating_member_name?: string;
   original_master_session?: string; // JSON backup
+  // Demonstração (onda 44): sessão de visitante na Escola Demo, sem senha e sem gravar nada
+  is_demo?: boolean;
+  demo_papel?: string;
+  demo_lead_id?: string | null;
   exp: number;
 };
 
-export async function createSession(payload: Omit<SessionPayload, "exp">): Promise<void> {
+export async function createSession(payload: Omit<SessionPayload, "exp">, duracaoSegundos = 60 * 60 * 24 * 7): Promise<void> {
   const token = await new SignJWT({
     ...payload,
-    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7,
+    exp: Math.floor(Date.now() / 1000) + duracaoSegundos,
   })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -37,7 +41,7 @@ export async function createSession(payload: Omit<SessionPayload, "exp">): Promi
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: duracaoSegundos,
     path: "/",
   });
 }

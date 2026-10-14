@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { AILoadingWrapper } from "@/components/AILoadingWrapper";
 import { SimulationBanner } from "@/components/SimulationBanner";
 import { MemberSimulationBanner } from "@/components/MemberSimulationBanner";
+import { DemoFaixa } from "@/components/DemoFaixa";
 import { AnnouncementModal } from "@/components/AnnouncementModal";
 import { PermissoesProvider } from "@/components/jornada/PermissoesProvider";
 import { podeVer } from "@/lib/navegacao";
@@ -45,6 +46,7 @@ export default async function DashboardLayout({
         </a>
         <SimulationBanner session={session} />
         <MemberSimulationBanner session={session} />
+        <DemoFaixa session={session} />
         {/* Onda 6: topo com logo, busca, sino e perfil; a navegação vai para a barra lateral */}
         <Navbar session={session} />
         <div className="omni-moldura">
