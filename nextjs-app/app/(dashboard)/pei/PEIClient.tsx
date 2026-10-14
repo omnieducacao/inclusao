@@ -212,6 +212,7 @@ function PEIDoEstudante({
               onSalvar={handleUpdate}
               saving={saving}
               parte={secao === "vigencia" ? "vigencia" : "revisao"}
+              onIrEstudoCaso={() => irPara(1, "estudo_caso")}
             />
           )}
           {secao === "revisao" && currentStudentId && <PEIVersionHistory studentId={currentStudentId} currentPeiData={peiData} />}

@@ -28,7 +28,9 @@ export function FormPlanejamento({
     d.setDate(d.getDate() + 84);
     return d.toISOString().slice(0, 10);
   });
-  const [foco, setFoco] = useState(hiperfoco);
+  // o foco do ciclo é pedagógico (o que o AEE vai trabalhar); o interesse do estudante (hiperfoco) é estratégia, não foco
+  const [foco, setFoco] = useState("");
+  void hiperfoco;
   const [descricao, setDescricao] = useState("");
   const [metasSel, setMetasSel] = useState<Record<string, boolean>>(
     Object.fromEntries(metasPei.map((m: any) => [m.id, true]))
@@ -91,7 +93,7 @@ export function FormPlanejamento({
       </div>
       <label className="omni-campo">
         <span className="omni-campo__rotulo">Foco principal</span>
-        <input type="text" className="omni-entrada" style={{ maxWidth: "none" }} value={foco} onChange={(e) => setFoco(e.target.value)} />
+        <input type="text" className="omni-entrada" style={{ maxWidth: "none" }} value={foco} onChange={(e) => setFoco(e.target.value)} placeholder="Ex.: leitura com apoio visual e autonomia nas tarefas" />
       </label>
       <label className="omni-campo">
         <span className="omni-campo__rotulo">Descrição <span className="omni-campo__opcional">(opcional)</span></span>

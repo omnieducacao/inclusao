@@ -7,7 +7,7 @@
  *   1. Estudo de caso → 2. PEI → 3. Vigente e ciência → 4. Revisão
  * Cada etapa agrupa as seções que já existiam; o modo da escola só muda quais seções aparecem.
  */
-import type { Vigencia } from "./estudo-caso";
+import { estudoCasoCompleto, type Vigencia } from "./estudo-caso";
 
 export type Etapa = 1 | 2 | 3 | 4;
 export type SecaoId =
@@ -79,14 +79,17 @@ export function estadoDasEtapas(pei: Record<string, unknown>, hoje: string): Rec
   const ec = (pei.estudo_caso || {}) as { concluido_em?: string | null };
   const vig = pei.vigencia as Vigencia | undefined;
   const textoPei = preenchido(pei.ia_sugestao);
-  const validado = textoPei && pei.status_validacao_pei !== "rascunho" && preenchido(pei.status_validacao_pei);
+  // só o texto aprovado conta como etapa 2 feita (antes, gerar o texto já marcava "Concluído")
+  const validado = textoPei && pei.status_validacao_pei === "aprovado";
   const vigente = vig?.status === "vigente";
   const valeu = Boolean(vig && vig.versao > 0);
   const revisoes = Array.isArray(pei.revisoes) ? pei.revisoes.length : 0;
 
   // PEIs anteriores à marcação "concluído" do estudo de caso: se o PEI já foi validado ou já valeu,
   // o estudo de caso ficou para trás (antes aparecia "Preenchendo" num PEI vigente).
-  const e1: EstadoEtapa = ec.concluido_em || validado || valeu ? { feito: true, texto: "Concluído" }
+  // estudo de caso: concluído pela equipe, ou o PEI já valeu (PEIs anteriores à marcação). Aprovar o texto do PEI
+  // não conclui o estudo de caso: tornar vigente pede os quatro passos, e o "Concluído" antes enganava
+  const e1: EstadoEtapa = ec.concluido_em || valeu || (validado && estudoCasoCompleto(pei)) ? { feito: true, texto: "Concluído" }
     : preenchido(pei.estudo_caso) || preenchido(pei.barreiras_selecionadas) ? { feito: false, texto: "Preenchendo" }
     : { feito: false, texto: "A fazer" };
   const e2: EstadoEtapa = validado || valeu ? { feito: true, texto: "Concluído" }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import React, { useState, useEffect, useCallback } from "react";
 import {
     BookOpen, AlertTriangle, ChevronRight,
@@ -120,6 +121,16 @@ export function PEIRegenteClient() {
     }, []);
 
     useEffect(() => { fetchData(); }, [fetchData]);
+
+    // vindo de outra tela com ?student= (ex.: "PEI da sua disciplina" depois da diagnóstica), abre esse estudante
+    const params = useSearchParams();
+    const alvoInicial = params?.get("student");
+    useEffect(() => {
+        if (!alvoInicial || !data?.alunos || selectedAluno) return;
+        const a = data.alunos.find((x) => x.id === alvoInicial);
+        if (a) setSelectedAluno(a);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [alvoInicial, data]);
 
     // Load existing adaptation draft when entering PEI step (B3 + B1: avoid re-calling AI)
     useEffect(() => {

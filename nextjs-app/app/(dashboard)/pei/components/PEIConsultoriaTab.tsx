@@ -146,7 +146,10 @@ export function ConsultoriaTab({
 
   // Onda 18: "O que a IA vai usar" com ícones e texto (antes eram emojis)
   const nEstrategias = estrategiasAcesso.length + estrategiasEnsino.length + estrategiasAvaliacao.length;
+  // o estudo de caso é o principal insumo da IA (lib/estudo-caso: estudoCasoParaPrompt) e não aparecia na lista
+  const temEstudoCaso = Object.values((peiData.estudo_caso || {}) as Record<string, unknown>).some((v) => typeof v === "string" ? v.trim() : Array.isArray(v) ? v.length : Boolean(v));
   const insumos: Array<{ ok: boolean; texto: string }> = [
+    { ok: temEstudoCaso, texto: `Estudo de caso: ${temEstudoCaso ? "sim" : "não"}` },
     { ok: temDiagnostico, texto: `Diagnóstico: ${temDiagnostico ? "sim" : "não"}` },
     { ok: temHistorico, texto: `Histórico: ${temHistorico ? "sim" : "não"}` },
     { ok: temHiperfoco, texto: `Hiperfoco: ${temHiperfoco ? "sim" : "não"}` },

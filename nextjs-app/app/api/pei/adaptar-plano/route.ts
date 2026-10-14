@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { componenteOficial } from "@/lib/matriz-avaliacao";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
@@ -120,9 +121,10 @@ ${pei.hipotese_diagnostica ? `- Hipótese diagnóstica: ${pei.hipotese_diagnosti
             .limit(5);
 
         if (avs?.length) {
-            const match = disciplina
-                ? avs.find(a => a.disciplina?.toLowerCase().includes(disciplina.toLowerCase()))
-                : avs[0];
+            // mesmo componente pelo nome oficial ("Português" = "Língua Portuguesa"); a concluída primeiro
+            const alvo = disciplina ? componenteOficial(disciplina) : null;
+            const doComponente = alvo ? avs.filter(a => componenteOficial(a.disciplina || "") === alvo) : avs;
+            const match = doComponente.find(a => a.status === "aplicada") || doComponente[0];
 
             if (match) {
                 if (match.nivel_omnisfera_identificado != null) {
@@ -132,7 +134,13 @@ ${pei.hipotese_diagnostica ? `- Hipótese diagnóstica: ${pei.hipotese_diagnosti
                 const resultados = match.resultados as Record<string, any> | null;
                 const analise = resultados?.analise;
 
-                if (analise) {
+                // diagnóstica nova (matriz): cada descritor com o nível observado, de 0 a 4
+                const descritores = Array.isArray(match.descritores) ? match.descritores as Array<{ codigo?: string; descritor?: string; nivel?: number | null; evidencia_observada?: string }> : [];
+                if (descritores.length) {
+                    diagContexto = `RESULTADO DA AVALIAÇÃO DIAGNÓSTICA (${match.disciplina}), por descritor, na escala de 0 a 4 (quanto apoio o estudante precisa; 4 = faz sozinho):
+${descritores.map((d) => `- ${d.codigo ? d.codigo + ": " : ""}${d.descritor || ""} → nível ${d.nivel ?? "não marcado"}${d.evidencia_observada ? ` (observado: ${d.evidencia_observada})` : ""}`).join("\n")}
+- Nível do componente (mediana): ${match.nivel_omnisfera_identificado ?? "não calculado"}`;
+                } else if (analise) {
                     const distTexto = (analise.distratores || [])
                         .map((d: { questao: number; marcada: string; correta: string; habilidade: string }) =>
                             `Q${d.questao}: marcou ${d.marcada} (correto: ${d.correta}) — ${d.habilidade}`)
@@ -185,7 +193,9 @@ ${diagContexto ? `\n${diagContexto}\n` : ""}
 
 COM BASE NOS 3 INSUMOS ACIMA (Plano de Ensino + PEI Parte 1 + Diagnóstica), gere adaptações INDIVIDUALIZADAS para o PEI deste estudante.
 
-IMPORTANTE: Use a análise de distratores para identificar as barreiras cognitivas específicas e direcionar as estratégias.
+${/Análise de distratores/.test(diagContexto)
+    ? "IMPORTANTE: Use a análise de distratores para identificar as barreiras cognitivas específicas e direcionar as estratégias."
+    : "IMPORTANTE: Use os níveis de cada descritor para priorizar o que adaptar. Não houve prova com alternativas: não fale em distratores nem em erros de questões."}
 
 Responda APENAS em JSON válido:
 {

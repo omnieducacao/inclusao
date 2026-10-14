@@ -2,7 +2,7 @@
 
 import TelaCarregando from "@/components/brand/TelaCarregando";
 import { useState, useCallback, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { CabecalhoEstudante, EscolherEstudante } from "@/components/estudante/CabecalhoEstudante";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import type { CicloPAEE, MetaPei } from "@/lib/paee";
@@ -67,6 +67,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
   const searchParams = useSearchParams();
   const currentId = studentId || searchParams?.get("student") || null;
   const mutation = useStudentMutation();
+  const router = useRouter();
   const savingCiclo = mutation.loading;
 
   // Omni V5: Real-time Multi-User Subscription
@@ -165,9 +166,13 @@ function PAEEClientInner({ students, studentId, student }: Props) {
         return false;
       }
       setSalvamento({ estado: "salvo", hora: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) });
+      // o ciclo salvo aparece na hora (antes o formulário voltava vazio até a atualização chegar)
+      if (cicloComId.tipo === "planejamento_aee") setCicloSelecionadoPlanejamento(cicloComId);
+      else setCicloSelecionadoExecucao(cicloComId);
+      router.refresh();
       return true;
     },
-    [student?.id, ciclos, mutation]
+    [student?.id, ciclos, mutation, router]
   );
 
   const definirCicloAtivo = useCallback(

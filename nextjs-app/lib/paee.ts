@@ -193,6 +193,9 @@ export function rotuloFrequencia(f: string | null | undefined): string {
 
 export function fmtDataIso(d: string | undefined): string {
   if (!d) return "-";
+  // data pura (aaaa-mm-dd) lida sem fuso: antes "2026-10-14" virava 13/10 no horário de Brasília
+  const pura = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(d));
+  if (pura) return `${pura[3]}/${pura[2]}/${pura[1]}`;
   try {
     const date = new Date(String(d).replace("Z", "+00:00"));
     return date.toLocaleDateString("pt-BR");

@@ -32,6 +32,8 @@ type Props = {
   saving: boolean;
   /** Onda 7: o passo 3 mostra vigência e ciência; o passo 4, as revisões */
   parte?: "vigencia" | "revisao";
+  /** leva ao passo que falta (antes o "(falta)" não dizia onde completar) */
+  onIrEstudoCaso?: () => void;
 };
 
 type Ciencias = {
@@ -46,7 +48,7 @@ const iconeSecao: React.CSSProperties = { width: 18, height: 18, color: "var(--a
 const largo: React.CSSProperties = { maxWidth: "none" };
 const dataBR = (iso?: string) => (iso ? new Date(`${iso.slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR") : "—");
 
-export function PEITabVigencia({ peiData, updateField, currentStudentId, usuarioNome, onSalvar, saving, parte }: Props) {
+export function PEITabVigencia({ peiData, updateField, currentStudentId, usuarioNome, onSalvar, saving, parte, onIrEstudoCaso }: Props) {
   const mostraVigencia = parte !== "revisao";
   const mostraRevisao = parte !== "vigencia";
   const vig: Vigencia = (peiData.vigencia as Vigencia) || { status: "rascunho", versao: 0 };
@@ -158,6 +160,9 @@ export function PEITabVigencia({ peiData, updateField, currentStudentId, usuario
                   ? <CheckCircle2 aria-hidden style={{ width: 18, height: 18, color: "var(--sucesso)", flex: "none" }} />
                   : <Circle aria-hidden style={{ width: 18, height: 18, color: "var(--tinta-3)", flex: "none" }} />}
                 <span>{p.texto}<span className="omni-so-leitor">{p.ok ? " (feito)" : " (falta)"}</span></span>
+                {!p.ok && p.texto.startsWith("Estudo de caso") && onIrEstudoCaso && (
+                  <button type="button" onClick={onIrEstudoCaso} className="omni-btn omni-btn--secundario omni-btn--pequeno">Completar o estudo de caso</button>
+                )}
               </li>
             ))}
           </ul>

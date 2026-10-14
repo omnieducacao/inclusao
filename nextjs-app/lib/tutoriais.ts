@@ -25,7 +25,7 @@ export const TUTORIAIS: Record<TutorialId, Tutorial> = {
     id: "estudantes",
     paraQue: "Cadastrar cada estudante e abrir a ficha, de onde se chega a tudo o que já foi feito com ele.",
     passos: [
-      { titulo: "Cadastre", texto: "Em \"Cadastrar estudante\", informe nome, série e turma. O laudo não é condição: ele entra depois, no estudo de caso, se existir." },
+      { titulo: "Cadastre", texto: "Em \"Cadastrar estudante\", informe o nome e a turma e marque que a família autorizou o registro. O laudo não é condição: ele entra depois, no estudo de caso, se existir." },
       { titulo: "Abra a ficha", texto: "Clique no nome. A ficha mostra a situação do PEI, do PAEE, do diário e das avaliações, cada um com um atalho." },
       { titulo: "Siga para o PEI", texto: "Na ficha, \"PEI\" abre o estudo de caso desse estudante." },
     ],

@@ -10,6 +10,7 @@ import { ArrowLeft, Send, Check } from "lucide-react";
 import { Soltar, LinhaEscolha, Pilula } from "@/components/ferramenta/Mesa";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 import { MissoesFamilia } from "@/components/missoes/MissoesFamilia";
+import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 
 type EstudanteData = {
   estudante: { id: string; name: string; grade: string | null; class_group: string | null };
@@ -192,8 +193,9 @@ export default function FamiliaEstudantePage({ params }: { params: Promise<{ id:
             <p className="omni-apoio" style={{ margin: 0 }}>
               É o PEI (Plano Educacional Individualizado), resumido pela escola para a família{pei_resumo.versao ? ` · versão ${pei_resumo.versao}` : ""}{pei_resumo.resumo_liberado_em ? ` · liberado em ${dia(pei_resumo.resumo_liberado_em)}` : ""}.
             </p>
-            <div style={{ whiteSpace: "pre-wrap", maxHeight: 480, overflowY: "auto", padding: 16, borderRadius: 12, background: "var(--superficie)", border: "1px solid var(--borda)", font: "400 16px/26px var(--font-sans)", color: "var(--tinta)" }}>
-              {pei_resumo.resumo}
+            {/* o resumo vem em markdown (títulos, negrito): antes a família lia "#" e "**" no meio do texto */}
+            <div style={{ maxHeight: 480, overflowY: "auto", padding: 16, borderRadius: 12, background: "var(--superficie)", border: "1px solid var(--borda)", font: "400 16px/26px var(--font-sans)", color: "var(--tinta)" }}>
+              <FormattedTextDisplay texto={pei_resumo.resumo} />
             </div>
             {ciencia_pei.acknowledged ? (
               <p style={{ margin: 0, display: "flex", alignItems: "center", gap: 8, font: "600 15px/22px var(--font-sans)", color: "var(--sucesso)" }}>

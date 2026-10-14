@@ -121,5 +121,16 @@ export async function POST(req: Request) {
     }
     return NextResponse.json({ error: "Não deu para salvar a avaliação agora." }, { status: 500 });
   }
+  // concluída a diagnóstica, a disciplina do PEI do professor sai da fase "diagnóstica" (antes só avançava se o
+  // professor abrisse essa etapa no PEI do professor; a lista seguia dizendo "Diagnóstica")
+  if (body.concluir) {
+    try {
+      const { data: pds } = await sb.from("pei_disciplinas").select("id, disciplina")
+        .eq("workspace_id", session!.workspace_id).eq("student_id", body.studentId).eq("fase_status", "diagnostica");
+      const alvo = ((pds || []) as Array<{ id: string; disciplina: string }>).filter((d) => componenteOficial(d.disciplina || "") === disciplina).map((d) => d.id);
+      if (alvo.length) await sb.from("pei_disciplinas").update({ fase_status: "pei_disciplina", updated_at: agora }).in("id", alvo);
+    } catch { /* sem a tabela: segue */ }
+  }
+
   return NextResponse.json({ ok: true, id: res.data?.id, nivel: registro.nivel_omnisfera_identificado, concluida: !!body.concluir });
 }
