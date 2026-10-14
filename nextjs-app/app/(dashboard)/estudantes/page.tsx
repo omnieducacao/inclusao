@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { podeVer } from "@/lib/navegacao";
 import { getSession } from "@/lib/session";
 import { listStudentsDaSessao } from "@/lib/students";
 import { turmasDaEscola } from "@/lib/turmas";
@@ -9,6 +11,8 @@ import { ComoFunciona } from "@/components/tutorial/ComoFunciona";
 
 export default async function EstudantesPage() {
   const session = await getSession();
+  // sem a permissão, a tela não abre (o menu já escondia; o endereço digitado abria)
+  if (session && !podeVer({ permissao: "can_estudantes" }, session)) redirect("/");
   const workspaceId = session?.workspace_id;
   const students = await listStudentsDaSessao(session);
   const hoje = hojeBrasilia();

@@ -74,7 +74,7 @@ export function ComoFunciona({ modulo }: { modulo: TutorialId }) {
               <source src={video.webm} type="video/webm" />
               <source src={video.mp4} type="video/mp4" />
             </video>
-            <figcaption className="omni-apoio" style={{ fontSize: 13 }}>Exemplo com um estudante fictício · sem som</figcaption>
+            <figcaption className="omni-apoio" style={{ fontSize: 13 }}>Exemplo com dados fictícios · sem som</figcaption>
           </figure>
         )}
         <div style={{ display: "grid", gap: 10, minWidth: 0 }}>

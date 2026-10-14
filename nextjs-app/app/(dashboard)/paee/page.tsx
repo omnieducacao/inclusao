@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { podeVer } from "@/lib/navegacao";
 import { getSession } from "@/lib/session";
 import { PageHero } from "@/components/PageHero";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
@@ -17,6 +19,8 @@ type Props = { searchParams: Promise<{ student?: string }> };
 
 export default async function PAEEPage({ searchParams }: Props) {
   const session = await getSession();
+  // sem a permissão, a tela não abre (o menu já escondia; o endereço digitado abria)
+  if (session && !podeVer({ permissao: "can_paee" }, session)) redirect("/");
   const workspaceId = session?.workspace_id;
   const params = await searchParams;
   const studentId = params.student || null;
