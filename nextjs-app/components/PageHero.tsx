@@ -41,8 +41,8 @@ const POR_MODULO: Partial<Record<ModuleThemeKey, Visual>> = {
 // Telas que dividem a chave de tema com outra, mas têm ícone e grupo próprios
 const POR_TELA: Record<string, Visual> = {
   "pei-regente": { cor: "pei", Icone: BookOpen, grupo: "Acompanhar o estudante" },
-  "/pei-regente": { cor: "pei", Icone: BookOpen, grupo: "Acompanhar o estudante" },
-  "/plano-curso": { cor: "hub", Icone: BookMarked, grupo: "Planejar e avaliar" },
+  "/pei-professor": { cor: "pei", Icone: BookOpen, grupo: "Acompanhar o estudante" },
+  "/plano-de-ensino": { cor: "hub", Icone: BookMarked, grupo: "Planejar e avaliar" },
   "/avaliacao-diagnostica": { cor: "hub", Icone: Brain, grupo: "Planejar e avaliar" },
   "/avaliacao-processual": { cor: "monitoramento", Icone: ChartLine, grupo: "Planejar e avaliar" },
   infos: { cor: "gestao", Icone: Library, grupo: "Gestão da escola" },

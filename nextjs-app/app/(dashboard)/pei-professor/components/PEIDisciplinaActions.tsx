@@ -185,6 +185,8 @@ export function PEIAvaliacaoDiagnosticaLink({ studentId, studentName, disciplina
     useEffect(() => {
         if (avaliacao?.status === "aplicada" && onLinked && !autoAdvancedRef.current) {
             autoAdvancedRef.current = true;
+            // a diagnóstica concluída leva a disciplina para a próxima fase (antes só marcava e não avançava)
+            onLinked();
         }
     }, [avaliacao?.status, onLinked]);
 

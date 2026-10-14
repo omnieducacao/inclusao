@@ -11,7 +11,7 @@
  */
 import type { Vigencia } from "./estudo-caso";
 
-export type TipoPendencia = "revisao_vencida" | "ciencia" | "rascunho" | "revisao_proxima" | "sem_pei";
+export type TipoPendencia = "revisao_vencida" | "ciencia" | "rascunho" | "sem_paee" | "revisao_proxima" | "sem_pei";
 
 export type Pendencia = {
   tipo: TipoPendencia;
@@ -31,9 +31,10 @@ export type EstudanteInicio = {
   name: string;
   grade: string | null;
   pei_data?: Record<string, unknown> | null;
+  paee_ciclos?: unknown[] | null;
 };
 
-const ORDEM: TipoPendencia[] = ["revisao_vencida", "ciencia", "rascunho", "revisao_proxima", "sem_pei"];
+const ORDEM: TipoPendencia[] = ["revisao_vencida", "ciencia", "rascunho", "sem_paee", "revisao_proxima", "sem_pei"];
 
 /** "2026-05-12" → "12/05" (mesmo ano) ou "12/05/2027" */
 export function dataCurta(iso: string, hoje: string): string {
@@ -61,9 +62,9 @@ function temPei(pei: Record<string, unknown>): boolean {
 
 export function pendenciasDoInicio(
   estudantes: EstudanteInicio[],
-  opcoes: { editaPei: boolean; cientes: Set<string> | null; hoje: string }
+  opcoes: { editaPei: boolean; cientes: Set<string> | null; hoje: string; editaPaee?: boolean }
 ): Pendencia[] {
-  const { editaPei, cientes, hoje } = opcoes;
+  const { editaPei, cientes, hoje, editaPaee = false } = opcoes;
   const limiteProxima = somarDias(hoje, 15);
   const out: Pendencia[] = [];
 
@@ -78,7 +79,17 @@ export function pendenciasDoInicio(
       out.push({
         ...base, tipo: "ciencia", estado: "Para ler",
         texto: `Ler o PEI de ${s.name} (versão ${vig.versao}) e dar ciência`,
-        acao: "Ler e dar ciência", href: "/pei-regente",
+        acao: "Ler e dar ciência", href: "/pei-professor",
+      });
+    }
+
+    // PEI valendo e nenhum ciclo do AEE em andamento: a passagem do PEI para o atendimento (PAEE)
+    const temCicloAtivo = ((s.paee_ciclos || []) as Array<{ status?: string }>).some((c) => c?.status === "ativo");
+    if (editaPaee && valendo && !temCicloAtivo) {
+      out.push({
+        ...base, tipo: "sem_paee", estado: "AEE sem ciclo",
+        texto: `O PEI de ${s.name} está valendo; falta planejar o ciclo do AEE`,
+        acao: "Planejar o AEE", href: `/paee?student=${s.id}`,
       });
     }
 

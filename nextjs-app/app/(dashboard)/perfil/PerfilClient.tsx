@@ -238,7 +238,7 @@ export default function PerfilClient() {
                         <BookOpen size={40} aria-hidden style={{ color: "var(--tinta-3)" }} />
                         <h2 className="omni-vazio__titulo" style={{ margin: 0 }}>Você ainda não tem vínculos</h2>
                         <p style={{ margin: 0 }}>
-                            Nenhum componente, turma ou estudante está ligado a você. Peça à coordenação para cadastrar em Gestão de usuários.
+                            Nenhum componente, turma ou estudante está ligado a você. Peça à coordenação para cadastrar em Equipe e papéis.
                         </p>
                     </div>
                 </div>

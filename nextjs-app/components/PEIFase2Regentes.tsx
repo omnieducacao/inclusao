@@ -196,7 +196,7 @@ export function PEIFase2Regentes({ studentId, studentName, studentGrade, student
                         <div className="omni-aviso omni-aviso--atencao">
                             <div>
                                 <div className="omni-aviso__texto">Nenhum professor ligado a esta turma ainda. Ligue os professores às turmas e aos componentes em Equipe e papéis.</div>
-                                <div className="omni-aviso__acoes"><a className="omni-btn omni-btn--secundario omni-btn--pequeno" href="/gestao">Abrir Equipe e papéis</a></div>
+                                <div className="omni-aviso__acoes"><a className="omni-btn omni-btn--secundario omni-btn--pequeno" href="/equipe">Abrir Equipe e papéis</a></div>
                             </div>
                         </div>
                     )}

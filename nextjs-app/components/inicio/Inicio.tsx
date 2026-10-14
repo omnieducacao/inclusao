@@ -46,6 +46,7 @@ const ESTADO: Record<TipoPendencia, { classe: string; Icone: LucideIcon }> = {
   revisao_vencida: { classe: "omni-estado--atencao", Icone: Calendar },
   ciencia: { classe: "omni-estado--info", Icone: BookOpen },
   rascunho: { classe: "omni-estado--neutro", Icone: Pencil },
+  sem_paee: { classe: "omni-estado--atencao", Icone: Layers },
   revisao_proxima: { classe: "omni-estado--info", Icone: Clock },
   sem_pei: { classe: "omni-estado--neutro", Icone: FileText },
 };

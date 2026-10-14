@@ -27,10 +27,10 @@ type Announcement = {
  */
 // Onda 16: o professor vai para o PEI do professor; o alerta do AEE abre a ficha do estudante
 function destinoDaNotificacao(id: string, type: string, studentId: string): string {
-    if (id.startsWith("pei-devolutiva-")) return "/pei-regente?aba=disciplina";
-    if (id.startsWith("pei-ciencia-")) return "/pei-regente";
+    if (id.startsWith("pei-devolutiva-")) return "/pei-professor?aba=disciplina";
+    if (id.startsWith("pei-ciencia-")) return "/pei-professor";
     if (id.startsWith("diario-alerta-")) return `/estudantes/${studentId}`;
-    return type === "diario" ? `/diario?studentId=${studentId}` : `/pei?studentId=${studentId}`;
+    return type === "diario" ? `/diario?student=${studentId}` : `/pei?student=${studentId}`;
 }
 function rotuloDaNotificacao(id: string, type: string): string {
     if (id.startsWith("pei-devolutiva-") || id.startsWith("pei-ciencia-")) return "Abrir PEI do professor";

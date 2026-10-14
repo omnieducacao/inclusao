@@ -10,7 +10,7 @@ export type PassoEscola = { id: string; titulo: string; texto: string; href: str
 export function primeirosPassos(c: ContagemEscola): PassoEscola[] {
   return [
     { id: "turmas", titulo: "Ano letivo e turmas", texto: "Cadastre o ano letivo e as turmas. Elas ligam estudantes e professores.", href: "/config-escola", acao: "Cadastrar turmas", feito: c.anosLetivos > 0 && c.turmas > 0 },
-    { id: "equipe", titulo: "Equipe", texto: "Convide professores e AEE e diga o que cada um pode fazer.", href: "/gestao", acao: "Convidar a equipe", feito: c.equipe > 0 },
+    { id: "equipe", titulo: "Equipe", texto: "Convide professores e AEE e diga o que cada um pode fazer.", href: "/equipe", acao: "Convidar a equipe", feito: c.equipe > 0 },
     { id: "estudantes", titulo: "Estudantes", texto: "Cadastre os estudantes público da educação especial, já na turma.", href: "/estudantes?novo=1", acao: "Cadastrar estudante", feito: c.estudantes > 0 },
     { id: "pei", titulo: "Primeiro PEI", texto: "Faça o estudo de caso e torne o primeiro PEI vigente.", href: "/pei", acao: "Abrir o PEI", feito: c.peisVigentes > 0 },
   ];

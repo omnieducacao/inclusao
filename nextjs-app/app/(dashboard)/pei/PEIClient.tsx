@@ -32,6 +32,7 @@ import { PEITabEstudoCaso } from "./components/PEITabEstudoCaso";
 import { PEITabVigencia } from "./components/PEITabVigencia";
 import { BaixarPEI } from "./components/BaixarPEI";
 import { useStudentRealtime } from "@/hooks/useStudentRealtime";
+import { ProximosPassos } from "@/components/jornada/ProximosPassos";
 import { ETAPAS, secoesDaEtapa, etapaDaAbaAntiga, estadoDasEtapas, etapaInicial, type Etapa, type SecaoId } from "@/lib/pei-etapas";
 import { hojeBrasilia } from "@/lib/inicio";
 import type { PEIData } from "@/lib/pei";
@@ -254,23 +255,14 @@ function PEIDoEstudante({
             </button>
           )}
           <span className={s.espaco} />
-          {/* Onda 16: o PEI não termina aqui — leva ao atendimento especializado e aos materiais */}
-          {etapa === 4 && (
-            <>
-              <a className="omni-btn omni-btn--secundario" href={`/hub?student=${currentStudentId}`}>Criar material no Hub</a>
-              {modo === "completo" && (
-                <a className="omni-btn omni-btn--primario" href={`/paee?student=${currentStudentId}`}>
-                  Planejar o AEE <ArrowRight aria-hidden />
-                </a>
-              )}
-            </>
-          )}
           {ACAO_FINAL[etapa] && (
             <button type="button" className="omni-btn omni-btn--primario" onClick={() => irPara((etapa + 1) as Etapa)}>
               {ACAO_FINAL[etapa]} <ArrowRight aria-hidden />
             </button>
           )}
         </footer>
+        {/* o PEI não termina aqui: depois de vigente, a jornada segue para o AEE, a avaliação e os materiais */}
+        {etapa >= 3 && <div style={{ marginTop: 16 }}><ProximosPassos atual="pei" studentId={currentStudentId} titulo="Com o PEI vigente, o próximo passo" /></div>}
       </section>
     </div>
   );

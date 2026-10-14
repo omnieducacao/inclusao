@@ -18,7 +18,7 @@ export function AbasProfessor({ ciencia, disciplina }: { ciencia: ReactNode; dis
     const p = new URLSearchParams(params?.toString() || "");
     if (a === "ciencia") p.delete("aba"); else p.set("aba", a);
     const q = p.toString();
-    router.replace(q ? `${pathname}?${q}` : pathname || "/pei-regente", { scroll: false });
+    router.replace(q ? `${pathname}?${q}` : pathname || "/pei-professor", { scroll: false });
   }
   return (
     <div className="space-y-5">

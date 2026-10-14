@@ -9,6 +9,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { guardarNoEndereco } from "@/components/avaliacao/AbasAvaliacao";
 import { ArrowLeft, Check, Sparkles } from "lucide-react";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 import {
@@ -17,6 +18,7 @@ import {
 } from "@/lib/matriz-avaliacao";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import ProvaEmPapel from "@/components/avaliacao/ProvaEmPapel";
+import { ProximosPassos } from "@/components/jornada/ProximosPassos";
 
 type Estudante = { id: string; name: string; grade?: string | null; class_group?: string | null };
 type Avaliacao = {
@@ -56,6 +58,7 @@ export default function DiagnosticaOmni({ estudantes, inicial, podeConfrontar }:
   }, [studentId]);
 
   useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => { guardarNoEndereco(studentId, componente || undefined); }, [studentId, componente]);
 
   if (!studentId || !estudante) {
     return (
@@ -91,7 +94,7 @@ export default function DiagnosticaOmni({ estudantes, inicial, podeConfrontar }:
       {erro && <div className="omni-aviso omni-aviso--erro" role="alert"><div><div className="omni-aviso__texto">{erro}</div></div></div>}
 
       {serie.etapa === "EI" ? (
-        <div className="omni-aviso omni-aviso--info"><div><div className="omni-aviso__texto">Na Educação Infantil a avaliação é feita pela observação dos campos de experiência, no próprio PEI de {estudante.name}.</div></div></div>
+        <div className="omni-aviso omni-aviso--info"><div><div className="omni-aviso__texto">Na Educação Infantil a avaliação é feita pela observação dos campos de experiência, no próprio PEI de {estudante.name}. <Link href={`/pei?student=${estudante.id}&etapa=1&secao=mapeamento`}>Abrir o PEI</Link></div></div></div>
       ) : (
         <>
           <p className="omni-apoio" style={{ margin: 0 }}>
@@ -122,6 +125,8 @@ export default function DiagnosticaOmni({ estudantes, inicial, podeConfrontar }:
           )}
         </>
       )}
+
+      <ProximosPassos atual="avaliacao" studentId={estudante.id} />
     </div>
   );
 }

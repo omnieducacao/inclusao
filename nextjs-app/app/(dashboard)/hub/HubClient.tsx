@@ -7,6 +7,7 @@ import { CabecalhoEstudante, EscolherEstudante } from "@/components/estudante/Ca
 import { HubHistoricoEstudante } from "./components/HubHistoricoEstudante";
 import { detectarNivelEnsino } from "@/lib/pei";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
+import { ProximosPassos } from "@/components/jornada/ProximosPassos";
 import {
   FileText,
   Image as ImageIcon,
@@ -180,6 +181,7 @@ export function HubClient({ cabecalho, students, studentId, student }: Props) {
           {currentId && student && (
             <HubHistoricoEstudante studentId={currentId} nome={student.name} atualizar={abertas.length} />
           )}
+          {currentId && student && <ProximosPassos atual="hub" studentId={currentId} />}
         </>
       )}
 

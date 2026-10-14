@@ -80,7 +80,7 @@ export default async function RootPage() {
           .in("student_id", valendo.map((e) => e.id));
         cientes = new Set((data || []).map((c: { student_id: string; versao: number }) => `${c.student_id}:${c.versao}`));
       }
-      pendencias = pendenciasDoInicio(estudantes, { editaPei, cientes, hoje });
+      pendencias = pendenciasDoInicio(estudantes, { editaPei, cientes, hoje, editaPaee: canAccessModule("can_paee") });
 
       const [diarioRes, wsData] = await Promise.all([
         sb.from("diario_registros").select("id", { count: "exact", head: true }).eq("workspace_id", wid)
@@ -119,7 +119,7 @@ export default async function RootPage() {
       selo: n ? { texto: `${n} no vínculo`, tipo: "neutro" } : undefined },
     { href: "/pei", icone: "fileText", cor: "pei", titulo: "PEI", descricao: "Estudo de caso, PEI com IA, versões, ciência e revisões.", permission: "can_pei",
       selo: peisDesatualizados ? { texto: `${peisDesatualizados} com revisão vencida`, tipo: "atencao" } : peisVigentes ? { texto: `${peisVigentes} vigentes`, tipo: "neutro" } : undefined },
-    { href: "/pei-regente", icone: "bookOpen", cor: "pei", titulo: "PEI do professor", descricao: "Ler o PEI, dar ciência e fazer a parte da sua disciplina.", permission: "can_pei_professor" },
+    { href: "/pei-professor", icone: "bookOpen", cor: "pei", titulo: "PEI do professor", descricao: "Ler o PEI, dar ciência e fazer a parte da sua disciplina.", permission: "can_pei_professor" },
     { href: "/paee", icone: "layers", cor: "paee", titulo: "PAEE", descricao: "Atendimento Educacional Especializado e sala de recursos.", permission: "can_paee" },
     { href: "/diario", icone: "notebookPen", cor: "diario", titulo: "Diário de bordo", descricao: "Observações, evidências e intervenções do dia a dia.", permission: "can_diario",
       selo: n ? { texto: `${diario7d} esta semana`, tipo: "neutro" } : undefined },
@@ -129,15 +129,15 @@ export default async function RootPage() {
   ];
   const planejar: Mod[] = [
     { href: "/hub", icone: "sparkles", cor: "hub", titulo: "Hub de recursos", descricao: "Ferramentas de IA para criar e adaptar materiais.", permission: "can_hub" },
-    { href: "/plano-curso", icone: "bookMarked", cor: "hub", titulo: "Plano de ensino", descricao: "Planejamento por componente curricular e série.", permission: "can_pei_professor" },
-    { href: "/avaliacao-diagnostica", icone: "brain", cor: "hub", titulo: "Avaliação", descricao: "Diagnóstica no começo e processual a cada bimestre, na escala de 0 a 4.", permission: "can_pei_professor",
+    { href: "/plano-de-ensino", icone: "bookMarked", cor: "hub", titulo: "Plano de ensino", descricao: "Planejamento por componente curricular e série.", permission: "can_pei_professor" },
+    { href: "/avaliacao-diagnostica", icone: "brain", cor: "hub", titulo: "Avaliação", descricao: "Diagnóstica no começo e processual a cada bimestre, na escala de 0 a 4.", permission: "can_avaliacao",
       selo: processualCount ? { texto: `${processualCount} registros`, tipo: "neutro" } : undefined },
-    { href: "/monitoramento", icone: "chartLine", cor: "monitoramento", titulo: "Evolução e dados", descricao: "Onde a escola está com os PEIs e quem precisa de atenção.", permission: "can_avaliacao" },
+    { href: "/evolucao", icone: "chartLine", cor: "monitoramento", titulo: "Evolução e dados", descricao: "Onde a escola está com os PEIs e quem precisa de atenção.", permission: "can_avaliacao" },
   ];
   const gestao: Mod[] = [
     { href: "/pgi", icone: "clipboardList", cor: "gestao", titulo: "PGI", descricao: "Plano de Gestão Inclusiva da escola.", permission: "can_gestao" },
-    { href: "/infos", icone: "library", cor: "gestao", titulo: "Central de inteligência", descricao: "Fundamentos pedagógicos, legislação e referências.", permission: "can_gestao" },
-    { href: "/gestao", icone: "userCog", cor: "gestao", titulo: "Equipe e papéis", descricao: "Profissionais, papéis, permissões e vínculos.", permission: "can_gestao" },
+    { href: "/central", icone: "library", cor: "gestao", titulo: "Central de inteligência", descricao: "Fundamentos pedagógicos, legislação e referências." },
+    { href: "/equipe", icone: "userCog", cor: "gestao", titulo: "Equipe e papéis", descricao: "Profissionais, papéis, permissões e vínculos.", permission: "can_gestao" },
     { href: "/config-escola", icone: "school", cor: "gestao", titulo: "Configuração da escola", descricao: "Ano letivo, séries, turmas e modo da escola.", permission: "can_gestao" },
     ...(sessionNonNull.is_platform_admin
       ? [{ href: "/admin", icone: "settings", cor: "gestao", titulo: "Administração", descricao: "Escolas e configurações da plataforma." } as Mod]

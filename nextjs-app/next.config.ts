@@ -25,6 +25,20 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
+  // Rotas renomeadas para bater com o menu: os endereços antigos continuam funcionando (favoritos, notificações, e-mails)
+  async redirects() {
+    const antigas: Array<[string, string]> = [
+      ["/monitoramento", "/evolucao"],
+      ["/pei-regente", "/pei-professor"],
+      ["/gestao", "/equipe"],
+      ["/infos", "/central"],
+      ["/plano-curso", "/plano-de-ensino"],
+    ];
+    return antigas.flatMap(([de, para]) => [
+      { source: de, destination: para, permanent: true },
+      { source: `${de}/:resto*`, destination: `${para}/:resto*`, permanent: true },
+    ]);
+  },
   /* config options here */
   turbopack: {
     root: process.cwd(),

@@ -15,6 +15,7 @@ import {
 } from "@/lib/paee";
 import { AlertTriangle, Target, Search, FileText } from "lucide-react";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
+import { ProximosPassos } from "@/components/jornada/ProximosPassos";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { ResumoAnexosEstudante } from "@/components/ResumoAnexosEstudante";
 import { JornadaTab } from "./components/JornadaTab";
@@ -534,6 +535,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
               <div style={{ display: "grid", gap: 12, paddingTop: 16, borderTop: "1px solid var(--borda)" }}>
                 <h3 style={{ margin: 0, font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>Gerar novo ciclo</h3>
                 <FormPlanejamento
+                  studentId={student.id}
                   metasPei={metasPei}
                   hiperfoco={hiperfoco}
                   onGerar={gerarPreviewPlanejamento}
@@ -613,7 +615,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
               )}
               <div style={{ display: "grid", gap: 12, paddingTop: 16, borderTop: "1px solid var(--borda)" }}>
                 <h3 style={{ margin: 0, font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>Gerar ciclo de execução</h3>
-                <FormExecucao metasPei={metasPei} onGerar={gerarPreviewExecucao} />
+                <FormExecucao studentId={student.id} metasPei={metasPei} onGerar={gerarPreviewExecucao} />
               </div>
             </div>
             <div style={{ display: "grid", gap: 16, alignContent: "start" }}>
@@ -660,6 +662,8 @@ function PAEEClientInner({ students, studentId, student }: Props) {
           pagina="PAEE"
         />
       )}
+
+      {student && <ProximosPassos atual="paee" studentId={student.id} />}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { useConfirmar } from "@/components/Confirmar";
 import { CabecalhoEstudante, EscolherEstudante } from "@/components/estudante/CabecalhoEstudante";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
+import { ProximosPassos } from "@/components/jornada/ProximosPassos";
 import { useStudentRealtime } from "@/hooks/useStudentRealtime";
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -220,6 +221,8 @@ function DiarioClientInner({ students, studentId, student }: Props) {
       {activeTab === "relatorios" && (
         <RelatoriosTab registros={registrosOrdenados} student={student} />
       )}
+
+      <ProximosPassos atual="diario" studentId={student.id} />
     </div>
   );
 }

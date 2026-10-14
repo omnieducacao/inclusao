@@ -100,7 +100,7 @@ export function ConfigEscolaClient() {
     { n: 1, titulo: "Ano letivo", feito: years.length > 0, ancora: "cfg-ano" },
     { n: 2, titulo: "Séries", feito: selectedGradeIds.length > 0, ancora: "cfg-series" },
     { n: 3, titulo: "Turmas", feito: classes.length > 0, ancora: "cfg-turmas" },
-    { n: 4, titulo: "Equipe", feito: false, ancora: "", href: "/gestao" },
+    { n: 4, titulo: "Equipe", feito: false, ancora: "", href: "/equipe" },
   ];
 
   // Turmas agrupadas por série ("4º Ano: A, B, C")

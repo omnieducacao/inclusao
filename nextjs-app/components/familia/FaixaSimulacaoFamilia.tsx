@@ -10,7 +10,7 @@ export function FaixaSimulacaoFamilia({ nome }: { nome: string }) {
   async function voltar() {
     setSaindo(true);
     const r = await fetch("/api/simulate-family", { method: "DELETE" }).catch(() => null);
-    if (r?.ok) window.location.href = "/gestao"; else setSaindo(false);
+    if (r?.ok) window.location.href = "/equipe"; else setSaindo(false);
   }
   return (
     <div role="status" style={{ position: "sticky", top: 0, zIndex: 60, background: "var(--noite)", color: "var(--sobre-noite)", borderBottom: "3px solid var(--encontro-roxo)" }}>

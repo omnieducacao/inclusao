@@ -10,6 +10,7 @@ import { BookOpen, ChevronLeft, CheckCircle2, Plus } from "lucide-react";
 import { PlanoCursoEditor } from "@/components/PlanoCursoEditor";
 import { PageHero } from "@/components/PageHero";
 import TelaCarregando from "@/components/brand/TelaCarregando";
+import { ProximosPassos } from "@/components/jornada/ProximosPassos";
 
 interface ComboItem {
     serie: string;
@@ -86,7 +87,7 @@ export default function PlanoCursoClient() {
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             <PageHero
-                route="/plano-curso"
+                route="/plano-de-ensino"
                 title="Plano de ensino"
                 desc={`${professorName ? `${professorName} · ` : ""}${n} ${n === 1 ? "componente e série vinculados" : "componentes e séries vinculados"}`}
             />
@@ -104,7 +105,7 @@ export default function PlanoCursoClient() {
                     <div className="omni-vazio__texto">
                         <BookOpen size={40} aria-hidden style={{ color: "var(--tinta-3)" }} />
                         <h2 className="omni-vazio__titulo" style={{ margin: 0 }}>Nenhum componente vinculado</h2>
-                        <p style={{ margin: 0 }}>Você ainda não está ligado a componentes e séries. Peça à coordenação para cadastrar seus vínculos em Gestão de usuários.</p>
+                        <p style={{ margin: 0 }}>Você ainda não está ligado a componentes e séries. Peça à coordenação para cadastrar seus vínculos em Equipe e papéis.</p>
                     </div>
                 </div>
             )}
@@ -145,6 +146,8 @@ export default function PlanoCursoClient() {
                     </div>
                 </section>
             ))}
+
+            {n > 0 && <ProximosPassos atual="plano-de-ensino" />}
         </div>
     );
 }

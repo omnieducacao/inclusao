@@ -17,7 +17,7 @@ export function MemberSimulationBanner({ session }: { session: SessionPayload })
         try {
             const res = await fetch("/api/simulate-member", { method: "DELETE" });
             if (res.ok) {
-                router.push("/gestao");
+                router.push("/equipe");
                 router.refresh();
             } else {
                 setEnding(false);

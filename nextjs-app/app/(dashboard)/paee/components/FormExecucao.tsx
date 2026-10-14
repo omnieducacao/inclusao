@@ -3,8 +3,9 @@ import React, { useState } from "react";
 import type { MetaPei } from "@/lib/paee";
 export function FormExecucao({
   metasPei,
-  onGerar,
+  onGerar, studentId,
 }: {
+  studentId?: string;
   metasPei: MetaPei[];
   onGerar: (form: {
     dataInicio: string;
@@ -39,7 +40,10 @@ export function FormExecucao({
       <fieldset className="omni-campo" style={{ border: 0, padding: 0, margin: 0, maxWidth: "none" }}>
         <legend className="omni-campo__rotulo">Metas do PEI</legend>
         {metasPei.length === 0 ? (
-          <p className="omni-apoio" style={{ margin: 0 }}>O PEI ainda não tem metas. Escreva as metas no PEI para montar o ciclo.</p>
+          <p className="omni-apoio" style={{ margin: 0 }}>
+            O PEI ainda não tem metas, e o ciclo parte delas.{" "}
+            {studentId ? <a href={`/pei?student=${studentId}&etapa=2&secao=consultoria`}>Escrever as metas no Texto do PEI</a> : "Escreva as metas no Texto do PEI (etapa 2)."}
+          </p>
         ) : (
           <div style={{ display: "grid", gap: 8, maxHeight: 160, overflowY: "auto", padding: 8, border: "1px solid var(--borda)", borderRadius: "var(--o-radius-md)", background: "var(--superficie)" }}>
             {metasPei.map((m: any) => (

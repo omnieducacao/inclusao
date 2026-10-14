@@ -25,7 +25,7 @@ describe("início · pendências", () => {
   it("professor vê só a ciência das versões que ainda não leu", () => {
     const p = pendenciasDoInicio(lista, { editaPei: false, cientes: new Set(["a:2"]), hoje: HOJE });
     expect(p.map((x) => x.nome)).toEqual(["Carla", "Lucas"]); // em ordem alfabética
-    expect(p.every((x) => x.tipo === "ciencia" && x.href === "/pei-regente")).toBe(true);
+    expect(p.every((x) => x.tipo === "ciencia" && x.href === "/pei-professor")).toBe(true);
   });
 });
 

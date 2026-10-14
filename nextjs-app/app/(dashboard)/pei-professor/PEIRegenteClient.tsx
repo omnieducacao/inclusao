@@ -156,12 +156,13 @@ export function PEIRegenteClient() {
         return (
             <div className="omni-vazio">
                 <School size={40} aria-hidden style={{ color: "var(--tinta-3)" }} />
-                <h3 className="omni-vazio__titulo">Nenhum estudante na Fase 2</h3>
+                <h3 className="omni-vazio__titulo">Nenhum PEI chegou para você ainda</h3>
                 <p className="omni-vazio__texto">
                     {data?.professor?.is_master
-                        ? "Nenhum PEI foi enviado aos professores ainda. Finalize um PEI no módulo PEI e use \"Enviar aos professores\"."
-                        : "Aguarde o envio do PEI pelo profissional do AEE ou pela coordenação."}
+                        ? "Os PEIs aparecem aqui depois de vigentes e enviados aos professores regentes, na etapa 3 do PEI."
+                        : "O PEI aparece aqui quando o profissional do AEE ou a coordenação o envia para você."}
                 </p>
+                {data?.professor?.is_master && <a className="omni-btn omni-btn--secundario omni-btn--pequeno" href="/pei">Abrir o PEI</a>}
             </div>
         );
     }

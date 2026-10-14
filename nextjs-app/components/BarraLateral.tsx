@@ -33,7 +33,7 @@ export const GRUPOS_NAVEGACAO: Grupo[] = [
     itens: [
       { href: "/estudantes", nome: "Estudantes", Icone: Users, permissao: "can_estudantes", cor: "pei" },
       { href: "/pei", nome: "PEI", Icone: FileText, permissao: "can_pei", cor: "pei" },
-      { href: "/pei-regente", nome: "PEI do professor", Icone: BookOpen, permissao: "can_pei_professor", cor: "pei" },
+      { href: "/pei-professor", nome: "PEI do professor", Icone: BookOpen, permissao: "can_pei_professor", cor: "pei" },
       { href: "/paee", nome: "PAEE", Icone: Layers, permissao: "can_paee", cor: "paee" },
       { href: "/diario", nome: "Diário de bordo", Icone: NotebookPen, permissao: "can_diario", cor: "diario" },
     ],
@@ -42,18 +42,18 @@ export const GRUPOS_NAVEGACAO: Grupo[] = [
     titulo: "Planejar e avaliar",
     itens: [
       { href: "/hub", nome: "Hub de recursos", Icone: Sparkles, permissao: "can_hub", cor: "hub" },
-      { href: "/plano-curso", nome: "Plano de ensino", Icone: BookMarked, permissao: "can_pei_professor", cor: "hub" },
-      { href: "/avaliacao-diagnostica", nome: "Avaliação", Icone: Brain, permissao: "can_pei_professor", cor: "hub", tambem: ["/avaliacao-processual"] },
-      { href: "/monitoramento", nome: "Evolução e dados", Icone: ChartLine, permissao: "can_avaliacao", cor: "monitoramento" },
+      { href: "/plano-de-ensino", nome: "Plano de ensino", Icone: BookMarked, permissao: "can_pei_professor", cor: "hub" },
+      { href: "/avaliacao-diagnostica", nome: "Avaliação", Icone: Brain, permissao: "can_avaliacao", cor: "hub", tambem: ["/avaliacao-processual"] },
+      { href: "/evolucao", nome: "Evolução e dados", Icone: ChartLine, permissao: "can_avaliacao", cor: "monitoramento" },
     ],
   },
   {
     titulo: "Gestão da escola",
     itens: [
       { href: "/pgi", nome: "PGI", Icone: ClipboardList, permissao: "can_gestao", cor: "gestao" },
-      { href: "/gestao", nome: "Equipe e papéis", Icone: UserCog, permissao: "can_gestao", cor: "gestao" },
+      { href: "/equipe", nome: "Equipe e papéis", Icone: UserCog, permissao: "can_gestao", cor: "gestao" },
       { href: "/config-escola", nome: "Configuração da escola", Icone: School, permissao: "can_gestao", cor: "gestao" },
-      { href: "/infos", nome: "Central de inteligência", Icone: Library, cor: "gestao" },
+      { href: "/central", nome: "Central de inteligência", Icone: Library, cor: "gestao" },
     ],
   },
 ];

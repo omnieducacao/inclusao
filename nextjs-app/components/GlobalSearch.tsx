@@ -94,9 +94,9 @@ export function GlobalSearch() {
         (result: SearchResult) => {
             setOpen(false);
             if (result.type === "student") {
-                router.push(`/pei?studentId=${result.id}`);
+                router.push(`/estudantes/${result.id}`); // a ficha leva a todos os módulos que a pessoa pode usar
             } else {
-                router.push(`/gestao`);
+                router.push(`/equipe`);
             }
         },
         [router]

@@ -57,7 +57,7 @@ export const TOUR_STEPS: TourStep[] = [
         title: "Monitoramento & Rubricas",
         description:
             "Acompanhe a evolução do estudante ao longo do tempo com rubricas de desenvolvimento e gráficos de progresso.",
-        target: '[href="/monitoramento"]',
+        target: '[href="/evolucao"]',
         icon: "📊",
     },
     {

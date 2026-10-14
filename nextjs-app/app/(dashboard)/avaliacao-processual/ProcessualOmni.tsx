@@ -8,6 +8,8 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { guardarNoEndereco } from "@/components/avaliacao/AbasAvaliacao";
+import { ProximosPassos } from "@/components/jornada/ProximosPassos";
 import { Check } from "lucide-react";
 import { ESCALA_OMNISFERA, type NivelOmnisfera } from "@/lib/omnisfera-types";
 import { componenteOficial, lerSerie, type DescritorAvaliado } from "@/lib/matriz-avaliacao";
@@ -26,6 +28,7 @@ export default function ProcessualOmni({ estudantes, inicial }: { estudantes: Es
   const [studentId, setStudentId] = useState(inicial?.student || "");
   const [diags, setDiags] = useState<Diagnostica[]>([]);
   const [componente, setComponente] = useState<string>(inicial?.disciplina ? componenteOficial(inicial.disciplina) : "");
+  useEffect(() => { guardarNoEndereco(studentId, componente || undefined); }, [studentId, componente]);
   const [registros, setRegistros] = useState<Registro[]>([]);
   const [erro, setErro] = useState<string | null>(null);
   const estudante = estudantes.find((e) => e.id === studentId) || null;
@@ -74,7 +77,7 @@ export default function ProcessualOmni({ estudantes, inicial }: { estudantes: Es
       {erro && <div className="omni-aviso omni-aviso--erro" role="alert"><div><div className="omni-aviso__texto">{erro}</div></div></div>}
 
       {estudante && lerSerie(estudante.grade).etapa === "EI" && (
-        <div className="omni-aviso omni-aviso--info"><div><div className="omni-aviso__texto">Na Educação Infantil o acompanhamento é feito no PEI e no diário de bordo.</div></div></div>
+        <div className="omni-aviso omni-aviso--info"><div><div className="omni-aviso__texto">Na Educação Infantil o acompanhamento é feito no PEI e no diário de bordo. <Link href={`/diario?student=${estudante.id}`}>Abrir o diário</Link></div></div></div>
       )}
 
       {estudante && !diags.length && lerSerie(estudante.grade).etapa !== "EI" && (
@@ -90,6 +93,8 @@ export default function ProcessualOmni({ estudantes, inicial }: { estudantes: Es
           <Registrar estudante={estudante} diag={diag} registros={registros} onSalvo={carregarRegistros} />
         </>
       )}
+
+      {estudante && <ProximosPassos atual="avaliacao" studentId={estudante.id} />}
     </div>
   );
 }

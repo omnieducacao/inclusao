@@ -60,9 +60,10 @@ const CICLO: { passo: string; tela: string; href: string; faz: string }[] = [
   { passo: "Conhecer", tela: "Estudantes", href: "/estudantes", faz: "Cadastro e ficha do estudante: turma, situação do PEI e tudo o que já foi feito com ele." },
   { passo: "Estudo de caso e PEI", tela: "PEI", href: "/pei", faz: "Quatro etapas: estudo de caso, plano, professores e revisão. O laudo, quando o estudante tem, entra no estudo de caso." },
   { passo: "Atendimento", tela: "PAEE", href: "/paee", faz: "O AEE em ciclos: avaliação e adaptação, desenvolvimento e consolidação, com metas do PEI." },
-  { passo: "Sala de aula", tela: "PEI do professor e Hub de recursos", href: "/hub", faz: "Cada professor lê o PEI, dá ciência e cria material adaptado a partir do estudante." },
+  { passo: "Sala de aula", tela: "PEI do professor, Plano de ensino e Hub de recursos", href: "/pei-professor", faz: "Cada professor lê o PEI, dá ciência, adapta o plano de ensino da sua disciplina e cria material no Hub a partir do estudante." },
   { passo: "Registro", tela: "Diário de bordo", href: "/diario", faz: "O que aconteceu em cada atendimento, em poucos toques." },
-  { passo: "Acompanhar", tela: "Avaliação e Evolução e dados", href: "/monitoramento", faz: "Avaliação diagnóstica e processual na escala de 0 a 4, e a evolução de cada estudante." },
+  { passo: "Avaliar", tela: "Avaliação", href: "/avaliacao-diagnostica", faz: "Diagnóstica no começo e processual a cada período, descritor por descritor, na escala de 0 a 4 (dá para imprimir a prova e corrigir por foto)." },
+  { passo: "Acompanhar e revisar", tela: "Evolução e dados", href: "/evolucao", faz: "Avaliações, diário e PAEE juntos; o que a evolução mostrar volta para a revisão do PEI." },
 ];
 
 const LEITURAS: { titulo: string; texto: string; href: string; min?: string }[] = [
@@ -92,7 +93,7 @@ export default function InfosClient() {
     const p = new URLSearchParams(params?.toString() || "");
     if (a === "lei") p.delete("aba"); else p.set("aba", a);
     const q = p.toString();
-    router.replace(q ? `${pathname}?${q}` : pathname || "/infos", { scroll: false });
+    router.replace(q ? `${pathname}?${q}` : pathname || "/central", { scroll: false });
   }
 
   const termos = useMemo(() => {

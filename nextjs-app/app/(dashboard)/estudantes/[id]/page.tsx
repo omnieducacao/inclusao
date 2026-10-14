@@ -74,7 +74,7 @@ export default async function FichaEstudantePage({ params }: Props) {
       acao: situacao.rotulo === "Sem PEI" ? "Começar o PEI" : "Abrir o PEI",
     },
     {
-      href: "/pei-regente", titulo: "PEI do professor", cor: "pei", Icone: BookOpen, permissao: "can_pei_professor",
+      href: "/pei-professor", titulo: "PEI do professor", cor: "pei", Icone: BookOpen, permissao: "can_pei_professor",
       estado: situacao.versao ? { texto: "Para ler", tom: "info" } : { texto: "Sem versão", tom: "neutro" },
       resumo: situacao.versao ? "Leia o PEI vigente e registre a ciência." : "Aparece aqui quando o PEI estiver vigente.",
       acao: "Abrir",
@@ -98,13 +98,13 @@ export default async function FichaEstudantePage({ params }: Props) {
       acao: "Criar ou ver materiais",
     },
     {
-      href: `/avaliacao-diagnostica${q}`, titulo: "Avaliações", cor: "hub", Icone: Brain, permissao: "can_pei_professor",
+      href: `/avaliacao-diagnostica${q}`, titulo: "Avaliações", cor: "hub", Icone: Brain, permissao: "can_avaliacao",
       estado: { texto: diagnosticas == null && processuais == null ? "—" : plural((diagnosticas || 0) + (processuais || 0), "avaliação", "avaliações"), tom: "neutro" },
       resumo: `${plural(diagnosticas || 0, "diagnóstica", "diagnósticas")} · ${plural(processuais || 0, "processual", "processuais")}`,
       acao: "Abrir avaliação diagnóstica",
     },
     {
-      href: `/monitoramento${q}`, titulo: "Evolução e dados", cor: "monitoramento", Icone: ChartLine, permissao: "can_avaliacao",
+      href: `/evolucao${q}`, titulo: "Evolução e dados", cor: "monitoramento", Icone: ChartLine, permissao: "can_avaliacao",
       estado: { texto: "Consolidado", tom: "neutro" },
       resumo: "O que o PEI, o PAEE e o Diário já registraram, num só lugar.",
       acao: "Ver evolução",

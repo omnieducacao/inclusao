@@ -8,6 +8,11 @@ import { AILoadingWrapper } from "@/components/AILoadingWrapper";
 import { SimulationBanner } from "@/components/SimulationBanner";
 import { MemberSimulationBanner } from "@/components/MemberSimulationBanner";
 import { AnnouncementModal } from "@/components/AnnouncementModal";
+import { PermissoesProvider } from "@/components/jornada/PermissoesProvider";
+import { podeVer } from "@/lib/navegacao";
+import type { Permissao } from "@/lib/jornada";
+
+const PERMISSOES: Permissao[] = ["can_estudantes", "can_pei", "can_pei_professor", "can_paee", "can_hub", "can_diario", "can_avaliacao", "can_gestao"];
 
 export default async function DashboardLayout({
   children,
@@ -22,7 +27,10 @@ export default async function DashboardLayout({
     redirect("/familia");
   }
 
+  const pode = Object.fromEntries(PERMISSOES.map((p) => [p, podeVer({ permissao: p }, session)]));
+
   return (
+    <PermissoesProvider pode={pode}>
     <AILoadingWrapper>
       <div
         className="min-h-screen flex flex-col transition-colors duration-300"
@@ -49,5 +57,6 @@ export default async function DashboardLayout({
         <AnnouncementModal />
       </div>
     </AILoadingWrapper>
+    </PermissoesProvider>
   );
 }

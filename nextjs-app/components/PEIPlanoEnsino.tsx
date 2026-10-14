@@ -262,7 +262,7 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                         <h5 id="planos-disponiveis-titulo" style={tituloS}>
                             Planos disponíveis
                         </h5>
-                        <a href="/plano-curso" className="omni-btn omni-btn--discreto omni-btn--pequeno" style={{ marginLeft: "auto" }}>
+                        <a href="/plano-de-ensino" className="omni-btn omni-btn--discreto omni-btn--pequeno" style={{ marginLeft: "auto" }}>
                             <ExternalLink size={16} aria-hidden /> Criar um plano
                         </a>
                     </div>
@@ -274,7 +274,7 @@ export function PEIPlanoEnsino({ studentId, disciplina, anoSerie, onPlanoSaved }
                                 <p className="omni-vazio__texto">
                                     Crie um plano no módulo <strong>Plano de ensino</strong> para {disciplina} — {anoSerie}.
                                 </p>
-                                <a href="/plano-curso" className="omni-btn omni-btn--primario">
+                                <a href="/plano-de-ensino" className="omni-btn omni-btn--primario">
                                     <ExternalLink size={16} aria-hidden /> Ir para o Plano de ensino
                                 </a>
                             </div>

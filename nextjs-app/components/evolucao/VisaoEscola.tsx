@@ -73,7 +73,7 @@ export function VisaoEscola({ linhas, podeAgir = { pei: true, paee: true } }: { 
                     {lista.map((l) => (
                       <li key={l.id} className="flex flex-wrap items-center justify-between gap-2" style={{ padding: "6px 0", borderTop: "1px solid var(--borda)" }}>
                         <span>
-                          <Link href={`/monitoramento?student=${l.id}`} style={{ font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>{l.name}</Link>
+                          <Link href={`/evolucao?student=${l.id}`} style={{ font: "700 15px/22px var(--font-sans)", color: "var(--tinta)" }}>{l.name}</Link>
                           <span className="omni-apoio" style={{ fontSize: 14 }}> · {[l.grade, l.class_group].filter(Boolean).join(" ") || "sem turma"}</span>
                         </span>
                         {podeAgir[g.modulo]

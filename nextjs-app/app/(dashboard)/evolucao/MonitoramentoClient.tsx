@@ -17,6 +17,7 @@ import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { EvolucaoDescritores, type DiagnosticaEvolucao, type RegistroEvolucao } from "@/components/avaliacao/EvolucaoDescritores";
 import { lerSerie } from "@/lib/matriz-avaliacao";
 import { resumoPaee, badgeStatus } from "@/lib/paee";
+import { ProximosPassos } from "@/components/jornada/ProximosPassos";
 
 type Student = { id: string; name: string; grade?: string | null; class_group?: string | null };
 type RegistroDiario = {
@@ -245,9 +246,7 @@ function MonitoramentoClientInner({ students, studentId, student }: Props) {
         ) : null}
       </section>
 
-      <nav aria-label="Outros registros do estudante" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-        <Link href={`/pei?student=${student.id}`} className="omni-btn omni-btn--discreto omni-btn--pequeno">Ver PEI</Link>
-      </nav>
+      <ProximosPassos atual="evolucao" studentId={student.id} titulo="Com o que a evolução mostrou" />
     </div>
   );
 }
