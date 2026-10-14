@@ -601,3 +601,16 @@ svg.grow .vl{font-family:var(--f);font-weight:800;font-size:17px;fill:var(--ink)
 .intl-txt .kick{color:var(--ak)}
 @media (max-width:860px){.intl-grid,.intl-dir .intl-grid{grid-template-columns:1fr}.intl-dir .intl-fig{order:0}}
 @media (prefers-reduced-motion: reduce){.intl-fig img{transform:none}}
+
+/* ---------- trio de fotos (onda 46) ---------- */
+.trio-sh{display:grid;gap:12px;max-width:760px;margin-bottom:clamp(20px,3vw,32px)}
+.trio-sh p{font-size:clamp(22px,2.6vw,32px);font-weight:800;letter-spacing:-.025em;line-height:1.2;text-wrap:balance}
+.trio-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,2vw,20px);align-items:start}
+.trio-f{margin:0;display:grid;gap:12px;transition-delay:var(--d,0ms)}
+.trio-f:nth-child(2){margin-top:clamp(0px,4vw,48px)}
+.trio-f img{width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;border-radius:var(--r) var(--r) var(--r) var(--rs);box-shadow:var(--shadow);transition:transform .7s cubic-bezier(.2,.8,.2,1)}
+.trio-f:nth-child(2) img{border-radius:var(--r) var(--r) var(--rs) var(--r)}
+.trio-f:hover img{transform:translateY(-6px) rotate(-.4deg)}
+.trio-f figcaption{font-size:18px;color:var(--ink2)}
+.trio-f figcaption b{color:var(--ink)}
+@media (max-width:700px){.trio-g{grid-template-columns:1fr 1fr}.trio-f:nth-child(3){grid-column:1/-1}.trio-f:nth-child(3) img{aspect-ratio:16/10}.trio-f:nth-child(2){margin-top:28px}}
