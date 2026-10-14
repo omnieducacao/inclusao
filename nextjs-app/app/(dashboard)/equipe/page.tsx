@@ -1,17 +1,21 @@
 import { Suspense } from "react";
 import { PageHero } from "@/components/PageHero";
+import { ComoFunciona } from "@/components/tutorial/ComoFunciona";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
 import { GestaoClient } from "./GestaoClient";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { listMembers, getWorkspaceMaster } from "@/lib/members";
 import { redirect } from "next/navigation";
+import { podeVer } from "@/lib/navegacao";
 import TelaCarregando from "@/components/brand/TelaCarregando";
 import { getAdminConfig } from "@/lib/getAdminConfig";
 
 export default async function GestaoPage() {
   const session = await getSession();
   if (!session?.workspace_id) redirect("/login");
+  // a página carrega a equipe e os contatos das famílias no servidor: só para a gestão
+  if (!podeVer({ permissao: "can_gestao" }, session)) redirect("/");
 
   const workspaceId = session.workspace_id;
 
@@ -33,9 +37,10 @@ export default async function GestaoPage() {
       <div className="space-y-6">
         <PageHero moduleKey="gestao" serverConfig={adminConfig}
           title="Equipe e papéis"
-          desc="Membros e permissões do workspace."
+          desc="Quem trabalha na escola, o papel de cada um, as páginas que abre e os estudantes com quem trabalha."
         />
-        <Suspense fallback={<TelaCarregando variante="secao" mensagens={["Abrindo a gestão de usuários…"]} />}>
+        <ComoFunciona modulo="equipe" />
+        <Suspense fallback={<TelaCarregando variante="secao" mensagens={["Abrindo a equipe…"]} />}>
           <GestaoClient
             initialMembers={membersData || []}
             initialMaster={masterData || null}

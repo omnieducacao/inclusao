@@ -13,6 +13,7 @@ vi.mock("@/lib/session", () => ({
     getSession: vi.fn().mockResolvedValue({
         id: "u1",
         workspace_id: "w1",
+        user_role: "master",
     }),
 }));
 
@@ -89,5 +90,16 @@ describe("API School Grades", () => {
         });
         const res = await PATCH(req as never);
         expect(res.status).toBe(401);
+    });
+
+    it("PATCH retorna 403 para quem não é da gestão", async () => {
+        const { getSession } = await import("@/lib/session");
+        (getSession as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ workspace_id: "w1", user_role: "member", member: { can_gestao: false } });
+        const req = new Request("http://localhost/api/school/grades", {
+            method: "PATCH",
+            body: JSON.stringify({ grade_ids: ["g1"] }),
+        });
+        const res = await PATCH(req as never);
+        expect(res.status).toBe(403);
     });
 });

@@ -113,7 +113,14 @@ export function PEIFase2Regentes({ studentId, studentName, studentGrade, student
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Erro ao vincular");
-            setDisciplinas([...disciplinas, ...(data.disciplinas || [])]);
+            // junta sem repetir: o envio devolve também as disciplinas que já estavam na lista
+            const novas = (data.disciplinas || []) as DisciplinaRegente[];
+            setDisciplinas((atuais) => {
+                const chave = (d: DisciplinaRegente) => d.id || `${d.disciplina}:${d.professor_regente_nome}`;
+                const mapa = new Map(atuais.map((d) => [chave(d), d]));
+                for (const d of novas) mapa.set(chave(d), d);
+                return [...mapa.values()];
+            });
         } catch (err) {
             setError(err instanceof Error ? err.message : "Erro ao vincular professores");
         } finally {

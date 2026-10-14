@@ -7,12 +7,11 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { PlayCircle } from "lucide-react";
-import type { EtapaId } from "@/lib/jornada";
-import { tutorialDe, videoDoTutorial } from "@/lib/tutoriais";
+import { tutorialDe, videoDoTutorial, type TutorialId } from "@/lib/tutoriais";
 
 const chave = (id: string) => `omni:tutorial:${id}:visto`;
 
-export function ComoFunciona({ modulo }: { modulo: EtapaId }) {
+export function ComoFunciona({ modulo }: { modulo: TutorialId }) {
   const t = tutorialDe(modulo);
   const video = videoDoTutorial(modulo);
   const [aberto, setAberto] = useState(false);

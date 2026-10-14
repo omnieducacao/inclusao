@@ -31,7 +31,8 @@ export default async function MonitoramentoPage({ searchParams }: Props) {
   const linhas: LinhaVisao[] = studentId ? [] : students.map((s) => ({
     id: s.id, name: s.name, grade: s.grade, class_group: s.class_group,
     pei: situacaoDoPei(s.pei_data, hoje),
-    paeeAtivo: Boolean(cicloAtivo(s.paee_ciclos, s.planejamento_ativo)),
+    // mesmo critério do Início: ciclo cujo período já terminou não conta como em andamento
+    paeeAtivo: (() => { const c = cicloAtivo(s.paee_ciclos, s.planejamento_ativo); const fim = String(c?.config_ciclo?.data_fim || "").slice(0, 10); return Boolean(c) && !(fim && fim < hoje); })(),
   }));
 
   return (
@@ -43,7 +44,7 @@ export default async function MonitoramentoPage({ searchParams }: Props) {
         />
         <ComoFunciona modulo="evolucao" />
 
-        {!studentId && students.length > 0 && <VisaoEscola linhas={linhas} podeAgir={{ pei: podeVer({ permissao: "can_pei" }, session || {}), paee: podeVer({ permissao: "can_paee" }, session || {}) }} />}
+        {!studentId && students.length > 0 && <VisaoEscola linhas={linhas} escolaToda={session?.user_role !== "member" || (session?.member as { link_type?: string } | undefined)?.link_type === "todos"} podeAgir={{ pei: podeVer({ permissao: "can_pei" }, session || {}), paee: podeVer({ permissao: "can_paee" }, session || {}) }} />}
 
         <MonitoramentoClient
           students={students.map((s) => ({ id: s.id, name: s.name, grade: s.grade, class_group: s.class_group }))}

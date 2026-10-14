@@ -13,7 +13,11 @@ type Dados = { itens: ItemFamilia[]; mensagens: Mensagem[]; responsaveis: Array<
 const quando = (iso: string) => new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 const ALTERACAO: Record<string, string> = { inicio: "Começou a tomar", mudanca_dose: "Mudou a dose", suspensao: "Parou de tomar" };
 
-export function FichaFamilia({ studentId, nome }: { studentId: string; nome: string }) {
+export function FichaFamilia({ studentId, nome, resumoLiberadoEm = null, temResumo = false, podeEditarPei = false }: {
+  studentId: string; nome: string;
+  /** O resumo do PEI para a família (pei_data.resumo_familia): quando foi liberado. */
+  resumoLiberadoEm?: string | null; temResumo?: boolean; podeEditarPei?: boolean;
+}) {
   const [dados, setDados] = useState<Dados | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [texto, setTexto] = useState("");
@@ -76,6 +80,23 @@ export function FichaFamilia({ studentId, nome }: { studentId: string; nome: str
           <p className="omni-apoio" style={{ margin: 0 }}>
             {dados.responsaveis.map((r) => [r.nome, r.parentesco && `(${r.parentesco})`].filter(Boolean).join(" ")).join(", ")}
           </p>
+        )}
+      </div>
+
+      {/* o resumo para a família é escrito e liberado no PEI (etapa 4, Acompanhamento); antes a ficha não dizia onde */}
+      <div className="omni-cartao omni-cartao--plano" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, padding: "12px 16px" }}>
+        <span className={`omni-estado omni-estado--${resumoLiberadoEm ? "sucesso" : temResumo ? "info" : "neutro"}`}>
+          {resumoLiberadoEm ? "Resumo liberado" : temResumo ? "Resumo escrito, não liberado" : "Sem resumo para a família"}
+        </span>
+        <span className="omni-apoio" style={{ flex: "1 1 220px", fontSize: 14 }}>
+          {resumoLiberadoEm
+            ? `A família vê o resumo do PEI desde ${new Date(resumoLiberadoEm).toLocaleDateString("pt-BR")}.`
+            : "A família só vê o PEI depois que a coordenação escreve e libera um resumo em linguagem simples."}
+        </span>
+        {podeEditarPei && (
+          <a href={`/pei?student=${studentId}&etapa=4&secao=acompanhamento`} className="omni-btn omni-btn--secundario omni-btn--pequeno">
+            {resumoLiberadoEm ? "Ver o resumo" : "Escrever e liberar o resumo"}
+          </a>
         )}
       </div>
 

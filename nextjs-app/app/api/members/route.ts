@@ -16,6 +16,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
+  // a lista da equipe (com e-mails) é da gestão
+  const negado = requirePermission(session!, "can_gestao");
+  if (negado) return negado;
+
   const { searchParams } = new URL(request.url);
   const master = searchParams.get("master");
 
@@ -73,6 +77,8 @@ export async function POST(request: NextRequest) {
       can_avaliacao: true,
       can_gestao: true,
       link_type: "todos",
+      // a conta da coordenação aparece na equipe como Coordenação (antes caía no padrão "Professor")
+      papel: "coordenacao",
     });
     return NextResponse.json({ ok: true });
   }

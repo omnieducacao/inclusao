@@ -29,7 +29,7 @@ const GRUPOS: Grupo[] = [
 ];
 
 /** podeAgir: quem não edita PEI/PAEE (ex.: professor) vê a ficha do estudante no lugar da ação */
-export function VisaoEscola({ linhas, podeAgir = { pei: true, paee: true } }: { linhas: LinhaVisao[]; podeAgir?: { pei: boolean; paee: boolean } }) {
+export function VisaoEscola({ linhas, podeAgir = { pei: true, paee: true }, escolaToda = false }: { linhas: LinhaVisao[]; podeAgir?: { pei: boolean; paee: boolean }; escolaToda?: boolean }) {
   const total = linhas.length;
   const vigentes = linhas.filter((l) => l.pei.versao != null && l.pei.rotulo !== "Em revisão").length;
   const pct = total ? Math.round((vigentes / total) * 100) : 0;
@@ -38,12 +38,12 @@ export function VisaoEscola({ linhas, podeAgir = { pei: true, paee: true } }: { 
     <section aria-labelledby="visao-escola" className="space-y-5">
       <div>
         <h2 id="visao-escola" style={{ margin: 0, font: "800 22px/28px var(--font-sans)", color: "var(--tinta)" }}>Visão geral</h2>
-        <p className="omni-apoio" style={{ margin: 0 }}>Os estudantes que você acompanha. Escolha um estudante abaixo para ver a evolução dele.</p>
+        <p className="omni-apoio" style={{ margin: 0 }}>{escolaToda ? "Todos os estudantes da escola." : "Os estudantes que você acompanha."} Escolha um estudante abaixo para ver a evolução dele.</p>
       </div>
 
       <dl className="grid grid-cols-2 md:grid-cols-4 gap-3" style={{ margin: 0 }}>
         {[
-          { rotulo: "Estudantes", valor: String(total), nota: "no seu vínculo" },
+          { rotulo: "Estudantes", valor: String(total), nota: escolaToda ? "na escola" : "no seu vínculo" },
           { rotulo: "PEI vigente", valor: `${vigentes}`, nota: `${pct}% dos estudantes` },
           { rotulo: "Revisão vencida", valor: String(linhas.filter(GRUPOS[0].filtro).length), nota: "pedem ação agora" },
           { rotulo: "Com ciclo de AEE ativo", valor: String(linhas.filter((l) => l.paeeAtivo).length), nota: "PAEE em andamento" },

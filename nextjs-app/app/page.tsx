@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession, memberIdDaSessao } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
+import { modoDaEscola } from "@/lib/escola";
 import { Navbar } from "@/components/Navbar";
 import { TermsOfUseModal } from "@/components/TermsOfUseModal";
 import { SimulationBanner } from "@/components/SimulationBanner";
@@ -71,7 +72,10 @@ export default async function RootPage() {
 
       // Ciência: só para quem é profissional da escola (tem membro); a coordenação sem membro não dá ciência
       let cientes: Set<string> | null = null;
-      if (memberId && sessionNonNull.user_role === "member" && valendo.length > 0) {
+      // e só para quem dá ciência: o professor (coordenação e direção acompanham a ciência no PEI, etapa 3)
+      const membroSessao = (sessionNonNull.member || {}) as { can_pei_professor?: boolean; papel?: string | null };
+      const daCiencia = Boolean(membroSessao.can_pei_professor) && membroSessao.papel !== "coordenacao" && membroSessao.papel !== "direcao";
+      if (memberId && sessionNonNull.user_role === "member" && daCiencia && valendo.length > 0) {
         const { data } = await sb
           .from("pei_ciencias")
           .select("student_id, versao")
@@ -80,7 +84,28 @@ export default async function RootPage() {
           .in("student_id", valendo.map((e) => e.id));
         cientes = new Set((data || []).map((c: { student_id: string; versao: number }) => `${c.student_id}:${c.versao}`));
       }
-      pendencias = pendenciasDoInicio(estudantes, { editaPei, cientes, hoje, editaPaee: canAccessModule("can_paee") });
+      // Coordenação do PEI (modo completo): quem ainda não foi enviado aos professores e o que voltou para juntar
+      let completo = false;
+      let disciplinas: Map<string, { enviadas: number; concluidas: string[] }> | undefined;
+      if (editaPei && valendo.length > 0) {
+        try {
+          completo = (await modoDaEscola(wid)) !== "simplificado";
+          if (completo) {
+            const { data: pds, error: errPd } = await sb.from("pei_disciplinas").select("student_id, disciplina, fase_status")
+              .eq("workspace_id", wid).in("student_id", valendo.map((e) => e.id));
+            if (!errPd) {
+              disciplinas = new Map();
+              for (const d of (pds || []) as Array<{ student_id: string; disciplina: string; fase_status: string | null }>) {
+                const atual = disciplinas.get(d.student_id) || { enviadas: 0, concluidas: [] };
+                atual.enviadas += 1;
+                if (d.fase_status === "concluido") atual.concluidas.push(d.disciplina);
+                disciplinas.set(d.student_id, atual);
+              }
+            }
+          }
+        } catch { /* sem a tabela: sem essas pendências */ }
+      }
+      pendencias = pendenciasDoInicio(estudantes, { editaPei, cientes, hoje, editaPaee: canAccessModule("can_paee"), completo, disciplinas });
 
       const [diarioRes, wsData] = await Promise.all([
         sb.from("diario_registros").select("id", { count: "exact", head: true }).eq("workspace_id", wid)
@@ -98,12 +123,18 @@ export default async function RootPage() {
       } catch { /* tabela pode não existir */ }
 
       // Onda 11: Primeiros passos da escola, só para a coordenação
-      if (sessionNonNull.user_role === "master" && !sessionNonNull.simulating_member_id) {
+      // também para quem é da gestão na equipe (Direção, Coordenação com a permissão de gestão)
+      if ((sessionNonNull.user_role === "master" || canAccessModule("can_gestao")) && !sessionNonNull.simulating_member_id) {
         const contar = async (tabela: string) => {
           const { count } = await sb.from(tabela).select("id", { count: "exact", head: true }).eq("workspace_id", wid);
           return count || 0;
         };
-        const [anosLetivos, turmas, equipe] = await Promise.all([contar("school_years"), contar("classes"), contar("workspace_members")]);
+        // a equipe conta quem foi convidado: a própria coordenação não conta
+        const contarEquipe = async () => {
+          const { count } = await sb.from("workspace_members").select("id", { count: "exact", head: true }).eq("workspace_id", wid).or("papel.is.null,papel.not.in.(coordenacao,direcao)");
+          return count || 0;
+        };
+        const [anosLetivos, turmas, equipe] = await Promise.all([contar("school_years"), contar("classes"), contarEquipe()]);
         passosEscola = primeirosPassos({ anosLetivos, turmas, equipe, estudantes: estudantes.length, peisVigentes });
       }
     }

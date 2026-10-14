@@ -12,7 +12,7 @@
 import type { Vigencia } from "./estudo-caso";
 import { cicloAtivo } from "@/lib/paee";
 
-export type TipoPendencia = "revisao_vencida" | "ciencia" | "rascunho" | "sem_paee" | "revisao_proxima" | "sem_pei";
+export type TipoPendencia = "revisao_vencida" | "ciencia" | "rascunho" | "consolidar" | "sem_envio" | "sem_paee" | "revisao_proxima" | "sem_pei";
 
 export type Pendencia = {
   tipo: TipoPendencia;
@@ -36,7 +36,7 @@ export type EstudanteInicio = {
   planejamento_ativo?: string | null;
 };
 
-const ORDEM: TipoPendencia[] = ["revisao_vencida", "ciencia", "rascunho", "sem_paee", "revisao_proxima", "sem_pei"];
+const ORDEM: TipoPendencia[] = ["revisao_vencida", "ciencia", "rascunho", "consolidar", "sem_envio", "sem_paee", "revisao_proxima", "sem_pei"];
 
 /** "2026-05-12" → "12/05" (mesmo ano) ou "12/05/2027" */
 export function dataCurta(iso: string, hoje: string): string {
@@ -64,9 +64,15 @@ function temPei(pei: Record<string, unknown>): boolean {
 
 export function pendenciasDoInicio(
   estudantes: EstudanteInicio[],
-  opcoes: { editaPei: boolean; cientes: Set<string> | null; hoje: string; editaPaee?: boolean }
+  opcoes: {
+    editaPei: boolean; cientes: Set<string> | null; hoje: string; editaPaee?: boolean;
+    /** Modo completo: o PEI vai aos professores regentes (no simplificado, não). */
+    completo?: boolean;
+    /** Por estudante: quantas disciplinas foram enviadas aos professores e quais voltaram concluídas e ainda não foram juntadas ao PEI. */
+    disciplinas?: Map<string, { enviadas: number; concluidas: string[] }>;
+  }
 ): Pendencia[] {
-  const { editaPei, cientes, hoje, editaPaee = false } = opcoes;
+  const { editaPei, cientes, hoje, editaPaee = false, completo = false, disciplinas } = opcoes;
   const limiteProxima = somarDias(hoje, 15);
   const out: Pendencia[] = [];
 
@@ -101,6 +107,27 @@ export function pendenciasDoInicio(
 
     if (!editaPei) continue;
 
+    // Coordenação do PEI no modo completo: enviar aos professores e juntar as disciplinas que voltaram
+    if (completo && disciplinas && vig?.status === "vigente" && vig.versao > 0) {
+      const d = disciplinas.get(s.id);
+      const cons = (pei.consolidacao as { disciplinas?: Array<{ disciplina?: string }> } | undefined)?.disciplinas || [];
+      const juntadas = new Set(cons.map((x) => String(x.disciplina || "").toLowerCase()));
+      const faltam = (d?.concluidas || []).filter((x) => !juntadas.has(x.toLowerCase()));
+      if (!d || d.enviadas === 0) {
+        out.push({
+          ...base, tipo: "sem_envio", estado: "Não enviado",
+          texto: `O PEI de ${s.name} está vigente; falta enviar aos professores da turma`,
+          acao: "Enviar aos professores", href: `/pei?student=${s.id}&etapa=3&secao=regentes`,
+        });
+      } else if (faltam.length) {
+        out.push({
+          ...base, tipo: "consolidar", estado: "Para juntar",
+          texto: `${faltam.length === 1 ? `${faltam[0]} voltou concluída` : `${faltam.length} disciplinas voltaram concluídas`} no PEI de ${s.name}; falta juntar ao PEI`,
+          acao: "Juntar ao PEI", href: `/pei?student=${s.id}&etapa=3&secao=consolidacao`,
+        });
+      }
+    }
+
     if (vig?.status === "vigente" && vig.proxima_revisao && vig.proxima_revisao < hoje) {
       out.push({
         ...base, tipo: "revisao_vencida", estado: "Revisão vencida",
@@ -133,7 +160,7 @@ export function pendenciasDoInicio(
 
 /** Pendências que pedem ação (as outras são lembretes). */
 export function pedemAtencao(p: Pendencia[]): number {
-  return p.filter((x) => x.tipo === "revisao_vencida" || x.tipo === "ciencia" || x.tipo === "rascunho").length;
+  return p.filter((x) => x.tipo === "revisao_vencida" || x.tipo === "ciencia" || x.tipo === "rascunho" || x.tipo === "consolidar").length;
 }
 
 /** "Bom dia" / "Boa tarde" / "Boa noite" no horário de Brasília. */

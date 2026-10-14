@@ -32,6 +32,9 @@ export function ConfigEscolaClient() {
   const [allowAvaliacaoFase1Saving, setAllowAvaliacaoFase1Saving] = useState(false);
   const [modo, setModo] = useState<"completo" | "simplificado">("completo");
   const [modoSaving, setModoSaving] = useState(false);
+  // muda quando as séries são salvas: a lista de séries do formulário de turma recarrega
+  const [versaoSeries, setVersaoSeries] = useState(0);
+  const [equipe, setEquipe] = useState<number | null>(null);
 
   const loadYears = useCallback(async () => {
     const res = await fetch("/api/school/years");
@@ -70,6 +73,8 @@ export function ConfigEscolaClient() {
         await loadYears();
         await loadGrades();
         await loadWorkspaceConfig();
+        // passo 4: a equipe conta quem foi cadastrado além da coordenação
+        fetch("/api/members").then((r) => (r.ok ? r.json() : null)).then((d) => setEquipe(Array.isArray(d?.members) ? d.members.filter((m: { papel?: string | null }) => m.papel !== "coordenacao" && m.papel !== "direcao").length : null)).catch(() => {});
       } catch { /* expected fallback */
         setMessage({ type: "err", text: "Não conseguimos carregar a configuração. Recarregue a página." });
       } finally {
@@ -100,7 +105,7 @@ export function ConfigEscolaClient() {
     { n: 1, titulo: "Ano letivo", feito: years.length > 0, ancora: "cfg-ano" },
     { n: 2, titulo: "Séries", feito: selectedGradeIds.length > 0, ancora: "cfg-series" },
     { n: 3, titulo: "Turmas", feito: classes.length > 0, ancora: "cfg-turmas" },
-    { n: 4, titulo: "Equipe", feito: false, ancora: "", href: "/equipe" },
+    { n: 4, titulo: "Equipe", feito: (equipe ?? 0) > 0, ancora: "", href: "/equipe" },
   ];
 
   // Turmas agrupadas por série ("4º Ano: A, B, C")
@@ -212,7 +217,8 @@ export function ConfigEscolaClient() {
               setMessage({ type: "err", text: d.error || "Não foi possível salvar as séries." });
               return;
             }
-            setMessage({ type: "ok", text: "Séries salvas." });
+            setMessage({ type: "ok", text: "Séries salvas. Agora crie as turmas." });
+            setVersaoSeries((v) => v + 1);
           }}
           onError={(e) => setMessage({ type: "err", text: e })}
         />
@@ -248,6 +254,7 @@ export function ConfigEscolaClient() {
               years={years}
               activeYearId={activeYear.id}
               segmentoInicial={grades.find((g) => selectedGradeIds.includes(g.id))?.segment_id || "EFAI"}
+              versaoSeries={versaoSeries}
               onSuccess={() => {
                 loadClasses();
                 loadGrades();
@@ -448,9 +455,11 @@ function AddClassForm({
   years,
   activeYearId,
   segmentoInicial,
+  versaoSeries = 0,
   onSuccess,
   onError,
 }: {
+  versaoSeries?: number;
   years: SchoolYear[];
   activeYearId: string;
   /** a primeira etapa que a escola oferece (antes começava sempre em Anos Iniciais) */
@@ -482,7 +491,7 @@ function AddClassForm({
       })
       .catch(() => setGradesForWorkspace([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [segmentId]);
+  }, [segmentId, versaoSeries]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

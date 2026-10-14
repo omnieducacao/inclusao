@@ -1,6 +1,7 @@
 import { parseBody, schoolGradePatchSchema } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
+import { requirePermission } from "@/lib/permissions";
 import {
   listGrades,
   listWorkspaceGrades,
@@ -36,6 +37,8 @@ export async function PATCH(request: NextRequest) {
   if (!workspaceId) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
+  const denied = requirePermission(session!, "can_gestao");
+  if (denied) return denied;
 
   const parsed = await parseBody(request, schoolGradePatchSchema);
 

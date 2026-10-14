@@ -9,6 +9,8 @@
  */
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { usePermissoes } from "@/components/jornada/PermissoesProvider";
+import type { Permissao } from "@/lib/jornada";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Search, ExternalLink, Check, X } from "lucide-react";
 import { GLOSSARIO } from "@/lib/central/glossario";
@@ -56,14 +58,14 @@ const EVITE: { termo: string; porque: string }[] = [
   { termo: "\"Deu uma de João sem braço\", \"o pior cego é aquele que não quer ver\"", porque: "Usam a deficiência como metáfora de algo ruim." },
 ];
 
-const CICLO: { passo: string; tela: string; href: string; faz: string }[] = [
-  { passo: "Conhecer", tela: "Estudantes", href: "/estudantes", faz: "Cadastro e ficha do estudante: turma, situação do PEI e tudo o que já foi feito com ele." },
-  { passo: "Estudo de caso e PEI", tela: "PEI", href: "/pei", faz: "Quatro etapas: estudo de caso, plano, professores e revisão. O laudo, quando o estudante tem, entra no estudo de caso." },
-  { passo: "Atendimento", tela: "PAEE", href: "/paee", faz: "O AEE em ciclos: avaliação e adaptação, desenvolvimento e consolidação, com metas do PEI." },
-  { passo: "Sala de aula", tela: "PEI do professor, Plano de ensino e Hub de recursos", href: "/pei-professor", faz: "Cada professor lê o PEI, dá ciência, adapta o plano de ensino da sua disciplina e cria material no Hub a partir do estudante." },
-  { passo: "Registro", tela: "Diário de bordo", href: "/diario", faz: "O que aconteceu em cada atendimento, em poucos toques." },
-  { passo: "Avaliar", tela: "Avaliação", href: "/avaliacao-diagnostica", faz: "Diagnóstica no começo e processual a cada período, descritor por descritor, na escala de 0 a 4 (dá para imprimir a prova e corrigir por foto)." },
-  { passo: "Acompanhar e revisar", tela: "Evolução e dados", href: "/evolucao", faz: "Avaliações, diário e PAEE juntos; o que a evolução mostrar volta para a revisão do PEI." },
+const CICLO: { passo: string; tela: string; href: string; faz: string; permissao: Permissao }[] = [
+  { passo: "Conhecer", tela: "Estudantes", href: "/estudantes", permissao: "can_estudantes", faz: "Cadastro e ficha do estudante: turma, situação do PEI e tudo o que já foi feito com ele." },
+  { passo: "Estudo de caso e PEI", tela: "PEI", href: "/pei", permissao: "can_pei", faz: "Quatro etapas: estudo de caso, PEI, vigente e ciência, e revisão. O laudo, quando o estudante tem, entra no estudo de caso." },
+  { passo: "Atendimento", tela: "PAEE", href: "/paee", permissao: "can_paee", faz: "O AEE em ciclos, em quatro fases: avaliar as barreiras, planejar, atender e articular com a sala de aula, a partir das metas do PEI." },
+  { passo: "Sala de aula", tela: "PEI do professor, Plano de ensino e Hub de recursos", href: "/pei-professor", permissao: "can_pei_professor", faz: "Cada professor lê o PEI, dá ciência, adapta o plano de ensino da sua disciplina e cria material no Hub a partir do estudante." },
+  { passo: "Registro", tela: "Diário de bordo", href: "/diario", permissao: "can_diario", faz: "O que aconteceu em cada atendimento, em poucos toques." },
+  { passo: "Avaliar", tela: "Avaliação", href: "/avaliacao-diagnostica", permissao: "can_avaliacao", faz: "Diagnóstica no começo e processual a cada período, descritor por descritor, na escala de 0 a 4 (dá para imprimir a prova e corrigir por foto)." },
+  { passo: "Acompanhar e revisar", tela: "Evolução e dados", href: "/evolucao", permissao: "can_avaliacao", faz: "Avaliações, diário e PAEE juntos; o que a evolução mostrar volta para a revisão do PEI." },
 ];
 
 const LEITURAS: { titulo: string; texto: string; href: string; min?: string }[] = [
@@ -82,6 +84,7 @@ const LEITURAS: { titulo: string; texto: string; href: string; min?: string }[] 
 const semAcento = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 export default function InfosClient() {
+  const pode = usePermissoes();
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -222,13 +225,26 @@ export default function InfosClient() {
             <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 12 }}>
               {CICLO.map((c, i) => (
                 <li key={c.passo}>
+                  {/* o passo aparece para todos (é o caminho da escola); o link só para quem abre a tela */}
+                  {pode[c.permissao] ? (
                   <Link href={c.href} className="omni-cartao omni-cartao--plano" style={{ display: "flex", flexDirection: "row", gap: 16, alignItems: "flex-start", textDecoration: "none", padding: "14px 18px" }}>
                     <span aria-hidden style={{ flex: "none", width: 32, height: 32, display: "grid", placeItems: "center", borderRadius: "16px 16px 16px 4px", background: "var(--acao-suave)", color: "var(--acao)", font: "800 14px/1 var(--font-sans)" }}>{i + 1}</span>
                     <span style={{ minWidth: 0 }}>
                       <span style={{ display: "block", font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>{c.passo} <span style={{ fontWeight: 600, color: "var(--tinta-3)" }}>· {c.tela}</span></span>
                       <span style={{ display: "block", marginTop: 2, font: "400 15px/22px var(--font-sans)", color: "var(--tinta-2)" }}>{c.faz}</span>
+                      {!pode[c.permissao] && <span className="omni-apoio" style={{ display: "block", marginTop: 4, fontSize: 14 }}>Feito por outra pessoa da equipe.</span>}
                     </span>
                   </Link>
+                  ) : (
+                  <div className="omni-cartao omni-cartao--plano" style={{ display: "flex", flexDirection: "row", gap: 16, alignItems: "flex-start", textDecoration: "none", padding: "14px 18px" }}>
+                    <span aria-hidden style={{ flex: "none", width: 32, height: 32, display: "grid", placeItems: "center", borderRadius: "16px 16px 16px 4px", background: "var(--acao-suave)", color: "var(--acao)", font: "800 14px/1 var(--font-sans)" }}>{i + 1}</span>
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ display: "block", font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>{c.passo} <span style={{ fontWeight: 600, color: "var(--tinta-3)" }}>· {c.tela}</span></span>
+                      <span style={{ display: "block", marginTop: 2, font: "400 15px/22px var(--font-sans)", color: "var(--tinta-2)" }}>{c.faz}</span>
+                      {!pode[c.permissao] && <span className="omni-apoio" style={{ display: "block", marginTop: 4, fontSize: 14 }}>Feito por outra pessoa da equipe.</span>}
+                    </span>
+                  </div>
+                  )}
                 </li>
               ))}
             </ol>

@@ -43,7 +43,8 @@ export function PGIClient() {
     loadData();
   }, [loadData]);
 
-  async function saveData(nextAcoes: AcaoPGI[], nextDim?: DimensionamentoPGI) {
+  // devolve se salvou: antes o erro aparecia e era coberto em seguida por "Plano atualizado."
+  async function saveData(nextAcoes: AcaoPGI[], nextDim?: DimensionamentoPGI): Promise<boolean> {
     try {
       const res = await fetch("/api/pgi", {
         method: "PATCH",
@@ -55,13 +56,15 @@ export function PGIClient() {
       });
       if (!res.ok) {
         const d = await res.json();
-        setMessage({ type: "err", text: d.error || "Erro ao salvar." });
-        return;
+        setMessage({ type: "err", text: d.error || "Não foi possível salvar o plano. Tente de novo." });
+        return false;
       }
       setAcoes(nextAcoes);
       if (nextDim) setDimensionamento(nextDim);
+      return true;
     } catch { /* expected fallback */
-      setMessage({ type: "err", text: "Erro ao salvar." });
+      setMessage({ type: "err", text: "Não foi possível salvar o plano. Confira a internet e tente de novo." });
+      return false;
     }
   }
 
@@ -211,7 +214,7 @@ type GeradorTabProps = {
   acoes: AcaoPGI[];
   dimensionamento: DimensionamentoPGI;
   loading: boolean;
-  onSave: (acoes: AcaoPGI[], dim?: DimensionamentoPGI) => Promise<void>;
+  onSave: (acoes: AcaoPGI[], dim?: DimensionamentoPGI) => Promise<boolean>;
   onSuccess: () => void;
   onError: (err: string) => void;
 };
@@ -260,7 +263,8 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
       perfil: perfil.length ? perfil : undefined,
       criado_em: new Date().toISOString(),
     };
-    await onSave([...acoes, nova]);
+    const ok = await onSave([...acoes, nova]);
+    if (!ok) { setSaving(false); return; }
     setOQue("");
     setPorQue("");
     setQuem("");
@@ -279,8 +283,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
       por_que: porQueVal,
       criado_em: new Date().toISOString(),
     };
-    await onSave([...acoes, nova]);
-    onSuccess();
+    if (await onSave([...acoes, nova])) onSuccess();
   }
 
   async function pedirRemocao(i: number) {
@@ -298,8 +301,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
 
   async function remover(i: number) {
     const next = acoes.filter((_, idx) => idx !== i);
-    await onSave(next);
-    onSuccess();
+    if (await onSave(next)) onSuccess();
   }
 
   async function salvarDimensionamento(
@@ -309,8 +311,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
     horasVal: number
   ) {
     const dim = { n_total: nTotalVal, n_deficiencia: nDefVal, n_prof: nProfVal, horas_dia: horasVal };
-    await onSave(acoes, dim);
-    onSuccess();
+    if (await onSave(acoes, dim)) onSuccess();
   }
 
   const pequeno: React.CSSProperties = { font: "600 13px/18px var(--font-sans)", color: "var(--tinta-2)" };
@@ -417,8 +418,7 @@ function GeradorTab({ acoes, dimensionamento, loading, onSave, onSuccess, onErro
                     ...a,
                     criado_em: new Date().toISOString(),
                   }));
-                  await onSave([...acoes, ...novasAcoes]);
-                  onSuccess();
+                  if (await onSave([...acoes, ...novasAcoes])) onSuccess();
                 } catch (err) {
                   onError("Erro ao gerar ações. Tente novamente.");
                 } finally {

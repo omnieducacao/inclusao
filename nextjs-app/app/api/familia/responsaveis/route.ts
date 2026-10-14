@@ -14,6 +14,12 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
+  // contatos das famílias: só gestão ou quem cuida dos estudantes (como diz o comentário acima)
+  const membro = session.member as Record<string, unknown> | undefined;
+  if (!(session.is_platform_admin || session.user_role === "master" || membro?.can_gestao || membro?.can_estudantes)) {
+    return NextResponse.json({ error: "Permissão negada." }, { status: 403 });
+  }
+
   const { searchParams } = new URL(req.url);
   const studentId = searchParams.get("studentId");
 

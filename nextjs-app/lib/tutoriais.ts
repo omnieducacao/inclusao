@@ -7,8 +7,11 @@
 import type { EtapaId } from "@/lib/jornada";
 
 export type PassoTutorial = { titulo: string; texto: string };
+/** As etapas da jornada e as telas da gestão da escola, que não entram na jornada do estudante. */
+export type TutorialId = EtapaId | "config-escola" | "equipe" | "pgi" | "central";
+
 export type Tutorial = {
-  id: EtapaId;
+  id: TutorialId;
   /** Para que serve, numa frase. */
   paraQue: string;
   passos: PassoTutorial[];
@@ -17,7 +20,7 @@ export type Tutorial = {
   video: boolean;
 };
 
-export const TUTORIAIS: Record<EtapaId, Tutorial> = {
+export const TUTORIAIS: Record<TutorialId, Tutorial> = {
   estudantes: {
     id: "estudantes",
     paraQue: "Cadastrar cada estudante e abrir a ficha, de onde se chega a tudo o que já foi feito com ele.",
@@ -36,7 +39,7 @@ export const TUTORIAIS: Record<EtapaId, Tutorial> = {
       { titulo: "1. Estudo de caso", texto: "Dados do estudante, estudo de caso e, no modo completo, evidências, rede de apoio e barreiras e potências. Escreva o que observa, não o diagnóstico." },
       { titulo: "2. PEI", texto: "Em \"Texto do PEI\", a IA (inteligência artificial) propõe metas e estratégias a partir do estudo de caso; você revisa. Ligue as habilidades da BNCC (Base Nacional Comum Curricular) e monte o plano de ação." },
       { titulo: "3. Vigente e ciência", texto: "Torne o PEI vigente com a data da próxima revisão e envie aos professores regentes, que dão ciência." },
-      { titulo: "4. Revisão", texto: "Acompanhe e revise. É aqui que você libera o resumo para a família." },
+      { titulo: "4. Revisão", texto: "Acompanhe e revise. Em \"Acompanhamento\", no cartão \"Resumo para a família\", escreva o resumo em linguagem simples e use \"Liberar para a família\"." },
     ],
     dica: "Com o PEI vigente, o próximo passo aparece no fim da tela: planejar o AEE (PAEE), avaliar e criar materiais.",
     video: true,
@@ -121,13 +124,56 @@ export const TUTORIAIS: Record<EtapaId, Tutorial> = {
     ],
     video: true,
   },
+  "config-escola": {
+    id: "config-escola",
+    paraQue: "O primeiro passo da escola: ano letivo, séries e turmas, e como a escola trabalha a inclusão.",
+    passos: [
+      { titulo: "1. Ano letivo", texto: "\"Adicionar ano letivo\". As turmas ficam dentro dele." },
+      { titulo: "2. Séries", texto: "Marque as séries que a escola oferece e use \"Salvar séries\". Só elas aparecem na hora de criar turmas." },
+      { titulo: "3. Turmas", texto: "Etapa, série e letra da turma, e \"Adicionar turma\". É pela turma que cada professor fica ligado aos estudantes." },
+      { titulo: "Como a escola trabalha", texto: "Completo: o PEI vai a cada professor, que faz a parte da sua disciplina. Simplificado: um PEI único, que os professores leem e dão ciência. Aqui também se liga a área da família." },
+    ],
+    dica: "Depois das turmas, cadastre a equipe em Equipe e papéis.",
+    video: false,
+  },
+  equipe: {
+    id: "equipe",
+    paraQue: "Quem trabalha na escola, o papel de cada um, as páginas que abre e os estudantes com quem trabalha.",
+    passos: [
+      { titulo: "Convide", texto: "\"Convidar pessoa\" → \"Equipe da escola\". Nome, e-mail e o papel na escola (Direção, Coordenação, Professor, Professor do AEE, Profissional de apoio). O papel já marca as páginas que a pessoa abre." },
+      { titulo: "Vínculo com estudantes", texto: "Toda a escola, as turmas em que dá aula (com os componentes curriculares) ou estudantes escolhidos um a um. É o vínculo que leva o PEI ao professor certo." },
+      { titulo: "Famílias", texto: "Com a área da família ligada, \"Convidar pessoa\" → \"Família\" cadastra o responsável e o estudante dele." },
+    ],
+    dica: "Professor sem turma e componente não recebe PEI para a disciplina dele.",
+    video: false,
+  },
+  pgi: {
+    id: "pgi",
+    paraQue: "O Plano de Gestão Inclusiva: o acolhimento antes da matrícula e o plano da escola em infraestrutura, equipe e cultura.",
+    passos: [
+      { titulo: "Acolhimento", texto: "O roteiro para receber a família e o estudante antes da matrícula." },
+      { titulo: "O plano da escola", texto: "Use \"Ações prontas\", \"Sugerir ações com IA\" ou \"Adicionar ação ao plano\": o que fazer, por quê, quem, onde, como e quanto custa." },
+      { titulo: "Dimensionamento", texto: "Opcional: quantos estudantes, quantos com deficiência e quantos profissionais, para a IA sugerir ações do tamanho da escola." },
+    ],
+    video: false,
+  },
+  central: {
+    id: "central",
+    paraQue: "A lei, os termos e o caminho do estudante na Omnisfera, em linguagem de sala de aula.",
+    passos: [
+      { titulo: "A lei em 1 minuto", texto: "O que a escola precisa garantir, sem juridiquês." },
+      { titulo: "Glossário e Como falar", texto: "Os termos do dia a dia e as expressões que vale evitar, com o porquê." },
+      { titulo: "O ciclo na Omnisfera", texto: "Do cadastro à revisão do PEI: quem faz cada passo e em que tela." },
+    ],
+    video: false,
+  },
 };
 
-export function tutorialDe(id: EtapaId): Tutorial {
+export function tutorialDe(id: TutorialId): Tutorial {
   return TUTORIAIS[id];
 }
 
-export function videoDoTutorial(id: EtapaId): { mp4: string; webm: string; capa: string } | null {
+export function videoDoTutorial(id: TutorialId): { mp4: string; webm: string; capa: string } | null {
   if (!TUTORIAIS[id]?.video) return null;
   return { mp4: `/tutoriais/${id}.mp4`, webm: `/tutoriais/${id}.webm`, capa: `/tutoriais/${id}.webp` };
 }

@@ -168,7 +168,12 @@ export default async function FichaEstudantePage({ params }: Props) {
 
       {podeMissoes && <MissoesEstudante studentId={student.id} nome={student.name} familia={familia} />}
 
-      {familia && podeVerFamilia && <FichaFamilia studentId={student.id} nome={student.name} />}
+      {familia && podeVerFamilia && (
+        <FichaFamilia studentId={student.id} nome={student.name}
+          resumoLiberadoEm={((pei.resumo_familia as { liberado_em?: string } | undefined)?.liberado_em) || null}
+          temResumo={Boolean((pei.resumo_familia as { texto?: string } | undefined)?.texto)}
+          podeEditarPei={podeVer({ permissao: "can_pei" }, session)} />
+      )}
 
       <FichaDados
         estudante={{ id: student.id, name: student.name, grade: student.grade, class_group: student.class_group }}

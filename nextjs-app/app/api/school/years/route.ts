@@ -1,6 +1,7 @@
 import { parseBody, schoolYearCreateSchema } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
+import { requirePermission } from "@/lib/permissions";
 import { listSchoolYears, createSchoolYear } from "@/lib/school";
 
 export async function GET() {
@@ -20,6 +21,8 @@ export async function POST(request: NextRequest) {
   if (!workspaceId) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
+  const denied = requirePermission(session!, "can_gestao");
+  if (denied) return denied;
 
   const parsed = await parseBody(request, schoolYearCreateSchema);
 

@@ -46,6 +46,8 @@ const ESTADO: Record<TipoPendencia, { classe: string; Icone: LucideIcon }> = {
   revisao_vencida: { classe: "omni-estado--atencao", Icone: Calendar },
   ciencia: { classe: "omni-estado--info", Icone: BookOpen },
   rascunho: { classe: "omni-estado--neutro", Icone: Pencil },
+  consolidar: { classe: "omni-estado--info", Icone: Layers },
+  sem_envio: { classe: "omni-estado--atencao", Icone: BookOpen },
   sem_paee: { classe: "omni-estado--atencao", Icone: Layers },
   revisao_proxima: { classe: "omni-estado--info", Icone: Clock },
   sem_pei: { classe: "omni-estado--neutro", Icone: FileText },
@@ -99,7 +101,7 @@ export function Inicio({
                 <CircleCheck className="omni-aviso__icone" aria-hidden />
                 <div>
                   <div className="omni-aviso__titulo">Nada pendente agora</div>
-                  <div className="omni-aviso__texto">Os PEIs dos estudantes do seu vínculo estão em dia.</div>
+                  <div className="omni-aviso__texto">Os PEIs dos seus estudantes estão em dia.</div>
                 </div>
                 <span />
               </div>

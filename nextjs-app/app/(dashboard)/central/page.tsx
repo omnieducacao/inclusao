@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { PageHero } from "@/components/PageHero";
+import { ComoFunciona } from "@/components/tutorial/ComoFunciona";
 import { PageAccentProvider } from "@/components/PageAccentProvider";
 import InfosClient from "./InfosClient";
 import { getAdminConfig } from "@/lib/getAdminConfig";
@@ -21,6 +22,7 @@ export default async function InfosPage() {
           title="Central de inteligência"
           desc="A lei, os termos e o caminho do estudante na Omnisfera, em linguagem de sala de aula."
         />
+        <ComoFunciona modulo="central" />
 
         <Suspense fallback={null}>
           <InfosClient />

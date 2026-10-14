@@ -1,35 +1,11 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
+import { requirePermission } from "@/lib/permissions";
+import { serieCombina } from "@/lib/turmas";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 
-/**
- * Match flexível entre a série do estudante (ex: "7º Ano (EFAF)") e o
- * label/code da grade no banco (ex: code="7ano", label="EF - Anos Finais (6º ao 9º): 7º Ano").
- *
- * Estratégia:
- * 1. Extrair número do code da grade ("7ano" → 7)
- * 2. Extrair número da série do estudante ("7º Ano (EFAF)" → 7)
- * 3. Comparar os números
- */
-function gradeMatches(gradeCode: string, gradeLabel: string, studentGrade: string): boolean {
-    if (!studentGrade) return false;
-    // Extrair número da série do estudante: "7º Ano (EFAF)" → "7"
-    const studentNum = (studentGrade.match(/\d+/) || [""])[0];
-    if (!studentNum) return false;
-    // Primeiro tentar pelo code que é mais confiável (ex: "7ano")
-    if (gradeCode) {
-        const codeNum = (gradeCode.match(/\d+/) || [""])[0];
-        if (codeNum && codeNum === studentNum) return true;
-    }
-    // Fallback: pelo label — pegar a parte após ':' se existir
-    if (gradeLabel) {
-        const afterColon = gradeLabel.includes(":") ? gradeLabel.split(":").pop() || "" : gradeLabel;
-        const labelNum = (afterColon.match(/\d+/) || [""])[0];
-        if (labelNum && labelNum === studentNum) return true;
-    }
-    return false;
-}
+// a série combina pelo número E pelo segmento (antes "1ª série" do EM casava com professores do "1º ano")
 
 /**
  * POST /api/pei/enviar-regentes
@@ -75,14 +51,14 @@ export async function GET(req: Request) {
 
         const { data: grades } = await sb
             .from("grades")
-            .select("id, code, label");
+            .select("id, code, label, segment_id");
 
-        const gradeMap = new Map((grades || []).map(g => [g.id, { code: g.code || "", label: g.label || "" }]));
+        const gradeMap = new Map((grades || []).map(g => [g.id, { code: g.code || "", label: g.label || "", segment_id: (g as { segment_id?: string | null }).segment_id || null }]));
         const matchingClassIds = (classes || [])
             .filter(c => {
                 const g = gradeMap.get(c.grade_id);
                 if (!g) return false;
-                const gMatch = gradeMatches(g.code, g.label, grade);
+                const gMatch = serieCombina(g, grade);
                 const classMatch = !classGroup || (c.class_group || "").toLowerCase().includes(classGroup.toLowerCase());
                 return gMatch && classMatch;
             })
@@ -151,6 +127,9 @@ export async function POST(req: Request) {
     if (!session?.workspace_id) {
         return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
+    // enviar o PEI aos professores (ou tirar uma disciplina) é da coordenação do PEI
+    const negado = requirePermission(session, "can_pei");
+    if (negado) return negado;
 
     const body = await req.json();
     const { studentId, disciplinas, auto } = body as {
@@ -200,15 +179,15 @@ export async function POST(req: Request) {
 
         const { data: grades } = await sb
             .from("grades")
-            .select("id, code, label");
+            .select("id, code, label, segment_id");
 
         // Encontrar class_ids que correspondem ao estudante
-        const gradeMap = new Map((grades || []).map(g => [g.id, { code: g.code || "", label: g.label || "" }]));
+        const gradeMap = new Map((grades || []).map(g => [g.id, { code: g.code || "", label: g.label || "", segment_id: (g as { segment_id?: string | null }).segment_id || null }]));
         const matchingClassIds = (classes || [])
             .filter(c => {
                 const g = gradeMap.get(c.grade_id);
                 if (!g) return false;
-                const gMatch = gradeMatches(g.code, g.label, studentGrade);
+                const gMatch = serieCombina(g, studentGrade);
                 const classMatch = !studentClass || (c.class_group || "").toLowerCase().includes(studentClass.toLowerCase());
                 return gMatch && classMatch;
             })
@@ -230,7 +209,7 @@ export async function POST(req: Request) {
 
         if (!assignments?.length) {
             return NextResponse.json({
-                error: "Nenhum professor vinculado a esta turma. Cadastre professores em Gestão de Usuários.",
+                error: "Nenhum professor vinculado a esta turma. Cadastre professores em Equipe e papéis.",
             }, { status: 400 });
         }
 
@@ -323,6 +302,9 @@ export async function DELETE(req: Request) {
     if (!session?.workspace_id) {
         return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
+    // enviar o PEI aos professores (ou tirar uma disciplina) é da coordenação do PEI
+    const negado = requirePermission(session, "can_pei");
+    if (negado) return negado;
 
     const body = await req.json();
     const { id, studentId } = body as { id: string; studentId: string };

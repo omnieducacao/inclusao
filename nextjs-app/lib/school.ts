@@ -136,9 +136,9 @@ export async function createClass(
   return { id: data?.id };
 }
 
-export async function deleteClass(classId: string): Promise<boolean> {
+export async function deleteClass(classId: string, workspaceId: string): Promise<boolean> {
   const sb = getSupabase();
-  const { error } = await sb.from("classes").delete().eq("id", classId);
+  const { error } = await sb.from("classes").delete().eq("id", classId).eq("workspace_id", workspaceId);
   return !error;
 }
 
