@@ -30,6 +30,24 @@ const NORMAS = [
   { data: "15 de maio de 2026", nome: "Portaria MEC 421", texto: "Regulamenta PAEE e PEI e estende a dispensa de laudo à matrícula." },
 ];
 
+/** Fotos geradas por IA (Runway) para a home: só mãos, sem rostos e sem texto (onda 42). */
+function Foto({ nome, alt, className, style }: { nome: string; alt: string; className?: string; style?: React.CSSProperties }) {
+  return (
+    <img
+      src={`/vendas/${nome}.webp`}
+      srcSet={`/vendas/${nome}-720.webp 720w, /vendas/${nome}.webp 1280w`}
+      sizes="(max-width: 900px) 90vw, 560px"
+      width={1280}
+      height={960}
+      loading="lazy"
+      decoding="async"
+      alt={alt}
+      className={className}
+      style={style}
+    />
+  );
+}
+
 const CICLO = ["Estudo de caso", "PEI", "PAEE", "Diário de bordo", "Avaliação", "Evolução"];
 
 const PAPEIS = [
@@ -201,8 +219,11 @@ export default function LandingClient() {
               </div>
               <p className={s.nota}>Para escolas particulares e redes públicas · funciona no computador, no tablet e no celular</p>
             </div>
-            <div className={s.cenaAbertura}>
-              <IlustracaoSala className={s.sala} />
+            <div className={s.mosaico} aria-label="Fotos de mãos de estudantes e professoras em atividades da escola">
+              <Foto nome="pintura" alt="Mãos de crianças de tons de pele diferentes pintando juntas com tinta colorida" className={`${s.foto} ${s.fotoA}`} />
+              <Foto nome="formas-tateis" alt="A mão de uma professora guiando a mão de uma criança sobre formas de feltro com texturas" className={`${s.foto} ${s.fotoB}`} />
+              <Foto nome="lapis-adaptado" alt="A mão de um estudante desenhando formas com um lápis de apoio adaptado" className={`${s.foto} ${s.fotoC}`} />
+              <svg className={s.mosaicoSimbolo} viewBox="0 0 120 120" aria-hidden="true"><Petalas cx={60} cy={60} r={17} espalha={70} /></svg>
             </div>
           </div>
         </section>
@@ -240,6 +261,22 @@ export default function LandingClient() {
                 <h3>A coordenação não enxerga</h3>
                 <p>Na hora da reunião com a família ou da supervisão, o histórico está espalhado em grupos de mensagem.</p>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ══════ O ENCONTRO (fotos) ══════ */}
+        <section className={s.faixa} aria-labelledby="titulo-encontro">
+          <div className={`${s.secao} ${s.encontro}`}>
+            <div className={s.cabeca} data-revelar>
+              <span className={s.rotulo}>Sem barreiras, eles se encontram</span>
+              <h2 id="titulo-encontro" className={s.h2}>Cada estudante aprende de um jeito. A escola inteira precisa saber qual.</h2>
+              <p className={s.intro}>O estudo de caso conta como o estudante aprende. O PEI transforma isso em apoio. O AEE e o professor da sala fazem acontecer, cada um na sua parte, olhando para o mesmo plano.</p>
+              <div style={{ marginTop: 24 }}><IlustracaoSala className={s.salaPequena} /></div>
+            </div>
+            <div className={s.galeria}>
+              <Foto nome="blocos" alt="Mãos de várias crianças montando juntas uma torre de blocos coloridos" className={`${s.foto} ${s.galeriaA}`} />
+              <Foto nome="horta" alt="A mão de uma criança e a de um adulto plantando juntas uma muda na horta da escola" className={`${s.foto} ${s.galeriaB}`} />
             </div>
           </div>
         </section>
