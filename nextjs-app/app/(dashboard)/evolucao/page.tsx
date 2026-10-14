@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import { VisaoEscola, type LinhaVisao } from "@/components/evolucao/VisaoEscola";
 import { podeVer } from "@/lib/navegacao";
 import { situacaoDoPei, hojeBrasilia } from "@/lib/inicio";
+import { ComoFunciona } from "@/components/tutorial/ComoFunciona";
 
 const MonitoramentoClient = dynamic(
   () => import("./MonitoramentoClient").then(mod => ({ default: mod.MonitoramentoClient })),
@@ -39,6 +40,7 @@ export default async function MonitoramentoPage({ searchParams }: Props) {
           title="Evolução e dados"
           desc={studentId ? "A evolução por descritor, da diagnóstica aos períodos da processual, e o resumo do diário de bordo." : "Onde a escola está com os PEIs e o AEE, e quem precisa de atenção agora."}
         />
+        <ComoFunciona modulo="evolucao" />
 
         {!studentId && students.length > 0 && <VisaoEscola linhas={linhas} podeAgir={{ pei: podeVer({ permissao: "can_pei" }, session || {}), paee: podeVer({ permissao: "can_paee" }, session || {}) }} />}
 

@@ -5,6 +5,7 @@
  */
 import { Suspense } from "react";
 import { AbasAvaliacao } from "@/components/avaliacao/AbasAvaliacao";
+import { ComoFunciona } from "@/components/tutorial/ComoFunciona";
 import { PageHero } from "@/components/PageHero";
 import { ESCALA_OMNISFERA } from "@/lib/omnisfera-types";
 
@@ -17,6 +18,7 @@ export function CabecalhoAvaliacao({ atual }: { atual: "diagnostica" | "processu
         desc="Diagnóstica no começo, processual a cada período, descritor por descritor: Matriz Omni no Fundamental e Matriz do ENEM no Médio. Escala de 0 a 4: quanto apoio o estudante precisa."
       />
       <Suspense fallback={null}><AbasAvaliacao atual={atual} /></Suspense>
+      <ComoFunciona modulo="avaliacao" />
       <details style={{ border: "1px solid var(--borda)", borderRadius: "var(--o-radius-md)", padding: "var(--space-3) var(--space-4)", background: "var(--superficie)" }}>
         <summary style={{ cursor: "pointer", font: "600 14px/20px var(--font-sans)", color: "var(--tinta-2)" }}>A escala de 0 a 4</summary>
         <ol style={{ listStyle: "none", margin: "10px 0 0", padding: 0, display: "grid", gap: 6 }}>

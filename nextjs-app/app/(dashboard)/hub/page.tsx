@@ -5,6 +5,7 @@ import TelaCarregando from "@/components/brand/TelaCarregando";
 import { getAdminConfig } from "@/lib/getAdminConfig";
 import { getStudentsWithFallback } from "@/lib/getStudentWithFallback";
 import dynamic from "next/dynamic";
+import { ComoFunciona } from "@/components/tutorial/ComoFunciona";
 
 const HubClient = dynamic(
   () => import("./HubClient").then(mod => ({ default: mod.HubClient })),
@@ -55,10 +56,13 @@ export default async function HubPage({ searchParams }: Props) {
       <div className="space-y-6">
         <HubClient
           cabecalho={
-            <PageHero moduleKey="hub" serverConfig={adminConfig}
-              title="Hub de recursos"
-              desc="Adaptar provas, atividades, criar do zero e muito mais."
-            />
+            <>
+              <PageHero moduleKey="hub" serverConfig={adminConfig}
+                title="Hub de recursos"
+                desc="Adaptar provas, atividades, criar do zero e muito mais."
+              />
+              <ComoFunciona modulo="hub" />
+            </>
           }
           students={students.map((s) => ({ id: s.id, name: s.name, grade: s.grade, class_group: s.class_group }))}
           studentId={studentId}

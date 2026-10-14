@@ -6,6 +6,7 @@ import type { CicloPAEE } from "@/lib/paee";
 import TelaCarregando from "@/components/brand/TelaCarregando";
 import { getAdminConfig } from "@/lib/getAdminConfig";
 import { getStudentsWithFallback } from "@/lib/getStudentWithFallback";
+import { ComoFunciona } from "@/components/tutorial/ComoFunciona";
 
 const PAEEClient = dynamic(
   () => import("./PAEEClient").then(mod => ({ default: mod.PAEEClient })),
@@ -30,6 +31,7 @@ export default async function PAEEPage({ searchParams }: Props) {
           title="PAEE"
           desc="Plano de Atendimento Educacional Especializado: o ciclo do AEE (Atendimento Educacional Especializado) para tirar as barreiras do estudante."
         />
+        <ComoFunciona modulo="paee" />
 
         <PAEEClient
           students={students.map((s) => ({ id: s.id, name: s.name, grade: s.grade, class_group: s.class_group }))}

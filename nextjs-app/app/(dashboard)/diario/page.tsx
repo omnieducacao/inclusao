@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import TelaCarregando from "@/components/brand/TelaCarregando";
 import { getAdminConfig } from "@/lib/getAdminConfig";
 import { getStudentsWithFallback } from "@/lib/getStudentWithFallback";
+import { ComoFunciona } from "@/components/tutorial/ComoFunciona";
 
 const DiarioClient = dynamic(
   () => import("./DiarioClient").then(mod => ({ default: mod.DiarioClient })),
@@ -29,6 +30,7 @@ export default async function DiarioPage({ searchParams }: Props) {
           title="Diário de bordo"
           desc="Registro de atendimentos e sessões AEE."
         />
+        <ComoFunciona modulo="diario" />
 
         <DiarioClient
           students={students.map((s) => ({ id: s.id, name: s.name, grade: s.grade, class_group: s.class_group }))}

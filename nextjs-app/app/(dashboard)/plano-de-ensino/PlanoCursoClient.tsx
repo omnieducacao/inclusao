@@ -11,6 +11,7 @@ import { PlanoCursoEditor } from "@/components/PlanoCursoEditor";
 import { PageHero } from "@/components/PageHero";
 import TelaCarregando from "@/components/brand/TelaCarregando";
 import { ProximosPassos } from "@/components/jornada/ProximosPassos";
+import { ComoFunciona } from "@/components/tutorial/ComoFunciona";
 
 interface ComboItem {
     serie: string;
@@ -91,6 +92,7 @@ export default function PlanoCursoClient() {
                 title="Plano de ensino"
                 desc={`${professorName ? `${professorName} · ` : ""}${n} ${n === 1 ? "componente e série vinculados" : "componentes e séries vinculados"}`}
             />
+            <ComoFunciona modulo="plano-de-ensino" />
 
             {erroCarregar && (
                 <div className="omni-aviso omni-aviso--erro" role="alert" style={{ maxWidth: "none" }}>

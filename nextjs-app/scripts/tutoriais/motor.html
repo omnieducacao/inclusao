@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Tutoriais Omnisfera · motor</title>
+<!--
+  Motor dos vídeos curtos dos tutoriais (lib/tutoriais.ts). Desenha a tela da Omnisfera quadro a quadro:
+  render(t) monta o estado da cena no segundo t, sem relógio, para o gravar.py tirar 30 quadros por segundo.
+  Uso: motor.html?v=<cena>  (estudantes, pei, paee, hub, diario, avaliacao, evolucao). Estudante fictício.
+-->
+<style>
+@font-face { font-family: "Jakarta"; src: url("PlusJakartaSans.ttf") format("truetype"); font-weight: 200 800; }
+:root {
+  --fundo:#f6f4f0; --superficie:#fff; --superficie-2:#efebe4; --borda:#e3ded6;
+  --tinta:#1b2a4a; --tinta-2:#3d4a63; --tinta-3:#5d6a80;
+  --acao:#1d5f9f; --acao-suave:#e6f0fb; --sucesso:#1b7446; --sucesso-suave:#e3f4eb;
+  --atencao:#8a6200; --atencao-suave:#fdf4dc; --roxo:#6a3dba; --roxo-suave:#f1eafb;
+  --vermelho:#e5484d; --amarelo:#f5b82e; --laranja:#f28c28; --roxo-c:#8e5bd8; --azul:#2f7fd1; --verde:#2eaa6a;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 960px; height: 600px; overflow: hidden; background: var(--fundo); font-family: "Jakarta", system-ui, sans-serif; color: var(--tinta); }
+#tela { position: relative; width: 960px; height: 600px; display: grid; grid-template-columns: 176px 1fr; grid-template-rows: 46px 1fr; }
+#topo { grid-column: 1 / 3; display: flex; align-items: center; gap: 10px; padding: 0 18px; background: var(--superficie); border-bottom: 1px solid var(--borda); }
+.marca { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 17px; letter-spacing: -.02em; }
+.pontos { position: relative; width: 22px; height: 22px; }
+.pontos i { position: absolute; width: 7px; height: 7px; border-radius: 50%; }
+.topo-dir { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--tinta-3); }
+.avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--roxo-suave); color: var(--roxo); display: grid; place-items: center; font-weight: 800; font-size: 11px; }
+#lado { background: var(--superficie); border-right: 1px solid var(--borda); padding: 12px 8px; display: grid; align-content: start; gap: 2px; }
+.grupo { font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--tinta-3); padding: 10px 8px 4px; font-family: ui-monospace, monospace; }
+.item { font-size: 12.5px; padding: 7px 10px; border-radius: 8px; color: var(--tinta-2); font-weight: 600; }
+.item.on { background: var(--acao-suave); color: var(--acao); }
+#conteudo { position: relative; padding: 18px 22px; overflow: hidden; }
+h1 { margin: 0 0 2px; font-size: 22px; letter-spacing: -.02em; }
+.sub { margin: 0 0 14px; font-size: 12.5px; color: var(--tinta-3); }
+.cartao { background: var(--superficie); border: 1px solid var(--borda); border-radius: 12px; padding: 12px 14px; }
+.rot { font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--tinta-3); font-family: ui-monospace, monospace; margin-bottom: 4px; }
+.campo { display: grid; gap: 3px; font-size: 11.5px; font-weight: 700; color: var(--tinta-2); }
+.entrada { min-height: 30px; border: 1px solid var(--borda); border-radius: 8px; background: #fff; padding: 6px 9px; font-weight: 500; font-size: 12.5px; color: var(--tinta); white-space: pre-wrap; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border-radius: 9px; font-weight: 700; font-size: 12.5px; border: 1px solid var(--borda); background: #fff; color: var(--tinta); transition: none; }
+.btn.pri { background: var(--acao); border-color: var(--acao); color: #fff; }
+.chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; background: var(--superficie-2); color: var(--tinta-2); }
+.chip.ok { background: var(--sucesso-suave); color: var(--sucesso); }
+.chip.at { background: var(--atencao-suave); color: var(--atencao); }
+.chip.in { background: var(--acao-suave); color: var(--acao); }
+.grade { display: grid; gap: 10px; }
+.linha { display: flex; align-items: center; gap: 10px; }
+.passos { display: flex; gap: 6px; margin-bottom: 12px; }
+.passo { flex: 1; padding: 7px 10px; border-radius: 10px; border: 1px solid var(--borda); background: #fff; font-size: 11.5px; font-weight: 700; color: var(--tinta-3); }
+.passo b { display: block; font-size: 9.5px; font-weight: 600; color: var(--tinta-3); letter-spacing: .08em; text-transform: uppercase; font-family: ui-monospace, monospace; }
+.passo.on { border-color: var(--acao); background: var(--acao-suave); color: var(--acao); }
+.passo.feito { color: var(--sucesso); }
+.caixa { width: 15px; height: 15px; border-radius: 4px; border: 1.5px solid var(--tinta-3); display: inline-grid; place-items: center; flex: none; }
+.caixa.on { background: var(--acao); border-color: var(--acao); }
+.caixa.on::after { content: ""; width: 7px; height: 4px; border: 2px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px,-1px); }
+.prox { border: 1px solid var(--borda); background: var(--superficie-2); border-radius: 12px; padding: 10px 12px; display: grid; gap: 6px; }
+.prox .ir { background: #fff; border: 1px solid var(--borda); border-radius: 10px; padding: 9px 12px; display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 12.5px; }
+.prox .ir small { display: block; font-weight: 500; color: var(--tinta-3); font-size: 11px; }
+.seta { color: var(--acao); font-weight: 800; }
+.nivel { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--borda); display: grid; place-items: center; font-weight: 800; font-size: 13px; background: #fff; }
+.nivel.on { background: var(--acao); color: #fff; border-color: var(--acao); }
+.barra { height: 10px; border-radius: 5px; background: var(--superficie-2); overflow: hidden; }
+.barra > i { display: block; height: 100%; background: var(--acao); border-radius: 5px; }
+#cursor { position: absolute; left: 0; top: 0; width: 22px; height: 22px; z-index: 50; pointer-events: none; }
+#onda { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; border: 3px solid var(--acao); z-index: 49; opacity: 0; pointer-events: none; }
+#legenda { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 60; background: rgba(27,42,74,.94); color: #fff; padding: 9px 16px; border-radius: 999px; font-size: 14px; font-weight: 700; white-space: nowrap; display: flex; gap: 10px; align-items: center; box-shadow: 0 6px 20px rgba(27,42,74,.25); }
+#legenda b { background: #fff; color: var(--tinta); border-radius: 50%; width: 22px; height: 22px; display: grid; place-items: center; font-size: 12px; }
+.ia { font-size: 12px; line-height: 1.55; color: var(--tinta-2); white-space: pre-wrap; }
+.pulso { box-shadow: 0 0 0 3px rgba(29,95,159,.25); }
+</style>
+</head>
+<body>
+<div id="tela">
+  <header id="topo">
+    <span class="marca"><span class="pontos">
+      <i style="left:7px;top:0;background:var(--amarelo)"></i><i style="left:15px;top:4px;background:var(--laranja)"></i>
+      <i style="left:15px;top:12px;background:var(--roxo-c)"></i><i style="left:7px;top:15px;background:var(--azul)"></i>
+      <i style="left:0;top:12px;background:var(--verde)"></i><i style="left:0;top:4px;background:var(--vermelho)"></i>
+    </span>omnisfera</span>
+    <span class="topo-dir">Escola Exemplo <span class="avatar">PA</span></span>
+  </header>
+  <nav id="lado"></nav>
+  <main id="conteudo"></main>
+  <div id="onda"></div>
+  <svg id="cursor" viewBox="0 0 24 24"><path d="M4 2 L4 19 L8.5 15 L11.5 21.5 L14 20.4 L11 14 L17 14 Z" fill="#1b2a4a" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg>
+  <div id="legenda"><b>1</b><span></span></div>
+</div>
+<script>
+// ─── utilidades determinísticas ──────────────────────────────────────────────
+const cl = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const ease = (x) => { x = cl(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const prog = (t, t0, d) => cl((t - t0) / d);
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => [...document.querySelectorAll(s)];
+
+function aparece(el, t, t0, d = .45, dy = 10) {
+  if (!el) return; const p = ease(prog(t, t0, d));
+  el.style.opacity = p; el.style.transform = `translateY(${(1 - p) * dy}px)`;
+}
+function some(el, t, t0, d = .3) { if (!el) return; if (t >= t0) { el.style.opacity = 1 - ease(prog(t, t0, d)); } }
+function digita(el, texto, t, t0, cps = 30) {
+  if (!el) return; const n = Math.floor(cl((t - t0) * cps, 0, texto.length));
+  el.textContent = t < t0 ? "" : texto.slice(0, n) + (n < texto.length && t >= t0 ? "▍" : "");
+}
+function marca(el, cls, t, t0) { if (el) el.classList.toggle(cls, t >= t0); }
+function aperta(el, t, tc) { if (!el) return; const p = prog(t, tc, .22); const s = p > 0 && p < 1 ? 1 - .06 * Math.sin(p * Math.PI) : 1; el.style.transform = `scale(${s})`; }
+function conta(el, ate, t, t0, d = 1, casas = 0) { if (!el) return; el.textContent = (ate * ease(prog(t, t0, d))).toFixed(casas).replace(".", ","); }
+
+// cursor: pontos {t, el|xy, clica}
+let CAMINHO = [];
+function centro(alvo) {
+  if (Array.isArray(alvo)) return alvo;
+  const el = typeof alvo === "string" ? $(alvo) : alvo; if (!el) return [480, 300];
+  const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2];
+}
+function cursor(t) {
+  const pts = CAMINHO.map((p) => ({ ...p, xy: centro(p.alvo) }));
+  let x = pts[0]?.xy[0] ?? 480, y = pts[0]?.xy[1] ?? 520;
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i]; const ini = b.t - (b.viagem ?? .7);
+    if (t >= b.t) { [x, y] = b.xy; continue; }
+    if (t > ini) { const p = ease(prog(t, ini, b.t - ini)); x = a.xy[0] + (b.xy[0] - a.xy[0]) * p; y = a.xy[1] + (b.xy[1] - a.xy[1]) * p; }
+    break;
+  }
+  const c = $("#cursor"); c.style.transform = `translate(${x - 4}px, ${y - 2}px)`;
+  const onda = $("#onda"); onda.style.opacity = 0;
+  for (const p of pts) if (p.clica) { const q = prog(t, p.t, .45); if (q > 0 && q < 1) { onda.style.left = p.xy[0] + "px"; onda.style.top = p.xy[1] + "px"; onda.style.opacity = 1 - q; onda.style.transform = `scale(${.5 + q})`; } }
+}
+let LEGENDAS = [];
+function legenda(t) {
+  const L = $("#legenda"); const atual = LEGENDAS.filter((l) => t >= l.t).pop();
+  if (!atual) { L.style.opacity = 0; return; }
+  L.querySelector("b").textContent = atual.n; L.querySelector("span").textContent = atual.txt;
+  const p = ease(prog(t, atual.t, .35)); L.style.opacity = p; L.style.transform = `translateX(-50%) translateY(${(1 - p) * 8}px)`;
+}
+
+// ─── menu lateral ────────────────────────────────────────────────────────────
+const MENU = [["", "Início"], ["Acompanhar o estudante", "Estudantes", "PEI", "PAEE", "Diário de bordo"], ["Planejar e avaliar", "Hub de recursos", "Avaliação", "Evolução e dados"]];
+function menu(ativo) {
+  $("#lado").innerHTML = MENU.map((g) => (g[0] ? `<div class="grupo">${g[0]}</div>` : "") + g.slice(1).map((i) => `<div class="item${i === ativo ? " on" : ""}">${i}</div>`).join("")).join("");
+}
+const PROX = (titulo, itens) => `<div class="prox" id="prox"><div class="rot">${titulo}</div>${itens.map(([a, b], i) => `<div class="ir" id="ir${i}"><span>${a}<small>${b}</small></span><span class="seta">→</span></div>`).join("")}</div>`;
+const CAB = (h, s) => `<h1>${h}</h1><p class="sub">${s}</p>`;
+const EST = `<div class="linha" style="margin-bottom:10px"><span class="avatar" style="background:var(--acao-suave);color:var(--acao)">LF</span><b style="font-size:14px">Lucas Final</b><span class="sub" style="margin:0">4º ano · Turma A</span></div>`;
+
+// ─── cenas ───────────────────────────────────────────────────────────────────
+const CENAS = {
+  estudantes: {
+    menu: "Estudantes", dur: 10,
+    html: CAB("Estudantes", "Em que pé está o PEI e o PAEE de cada estudante.") + `
+      <div class="linha" style="justify-content:space-between;margin-bottom:10px"><div class="entrada" style="width:260px;color:var(--tinta-3)">Buscar por nome, série ou turma</div><span class="btn pri" id="novo">+ Cadastrar estudante</span></div>
+      <div class="cartao" id="lista" style="padding:0">
+        ${[["Ana Clara", "2º ano · B", "Vigente", "ok"], ["Davi Souza", "6º ano · A", "Rascunho", ""], ["Laura Melo", "7º ano · A", "Revisão chegando", "at"]].map(([n, s, e, c]) => `<div class="linha" style="padding:10px 14px;border-bottom:1px solid var(--borda)"><b style="flex:1;font-size:13px">${n}</b><span class="sub" style="margin:0;width:120px">${s}</span><span class="chip ${c}">${e}</span></div>`).join("")}
+        <div class="linha" id="novaLinha" style="padding:10px 14px;background:var(--acao-suave)"><b style="flex:1;font-size:13px">Lucas Final</b><span class="sub" style="margin:0;width:120px">4º ano · A</span><span class="chip">Sem PEI</span></div>
+      </div>
+      <div class="cartao" id="form" style="position:absolute;left:150px;top:90px;width:420px;box-shadow:0 18px 50px rgba(27,42,74,.2);display:grid;gap:10px">
+        <b>Cadastrar estudante</b>
+        <label class="campo">Nome<div class="entrada" id="nome"></div></label>
+        <div class="linha"><label class="campo" style="flex:1">Série<div class="entrada" id="serie"></div></label><label class="campo" style="flex:1">Turma<div class="entrada" id="turma"></div></label></div>
+        <div class="linha" style="justify-content:flex-end"><span class="btn pri" id="salvar">Cadastrar</span></div>
+      </div>
+      <div class="cartao" id="ficha" style="position:absolute;left:22px;right:22px;top:60px;bottom:18px;display:grid;gap:10px;align-content:start">
+        ${EST}
+        <div class="grade" style="grid-template-columns:repeat(3,1fr)">${[["PEI", "Sem estudo de caso", "pei"], ["PAEE", "Nenhum ciclo", ""], ["Diário de bordo", "0 registros", ""], ["Avaliação", "Ainda não avaliado", ""], ["Hub de recursos", "0 materiais", ""], ["Evolução e dados", "—", ""]].map(([a, b, id]) => `<div class="cartao" ${id ? `id="c-${id}"` : ""} style="background:var(--fundo)"><b style="font-size:13px">${a}</b><div class="sub" style="margin:2px 0 0">${b}</div></div>`).join("")}</div>
+      </div>`,
+    setup() {
+      CAMINHO = [{ t: 0, alvo: [700, 520] }, { t: 1.2, alvo: "#novo", clica: true }, { t: 2.2, alvo: "#nome", clica: true }, { t: 4.4, alvo: "#salvar", clica: true }, { t: 6.4, alvo: "#novaLinha", clica: true }, { t: 8.6, alvo: "#c-pei", clica: true }];
+      LEGENDAS = [{ t: .3, n: 1, txt: "Cadastre o estudante" }, { t: 6, n: 2, txt: "Abra a ficha dele" }, { t: 8.2, n: 3, txt: "Da ficha, siga para o PEI" }];
+    },
+    anim(t) {
+      aperta($("#novo"), t, 1.2);
+      const f = $("#form"); f.style.opacity = t < 1.3 ? 0 : t < 4.6 ? ease(prog(t, 1.3, .3)) : 1 - ease(prog(t, 4.6, .3));
+      digita($("#nome"), "Lucas Final", t, 2.4, 9); digita($("#serie"), "4º ano", t, 3.4, 12); digita($("#turma"), "A", t, 3.9, 8);
+      aperta($("#salvar"), t, 4.4);
+      const nl = $("#novaLinha"); nl.style.display = t >= 4.8 ? "flex" : "none"; aparece(nl, t, 4.8);
+      const fi = $("#ficha"); fi.style.opacity = t < 6.6 ? 0 : ease(prog(t, 6.6, .4));
+      marca($("#c-pei"), "pulso", t, 8.6);
+    },
+  },
+
+  pei: {
+    menu: "PEI", dur: 11,
+    html: CAB("PEI", "Plano Educacional Individualizado: do estudo de caso à revisão, em quatro etapas.") + EST + `
+      <div class="passos">${[["Etapa 1", "Estudo de caso"], ["Etapa 2", "PEI"], ["Etapa 3", "Vigente e ciência"], ["Etapa 4", "Revisão"]].map(([a, b], i) => `<div class="passo" id="p${i + 1}"><b>${a}</b>${b}</div>`).join("")}</div>
+      <div class="cartao" id="e1" style="display:grid;gap:8px"><div class="rot">Estudo de caso</div><label class="campo">O que você observa<div class="entrada" id="obs" style="min-height:62px"></div></label></div>
+      <div class="cartao" id="e2" style="display:grid;gap:8px;position:absolute;left:22px;right:22px;top:202px"><div class="linha" style="justify-content:space-between"><div class="rot" style="margin:0">Texto do PEI</div><span class="btn" id="gerar">✦ Gerar com IA</span></div><div class="ia" id="ia"></div></div>
+      <div class="cartao" id="e3" style="display:grid;gap:10px;position:absolute;left:22px;right:22px;top:202px"><div class="rot">Tornar vigente</div><div class="linha"><label class="campo" style="flex:1">Próxima revisão<div class="entrada">15/03/2027</div></label><span class="btn pri" id="vigente" style="align-self:end">Tornar vigente</span></div><div class="linha"><span class="chip" id="status">Rascunho</span><span class="sub" style="margin:0" id="enviado"></span></div></div>
+      <div id="proxwrap" style="position:absolute;left:22px;right:22px;bottom:62px">${PROX("Com o PEI vigente, o próximo passo", [["Planejar o AEE (PAEE)", "Transforme as metas do PEI em ciclos de atendimento."], ["Avaliar", "Diagnóstica no começo e processual a cada período."]])}</div>`,
+    setup() {
+      CAMINHO = [{ t: 0, alvo: [700, 520] }, { t: .9, alvo: "#obs", clica: true }, { t: 3.6, alvo: "#p2", clica: true }, { t: 4.5, alvo: "#gerar", clica: true }, { t: 7.1, alvo: "#p3", clica: true }, { t: 7.9, alvo: "#vigente", clica: true }, { t: 9.8, alvo: "#ir0", clica: true }];
+      LEGENDAS = [{ t: .3, n: 1, txt: "Estudo de caso: escreva o que observa" }, { t: 3.4, n: 2, txt: "A IA propõe metas; você revisa" }, { t: 7, n: 3, txt: "Torne vigente e envie aos professores" }, { t: 9.2, n: 4, txt: "Siga para o PAEE" }];
+    },
+    anim(t) {
+      ["#p1", "#p2", "#p3", "#p4"].forEach((s, i) => { const on = [0, 3.6, 7.1, 99][i]; const fim = [3.6, 7.1, 99, 99][i]; const el = $(s); el.classList.toggle("on", t >= on && t < fim); el.classList.toggle("feito", t >= fim); });
+      digita($("#obs"), "Lê palavras simples com apoio de imagem; perde o foco em textos longos. Engaja muito quando o tema é dinossauros.", t, 1.1, 42);
+      $("#e1").style.opacity = t < 3.6 ? 1 : 0;
+      const e2 = $("#e2"); e2.style.top = "202px"; e2.style.opacity = t >= 3.6 && t < 7.1 ? 1 : 0; aperta($("#gerar"), t, 4.5);
+      digita($("#ia"), "Meta 1 · Ler e compreender textos curtos com apoio visual (EF35LP03).\nMeta 2 · Manter a atenção em tarefas de 15 minutos com pausas planejadas.\nEstratégia · Textos curtos, imagens e o interesse por dinossauros como contexto.", t, 4.8, 60);
+      const e3 = $("#e3"); e3.style.opacity = t >= 7.1 ? 1 : 0; aperta($("#vigente"), t, 7.9);
+      const st = $("#status"); st.textContent = t >= 8.1 ? "Vigente · versão 1" : "Rascunho"; st.className = "chip" + (t >= 8.1 ? " ok" : "");
+      $("#enviado").textContent = t >= 8.4 ? "Enviado aos professores regentes da turma" : "";
+      const pw = $("#proxwrap"); pw.style.opacity = t < 8.8 ? 0 : 1; aparece(pw, t, 8.8);
+      marca($("#ir0"), "pulso", t, 9.8);
+    },
+  },
+
+  paee: {
+    menu: "PAEE", dur: 11,
+    html: CAB("PAEE", "Plano de Atendimento Educacional Especializado: o AEE em ciclos.") + EST + `
+      <div class="passos">${[["1", "Avaliar"], ["2", "Planejar"], ["3", "Atender"], ["4", "Articular"]].map(([a, b], i) => `<div class="passo" id="f${i + 1}"><b>Fase ${a}</b>${b}</div>`).join("")}</div>
+      <div class="grade" id="corpo" style="grid-template-columns:1.1fr 1fr">
+        <div class="cartao" style="display:grid;gap:8px"><div class="rot">Ciclo do AEE · metas do PEI</div>
+          ${["Ler e compreender textos curtos com apoio visual", "Manter a atenção em tarefas de 15 minutos"].map((m, i) => `<div class="linha" style="font-size:12.5px"><span class="caixa" id="m${i}"></span>${m}</div>`).join("")}
+          <div class="linha"><label class="campo" style="flex:1">Duração<div class="entrada" id="dur"></div></label><label class="campo" style="flex:1">Frequência<div class="entrada" id="freq"></div></label></div>
+          <span class="btn pri" id="gerarc" style="justify-self:start">Gerar ciclo</span></div>
+        <div class="cartao" id="prev" style="display:grid;gap:6px"><div class="linha" style="justify-content:space-between"><div class="rot" style="margin:0">Prévia do ciclo</div><span class="chip" id="stc">Prévia</span></div>
+          ${["Semanas 1–2 · Leitura de imagens e palavras do tema", "Semanas 3–4 · Frases curtas com apoio visual", "Semanas 5–6 · Pequenos textos, pausas de 5 min", "Semanas 7–8 · Leitura autônoma e registro"].map((s, i) => `<div class="sub" id="s${i}" style="margin:0;padding:6px 8px;background:var(--fundo);border-radius:8px;color:var(--tinta-2)">${s}</div>`).join("")}
+          <span class="btn" id="salvarc" style="justify-self:start">Salvar ciclo</span></div>
+      </div>
+      <div id="proxwrap" style="position:absolute;left:22px;right:22px;top:200px">${PROX("Próximo passo", [["Registrar no Diário de bordo", "Anote cada atendimento: o que fez e como respondeu."], ["Criar materiais no Hub", "Atividades e recursos adaptados ao PEI."]])}</div>`,
+    setup() {
+      CAMINHO = [{ t: 0, alvo: [700, 520] }, { t: .9, alvo: "#f2", clica: true }, { t: 1.8, alvo: "#m0", clica: true }, { t: 2.4, alvo: "#m1", clica: true }, { t: 3.3, alvo: "#dur", clica: true }, { t: 4.9, alvo: "#gerarc", clica: true }, { t: 7.5, alvo: "#salvarc", clica: true }, { t: 9.7, alvo: "#ir0", clica: true }];
+      LEGENDAS = [{ t: .3, n: 1, txt: "Escolha as metas do PEI" }, { t: 3, n: 2, txt: "Defina duração e frequência" }, { t: 4.7, n: 3, txt: "A IA monta o ciclo semana a semana" }, { t: 9.1, n: 4, txt: "Depois, registre cada atendimento" }];
+    },
+    anim(t) {
+      ["#f1", "#f2", "#f3", "#f4"].forEach((s, i) => { $(s).classList.toggle("on", i === 1 && t >= .9); $(s).classList.toggle("feito", i === 0 && t >= .9); });
+      marca($("#m0"), "on", t, 1.8); marca($("#m1"), "on", t, 2.4);
+      digita($("#dur"), "8 semanas", t, 3.4, 14); digita($("#freq"), "2 vezes por semana", t, 3.9, 22);
+      aperta($("#gerarc"), t, 4.9);
+      for (let i = 0; i < 4; i++) { const el = $("#s" + i); el.style.opacity = 0; if (t >= 5.2) aparece(el, t, 5.2 + i * .35); }
+      aperta($("#salvarc"), t, 7.5); const st = $("#stc"); st.textContent = t >= 7.7 ? "Ativo" : "Prévia"; st.className = "chip" + (t >= 7.7 ? " ok" : "");
+      $("#corpo").style.opacity = 1 - ease(prog(t, 8.4, .3));
+      const pw = $("#proxwrap"); pw.style.opacity = t < 8.6 ? 0 : 1; aparece(pw, t, 8.6);
+      marca($("#ir0"), "pulso", t, 9.7);
+    },
+  },
+
+  hub: {
+    menu: "Hub de recursos", dur: 10,
+    html: CAB("Hub de recursos", "Adaptar provas, atividades, criar do zero e muito mais.") + EST + `
+      <div class="grade" id="ferr" style="grid-template-columns:repeat(4,1fr)">${["Adaptar prova", "Adaptar atividade", "Criar questões", "Plano de aula com DUA", "Estúdio visual", "Roteiro individual", "Papo de mestre", "Dinâmica inclusiva"].map((n, i) => `<div class="cartao" id="t${i}" style="font-weight:700;font-size:12.5px;min-height:58px">${n}</div>`).join("")}</div>
+      <div class="grade" id="mesa" style="grid-template-columns:1fr 1.2fr;position:absolute;left:22px;right:22px;top:150px">
+        <div class="cartao" style="display:grid;gap:8px"><div class="rot">Adaptar atividade</div><label class="campo">Atividade original<div class="entrada" id="orig" style="min-height:96px"></div></label><span class="btn pri" id="gerarh" style="justify-self:start">✦ Adaptar para o Lucas</span></div>
+        <div class="cartao" style="display:grid;gap:6px"><div class="linha" style="justify-content:space-between"><div class="rot" style="margin:0">Atividade adaptada</div><span class="chip" id="salvo"></span></div><div class="ia" id="adapt" style="font-size:12.5px"></div></div>
+      </div>`,
+    setup() {
+      CAMINHO = [{ t: 0, alvo: [700, 520] }, { t: 1.2, alvo: "#t1", clica: true }, { t: 2.3, alvo: "#orig", clica: true }, { t: 4.6, alvo: "#gerarh", clica: true }, { t: 8.6, alvo: "#adapt" }];
+      LEGENDAS = [{ t: .3, n: 1, txt: "Escolha a ferramenta" }, { t: 2, n: 2, txt: "Cole a atividade da turma" }, { t: 4.5, n: 3, txt: "Ela sai adaptada ao PEI do Lucas" }];
+    },
+    anim(t) {
+      aperta($("#t1"), t, 1.2); $("#ferr").style.opacity = t < 1.5 ? 1 : 0;
+      const m = $("#mesa"); m.style.opacity = t < 1.5 ? 0 : ease(prog(t, 1.5, .35));
+      digita($("#orig"), "Leia o texto \"A vida das abelhas\" (2 páginas) e responda às 8 perguntas no caderno.", t, 2.4, 40);
+      aperta($("#gerarh"), t, 4.6);
+      digita($("#adapt"), "1. Leia o texto curto (5 frases) com as figuras.\n2. Como o dinossauro do bando, a abelha tem uma tarefa no grupo. Qual é?\n   ( ) fazer mel   ( ) dormir   ( ) nadar\n3. Desenhe a abelha levando o pólen.\nPausa de 5 minutos depois da questão 2.", t, 4.9, 85);
+      const s = $("#salvo"); s.textContent = t >= 8.6 ? "Salvo no histórico" : ""; s.className = "chip" + (t >= 8.6 ? " ok" : "");
+    },
+  },
+
+  diario: {
+    menu: "Diário de bordo", dur: 10,
+    html: CAB("Diário de bordo", "O que aconteceu em cada atendimento, em poucos toques.") + EST + `
+      <div class="grade" style="grid-template-columns:1.15fr 1fr">
+        <div class="cartao" style="display:grid;gap:8px"><div class="rot">Novo registro</div>
+          <div class="linha"><label class="campo" style="flex:1">Data<div class="entrada">13/10/2026</div></label><label class="campo" style="flex:1">Duração (min)<div class="entrada" id="min"></div></label></div>
+          <label class="campo">Como foi<div class="linha" style="gap:6px">${["Individual", "Grupo", "Observação em sala"].map((x, i) => `<span class="chip" id="mod${i}">${x}</span>`).join("")}</div></label>
+          <label class="campo">O que foi feito<div class="entrada" id="feito" style="min-height:48px"></div></label>
+          <label class="campo">Engajamento (1 a 5)<div class="linha" style="gap:5px">${[1, 2, 3, 4, 5].map((n) => `<span class="nivel" id="e${n}">${n}</span>`).join("")}</div></label>
+          <div class="linha" style="font-size:12px;font-weight:700"><span class="caixa" id="avisar"></span>Avisar o professor da sala</div>
+          <span class="btn pri" id="salvard" style="justify-self:start">Salvar registro</span></div>
+        <div class="cartao" style="display:grid;gap:8px;align-content:start"><div class="rot">Linha do tempo</div>
+          <div id="novo" style="padding:8px 10px;border-radius:9px;background:var(--acao-suave)"><b style="font-size:12.5px">13/10 · Individual · 50 min</b><div class="sub" style="margin:2px 0 0">Leitura de frases com figuras de dinossauros · engajamento 4</div></div>
+          ${[["09/10 · Grupo · 40 min", "Jogo de palavras com a dupla · engajamento 3"], ["06/10 · Individual · 50 min", "Sequência de imagens e frases · engajamento 4"]].map(([a, b]) => `<div style="padding:8px 10px;border-radius:9px;background:var(--fundo)"><b style="font-size:12.5px">${a}</b><div class="sub" style="margin:2px 0 0">${b}</div></div>`).join("")}</div>
+      </div>`,
+    setup() {
+      CAMINHO = [{ t: 0, alvo: [700, 520] }, { t: .9, alvo: "#min", clica: true }, { t: 1.8, alvo: "#mod0", clica: true }, { t: 2.6, alvo: "#feito", clica: true }, { t: 5.4, alvo: "#e4", clica: true }, { t: 6.3, alvo: "#avisar", clica: true }, { t: 7.2, alvo: "#salvard", clica: true }, { t: 9, alvo: "#novo" }];
+      LEGENDAS = [{ t: .3, n: 1, txt: "Registre o atendimento" }, { t: 5.2, n: 2, txt: "Como o estudante respondeu" }, { t: 7.4, n: 3, txt: "Fica na linha do tempo" }];
+    },
+    anim(t) {
+      digita($("#min"), "50", t, 1, 6);
+      $$("[id^=mod]").forEach((el, i) => { el.className = "chip" + (i === 0 && t >= 1.8 ? " in" : ""); });
+      digita($("#feito"), "Leitura de frases curtas com figuras de dinossauros; leu 6 de 8 com apoio leve.", t, 2.8, 32);
+      [1, 2, 3, 4, 5].forEach((n) => marca($("#e" + n), "on", t, n <= 4 ? 5.4 : 99));
+      marca($("#avisar"), "on", t, 6.3); aperta($("#salvard"), t, 7.2);
+      const nv = $("#novo"); nv.style.opacity = t < 7.5 ? 0 : 1; aparece(nv, t, 7.5);
+    },
+  },
+
+  avaliacao: {
+    menu: "Avaliação", dur: 12,
+    html: CAB("Avaliação", "Diagnóstica no começo, processual a cada período. Escala de 0 a 4: quanto apoio o estudante precisa.") + EST + `
+      <div class="grade" id="comps" style="grid-template-columns:repeat(4,1fr)">${["Língua Portuguesa", "Matemática", "Ciências", "História"].map((c, i) => `<div class="cartao" id="k${i}" style="display:grid;gap:6px"><b style="font-size:13px">${c}</b><span class="chip">Ainda não avaliado</span></div>`).join("")}</div>
+      <div class="grade" id="av" style="grid-template-columns:1fr 1fr;position:absolute;left:22px;right:22px;top:150px">
+        <div class="cartao" style="display:grid;gap:7px"><div class="rot">Matemática · escolha de 6 a 10 descritores</div>
+          ${["Comparar ou ordenar números de até 5 ordens", "Adição e subtração de até 5 ordens", "Problemas de adição ou subtração", "Localização em malha quadriculada"].map((d, i) => `<div class="linha" style="font-size:12px"><span class="caixa" id="d${i}"></span>${d}</div>`).join("")}
+          <span class="btn" id="papel" style="justify-self:start">🖨 Avaliar com prova em papel</span></div>
+        <div class="cartao" style="display:grid;gap:8px;align-content:start"><div class="rot">Observe e marque o nível</div>
+          ${["Comparar ou ordenar números", "Adição e subtração"].map((d, i) => `<div style="display:grid;gap:5px"><span style="font-size:12px;font-weight:700">${d}</span><div class="linha" style="gap:5px">${[0, 1, 2, 3, 4].map((n) => `<span class="nivel" id="n${i}${n}">${n}</span>`).join("")}</div></div>`).join("")}
+          <div class="sub" id="dica" style="margin:0">3 = faz com apoio pontual · 4 = sozinho</div>
+          <span class="btn pri" id="concluir" style="justify-self:start">Concluir a diagnóstica</span>
+          <span class="chip ok" id="feitoav">Os níveis viram sugestão de meta no PEI</span></div>
+      </div>`,
+    setup() {
+      CAMINHO = [{ t: 0, alvo: [700, 520] }, { t: 1.1, alvo: "#k1", clica: true }, { t: 2.2, alvo: "#d0", clica: true }, { t: 2.8, alvo: "#d1", clica: true }, { t: 3.4, alvo: "#d2", clica: true }, { t: 4.6, alvo: "#papel" }, { t: 6.6, alvo: "#n03", clica: true }, { t: 7.6, alvo: "#n12", clica: true }, { t: 9.4, alvo: "#concluir", clica: true }];
+      LEGENDAS = [{ t: .3, n: 1, txt: "Escolha o componente" }, { t: 2, n: 2, txt: "Escolha os descritores que mais pesam" }, { t: 4.4, n: 3, txt: "Observe em sala ou aplique a prova em papel" }, { t: 6.4, n: 4, txt: "Marque o nível: quanto apoio ele precisa" }, { t: 9.4, n: 5, txt: "Conclua: vira sugestão de meta no PEI" }];
+    },
+    anim(t) {
+      aperta($("#k1"), t, 1.1); $("#comps").style.opacity = t < 1.4 ? 1 : 0;
+      const av = $("#av"); av.style.opacity = t < 1.4 ? 0 : ease(prog(t, 1.4, .35));
+      marca($("#d0"), "on", t, 2.2); marca($("#d1"), "on", t, 2.8); marca($("#d2"), "on", t, 3.4);
+      marca($("#papel"), "pulso", t, 4.6); if (t > 6) $("#papel").classList.remove("pulso");
+      marca($("#n03"), "on", t, 6.6); marca($("#n12"), "on", t, 7.6);
+      aperta($("#concluir"), t, 9.4); const f = $("#feitoav"); f.style.opacity = t < 9.7 ? 0 : 1; aparece(f, t, 9.7);
+    },
+  },
+
+  evolucao: {
+    menu: "Evolução e dados", dur: 11,
+    html: CAB("Evolução e dados", "A evolução por descritor, da diagnóstica aos períodos da processual, e o resumo do diário.") + EST + `
+      <div class="grade" id="corpo" style="grid-template-columns:1.3fr 1fr">
+        <div class="cartao" style="display:grid;gap:9px"><div class="rot">Matemática · da diagnóstica ao 2º bimestre</div>
+          ${[["Comparar ou ordenar números", [2, 3, 4]], ["Adição e subtração", [1, 2, 3]], ["Problemas de adição ou subtração", [1, 1, 2]]].map(([d, v], i) => `<div style="display:grid;gap:4px"><span style="font-size:12px;font-weight:700">${d}</span>${v.map((n, j) => `<div class="linha" style="gap:8px"><span class="sub" style="margin:0;width:78px;font-size:10.5px">${["Diagnóstica", "1º bim.", "2º bim."][j]}</span><div class="barra" style="flex:1"><i id="b${i}${j}" data-v="${n}"></i></div><b style="font-size:11px;width:10px">${n}</b></div>`).join("")}</div>`).join("")}</div>
+        <div style="display:grid;gap:10px;align-content:start">
+          <div class="cartao"><div class="rot">Diário · últimos 60 dias</div><div class="linha" style="gap:16px"><div><b style="font-size:22px" id="at">0</b><div class="sub" style="margin:0">atendimentos</div></div><div><b style="font-size:22px" id="eng">0</b><div class="sub" style="margin:0">engajamento médio</div></div></div></div>
+          <div class="cartao"><div class="rot">PAEE</div><div class="linha"><span class="chip ok">Ativo</span><b style="font-size:13px">Semana 4 de 8</b></div><div class="sub" style="margin:4px 0 0">Foco: leitura com apoio visual</div></div>
+        </div>
+      </div>
+      <div id="proxwrap" style="position:absolute;left:22px;right:22px;top:150px">${PROX("Com o que a evolução mostrou", [["Revisar o PEI", "Ajuste metas e estratégias com o que a evolução mostrou."], ["Planejar o AEE (PAEE)", "O próximo ciclo parte daqui."]])}</div>`,
+    setup() {
+      CAMINHO = [{ t: 0, alvo: [700, 520] }, { t: 3.2, alvo: "#b02" }, { t: 5.6, alvo: "#at" }, { t: 9.6, alvo: "#ir0", clica: true }];
+      LEGENDAS = [{ t: .3, n: 1, txt: "A evolução de cada descritor" }, { t: 5.3, n: 2, txt: "Diário e PAEE no mesmo lugar" }, { t: 8.4, n: 3, txt: "E volta para a revisão do PEI" }];
+    },
+    anim(t) {
+      $$(".barra > i").forEach((el, k) => { const v = +el.dataset.v; el.style.width = (v / 4 * 100 * ease(prog(t, .8 + k * .18, .6))) + "%"; });
+      conta($("#at"), 14, t, 5.4, 1); conta($("#eng"), 3.8, t, 5.4, 1, 1);
+      $("#corpo").style.opacity = 1 - ease(prog(t, 8.2, .3));
+      const pw = $("#proxwrap"); pw.style.opacity = t < 8.4 ? 0 : 1; aparece(pw, t, 8.4);
+      marca($("#ir0"), "pulso", t, 9.6);
+    },
+  },
+};
+
+// ─── montagem ───────────────────────────────────────────────────────────────
+const nome = new URLSearchParams(location.search).get("v") || "pei";
+const CENA = CENAS[nome];
+menu(CENA.menu);
+$("#conteudo").innerHTML = CENA.html;
+CENA.setup();
+window.DURACAO = CENA.dur;
+window.render = function (t) { CENA.anim(t); cursor(t); legenda(t); };
+render(0);
+</script>
+</body>
+</html>

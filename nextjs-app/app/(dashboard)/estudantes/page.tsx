@@ -5,6 +5,7 @@ import { situacaoDoPei, hojeBrasilia } from "@/lib/inicio";
 import { PageHero } from "@/components/PageHero";
 import { SafeModuleWrapper } from "@/components/SafeModuleWrapper";
 import { EstudantesClient, type LinhaEstudante } from "./EstudantesClient";
+import { ComoFunciona } from "@/components/tutorial/ComoFunciona";
 
 export default async function EstudantesPage() {
   const session = await getSession();
@@ -36,6 +37,7 @@ export default async function EstudantesPage() {
         title="Estudantes"
         desc="Em que pé está o PEI e o PAEE de cada estudante. Abra a ficha para ver tudo sobre ele."
       />
+      <ComoFunciona modulo="estudantes" />
       <SafeModuleWrapper fallbackTitle="Estudantes">
         <EstudantesClient
           students={linhas}

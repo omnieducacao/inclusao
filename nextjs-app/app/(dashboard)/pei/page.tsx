@@ -7,6 +7,7 @@ import { getAdminConfig } from "@/lib/getAdminConfig";
 import { getStudentsWithFallback } from "@/lib/getStudentWithFallback";
 import { modoDaEscola } from "@/lib/escola";
 import dynamic from "next/dynamic";
+import { ComoFunciona } from "@/components/tutorial/ComoFunciona";
 
 const PEIClient = dynamic(
   () => import("./PEIClient").then(mod => ({ default: mod.PEIClient })),
@@ -40,6 +41,7 @@ export default async function PEIPage({ searchParams }: Props) {
           title="PEI"
           desc="Plano Educacional Individualizado: do estudo de caso à revisão, em quatro etapas."
         />
+        <ComoFunciona modulo="pei" />
 
         <PEIClient
           students={students.map((s) => ({ id: s.id, name: s.name, grade: s.grade, class_group: s.class_group }))}

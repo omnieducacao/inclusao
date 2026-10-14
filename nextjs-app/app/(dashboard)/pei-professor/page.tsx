@@ -9,6 +9,7 @@ import { PEICienciaClient } from "./PEICienciaClient";
 import { AbasProfessor } from "./AbasProfessor";
 import { modoDaEscola } from "@/lib/escola";
 import { getAdminConfig } from "@/lib/getAdminConfig";
+import { ComoFunciona } from "@/components/tutorial/ComoFunciona";
 
 export default async function PEIRegentePage() {
     const session = await getSession();
@@ -34,6 +35,7 @@ export default async function PEIRegentePage() {
                         ? "Os PEIs dos seus estudantes: leia, leve para a sala e registre que está ciente."
                         : "Leia os PEIs dos seus estudantes e dê ciência; depois, faça a parte da sua disciplina."}
                 />
+                <ComoFunciona modulo="pei-professor" />
 
                 <Suspense fallback={
                     <TelaCarregando variante="secao" mensagens={["Abrindo o PEI do professor…"]} />
