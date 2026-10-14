@@ -32,6 +32,8 @@ export type PEIData = {
   estrategias_ensino?: string[];
   estrategias_avaliacao?: string[];
   ia_sugestao?: string;
+  /** Marca do que a IA leu ao escrever o texto do PEI (lib/pei-base.ts); muda quando o estudo de caso muda. */
+  ia_base?: string;
   consultoria_engine?: string;
   ia_mapa_texto?: string;
   outros_acesso?: string;

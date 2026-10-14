@@ -6,6 +6,7 @@
  * - Os professores do estudante leem e dão ciência daquela versão (lista abaixo).
  * - Cada revisão é um registro curto: o que avançou, o que muda e a decisão.
  */
+import { textoPeiDesatualizado } from "@/lib/pei-base";
 import React, { useEffect, useState } from "react";
 import type { PEIData } from "@/lib/pei";
 import { STATUS_META, PARECER_GERAL, PROXIMOS_PASSOS } from "@/lib/pei";
@@ -34,6 +35,8 @@ type Props = {
   parte?: "vigencia" | "revisao";
   /** leva ao passo que falta (antes o "(falta)" não dizia onde completar) */
   onIrEstudoCaso?: () => void;
+  /** o texto do PEI ficou para trás do estudo de caso: leva à etapa 2 */
+  onIrTextoPei?: () => void;
 };
 
 type Ciencias = {
@@ -48,7 +51,7 @@ const iconeSecao: React.CSSProperties = { width: 18, height: 18, color: "var(--a
 const largo: React.CSSProperties = { maxWidth: "none" };
 const dataBR = (iso?: string) => (iso ? new Date(`${iso.slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR") : "—");
 
-export function PEITabVigencia({ peiData, updateField, currentStudentId, usuarioNome, onSalvar, saving, parte, onIrEstudoCaso }: Props) {
+export function PEITabVigencia({ peiData, updateField, currentStudentId, usuarioNome, onSalvar, saving, parte, onIrEstudoCaso, onIrTextoPei }: Props) {
   const mostraVigencia = parte !== "revisao";
   const mostraRevisao = parte !== "vigencia";
   const vig: Vigencia = (peiData.vigencia as Vigencia) || { status: "rascunho", versao: 0 };
@@ -153,6 +156,14 @@ export function PEITabVigencia({ peiData, updateField, currentStudentId, usuario
           <h4 id="vig-fechar" style={tituloSecao}>
             <FileCheck2 aria-hidden style={iconeSecao} /> Tornar o PEI vigente
           </h4>
+          {textoPeiDesatualizado(peiData as Record<string, unknown>) && (
+            <div className="omni-aviso omni-aviso--atencao" role="status" style={{ maxWidth: "none", margin: 0 }}>
+              <div>
+                <div className="omni-aviso__texto">O estudo de caso mudou depois que o texto do PEI foi gerado. Antes de tornar vigente, gere o texto de novo.</div>
+                {onIrTextoPei && <div className="omni-aviso__acoes"><button type="button" className="omni-btn omni-btn--secundario omni-btn--pequeno" onClick={onIrTextoPei}>Ir para o texto do PEI</button></div>}
+              </div>
+            </div>
+          )}
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 6 }}>
             {passos.map((p) => (
               <li key={p.texto} style={{ display: "flex", alignItems: "center", gap: 8, font: "400 15px/22px var(--font-sans)", color: p.ok ? "var(--tinta)" : "var(--tinta-3)" }}>

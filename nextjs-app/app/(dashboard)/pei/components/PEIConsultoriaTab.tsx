@@ -7,6 +7,7 @@ import { EngineSelector } from "@/components/EngineSelector";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { detectarNivelEnsino } from "@/lib/pei";
 import type { PEIData } from "@/lib/pei";
+import { baseDoTextoPei, textoPeiDesatualizado } from "@/lib/pei-base";
 import type { EngineId } from "@/lib/ai-engines";
 import {
   Sparkles,
@@ -100,6 +101,7 @@ export function ConsultoriaTab({
       });
       const data = await parseJsonResponse(res, "/api/pei/consultoria");
       updateField("ia_sugestao", data.texto || "");
+      updateField("ia_base", baseDoTextoPei(peiData as Record<string, unknown>));
       updateField("consultoria_engine", engine);
       updateField("status_validacao_pei", "revisao");
       if (feedback) {
@@ -297,6 +299,17 @@ export function ConsultoriaTab({
                     : <span className="omni-estado omni-estado--info">Gerado com IA · revise antes de aprovar</span>}
                 </div>
                 {/* Onda 18: texto com títulos e listas formatados (antes "##" e "*" apareciam crus) */}
+                {textoPeiDesatualizado(peiData as Record<string, unknown>) && (
+                  <div className="omni-aviso omni-aviso--atencao" role="status" style={{ maxWidth: "none", marginBottom: 12 }}>
+                    <div>
+                      <div className="omni-aviso__titulo">O estudo de caso mudou depois deste texto</div>
+                      <div className="omni-aviso__texto">O que foi registrado depois (interesse, barreiras, estratégias) ainda não está aqui. Gere de novo para o PEI partir do estudo de caso de agora.</div>
+                      <div className="omni-aviso__acoes">
+                        <button type="button" className="omni-btn omni-btn--primario omni-btn--pequeno" disabled={loading} onClick={() => gerar(false)}>Gerar o texto de novo</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div
                   role="region"
                   aria-live="polite"
