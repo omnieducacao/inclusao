@@ -119,7 +119,10 @@ if(cert){const cfg=JSON.parse(document.getElementById('cert-data').textContent),
     bts.forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===tr?'true':'false'));
     lista.innerHTML=t.temas.map(x=>{const ok=!!feitos[x.slug];if(ok)n++;return `<li class="${ok?'ok':''}"><a href="/${x.slug}/#qz">${esc(x.titulo)}</a><span>${ok?'concluído':'falta responder'}</span></li>`}).join('');
     prog.innerHTML=`<b>${n}</b> de ${t.temas.length} temas concluídos · certificado de ${t.horas} horas`;
-    const pronto=n===t.temas.length;form.hidden=!pronto;falta.hidden=pronto};
+    const pronto=n===t.temas.length,f=t.temas.length-n;form.hidden=!pronto;falta.hidden=pronto;
+    const md=cert.querySelector('.cert-modelo');if(md){md.dataset.estado=pronto?'liberado':'bloqueado';
+      md.querySelector('.cm-trilha').textContent=t.nome;md.querySelector('.cm-horas').textContent=`${t.horas} horas`;
+      md.querySelector('.cm-estado').textContent=pronto?'Liberado · emita abaixo':`Bloqueado · ${f===1?'falta 1 tema':`faltam ${f} temas`}`}};
   bts.forEach(b=>b.addEventListener('click',()=>{tr=b.dataset.t;try{localStorage.setItem('om-trilha',tr)}catch(e){}draw()}));
   form.addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(form),bt=form.querySelector('button[type=submit]');
     form.querySelectorAll('[aria-invalid]').forEach(x=>x.removeAttribute('aria-invalid'));erro.hidden=true;bt.disabled=true;bt.textContent='Emitindo…';
