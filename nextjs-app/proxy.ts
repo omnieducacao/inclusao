@@ -29,7 +29,7 @@ const SITE_PAGES = new Set([
   "lei", "conceitos", "conhecer-o-estudante", "autismo", "deficiencia-intelectual",
   "dislexia-discalculia-tdah", "altas-habilidades", "visual-surdez-fisica", "dua-e-caa",
   "pei-e-aee", "adaptar-e-avaliar", "perfis", "formacao", "checklists", "glossario",
-  "fontes", "sobre", "na-midia", "videos",
+  "fontes", "sobre", "na-midia", "videos", "conheca",
 ]);
 
 export async function proxy(request: NextRequest) {

@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A semana da Beatriz · Omnisfera</title>
+<meta name="description" content="Acompanhe, em dois minutos, como uma escola inteira cuida da inclusão de uma estudante com a Omnisfera.">
+<link rel="canonical" href="https://www.omnisfera.net/conheca">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Omnisfera">
+<meta property="og:title" content="A semana da Beatriz · Omnisfera">
+<meta property="og:description" content="Dois minutos, em toques no celular: como a escola inteira cuida da inclusão de uma estudante, do estudo de caso à família.">
+<meta property="og:url" content="https://www.omnisfera.net/conheca">
+<meta property="og:image" content="https://www.omnisfera.net/site/conheca-og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:locale" content="pt_BR"><meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#101a2e">
+<link rel="icon" href="/site/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/site/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+:root{--noite:#101a2e;--papel:#f6f2ea;--folha:#fffdf8;--tinta:#101a2e;--tinta2:#3b4557;--mut:#6b7280;--linha:#e3ddd0;
+  --c1:#e5484d;--c2:#f5b82e;--c3:#f28c28;--c4:#8e5bd8;--c5:#2f7fd1;--c6:#2eaa6a;
+  --f:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--m:"JetBrains Mono",ui-monospace,monospace;--e:cubic-bezier(.2,.8,.2,1)}
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{font-family:var(--f);background:var(--noite);color:var(--tinta);-webkit-font-smoothing:antialiased;overflow:hidden}
+button{font:inherit;cursor:pointer}
+.app{position:fixed;inset:0;display:grid;grid-template-rows:auto 1fr;max-width:560px;margin:0 auto;background:var(--papel);transition:background .6s}
+.app.escuro{background:var(--noite)}
+@media (min-width:600px){body{background:#e9e3d6}.app{inset:16px auto;left:50%;transform:translateX(-50%);width:430px;border-radius:28px;overflow:hidden;box-shadow:0 30px 80px rgba(16,26,46,.25)}}
+/* topo: progresso e marca */
+.topo{padding:calc(env(safe-area-inset-top,0px) + 14px) 18px 8px;display:grid;gap:10px;z-index:3}
+.barras{display:flex;gap:5px}
+.barras i{flex:1;height:4px;border-radius:2px;background:rgba(16,26,46,.12);overflow:hidden;position:relative}
+.escuro .barras i{background:rgba(238,241,246,.18)}
+.barras i::after{content:"";position:absolute;inset:0;background:var(--tinta);transform:scaleX(0);transform-origin:left;transition:transform .5s var(--e)}
+.escuro .barras i::after{background:#eef1f6}
+.barras i.f::after{transform:scaleX(1)}
+.marca{display:flex;align-items:center;justify-content:space-between;font-weight:800;font-size:17px;letter-spacing:-.02em;color:var(--tinta)}
+.escuro .marca{color:#eef1f6}
+.marca span{display:flex;align-items:center;gap:8px}
+.marca svg{width:24px;height:24px}
+.marca button{background:none;border:0;color:inherit;opacity:.6;font-size:14px;font-weight:600;padding:6px}
+/* cenas */
+.palco{position:relative;overflow:hidden}
+.cena{position:absolute;inset:0;overflow-y:auto;padding:8px 22px calc(env(safe-area-inset-bottom,0px) + 28px);display:flex;flex-direction:column;gap:16px;
+  opacity:0;transform:translateX(40px);pointer-events:none;transition:opacity .45s var(--e),transform .6s var(--e)}
+.cena.on{opacity:1;transform:none;pointer-events:auto}
+.cena.sai{opacity:0;transform:translateX(-40px)}
+.quando{font-family:var(--m);font-size:12.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--k,var(--c5));margin-top:6px}
+h1,h2{font-weight:800;letter-spacing:-.035em;line-height:1.08;text-wrap:balance}
+h2{font-size:30px}
+.cena p{font-size:17px;line-height:1.5;color:var(--tinta2)}
+.dica{font-size:15px!important;font-weight:600;color:var(--tinta)!important}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;padding:15px 22px;font-weight:700;font-size:16.5px;
+  background:var(--tinta);color:#fff;transition:transform .15s,box-shadow .2s,opacity .3s;text-decoration:none}
+.btn:active{transform:scale(.97)}
+.btn.claro{background:#eef1f6;color:var(--noite)}
+.btn.linha{background:transparent;color:inherit;box-shadow:inset 0 0 0 2px currentColor}
+.btn[disabled]{opacity:.35;cursor:default}
+.seguir{margin-top:auto;padding-top:8px;display:grid}
+.seguir .btn{width:100%}
+.aparece{opacity:0;transform:translateY(12px);transition:opacity .5s var(--e),transform .6s var(--e)}
+.aparece.v{opacity:1;transform:none}
+.tela{border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 10px 30px rgba(16,26,46,.14),0 0 0 1px var(--linha);aspect-ratio:16/10;position:relative}
+.tela video{width:100%;height:100%;object-fit:cover;display:block}
+.tela small{position:absolute;left:10px;bottom:8px;background:rgba(16,26,46,.72);color:#fff;font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:999px}
+.cartao{background:var(--folha);border:1px solid var(--linha);border-radius:18px 18px 18px 6px;padding:16px 18px;display:grid;gap:10px}
+/* abertura */
+.abre{justify-content:center;color:#eef1f6;text-align:left}
+.abre h1{font-size:44px;color:#eef1f6}
+.abre p{color:#c9d1df}
+.circ{width:150px;height:150px;position:relative;margin-bottom:8px}
+.circ i{position:absolute;width:58%;aspect-ratio:1;border-radius:50%;left:21%;top:21%;opacity:.92;animation:junta 1.6s var(--e) both}
+.circ i:nth-child(1){background:var(--c1);--x:0;--y:-34%;--ox:-120%;--oy:-160%}
+.circ i:nth-child(2){background:var(--c2);--x:30%;--y:-17%;--ox:170%;--oy:-90%}
+.circ i:nth-child(3){background:var(--c3);--x:30%;--y:17%;--ox:150%;--oy:160%}
+.circ i:nth-child(4){background:var(--c4);--x:0;--y:34%;--ox:20%;--oy:210%}
+.circ i:nth-child(5){background:var(--c5);--x:-30%;--y:17%;--ox:-190%;--oy:120%}
+.circ i:nth-child(6){background:var(--c6);--x:-30%;--y:-17%;--ox:-170%;--oy:-60%}
+.circ i{transform:translate(var(--x),var(--y));mix-blend-mode:screen}
+@keyframes junta{from{transform:translate(var(--ox),var(--oy)) scale(.4);opacity:0}to{transform:translate(var(--x),var(--y));opacity:.92}}
+.circ i:nth-child(2){animation-delay:.08s}.circ i:nth-child(3){animation-delay:.16s}.circ i:nth-child(4){animation-delay:.24s}.circ i:nth-child(5){animation-delay:.32s}.circ i:nth-child(6){animation-delay:.4s}
+.nota{font-size:13.5px!important;color:#9aa6bb!important}
+/* 1: fichas */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--linha);background:var(--folha);border-radius:999px;padding:10px 14px;font-weight:600;font-size:15px;color:var(--tinta);transition:all .25s var(--e)}
+.chip[aria-pressed=true]{background:var(--k);border-color:var(--k);color:#fff;transform:scale(1.03)}
+.ficha h3{font-size:13px;font-family:var(--m);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.ficha ul{list-style:none;padding:0;display:grid;gap:6px}
+.ficha li{font-weight:600;font-size:15.5px;animation:entra .5s var(--e) both}
+.ficha li::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;background:var(--cor)}
+@keyframes entra{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+.dupla{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+/* 2: rascunho */
+.rasc{min-height:150px;font-size:15.5px;line-height:1.5;color:var(--tinta)}
+.rasc ol{padding-left:20px;display:grid;gap:8px}
+.cursor::after{content:"▍";color:var(--k);animation:pisca 1s steps(1) infinite}
+@keyframes pisca{50%{opacity:0}}
+.brilho{height:14px;border-radius:7px;background:linear-gradient(90deg,#ece6da 25%,#f8f4ec 50%,#ece6da 75%);background-size:200% 100%;animation:br 1s linear infinite;margin:8px 0}
+@keyframes br{to{background-position:-200% 0}}
+.selo{display:inline-flex;gap:8px;align-items:center;font-weight:700;color:var(--c6);font-size:15px}
+.selo b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--c6);color:#fff;font-size:14px}
+/* 3: engajamento */
+.escala{display:flex;gap:10px}
+.escala button{flex:1;aspect-ratio:1;border-radius:50%;border:2px solid var(--linha);background:var(--folha);font-weight:800;font-size:18px;color:var(--tinta);transition:all .2s}
+.escala button[aria-pressed=true]{background:var(--k);border-color:var(--k);color:#fff;transform:scale(1.08)}
+.legenda{display:flex;justify-content:space-between;font-size:12.5px;color:var(--mut);margin-top:-6px}
+.grafico{display:flex;align-items:flex-end;gap:10px;height:120px;padding-top:10px}
+.grafico div{flex:1;display:grid;gap:6px;justify-items:center;font-size:11.5px;color:var(--mut);font-family:var(--m)}
+.grafico i{display:block;width:100%;border-radius:8px 8px 3px 3px;background:var(--k);opacity:.35;height:0;transition:height .8s var(--e)}
+.grafico div:last-child i{opacity:1}
+/* 4: aviso do regente */
+.aviso{display:flex;gap:12px;align-items:flex-start}
+.aviso .pt{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;background:var(--k);color:#fff;font-weight:800}
+.aviso b{display:block;font-size:15.5px}
+.aviso span{font-size:14px;color:var(--mut)}
+.estrat{display:grid;gap:8px;padding-left:20px;font-size:15.5px;color:var(--tinta)}
+/* 5: painel */
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.nums div{background:var(--folha);border:1px solid var(--linha);border-radius:14px;padding:12px;display:grid;gap:2px}
+.nums b{font-size:30px;font-weight:800;letter-spacing:-.03em}
+.nums span{font-size:12.5px;color:var(--mut);line-height:1.3}
+.alertas{list-style:none;padding:0;display:grid;gap:8px}
+.alertas li{display:flex;gap:10px;align-items:center;background:var(--folha);border:1px solid var(--linha);border-radius:12px;padding:10px 12px;font-size:14.5px;font-weight:600}
+.alertas li i{width:10px;height:10px;border-radius:50%;background:var(--c3);flex:none}
+/* 6: família */
+.fone{background:#e9efe6;border-radius:22px;padding:14px;display:grid;gap:10px;min-height:200px;align-content:start}
+.fone .de{font-size:12px;color:var(--mut);font-weight:600;text-align:center}
+.bal{max-width:88%;padding:11px 14px;border-radius:16px;font-size:15px;line-height:1.45;animation:entra .5s var(--e) both}
+.bal.esc{background:#fff;border-bottom-left-radius:4px}
+.bal.fam{background:#d6f1cf;justify-self:end;border-bottom-right-radius:4px;animation-delay:1.2s}
+/* fim */
+.fim{color:#eef1f6;justify-content:center}
+.fim h2{font-size:36px;color:#eef1f6}
+.fim p{color:#c9d1df}
+.fim .acoes{display:grid;gap:10px;margin-top:8px}
+.fim .lei{font-size:13.5px!important;color:#9aa6bb!important}
+.voltar{background:none;border:0;color:#9aa6bb;font-weight:600;font-size:14px;padding:8px;justify-self:center}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app escuro" id="app">
+  <div class="topo">
+    <div class="barras" aria-hidden="true"></div>
+    <div class="marca"><span><svg class="sym " viewBox="-12 -12 144 144" aria-hidden="true" focusable="false"><defs><mask id="s57" maskUnits="userSpaceOnUse" x="-40" y="-40" width="200" height="200"><rect x="-40" y="-40" width="200" height="200" fill="#fff"/><g><path d="M61.78,56.92 A21,21 0 0 1 79.01,27.08 A21,21 0 0 1 61.78,56.92Z"/><path d="M63.55,60.00 A21,21 0 0 1 98.02,60.00 A21,21 0 0 1 63.55,60.00Z"/><path d="M61.78,63.08 A21,21 0 0 1 79.01,92.92 A21,21 0 0 1 61.78,63.08Z"/><path d="M58.22,63.08 A21,21 0 0 1 40.99,92.92 A21,21 0 0 1 58.22,63.08Z"/><path d="M56.45,60.00 A21,21 0 0 1 21.98,60.00 A21,21 0 0 1 56.45,60.00Z"/><path d="M58.22,56.92 A21,21 0 0 1 40.99,27.08 A21,21 0 0 1 58.22,56.92Z"/></g></mask></defs><g mask="url(#s57)"><circle cx="60.00" cy="36.00" r="21" fill="#e5484d"/><circle cx="80.78" cy="48.00" r="21" fill="#f5b82e"/><circle cx="80.78" cy="72.00" r="21" fill="#f28c28"/><circle cx="60.00" cy="84.00" r="21" fill="#8e5bd8"/><circle cx="39.22" cy="72.00" r="21" fill="#2f7fd1"/><circle cx="39.22" cy="48.00" r="21" fill="#2eaa6a"/></g><g></g></svg>omnisfera</span><button type="button" id="pular" aria-label="Pular para o final">Pular</button></div>
+  </div>
+  <main class="palco" id="palco" aria-live="polite">
+
+    <section class="cena abre on" data-escuro data-k="#2f7fd1" aria-label="Abertura">
+      <div class="circ" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <h1>A semana da Beatriz</h1>
+      <p>Em dois minutos, veja como uma escola inteira cuida da inclusão de uma estudante: do primeiro olhar até a família.</p>
+      <p class="nota">A Beatriz e a escola são fictícias. As telas são da plataforma de verdade.</p>
+      <div class="seguir"><button class="btn claro" data-prox>Começar</button></div>
+    </section>
+
+    <section class="cena" data-k="#2eaa6a" aria-label="Segunda-feira: conhecer a estudante">
+      <span class="quando">Segunda, 7h40 · Conhecer</span>
+      <h2>Antes de qualquer plano, a escola conhece a Beatriz.</h2>
+      <p class="dica">Toque em três coisas que a professora do AEE observou nela:</p>
+      <div class="chips" id="chips">
+        <button class="chip" aria-pressed="false" data-t="p">Ama dinossauros</button>
+        <button class="chip" aria-pressed="false" data-t="b">Cansa depois de 20 minutos</button>
+        <button class="chip" aria-pressed="false" data-t="p">Lê melhor com imagens</button>
+        <button class="chip" aria-pressed="false" data-t="b">Trava em textos longos</button>
+        <button class="chip" aria-pressed="false" data-t="p">Explica bem como pensou</button>
+        <button class="chip" aria-pressed="false" data-t="b">Troca b e d na escrita</button>
+      </div>
+      <div class="cartao ficha aparece" id="ficha">
+        <div class="dupla"><div><h3>Potencialidades</h3><ul id="pot"></ul></div><div><h3>Barreiras</h3><ul id="bar"></ul></div></div>
+        <p style="font-size:15px">Sem laudo, o estudo de caso já mostra por onde começar.</p>
+      </div>
+      <div class="tela aparece" data-v="estudantes"><small>Tela real · Estudantes</small></div>
+      <div class="seguir"><button class="btn" data-prox disabled id="s1">Continuar</button></div>
+    </section>
+
+    <section class="cena" data-k="#2f7fd1" aria-label="Terça de manhã: o PEI">
+      <span class="quando">Terça, 9h · PEI</span>
+      <h2>A inteligência artificial escreve o rascunho. A professora decide.</h2>
+      <div class="cartao">
+        <div class="rasc" id="rasc"><p>Com o estudo de caso pronto, o rascunho do PEI (Plano Educacional Individualizado) sai em segundos.</p></div>
+        <button class="btn" id="gerar">Gerar o rascunho do PEI</button>
+        <div class="aparece" id="aprovar-w"><button class="btn linha" id="aprovar" style="color:var(--tinta);width:100%">Revisar e aprovar</button></div>
+        <p class="selo aparece" id="selo"><b>✓</b> Aprovado pela professora Ana, do AEE</p>
+      </div>
+      <p class="aparece" id="s2t" style="font-size:15px">Nada entra no PEI sem a aprovação de quem é responsável por ele.</p>
+      <div class="seguir"><button class="btn" data-prox disabled id="s2">Continuar</button></div>
+    </section>
+
+    <section class="cena" data-k="#8e5bd8" aria-label="Terça à tarde: atendimento no AEE">
+      <span class="quando">Terça, 14h · AEE</span>
+      <h2>Cada atendimento vira registro, em poucos toques.</h2>
+      <p class="dica">Hoje a Beatriz montou a ficha técnica de um dinossauro. Como foi o engajamento dela?</p>
+      <div class="escala" id="escala" role="group" aria-label="Engajamento de 1 a 5">
+        <button aria-pressed="false">1</button><button aria-pressed="false">2</button><button aria-pressed="false">3</button><button aria-pressed="false">4</button><button aria-pressed="false">5</button>
+      </div>
+      <div class="legenda"><span>pouco</span><span>muito</span></div>
+      <div class="cartao aparece" id="diario">
+        <b style="font-size:15px">Engajamento nos atendimentos do ciclo</b>
+        <div class="grafico" id="grafico"></div>
+        <p style="font-size:15px" id="diario-t"></p>
+      </div>
+      <div class="tela aparece" data-v="diario"><small>Tela real · Diário de bordo</small></div>
+      <div class="seguir"><button class="btn" data-prox disabled id="s3">Continuar</button></div>
+    </section>
+
+    <section class="cena" data-k="#f28c28" aria-label="Quarta: o plano chega à sala de aula">
+      <span class="quando">Quarta, 10h · Sala de aula comum</span>
+      <h2>O plano chega ao professor regente.</h2>
+      <div class="cartao aviso"><span class="pt">E</span><div><b>Novo PEI para ler: Beatriz, 7º ano</b><span>Professor Eduardo, Geografia</span></div></div>
+      <button class="btn" id="ciencia">Ler e dar ciência</button>
+      <div class="cartao aparece" id="estrat">
+        <b style="font-size:15px">Na aula de Geografia do Eduardo:</b>
+        <ol class="estrat"><li>Mapas com imagem e legenda curta.</li><li>Tarefas longas divididas em partes de 15 minutos.</li><li>A Beatriz explica o raciocínio em voz alta.</li></ol>
+        <p class="selo"><b>✓</b> Ciência registrada. A coordenação vê.</p>
+      </div>
+      <div class="tela aparece" data-v="pei-professor"><small>Tela real · PEI do professor</small></div>
+      <div class="seguir"><button class="btn" data-prox disabled id="s4">Continuar</button></div>
+    </section>
+
+    <section class="cena" data-k="#e5484d" aria-label="Sexta: a coordenação acompanha">
+      <span class="quando">Sexta, 16h · Coordenação</span>
+      <h2>A coordenação vê a escola inteira, sem planilha.</h2>
+      <button class="btn" id="painel">Abrir o painel da semana</button>
+      <div class="nums aparece" id="nums">
+        <div><b data-n="4">0</b><span>estudantes acompanhados</span></div>
+        <div><b data-n="2">0</b><span>PEIs em vigor</span></div>
+        <div><b data-n="2">0</b><span>pedem atenção</span></div>
+      </div>
+      <ul class="alertas aparece" id="alertas">
+        <li><i></i>O PEI do Lucas ainda é rascunho</li>
+        <li><i></i>O ciclo do AEE da Laura terminou: falta planejar o próximo</li>
+      </ul>
+      <div class="tela aparece" data-v="evolucao"><small>Tela real · Evolução e dados</small></div>
+      <div class="seguir"><button class="btn" data-prox disabled id="s5">Continuar</button></div>
+    </section>
+
+    <section class="cena" data-k="#2eaa6a" aria-label="Sexta à noite: a família">
+      <span class="quando">Sexta, 18h · Família</span>
+      <h2>A família entende o plano, em linguagem simples.</h2>
+      <button class="btn" id="liberar">Liberar o resumo para a família</button>
+      <div class="fone aparece" id="fone" aria-label="Mensagem para a família">
+        <span class="de">Escola · resumo do PEI da Beatriz</span>
+      </div>
+      <div class="seguir"><button class="btn" data-prox disabled id="s6">Continuar</button></div>
+    </section>
+
+    <section class="cena fim" data-escuro aria-label="Final">
+      <div class="circ" aria-hidden="true" style="width:110px;height:110px"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <h2>Uma semana. Uma estudante. A escola inteira junto.</h2>
+      <p>Isso é a Omnisfera: estudo de caso, PEI, PAEE, diário, sala de aula comum e família num lugar só.</p>
+      <p class="lei">Do jeito que pedem o Decreto 12.773/2025 e a Portaria MEC 421/2026.</p>
+      <div class="acoes">
+        <a class="btn claro" href="/demonstracao">Entrar na demonstração</a>
+        <a class="btn linha" href="/contato" style="color:#eef1f6">Falar com a equipe</a>
+        <a class="btn linha" id="enviar" style="color:#eef1f6" target="_blank" rel="noopener">Enviar para a direção</a>
+      </div>
+      <button class="voltar" id="recomecar">Ver de novo</button>
+    </section>
+  </main>
+</div>
+<script>
+(function(){
+const cenas=[...document.querySelectorAll('.cena')],app=document.getElementById('app'),barras=document.querySelector('.barras');
+const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let atual=0;
+cenas.forEach(()=>barras.appendChild(document.createElement('i')));
+const $=id=>document.getElementById(id),mostra=(el,d)=>setTimeout(()=>el&&el.classList.add('v'),rm?0:(d||0)),libera=id=>{const b=$(id);if(b){b.disabled=false}};
+function telas(c){c.querySelectorAll('.tela[data-v]').forEach(t=>{if(t.querySelector('video'))return;const v=t.dataset.v,el=document.createElement('video');
+  el.muted=true;el.loop=true;el.playsInline=true;el.setAttribute('playsinline','');el.poster='/tutoriais/'+v+'.webp';el.preload='metadata';el.setAttribute('aria-hidden','true');
+  el.innerHTML='<source src="/tutoriais/'+v+'.mp4" type="video/mp4">';t.prepend(el)})}
+function vai(i){if(i<0||i>=cenas.length||i===atual&&cenas[i].classList.contains('on'))return;
+  const ant=cenas[atual];ant.classList.remove('on');ant.classList.add('sai');ant.querySelectorAll('video').forEach(v=>v.pause());
+  setTimeout(()=>ant.classList.remove('sai'),600);
+  atual=i;const c=cenas[i];c.style.setProperty('--k',c.dataset.k||'#2f7fd1');c.classList.add('on');c.scrollTop=0;
+  app.classList.toggle('escuro',c.hasAttribute('data-escuro'));
+  [...barras.children].forEach((b,k)=>b.classList.toggle('f',k<=i));
+  telas(c);
+  try{history.replaceState(null,'','#'+(i+1))}catch(e){}
+  const h=c.querySelector('h1,h2');if(h){h.setAttribute('tabindex','-1');h.focus({preventScroll:true})}}
+document.querySelectorAll('[data-prox]').forEach(b=>b.addEventListener('click',()=>vai(atual+1)));
+$('pular').addEventListener('click',()=>vai(cenas.length-1));
+$('recomecar').addEventListener('click',()=>{location.hash='';location.reload()});
+// tela real aparece quando a cena tem o gesto feito
+const veTela=c=>{const t=c.querySelector('.tela');if(t){mostra(t,500);const v=t.querySelector('video');if(v)setTimeout(()=>v.play().catch(()=>{}),rm?0:600)}};
+
+/* 1: conhecer */
+const pot=$('pot'),bar=$('bar');
+$('chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',on);
+  pot.innerHTML='';bar.innerHTML='';
+  document.querySelectorAll('#chips .chip[aria-pressed=true]').forEach(x=>{const li=document.createElement('li');li.textContent=x.textContent;
+    li.style.setProperty('--cor',x.dataset.t==='p'?'var(--c6)':'var(--c3)');(x.dataset.t==='p'?pot:bar).appendChild(li)});
+  const n=document.querySelectorAll('#chips .chip[aria-pressed=true]').length;
+  if(n>=1)mostra($('ficha'));if(n>=3){libera('s1');veTela(cenas[1])}});
+
+/* 2: PEI */
+const metas=['Usar o interesse por dinossauros para engajar a Beatriz em tarefas de leitura e escrita.','Ler com fluência palavras de uso frequente e frases curtas.','Fazer tarefas com mais autonomia, dividindo-as em partes.'];
+$('gerar').addEventListener('click',function(){this.disabled=true;this.textContent='Escrevendo o rascunho…';const r=$('rasc');
+  r.innerHTML='<div class="brilho"></div><div class="brilho" style="width:80%"></div><div class="brilho" style="width:90%"></div>';
+  setTimeout(()=>{r.innerHTML='<b style="font-size:14px">Metas do bimestre (rascunho)</b><ol id="ol"></ol>';const ol=$('ol');let mi=0;
+    const escreve=()=>{if(mi>=metas.length){r.querySelector('.cursor')?.classList.remove('cursor');$('gerar').hidden=true;mostra($('aprovar-w'));return}
+      const li=document.createElement('li');li.className='cursor';ol.appendChild(li);const t=metas[mi];let k=0;
+      const passo=()=>{if(rm){li.textContent=t;k=t.length}else{li.textContent=t.slice(0,k+=2)}
+        if(k<t.length)setTimeout(passo,18);else{li.classList.remove('cursor');mi++;setTimeout(escreve,180)}};passo()};
+    escreve()},rm?0:1100)});
+$('aprovar').addEventListener('click',function(){this.disabled=true;this.textContent='Revisado';mostra($('selo'));mostra($('s2t'),250);libera('s2')});
+
+/* 3: AEE */
+const hist=[2,3,3,3,4];
+$('escala').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  $('escala').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));const n=+b.textContent;
+  const g=$('grafico');g.innerHTML=[...hist,n].map((v,k)=>`<div><i data-h="${v}"></i>${k<hist.length?'sem '+(k+1):'hoje'}</div>`).join('');
+  mostra($('diario'));setTimeout(()=>g.querySelectorAll('i').forEach(i=>i.style.height=(i.dataset.h*20)+'px'),rm?0:120);
+  $('diario-t').textContent=n>=4?'Seis semanas de diário mostram: o engajamento da Beatriz subiu de 2 para '+n+'. Isso vira evidência para revisar o PEI.':'Registrado. Com o histórico do ciclo, a professora vê o que funcionou e ajusta a estratégia.';
+  libera('s3');veTela(cenas[3])});
+
+/* 4: sala comum */
+$('ciencia').addEventListener('click',function(){this.disabled=true;this.textContent='PEI lido';mostra($('estrat'));libera('s4');veTela(cenas[4])});
+
+/* 5: coordenação */
+$('painel').addEventListener('click',function(){this.hidden=true;mostra($('nums'));mostra($('alertas'),500);
+  document.querySelectorAll('#nums b').forEach(b=>{const n=+b.dataset.n;let k=0;const t=setInterval(()=>{b.textContent=++k;if(k>=n)clearInterval(t)},rm?0:220)});
+  libera('s5');veTela(cenas[5])});
+
+/* 6: família */
+$('liberar').addEventListener('click',function(){this.disabled=true;this.textContent='Resumo enviado';const f=$('fone');mostra(f);
+  f.insertAdjacentHTML('beforeend','<p class="bal esc">Olá, família da Beatriz! Neste bimestre ela trabalha três metas: ler frases curtas com fluência, usar o gosto por dinossauros nas leituras e fazer as tarefas por partes. Nesta semana, ela escreveu sozinha a ficha de um dinossauro.</p><p class="bal fam">Que alegria! Em casa ela só fala disso. Obrigada por contarem.</p>');
+  libera('s6')});
+
+/* fim */
+const msg='Conheça a semana da Beatriz: como a escola inteira cuida da inclusão com a Omnisfera. https://www.omnisfera.net/conheca';
+$('enviar').href='https://wa.me/?text='+encodeURIComponent(msg);
+
+// teclado: setas
+addEventListener('keydown',e=>{if(e.key==='ArrowRight'){const b=cenas[atual].querySelector('[data-prox]');if(b&&!b.disabled)vai(atual+1)}if(e.key==='ArrowLeft')vai(atual-1)});
+vai(0);cenas[0].style.setProperty('--k','#2f7fd1');[...barras.children][0].classList.add('f');
+})();
+</script>
+</body>
+</html>
