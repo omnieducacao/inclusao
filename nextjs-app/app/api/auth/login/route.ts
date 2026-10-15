@@ -9,6 +9,7 @@ import {
 } from "@/lib/auth";
 import { createSession } from "@/lib/session";
 import { logger } from "@/lib/logger";
+import { registrarAcesso } from "@/lib/acessos";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AUTH); if (rl) return rl;
@@ -80,6 +81,12 @@ export async function POST(req: Request) {
       family_responsible_id: found.role === "family" ? (found.user.id as string) : undefined,
       is_platform_admin: false,
       terms_accepted: found.role === "master" ? true : found.role === "family" ? (found.user.terms_accepted as boolean | undefined) ?? true : (found.user.terms_accepted as boolean | undefined) || false,
+    });
+
+    await registrarAcesso({
+      tipo: "login", workspace_id: found.workspace_id, workspace_nome: found.workspace_name,
+      usuario_nome: (found.user.nome as string) || email,
+      papel: found.role === "master" ? "gestão (conta principal)" : found.role === "family" ? "família" : ((found.user.papel as string) || (found.user.cargo as string) || "equipe"),
     });
 
     return NextResponse.json({

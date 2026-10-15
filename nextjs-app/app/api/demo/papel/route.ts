@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   const { papel } = (await req.json().catch(() => ({}))) as { papel?: string };
   if (!papelDemoValido(papel)) return NextResponse.json({ error: "Papel inválido." }, { status: 400 });
   try {
-    const destino = await abrirSessaoDemo(papel, session.demo_lead_id ?? null);
+    const destino = await abrirSessaoDemo(papel, session.demo_lead_id ?? null, "demo_papel");
     return NextResponse.json({ ok: true, redirect: destino });
   } catch (err) {
     logger.error({ err }, "POST /api/demo/papel");

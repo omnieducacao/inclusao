@@ -263,6 +263,13 @@ h2{font-size:30px}
 </div>
 <script>
 (function(){
+/* medição do site (onda 57): visitas, cliques e marcos, sem cookie e sem guardar IP */
+const omEv=(t,a)=>{try{const q=new URLSearchParams(location.search),b=JSON.stringify({t,p:location.pathname,a:a||null,r:t==='visita'?document.referrer:'',u:{s:q.get('utm_source'),m:q.get('utm_medium'),c:q.get('utm_campaign')}});
+  if(navigator.sendBeacon&&navigator.sendBeacon('/api/public/evento',new Blob([b],{type:'text/plain'})))return;fetch('/api/public/evento',{method:'POST',body:b,keepalive:true}).catch(()=>{})}catch(e){}};
+const alvoDe=h=>/wa\.me|whatsapp/.test(h)?'whatsapp':/omniprof/.test(h)?'omniprof':/\/demonstracao/.test(h)?'demonstracao':/\/contato/.test(h)?'contato':/\/conheca/.test(h)?'conheca':/#omnisfera/.test(h)?'plataforma':/\/login/.test(h)?'entrar':/\/formacao/.test(h)?'formacao':null;
+omEv('visita');
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href],[data-ev]');if(!a)return;const ev=a.dataset.ev||alvoDe(a.getAttribute('href')||'');if(ev)omEv('clique',ev)},true);
+let pulou=false;
 const cenas=[...document.querySelectorAll('.cena')],app=document.getElementById('app'),barras=document.querySelector('.barras');
 const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let atual=0;
@@ -279,9 +286,10 @@ function vai(i){if(i<0||i>=cenas.length||i===atual&&cenas[i].classList.contains(
   [...barras.children].forEach((b,k)=>b.classList.toggle('f',k<=i));
   telas(c);
   try{history.replaceState(null,'','#'+(i+1))}catch(e){}
+  omEv('marco','conheca:cena:'+(i+1));if(i===cenas.length-1&&!pulou)omEv('marco','conheca:fim');
   const h=c.querySelector('h1,h2');if(h){h.setAttribute('tabindex','-1');h.focus({preventScroll:true})}}
 document.querySelectorAll('[data-prox]').forEach(b=>b.addEventListener('click',()=>vai(atual+1)));
-$('pular').addEventListener('click',()=>vai(cenas.length-1));
+$('pular').addEventListener('click',()=>{pulou=true;omEv('clique','conheca:pular');vai(cenas.length-1)});
 $('recomecar').addEventListener('click',()=>{location.hash='';location.reload()});
 // tela real aparece quando a cena tem o gesto feito
 const veTela=c=>{const t=c.querySelector('.tela');if(t){mostra(t,500);const v=t.querySelector('video');if(v)setTimeout(()=>v.play().catch(()=>{}),rm?0:600)}};
@@ -336,6 +344,7 @@ $('enviar').href='https://wa.me/?text='+encodeURIComponent(msg);
 // teclado: setas
 addEventListener('keydown',e=>{if(e.key==='ArrowRight'){const b=cenas[atual].querySelector('[data-prox]');if(b&&!b.disabled)vai(atual+1)}if(e.key==='ArrowLeft')vai(atual-1)});
 vai(0);cenas[0].style.setProperty('--k','#2f7fd1');[...barras.children][0].classList.add('f');
+omEv('marco','conheca:cena:1');
 })();
 </script>
 </body>

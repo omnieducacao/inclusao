@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { SessionPayload } from "@/lib/session";
-import { School, Users, Cpu, BarChart3, ScrollText, ShieldCheck, Megaphone, FileText, Bug, Camera, Palette, PanelTop, Inbox, RefreshCw } from "lucide-react";
+import { School, Users, Cpu, BarChart3, ScrollText, ShieldCheck, Megaphone, FileText, Bug, Camera, Inbox, Globe, LogIn, RefreshCw } from "lucide-react";
 import { MensagemAdmin, type Mensagem } from "./components/MensagemAdmin";
 import { EscolasTab } from "./components/EscolasTab";
 import { WorkspaceCard } from "./components/WorkspaceCard";
@@ -16,10 +16,10 @@ import { UsuariosTab } from "./components/UsuariosTab";
 import { LogsTab } from "./components/LogsTab";
 import { AvisosTab } from "./components/AvisosTab";
 import { InstagramFeedTab } from "./components/InstagramFeedTab";
-import { AparenciaTab } from "./components/AparenciaTab";
-import { TopbarTab } from "./components/TopbarTab";
 import { AuditoriaTab } from "./components/AuditoriaTab";
 import { LeadsTab } from "./components/LeadsTab";
+import { SiteTab } from "./components/SiteTab";
+import { AcessosTab } from "./components/AcessosTab";
 
 type Workspace = {
   id: string;
@@ -35,7 +35,7 @@ type Workspace = {
   created_at?: string;
 };
 
-type TabId = "escolas" | "usuarios" | "uso-ia" | "dashboard" | "logs" | "auditoria" | "avisos" | "termo" | "bugs" | "instagram" | "aparencia" | "topbar" | "contatos";
+type TabId = "escolas" | "usuarios" | "uso-ia" | "dashboard" | "logs" | "auditoria" | "avisos" | "termo" | "bugs" | "instagram" | "contatos" | "site" | "acessos";
 
 const SEGMENT_OPTIONS: Record<string, string> = {
   EI: "Educação Infantil",
@@ -177,16 +177,16 @@ export function AdminClient({ session }: { session: SessionPayload }) {
     { id: "termo", label: "Termo de uso", Icone: FileText },
     { id: "bugs", label: "Erros relatados", Icone: Bug },
     { id: "instagram", label: "Instagram", Icone: Camera },
-    { id: "aparencia", label: "Aparência", Icone: Palette },
-    { id: "topbar", label: "Barra do topo", Icone: PanelTop },
     { id: "contatos", label: "Contatos", Icone: Inbox },
+    { id: "site", label: "Site e funil", Icone: Globe },
+    { id: "acessos", label: "Acessos", Icone: LogIn },
   ];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <div>
         <h1 style={{ font: "800 28px/34px var(--font-sans)", color: "var(--tinta)", margin: 0 }}>Administração da Omnisfera</h1>
-        <p className="omni-apoio" style={{ marginTop: 4 }}>Escolas, usuários, avisos e aparência da plataforma.</p>
+        <p className="omni-apoio" style={{ marginTop: 4 }}>Escolas, usuários, contatos, visitas ao site e acessos à plataforma.</p>
       </div>
 
       {/* Abas */}
@@ -241,9 +241,9 @@ export function AdminClient({ session }: { session: SessionPayload }) {
       {activeTab === "termo" && <TermoTab />}
       {activeTab === "bugs" && <BugsTab />}
       {activeTab === "instagram" && <InstagramFeedTab />}
-      {activeTab === "aparencia" && <AparenciaTab />}
-      {activeTab === "topbar" && <TopbarTab />}
       {activeTab === "contatos" && <LeadsTab />}
+      {activeTab === "site" && <SiteTab />}
+      {activeTab === "acessos" && <AcessosTab />}
       </div>
     </div>
 

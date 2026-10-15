@@ -1,6 +1,13 @@
 /* Omnisfera · site.js — símbolo vivo, navegação, quiz, checklists, glossário */
 (function(){
 document.documentElement.classList.remove('no-js');
+/* medição do site (onda 57): visitas, cliques e marcos, sem cookie e sem guardar IP */
+const omEv=(t,a)=>{try{const q=new URLSearchParams(location.search),b=JSON.stringify({t,p:location.pathname,a:a||null,r:t==='visita'?document.referrer:'',u:{s:q.get('utm_source'),m:q.get('utm_medium'),c:q.get('utm_campaign')}});
+  if(navigator.sendBeacon&&navigator.sendBeacon('/api/public/evento',new Blob([b],{type:'text/plain'})))return;fetch('/api/public/evento',{method:'POST',body:b,keepalive:true}).catch(()=>{})}catch(e){}};
+window.omEv=omEv;
+const alvoDe=h=>/wa\.me|whatsapp/.test(h)?'whatsapp':/omniprof/.test(h)?'omniprof':/\/demonstracao/.test(h)?'demonstracao':/\/contato/.test(h)?'contato':/\/conheca/.test(h)?'conheca':/#omnisfera/.test(h)?'plataforma':/\/login/.test(h)?'entrar':/\/formacao/.test(h)?'formacao':null;
+omEv('visita');
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href],[data-ev]');if(!a)return;const ev=a.dataset.ev||alvoDe(a.getAttribute('href')||'');if(ev)omEv('clique',ev)},true);
 const COL=['#e5484d','#f5b82e','#f28c28','#8e5bd8','#2f7fd1','#2eaa6a'];
 const NS='http://www.w3.org/2000/svg', D=24, R=21;
 const cl=x=>Math.max(0,Math.min(1,x)), sm=x=>{x=cl(x);return x*x*(3-2*x)};
@@ -86,7 +93,7 @@ if(qz){const data=JSON.parse(qz.textContent),box=document.querySelector('.quiz .
       b.addEventListener('click',()=>{opts.querySelectorAll('button').forEach((x,j)=>{x.disabled=true;if(j===q[2])x.classList.add('ok')});
         if(i!==q[2])b.classList.add('no');else ok++;done++;why.hidden=false;why.innerHTML=(i===q[2]?'<strong>Isso.</strong> ':'<strong>Não é bem assim.</strong> ')+q[3];sc.textContent=ok;
         if(done===data.length){mostrarRefazer();sc.parentElement.setAttribute('aria-label',`${ok} de ${data.length} acertos`);
-          if(qsec){const v=fq.get();v[qsec.dataset.tema]={ok,total:data.length,em:new Date().toISOString().slice(0,10)};fq.set(v);if(qfeito)qfeito.hidden=false}}});
+          if(qsec){const v=fq.get();if(!v[qsec.dataset.tema])omEv('marco','formacao:tema:'+qsec.dataset.tema);v[qsec.dataset.tema]={ok,total:data.length,em:new Date().toISOString().slice(0,10)};fq.set(v);if(qfeito)qfeito.hidden=false}}});
       opts.appendChild(b)});
     box.appendChild(fs)})}
 
@@ -120,6 +127,7 @@ if(cert){const cfg=JSON.parse(document.getElementById('cert-data').textContent),
     lista.innerHTML=t.temas.map(x=>{const ok=!!feitos[x.slug];if(ok)n++;return `<li class="${ok?'ok':''}"><a href="/${x.slug}/#qz">${esc(x.titulo)}</a><span>${ok?'concluído':'falta responder'}</span></li>`}).join('');
     prog.innerHTML=`<b>${n}</b> de ${t.temas.length} temas concluídos · certificado de ${t.horas} horas`;
     const pronto=n===t.temas.length,f=t.temas.length-n;form.hidden=!pronto;falta.hidden=pronto;
+    if(pronto){try{const k='om-cert-lib:'+tr;if(!localStorage.getItem(k)){localStorage.setItem(k,'1');omEv('marco','certificado:liberado')}}catch(e){}}
     const md=cert.querySelector('.cert-modelo');if(md){md.dataset.estado=pronto?'liberado':'bloqueado';
       md.querySelector('.cm-trilha').textContent=t.nome;md.querySelector('.cm-horas').textContent=`${t.horas} horas`;
       md.querySelector('.cm-estado').textContent=pronto?'Liberado · emita abaixo':`Bloqueado · ${f===1?'falta 1 tema':`faltam ${f} temas`}`}};

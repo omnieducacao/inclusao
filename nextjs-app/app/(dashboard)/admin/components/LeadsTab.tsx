@@ -15,7 +15,11 @@ type Lead = {
   tipo_instituicao: string | null; faixa_estudantes: string | null; cidade: string | null; uf: string | null;
   mensagem: string | null; origem: "contato" | "demonstracao" | "certificado"; papel_demo: string | null;
   modulos_vistos: string[] | null; status: StatusLead; notas: string | null; created_at: string;
+  certificados?: { codigo: string; trilha: string; horas: number; reflexao: string | null; emitido_em: string }[] | null;
 };
+
+type Origem = Lead["origem"];
+const ROTULO_ORIGEM: Record<Origem, string> = { contato: "Formulário de contato", demonstracao: "Demonstração", certificado: "Certificado da formação" };
 
 const CLASSE: Record<StatusLead, string> = { novo: "omni-estado--info", em_conversa: "omni-estado--atencao", fechado: "omni-estado--sucesso", descartado: "omni-estado--neutro" };
 
@@ -26,13 +30,18 @@ function data(iso: string) {
 function csv(leads: Lead[]) {
   const cols: (keyof Lead)[] = ["created_at", "nome", "email", "telefone", "escola", "cargo", "tipo_instituicao", "faixa_estudantes", "cidade", "uf", "origem", "papel_demo", "status", "mensagem", "notas"];
   const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-  return [cols.join(";"), ...leads.map((l) => cols.map((c) => esc(l[c])).join(";"))].join("\n");
+  const extra = ["certificado_codigo", "certificado_horas", "telas_na_demonstracao"];
+  return [[...cols, ...extra].join(";"), ...leads.map((l) => {
+    const c = l.certificados?.[0];
+    return [...cols.map((k) => esc(l[k])), esc(c?.codigo), esc(c?.horas), esc((l.modulos_vistos || []).join(", "))].join(";");
+  })].join("\n");
 }
 
 export function LeadsTab() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [filtro, setFiltro] = useState<StatusLead | "todos">("todos");
+  const [origem, setOrigem] = useState<Origem | "todas">("todas");
   const [mensagem, setMensagem] = useState<Mensagem | null>(null);
   const [apagar, setApagar] = useState<string | null>(null);
 
@@ -73,7 +82,7 @@ export function LeadsTab() {
     URL.revokeObjectURL(a.href);
   }
 
-  const visiveis = useMemo(() => (filtro === "todos" ? leads : leads.filter((l) => l.status === filtro)), [leads, filtro]);
+  const visiveis = useMemo(() => leads.filter((l) => (filtro === "todos" || l.status === filtro) && (origem === "todas" || l.origem === origem)), [leads, filtro, origem]);
   const contagem = (s: StatusLead) => leads.filter((l) => l.status === s).length;
 
   if (carregando) {
@@ -86,13 +95,20 @@ export function LeadsTab() {
         <h3 id="leads-titulo" style={{ font: "800 18px/24px var(--font-sans)", color: "var(--tinta)", margin: 0 }}>Contatos ({leads.length})</h3>
         <button type="button" className="omni-btn omni-btn--secundario omni-btn--pequeno" onClick={baixar} disabled={!visiveis.length}><Download aria-hidden /> Baixar planilha (CSV)</button>
       </div>
-      <p className="omni-apoio" style={{ margin: 0 }}>Pedidos do formulário &quot;Falar com a equipe&quot; e cadastros de quem entrou na demonstração. Apague quando a pessoa pedir ou depois de 12 meses sem resposta.</p>
+      <p className="omni-apoio" style={{ margin: 0 }}>Pedidos do formulário &quot;Falar com a equipe&quot;, cadastros de quem entrou na demonstração e de quem emitiu o certificado da formação. Apague quando a pessoa pedir ou depois de 12 meses sem resposta.</p>
       <MensagemAdmin mensagem={mensagem} onFechar={() => setMensagem(null)} />
 
       <div role="group" aria-label="Filtrar por situação" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
         <button type="button" className="omni-chip" aria-pressed={filtro === "todos"} onClick={() => setFiltro("todos")}>Todos · {leads.length}</button>
         {STATUS_LEAD.map((s) => (
           <button key={s} type="button" className="omni-chip" aria-pressed={filtro === s} onClick={() => setFiltro(s)}>{ROTULO_STATUS[s]} · {contagem(s)}</button>
+        ))}
+      </div>
+
+      <div role="group" aria-label="Filtrar por origem" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        <button type="button" className="omni-chip" aria-pressed={origem === "todas"} onClick={() => setOrigem("todas")}>Todas as origens</button>
+        {(Object.keys(ROTULO_ORIGEM) as Origem[]).map((o) => (
+          <button key={o} type="button" className="omni-chip" aria-pressed={origem === o} onClick={() => setOrigem(o)}>{ROTULO_ORIGEM[o]} · {leads.filter((l) => l.origem === o).length}</button>
         ))}
       </div>
 
@@ -114,7 +130,15 @@ export function LeadsTab() {
               <span>{l.origem === "demonstracao" ? `Demonstração${l.papel_demo ? ` como ${l.papel_demo}` : ""}` : l.origem === "certificado" ? `Certificado da formação${l.papel_demo ? ` · ${l.papel_demo}` : ""}` : "Formulário de contato"} · {data(l.created_at)}</span>
             </p>
             {l.modulos_vistos && l.modulos_vistos.length > 0 && <p className="omni-apoio" style={{ margin: 0 }}>Abriu na demonstração: {l.modulos_vistos.join(", ")}</p>}
-            {l.mensagem && <p style={{ margin: 0, font: "400 15px/22px var(--font-sans)", color: "var(--tinta)", whiteSpace: "pre-wrap" }}>{l.mensagem}</p>}
+            {l.certificados?.[0] && (
+              <div style={{ display: "grid", gap: 4, padding: "10px 12px", borderRadius: 12, background: "var(--acao-suave)" }}>
+                <p className="omni-apoio" style={{ margin: 0 }}>
+                  Certificado de {l.certificados[0].horas} horas · <a href={`/certificado/${l.certificados[0].codigo}`} target="_blank" rel="noopener">{l.certificados[0].codigo}</a> · {data(l.certificados[0].emitido_em)}
+                </p>
+                {l.certificados[0].reflexao && <p style={{ margin: 0, font: "400 15px/22px var(--font-sans)", color: "var(--tinta)" }}><strong>Mudança que vai fazer na aula:</strong> {l.certificados[0].reflexao}</p>}
+              </div>
+            )}
+            {l.mensagem && !(l.origem === "certificado" && l.certificados?.[0]?.reflexao) && <p style={{ margin: 0, font: "400 15px/22px var(--font-sans)", color: "var(--tinta)", whiteSpace: "pre-wrap" }}>{l.mensagem}</p>}
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-end" }}>
               <label className="omni-campo" style={{ minWidth: 180 }}>
                 <span className="omni-campo__rotulo">Situação</span>

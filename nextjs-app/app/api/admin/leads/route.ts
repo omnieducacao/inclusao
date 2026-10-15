@@ -15,7 +15,7 @@ export async function GET() {
   try {
     const { data, error } = await getSupabase()
       .from("leads")
-      .select("id, nome, email, telefone, escola, cargo, tipo_instituicao, faixa_estudantes, cidade, uf, mensagem, origem, papel_demo, modulos_vistos, status, notas, created_at")
+      .select("id, nome, email, telefone, escola, cargo, tipo_instituicao, faixa_estudantes, cidade, uf, mensagem, origem, papel_demo, modulos_vistos, status, notas, created_at, certificados(codigo, trilha, horas, reflexao, emitido_em)")
       .order("created_at", { ascending: false })
       .limit(500);
     if (error) throw error;
