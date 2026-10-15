@@ -70,16 +70,23 @@ if(tocLinks.length&&'IntersectionObserver' in window){const map=new Map(tocLinks
   const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){tocLinks.forEach(a=>a.classList.remove('on'));const a=map.get(e.target.id);if(a)a.classList.add('on')}})},{rootMargin:'-20% 0px -70% 0px'});
   map.forEach((a,id)=>{const el=document.getElementById(id);if(el)io.observe(el)})}
 
-/* quiz */
+/* quiz (onda 53: guarda a conclusão de cada tema para o certificado) */
+const FQ='om-formacao',fq={get(){try{return JSON.parse(localStorage.getItem(FQ)||'{}')||{}}catch(e){return {}}},set(v){try{localStorage.setItem(FQ,JSON.stringify(v))}catch(e){}}};
+const qsec=document.querySelector('.quiz[data-tema]'),qfeito=document.querySelector('.quiz-feito');
+if(qsec&&qfeito&&fq.get()[qsec.dataset.tema])qfeito.hidden=false;
 const qz=document.getElementById('quiz-data');
 if(qz){const data=JSON.parse(qz.textContent),box=document.querySelector('.quiz .qs'),sc=document.querySelector('.quiz-score b');let ok=0,done=0;
+  const rf=document.createElement('button');rf.type='button';rf.className='btn quiz-refazer';rf.textContent='Refazer as que errei';rf.hidden=true;box.after(rf);
+  const mostrarRefazer=()=>{rf.hidden=ok>=data.length};
+  rf.addEventListener('click',()=>{box.querySelectorAll('.qq').forEach(fs=>{if(!fs.querySelector('button.no'))return;fs.querySelectorAll('.opts button').forEach(x=>{x.disabled=false;x.classList.remove('ok','no')});fs.querySelector('.why').hidden=true;done--});rf.hidden=true;const p=box.querySelector('.qq button:not([disabled])');if(p)p.focus()});
   data.forEach((q,qi)=>{const fs=document.createElement('div');fs.className='qq';
     fs.innerHTML=`<fieldset><legend>${qi+1}. ${q[0]}</legend><div class="opts"></div></fieldset><div class="why" hidden></div>`;
     const opts=fs.querySelector('.opts'),why=fs.querySelector('.why');
     q[1].forEach((t,i)=>{const b=document.createElement('button');b.type='button';b.innerHTML=`<span class="l">${'ABCD'[i]}</span><span>${t}</span>`;
       b.addEventListener('click',()=>{opts.querySelectorAll('button').forEach((x,j)=>{x.disabled=true;if(j===q[2])x.classList.add('ok')});
         if(i!==q[2])b.classList.add('no');else ok++;done++;why.hidden=false;why.innerHTML=(i===q[2]?'<strong>Isso.</strong> ':'<strong>Não é bem assim.</strong> ')+q[3];sc.textContent=ok;
-        if(done===data.length)sc.parentElement.setAttribute('aria-label',`${ok} de ${data.length} acertos`)});
+        if(done===data.length){mostrarRefazer();sc.parentElement.setAttribute('aria-label',`${ok} de ${data.length} acertos`);
+          if(qsec){const v=fq.get();v[qsec.dataset.tema]={ok,total:data.length,em:new Date().toISOString().slice(0,10)};fq.set(v);if(qfeito)qfeito.hidden=false}}});
       opts.appendChild(b)});
     box.appendChild(fs)})}
 
@@ -103,4 +110,36 @@ if(fl.length){fl.forEach(b=>b.addEventListener('click',()=>{fl.forEach(x=>x.setA
   document.querySelectorAll('.trow').forEach(r=>{const v=p==='all'||r.dataset.p.split(' ').includes(p);r.hidden=!v;if(v)m+=+r.dataset.min});
   const t=document.getElementById('trilhaTempo');if(t)t.textContent='≈ '+m+' min de leitura'}));
   const h=location.hash.slice(1);const hb=[...fl].find(b=>b.dataset.p===h);if(hb)hb.click()}
+/* certificado de conclusão (onda 53) */
+const cert=document.getElementById('certificado');
+if(cert){const cfg=JSON.parse(document.getElementById('cert-data').textContent),bts=[...cert.querySelectorAll('.cert-trilhas button')],lista=cert.querySelector('.cert-temas'),prog=cert.querySelector('.cert-prog'),form=cert.querySelector('.cert-form'),falta=cert.querySelector('.cert-falta'),erro=cert.querySelector('.cert-erro');
+  let tr=(()=>{try{return localStorage.getItem('om-trilha')}catch(e){return null}})()||'prof';if(!cfg[tr])tr='prof';
+  const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const draw=()=>{const t=cfg[tr],feitos=fq.get();let n=0;
+    bts.forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===tr?'true':'false'));
+    lista.innerHTML=t.temas.map(x=>{const ok=!!feitos[x.slug];if(ok)n++;return `<li class="${ok?'ok':''}"><a href="/${x.slug}/#qz">${esc(x.titulo)}</a><span>${ok?'concluído':'falta responder'}</span></li>`}).join('');
+    prog.innerHTML=`<b>${n}</b> de ${t.temas.length} temas concluídos · certificado de ${t.horas} horas`;
+    const pronto=n===t.temas.length;form.hidden=!pronto;falta.hidden=pronto};
+  bts.forEach(b=>b.addEventListener('click',()=>{tr=b.dataset.t;try{localStorage.setItem('om-trilha',tr)}catch(e){}draw()}));
+  form.addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(form),bt=form.querySelector('button[type=submit]');
+    form.querySelectorAll('[aria-invalid]').forEach(x=>x.removeAttribute('aria-invalid'));erro.hidden=true;bt.disabled=true;bt.textContent='Emitindo…';
+    const corpo={nome:f.get('nome'),email:f.get('email'),escola:f.get('escola'),telefone:f.get('telefone'),site:f.get('site'),trilha:tr,reflexao:f.get('reflexao'),consentimento:f.get('consentimento')==='sim'};
+    try{const r=await fetch('/api/public/certificado',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(corpo)}),d=await r.json().catch(()=>({}));
+      if(r.ok&&d.redirect){bt.textContent='Abrindo o certificado…';location.href=d.redirect;return}
+      const er=d.erros||{};Object.keys(er).forEach(k=>{const el=form.querySelector(`[name=${k}]`);if(el)el.setAttribute('aria-invalid','true')});
+      erro.textContent=Object.values(er)[0]||d.error||'Não foi possível emitir agora.';erro.hidden=false}
+    catch(x){erro.textContent='Sem conexão. Confira a internet e tente de novo.';erro.hidden=false}
+    bt.disabled=false;bt.textContent='Emitir o certificado'});
+  draw()}
+
+/* formação: temas concluídos e continuar de onde parou (onda 54) */
+const trows=document.querySelectorAll('.track .trow');
+if(trows.length){const feitos=fq.get();
+  trows.forEach(a=>{const sl=(a.getAttribute('href')||'').replace(/^\/|\/$/g,'');if(feitos[sl])a.classList.add('feito')});
+  const cont=document.getElementById('continuar'),cd=document.getElementById('cert-data');
+  if(cont&&cd&&Object.keys(feitos).length){let tr=null;try{tr=localStorage.getItem('om-trilha')}catch(e){}
+    const cfg=JSON.parse(cd.textContent),t=cfg[tr]||cfg.prof,n=t.temas.filter(x=>feitos[x.slug]).length,prox=t.temas.find(x=>!feitos[x.slug]);
+    cont.innerHTML=prox?`<span><b>${n}</b> de ${t.temas.length} temas da sua trilha concluídos</span><a class="btn solid" href="/${prox.slug}/">Continuar: ${prox.titulo} →</a>`
+      :`<span>Você concluiu a trilha <b>${t.nome}</b>.</span><a class="btn solid" href="#certificado">Emitir o certificado →</a>`;
+    cont.hidden=false}}
 })();

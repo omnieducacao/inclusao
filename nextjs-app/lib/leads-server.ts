@@ -4,7 +4,7 @@ import { ehRobo, validarLead } from "@/lib/leads";
 
 const LIMITE_POR_HORA = 5;
 
-function hashDoIp(req: Request): string | null {
+export function hashDoIp(req: Request): string | null {
   const ip = (req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "").split(",")[0].trim();
   if (!ip) return null;
   return createHash("sha256").update(`omnisfera-leads:${ip}`).digest("hex").slice(0, 32);

@@ -13,7 +13,7 @@ import { ROTULO_STATUS, STATUS_LEAD, type StatusLead } from "@/lib/leads";
 type Lead = {
   id: string; nome: string; email: string; telefone: string | null; escola: string; cargo: string;
   tipo_instituicao: string | null; faixa_estudantes: string | null; cidade: string | null; uf: string | null;
-  mensagem: string | null; origem: "contato" | "demonstracao"; papel_demo: string | null;
+  mensagem: string | null; origem: "contato" | "demonstracao" | "certificado"; papel_demo: string | null;
   modulos_vistos: string[] | null; status: StatusLead; notas: string | null; created_at: string;
 };
 
@@ -111,7 +111,7 @@ export function LeadsTab() {
             <p className="omni-apoio" style={{ margin: 0, display: "flex", flexWrap: "wrap", gap: "4px 16px" }}>
               <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}><Mail aria-hidden width={16} height={16} /> <span style={{ userSelect: "all" }}>{l.email}</span></span>
               {l.telefone && <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}><Phone aria-hidden width={16} height={16} /> <span style={{ userSelect: "all" }}>{l.telefone}</span></span>}
-              <span>{l.origem === "demonstracao" ? `Demonstração${l.papel_demo ? ` como ${l.papel_demo}` : ""}` : "Formulário de contato"} · {data(l.created_at)}</span>
+              <span>{l.origem === "demonstracao" ? `Demonstração${l.papel_demo ? ` como ${l.papel_demo}` : ""}` : l.origem === "certificado" ? `Certificado da formação${l.papel_demo ? ` · ${l.papel_demo}` : ""}` : "Formulário de contato"} · {data(l.created_at)}</span>
             </p>
             {l.modulos_vistos && l.modulos_vistos.length > 0 && <p className="omni-apoio" style={{ margin: 0 }}>Abriu na demonstração: {l.modulos_vistos.join(", ")}</p>}
             {l.mensagem && <p style={{ margin: 0, font: "400 15px/22px var(--font-sans)", color: "var(--tinta)", whiteSpace: "pre-wrap" }}>{l.mensagem}</p>}
