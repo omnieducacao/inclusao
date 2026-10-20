@@ -31,7 +31,7 @@
 
   --text-primary: #0f172a;
   --text-secondary: #475569;
-  --text-muted: #94a3b8;
+  --text-muted: #5b6b80;
   --text-inverse: #ffffff;
 
   --border-default: rgba(226, 232, 240, 0.6);
@@ -358,7 +358,7 @@ html.cb-tritanopia {
 
   --text-primary: #e2e8f0;
   --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-muted: #8391a7;
   --text-inverse: #0f172a;
 
   --border-default: rgba(51, 65, 85, 0.5);
@@ -450,7 +450,7 @@ html.cb-tritanopia {
 
   --text-primary: #1c1917;
   --text-secondary: #57534e;
-  --text-muted: #a8a29e;
+  --text-muted: #6f6a64;
   --text-inverse: #ffffff;
 
   --border-default: rgba(214, 200, 181, 0.45);
