@@ -16,7 +16,7 @@
     "analyze": "cross-env ANALYZE=true next build --webpack",
     "lhci": "lhci autorun",
     "lint-staged": "lint-staged",
-    "prepare": "husky"
+    "prepare": "cd .. && husky nextjs-app/.husky"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.73.0",
