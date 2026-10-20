@@ -5,6 +5,7 @@
 (function(){
 const COL=['#e5484d','#f5b82e','#f28c28','#8e5bd8','#2f7fd1','#2eaa6a'];
 const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(rm)document.querySelectorAll('.rio-linha').forEach((l,i)=>{l.tabIndex=0;l.setAttribute('role','region');l.setAttribute('aria-label','Fotos, fileira '+(i+1)+'. Use as setas para rolar.')});
 const sm=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x)};
 const lerp=(a,b,t)=>a+(b-a)*t;
 function fit(cv){const r=cv.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);cv.width=Math.round(r.width*d);cv.height=Math.round(r.height*d);const ctx=cv.getContext('2d');ctx.setTransform(d,0,0,d,0,0);return {ctx,w:r.width,h:r.height}}
@@ -133,7 +134,7 @@ document.querySelectorAll('.rio').forEach(r=>{
   // ciclo da jornada: clicar na bolinha leva à etapa
   const jor=document.getElementById('jornada');
   if(jor){const steps=[...jor.querySelectorAll('.js')];
-    jor.querySelectorAll('.jor-ciclo li').forEach((li,i)=>{li.setAttribute('role','button');li.tabIndex=0;li.setAttribute('aria-label','Ir para a etapa '+(i+1)+': '+li.textContent.trim());
+    jor.querySelectorAll('.jor-ciclo li').forEach((li,i)=>{
       const go=()=>{const s=steps[i];if(!s)return;const y=s.getBoundingClientRect().top+scrollY-innerHeight*.4;scrollTo({top:y,behavior:rm?'auto':'smooth'})};
-      li.addEventListener('click',go);li.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}})})}
+      li.addEventListener('click',go)})}
 })();
