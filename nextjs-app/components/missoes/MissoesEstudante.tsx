@@ -153,7 +153,7 @@ export function MissoesEstudante({ studentId, nome, familia }: { studentId: stri
         <div style={{ display: "grid", gap: 8 }}>
           <h3 style={{ margin: 0, font: "700 16px/22px var(--font-sans)", color: "var(--tinta)" }}>Em andamento</h3>
           {ativas.length === 0 ? (
-            <p className="omni-apoio" style={{ margin: 0 }}>Nenhuma missão ativa. Comece pelo "Sugerir com IA": as sugestões saem das metas do PEI.</p>
+            <p className="omni-apoio" style={{ margin: 0 }}>Nenhuma missão ativa. Comece pelo &ldquo;Sugerir com IA&rdquo;: as sugestões saem das metas do PEI.</p>
           ) : (
             <ul className="grid grid-cols-1 lg:grid-cols-2 gap-3" style={{ listStyle: "none", margin: 0, padding: 0 }}>
               {ativas.map((m) => (
