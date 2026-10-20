@@ -142,7 +142,7 @@ svg.sym{display:block;overflow:visible}
 @media (max-width:860px){.roles{grid-template-columns:1fr}}
 .role{display:grid;gap:12px;padding:28px;border-radius:var(--r) var(--r) var(--r) var(--rs);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:#eef1f6;text-decoration:none;transition:background .2s}
 .role:hover{background:rgba(255,255,255,.08)}
-.role .tag{font-family:var(--m);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--a)}
+.role .tag{font-family:var(--m);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:color-mix(in srgb,var(--a) 45%,#fff)}
 .role h3{font-size:23px;font-weight:800}
 .role p{color:#b9c3d4;font-size:15.5px}
 .role .meta{display:flex;gap:14px;font-family:var(--m);font-size:12.5px;color:#9aa6bb}
@@ -244,7 +244,7 @@ svg.sym{display:block;overflow:visible}
 .analogy-label{font-family:var(--m);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ak);margin-bottom:8px}
 .myth{border-radius:18px;background:var(--paper);border:1px solid var(--line);overflow:hidden}
 .myth-hdr{display:flex;gap:12px;align-items:baseline;padding:16px 22px;background:var(--t1)}
-.myth-badge{flex:none;font-family:var(--m);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--c1);padding:3px 9px;border-radius:999px}
+.myth-badge{flex:none;font-family:var(--m);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--paper);background:var(--k1);padding:3px 9px;border-radius:999px}
 .myth-title{font-weight:700;color:var(--ink)}
 .myth-body{padding:16px 22px}
 .myth-body strong:first-child{color:var(--k6)}
@@ -693,7 +693,7 @@ svg.grow .vl{font-family:var(--f);font-weight:800;font-size:17px;fill:var(--ink)
 .cert-temas{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .cert-temas li{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:10px 14px;border-radius:12px;background:var(--soft);font-size:15.5px}
 .cert-temas li span{font-family:var(--m);font-size:12.5px;color:var(--mut);white-space:nowrap}
-.cert-temas li.ok span{color:var(--c6);font-weight:700}
+.cert-temas li.ok span{color:var(--k6);font-weight:700}
 .cert-temas li.ok span::before{content:"✓ "}
 .cert-temas a{color:var(--ink);text-decoration:none}
 .cert-temas a:hover{text-decoration:underline}
@@ -705,7 +705,7 @@ svg.grow .vl{font-family:var(--f);font-weight:800;font-size:17px;fill:var(--ink)
 .cert-form .cert-ok{display:flex;gap:10px;align-items:flex-start;font-weight:400;color:var(--ink2)}
 .cert-form .cert-ok input{width:20px;height:20px;flex:none;margin-top:2px}
 .cert-robo{position:absolute;left:-9999px}
-.cert-erro{color:var(--c1);font-weight:700}
+.cert-erro{color:var(--k1);font-weight:700}
 .cert-form .btn{justify-self:start}
 .quiz-feito{margin-top:14px;padding:12px 16px;border-radius:12px;background:var(--t6);font-weight:600}
 .ponte p b{color:var(--ink)}
@@ -731,7 +731,7 @@ svg.grow .vl{font-family:var(--f);font-weight:800;font-size:17px;fill:var(--ink)
 .quiz-refazer{margin-top:14px}
 .continuar{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;margin:0 0 20px;padding:14px 18px;border-radius:14px;background:var(--t5)}
 .continuar span{font-size:15.5px}
-.trow.feito .min::after{content:" · ✓ concluído";color:var(--c6);font-weight:700}
+.trow.feito .min::after{content:" · ✓ concluído";color:var(--k6);font-weight:700}
 .cert-form textarea{font:inherit;font-weight:400;font-size:16px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line2);background:var(--bg);color:var(--ink);resize:vertical}
 .cert-form textarea:focus{outline:none;border-color:var(--c5)}
 .cert-form textarea[aria-invalid=true]{border-color:var(--c1)}
