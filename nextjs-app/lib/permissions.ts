@@ -22,7 +22,21 @@ export type PermissionKey =
 // professores com acesso legítimo recebiam 403. Agora seguem as mesmas flags das telas.
 
 /**
+ * SCRUM-68: o responsável (papel "family") só usa as rotas de /api/familia e as comuns
+ * (notificações, avisos). Rotas de equipe recusam esse papel com 403, mesmo que o proxy.ts falhe.
+ * Retorna null se for equipe (coordenação, professor, admin da plataforma).
+ */
+export function requireStaff(session: Pick<SessionPayload, "user_role">): NextResponse | null {
+    if (session.user_role === "family") {
+        return NextResponse.json({ error: "Acesso não permitido para o perfil família." }, { status: 403 });
+    }
+    return null;
+}
+
+/**
  * Get the current session or return a 401 response.
+ * Rotas de equipe: o papel família recebe 403 (ver requireStaff). Nenhuma rota de
+ * /api/familia usa este helper.
  */
 export async function requireAuth(): Promise<
     { session: SessionPayload; error?: never } | { session?: never; error: NextResponse }
@@ -36,6 +50,8 @@ export async function requireAuth(): Promise<
             ),
         };
     }
+    const staff = requireStaff(session);
+    if (staff) return { error: staff };
     return { session };
 }
 
@@ -56,6 +72,9 @@ export function requirePermission(
     session: SessionPayload,
     permission: PermissionKey
 ): NextResponse | null {
+    const staff = requireStaff(session);
+    if (staff) return staff;
+
     // Platform admins always have access
     if (session.is_platform_admin) return null;
 

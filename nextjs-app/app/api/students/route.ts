@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { listStudentsDaSessao } from "@/lib/students";
 import { getSupabase } from "@/lib/supabase";
-import { requirePermission } from "@/lib/permissions";
+import { requirePermission, requireStaff } from "@/lib/permissions";
 import { parseBody, createStudentSchema } from "@/lib/validation";
 import { logger } from "@/lib/logger";
 import { resolverTurma } from "@/lib/turmas";
@@ -16,6 +16,8 @@ export async function GET() {
       { status: 401 }
     );
   }
+  const soEquipe = requireStaff(session);
+  if (soEquipe) return soEquipe;
 
   try {
     const students = await listStudentsDaSessao(session);

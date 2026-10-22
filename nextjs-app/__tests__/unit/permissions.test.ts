@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { requirePermission } from "@/lib/permissions";
+import { requirePermission, requireStaff, requireAuth } from "@/lib/permissions";
+import { getSession } from "@/lib/session";
 import type { SessionPayload } from "@/lib/session";
 
 // Mock getSession since permissions.ts imports from session
@@ -118,6 +119,41 @@ describe("permissions", () => {
                 member: null,
             });
             expect(requirePermission(session, "can_gestao")).not.toBeNull();
+        });
+    });
+    // SCRUM-68
+    describe("requireStaff", () => {
+        it("papel família → 403", async () => {
+            const res = requireStaff(makeSession({ user_role: "family" }));
+            expect(res?.status).toBe(403);
+            expect((await res!.json()).error).toMatch(/família/);
+        });
+
+        it.each(["master", "member", "platform_admin"] as const)("papel %s → passa", (papel) => {
+            expect(requireStaff(makeSession({ user_role: papel }))).toBeNull();
+        });
+
+        it("requirePermission recusa família mesmo com flags no membro", () => {
+            const session = makeSession({ user_role: "family", member: { can_pei: true } as Record<string, unknown> });
+            expect(requirePermission(session, "can_pei")?.status).toBe(403);
+        });
+
+        it("requireAuth devolve 403 para família e a sessão para a equipe", async () => {
+            vi.mocked(getSession).mockResolvedValueOnce(makeSession({ user_role: "family" }));
+            const familia = await requireAuth();
+            expect(familia.error?.status).toBe(403);
+            expect(familia.session).toBeUndefined();
+
+            const prof = makeSession({ user_role: "member" });
+            vi.mocked(getSession).mockResolvedValueOnce(prof);
+            const equipe = await requireAuth();
+            expect(equipe.error).toBeUndefined();
+            expect(equipe.session).toBe(prof);
+        });
+
+        it("requireAuth sem sessão continua 401", async () => {
+            vi.mocked(getSession).mockResolvedValueOnce(null);
+            expect((await requireAuth()).error?.status).toBe(401);
         });
     });
 });

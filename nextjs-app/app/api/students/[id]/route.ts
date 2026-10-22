@@ -3,7 +3,7 @@ import { negadoForaDoVinculo, resolverTurma } from "@/lib/turmas";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getStudent, deleteStudent, updateStudent } from "@/lib/students";
-import { requirePermission } from "@/lib/permissions";
+import { requirePermission, requireStaff } from "@/lib/permissions";
 
 export async function GET(
   _req: Request,
@@ -13,6 +13,8 @@ export async function GET(
   if (!session?.workspace_id) {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
+  const soEquipe = requireStaff(session);
+  if (soEquipe) return soEquipe;
 
   const { id } = await params;
   const foraDoVinculo = await negadoForaDoVinculo(session, id);

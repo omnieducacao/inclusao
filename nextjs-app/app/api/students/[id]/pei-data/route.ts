@@ -2,6 +2,7 @@ import { parseBody, studentPatchDataSchema } from "@/lib/validation";
 import { negadoForaDoVinculo } from "@/lib/turmas";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
+import { requireStaff } from "@/lib/permissions";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 import { decryptSensitivePeiFields } from "@/lib/encryption";
@@ -20,6 +21,8 @@ export async function GET(
   if (!session?.workspace_id) {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
+  const soEquipe = requireStaff(session);
+  if (soEquipe) return soEquipe;
 
   const { id } = await params;
   const foraDoVinculo = await negadoForaDoVinculo(session, id);
@@ -65,6 +68,8 @@ export async function PATCH(
   if (!session?.workspace_id) {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   }
+  const soEquipe = requireStaff(session);
+  if (soEquipe) return soEquipe;
 
   const { id } = await params;
   const foraDoVinculo = await negadoForaDoVinculo(session, id);
