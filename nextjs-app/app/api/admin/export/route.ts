@@ -20,12 +20,12 @@ export async function GET(request: NextRequest) {
         if (type === "schools") {
             const { data: workspaces } = await sb
                 .from("workspaces")
-                .select("id, name, pin, active, plan, credits_limit, segments, ai_engines, created_at")
+                .select("id, name, active, plan, credits_limit, segments, ai_engines, created_at") // SCRUM-231: sem PIN (só existe o hash)
                 .order("name");
 
-            csv = "Nome,PIN,Ativa,Plano,Limite Créditos,Segmentos,Motores IA,Criado em\n";
+            csv = "Nome,Ativa,Plano,Limite Créditos,Segmentos,Motores IA,Criado em\n";
             (workspaces || []).forEach((ws: Record<string, unknown>) => {
-                csv += `"${ws.name}","${ws.pin}",${ws.active !== false ? "Sim" : "Não"},"${ws.plan || "basic"}",${ws.credits_limit || "ilimitado"},"${(ws.segments as string[] || []).join("; ")}","${(ws.ai_engines as string[] || []).join("; ")}","${ws.created_at || ""}"\n`;
+                csv += `"${ws.name}",${ws.active !== false ? "Sim" : "Não"},"${ws.plan || "basic"}",${ws.credits_limit || "ilimitado"},"${(ws.segments as string[] || []).join("; ")}","${(ws.ai_engines as string[] || []).join("; ")}","${ws.created_at || ""}"\n`;
             });
             filename = "escolas_omnisfera.csv";
 
