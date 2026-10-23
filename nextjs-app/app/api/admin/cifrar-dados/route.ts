@@ -30,11 +30,12 @@ async function percorrer(
   tabela: string,
   colunas: string,
   mudar: (l: Linha) => Linha | null,
-  aplicar: boolean
+  aplicar: boolean,
+  chave = "id" // workspace_masters não tem id: a chave é workspace_id
 ): Promise<Contagem> {
   const c: Contagem = { linhas: 0, a_mudar: 0, gravadas: 0, erros: 0 };
   for (let de = 0; ; de += PAGINA) {
-    const { data, error } = await sb.from(tabela).select(colunas).order("id").range(de, de + PAGINA - 1);
+    const { data, error } = await sb.from(tabela).select(colunas).order(chave).range(de, de + PAGINA - 1);
     if (error) {
       logger.error({ err: error.message, tabela }, "cifrar-dados: erro ao ler");
       c.erros += 1;
@@ -47,7 +48,7 @@ async function percorrer(
       if (!novo || Object.keys(novo).length === 0) continue;
       c.a_mudar += 1;
       if (!aplicar) continue;
-      const { error: e } = await sb.from(tabela).update(novo).eq("id", l.id as string);
+      const { error: e } = await sb.from(tabela).update(novo).eq(chave, l[chave] as string);
       if (e) {
         logger.error({ err: e.message, tabela }, "cifrar-dados: erro ao gravar");
         c.erros += 1;
@@ -85,9 +86,9 @@ export async function POST(req: Request) {
     return novo;
   }, aplicar);
 
-  for (const tabela of ["workspace_members", "workspace_masters", "family_responsibles"]) {
-    relatorio[`telefone_${tabela}`] = await percorrer(sb, tabela, "id, telefone", (l) =>
-      cifradoOuVazio(l.telefone) ? null : { telefone: encryptField(l.telefone as string) }, aplicar);
+  for (const [tabela, chave] of [["workspace_members", "id"], ["workspace_masters", "workspace_id"], ["family_responsibles", "id"]] as const) {
+    relatorio[`telefone_${tabela}`] = await percorrer(sb, tabela, `${chave}, telefone`, (l) =>
+      cifradoOuVazio(l.telefone) ? null : { telefone: encryptField(l.telefone as string) }, aplicar, chave);
   }
 
   relatorio.ip_audit_log = await percorrer(sb, "audit_log", "id, ip_address", (l) =>

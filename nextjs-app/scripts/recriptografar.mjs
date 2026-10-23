@@ -36,7 +36,7 @@ export const ALVOS = [
     { tabela: "family_mensagens", colunas: ["texto"], json: {} },
     // lib/colunas-cifradas.ts (SCRUM-231)
     { tabela: "workspace_members", colunas: ["telefone"], json: {} },
-    { tabela: "workspace_masters", colunas: ["telefone"], json: {} },
+    { tabela: "workspace_masters", colunas: ["telefone"], json: {}, chave: "workspace_id" }, // não tem coluna id
     { tabela: "family_responsibles", colunas: ["telefone"], json: {} },
 ];
 
@@ -130,7 +130,7 @@ function somar(total, parcial) {
 }
 
 function colunasDoAlvo(alvo) {
-    return ["id", ...alvo.colunas, ...Object.keys(alvo.json)].join(",");
+    return [alvo.chave || "id", ...alvo.colunas, ...Object.keys(alvo.json)].join(",");
 }
 
 /**
@@ -147,7 +147,7 @@ export async function executar({ sb, chaveAntiga, chaveNova, modo = "simular", l
         let gravadas = 0;
 
         for (let de = 0; ; de += TAMANHO_PAGINA) {
-            const { data, error } = await sb.from(alvo.tabela).select(colunasDoAlvo(alvo)).order("id").range(de, de + TAMANHO_PAGINA - 1);
+            const { data, error } = await sb.from(alvo.tabela).select(colunasDoAlvo(alvo)).order(alvo.chave || "id").range(de, de + TAMANHO_PAGINA - 1);
             if (error) {
                 log(`ERRO ao ler ${alvo.tabela}: ${error.message}`);
                 erros += 1;
@@ -163,9 +163,9 @@ export async function executar({ sb, chaveAntiga, chaveNova, modo = "simular", l
                 somar(total, contagem);
 
                 if (modo === "aplicar" && Object.keys(mudancas).length > 0) {
-                    const { error: erroGravar } = await sb.from(alvo.tabela).update(mudancas).eq("id", linha.id);
+                    const { error: erroGravar } = await sb.from(alvo.tabela).update(mudancas).eq(alvo.chave || "id", linha[alvo.chave || "id"]);
                     if (erroGravar) {
-                        log(`ERRO ao gravar ${alvo.tabela} id=${linha.id}: ${erroGravar.message}`);
+                        log(`ERRO ao gravar ${alvo.tabela} ${alvo.chave || "id"}=${linha[alvo.chave || "id"]}: ${erroGravar.message}`);
                         erros += 1;
                     } else {
                         gravadas += 1;

@@ -31,7 +31,7 @@ beforeEach(() => {
       pei_data: { nome: "Beatriz Almeida", nasc: "2016-03-12", serie: "5º ano", _versions: [{ version: 1, snapshot: { nome: "Beatriz Almeida", diagnostico: "TEA" } }] },
     }],
     workspace_members: [{ id: "m1", telefone: "(11) 91234-5678" }, { id: "m2", telefone: null }],
-    workspace_masters: [],
+    workspace_masters: [{ workspace_id: "ws-A", telefone: "(31) 97777-6666" }],
     family_responsibles: [{ id: "r1", telefone: "(21) 98888-7777" }],
     audit_log: [{ id: "a1", ip_address: "203.0.113.5" }, { id: "a2", ip_address: null }],
     family_pei_acknowledgments: [{ id: "c1", ip_address: "198.51.100.9", user_agent: "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/130.0 Mobile Safari/537.36" }],
@@ -50,7 +50,8 @@ describe("POST /api/admin/cifrar-dados", () => {
     const antes = JSON.stringify(db.tabelas);
     const r = await (await POST(post({}))).json();
     expect(r.aplicado).toBe(false);
-    expect(r.total_a_mudar).toBe(5); // estudante, 2 telefones, 1 IP de auditoria, 1 ciência
+    expect(r.total_a_mudar).toBe(6); // estudante, 3 telefones, 1 IP de auditoria, 1 ciência
+    expect(r.relatorio.telefone_workspace_masters.erros).toBe(0);
     expect(JSON.stringify(db.tabelas)).toBe(antes);
   });
 
@@ -69,6 +70,7 @@ describe("POST /api/admin/cifrar-dados", () => {
     expect(String(db.tabelas.workspace_members[0].telefone).startsWith("enc:")).toBe(true);
     expect(db.tabelas.workspace_members[1].telefone).toBeNull();
     expect(String(db.tabelas.family_responsibles[0].telefone).startsWith("enc:")).toBe(true);
+    expect(String(db.tabelas.workspace_masters[0].telefone).startsWith("enc:")).toBe(true); // chave workspace_id
     expect(String(db.tabelas.audit_log[0].ip_address).startsWith("ip:")).toBe(true);
     expect(db.tabelas.family_pei_acknowledgments[0].user_agent).toBe("Chrome · Android");
 
