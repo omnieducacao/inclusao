@@ -4,11 +4,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const mockFindUserByEmail = vi.fn();
 const mockVerifyFamilyPassword = vi.fn();
 const mockVerifyWorkspaceMaster = vi.fn();
+const mockCompararSenhaFicticia = vi.fn();
 vi.mock("@/lib/auth", () => ({
   findUserByEmail: (...args: unknown[]) => mockFindUserByEmail(...args),
   verifyWorkspaceMaster: (...args: unknown[]) => mockVerifyWorkspaceMaster(...args),
   verifyMemberPassword: vi.fn(),
   verifyFamilyPassword: (...args: unknown[]) => mockVerifyFamilyPassword(...args),
+  compararSenhaFicticia: (...args: unknown[]) => mockCompararSenhaFicticia(...args),
 }));
 
 // Mock Supabase (fallback para outros imports)
@@ -143,7 +145,22 @@ describe("API /api/auth/login", () => {
 
         expect(res.status).toBe(401);
         const data = await res.json();
-        expect(data.error).toContain("Senha incorreta");
+        expect(data.error).toContain("E-mail ou senha incorretos");
+    });
+
+    it("e-mail sem conta responde igual à senha errada e gasta o tempo da conferência (SCRUM-229)", async () => {
+        mockFindUserByEmail.mockResolvedValue({
+          workspace_id: "ws-123", workspace_name: "Escola", role: "master", user: { email: "master@escola.com" },
+        });
+        mockVerifyWorkspaceMaster.mockResolvedValue(false);
+        const senhaErrada = await POST(makeRequest({ email: "master@escola.com", password: "senhaerrada" }));
+
+        mockFindUserByEmail.mockResolvedValue(null);
+        const semConta = await POST(makeRequest({ email: "ninguem@escola.com", password: "senhaerrada" }));
+
+        expect(semConta.status).toBe(senhaErrada.status);
+        expect(await semConta.json()).toEqual(await senhaErrada.json());
+        expect(mockCompararSenhaFicticia).toHaveBeenCalledWith("senhaerrada");
     });
 
     it("resposta de erro contém campo 'error'", async () => {
@@ -186,7 +203,7 @@ describe("API /api/auth/login", () => {
 
       expect(res.status).toBe(401);
       const data = await res.json();
-      expect(data.error).toContain("Senha incorreta");
+      expect(data.error).toContain("E-mail ou senha incorretos");
     });
 
     // SCRUM-229: limite fino por e-mail (força bruta) e teto largo por IP (escola atrás de um IP só)

@@ -104,6 +104,16 @@ export async function findUserByEmail(email: string): Promise<FindUserResult | n
   return null;
 }
 
+/**
+ * SCRUM-229: quando o e-mail não existe, gasta o mesmo tempo de uma conferência de senha, para que
+ * a demora da resposta não revele quais e-mails têm conta.
+ */
+let hashFicticio: string | null = null;
+export function compararSenhaFicticia(plain: string): void {
+  hashFicticio ??= bcrypt.hashSync("omnisfera-conta-inexistente", 10);
+  bcrypt.compareSync(plain || "", hashFicticio);
+}
+
 export function verifyPassword(plain: string, hash: string): boolean {
   if (!plain || !hash) return false;
   try {

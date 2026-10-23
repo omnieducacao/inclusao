@@ -6,11 +6,15 @@ import {
   verifyWorkspaceMaster,
   verifyMemberPassword,
   verifyFamilyPassword,
+  compararSenhaFicticia,
 } from "@/lib/auth";
 import { createSession } from "@/lib/session";
 import { logger } from "@/lib/logger";
 import { registrarAcesso } from "@/lib/acessos";
 import { logAction } from "@/lib/audit";
+
+// SCRUM-229: a mesma resposta para e-mail sem conta e senha errada, para não revelar quem tem conta
+const ERRO_CREDENCIAIS = "E-mail ou senha incorretos. Confira e tente de novo; se esqueceu a senha, fale com a coordenação da escola.";
 
 export async function POST(req: Request) {
   // SCRUM-229: teto largo por IP (a escola inteira sai pelo mesmo IP) e limite fino por e-mail
@@ -24,11 +28,9 @@ export async function POST(req: Request) {
 
     const found = await findUserByEmail(email);
     if (!found) {
+      compararSenhaFicticia(password);
       await logAction({ action: "login_failed", resourceType: "sessao", metadata: { motivo: "conta_inexistente" }, req });
-      return NextResponse.json(
-        { error: "Email não encontrado. Verifique o endereço ou entre em contato com a escola." },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: ERRO_CREDENCIAIS }, { status: 401 });
     }
 
     let ok = false;
@@ -60,10 +62,7 @@ export async function POST(req: Request) {
         workspaceId: found.workspace_id, actorId: usuarioId, actorRole: found.role,
         action: "login_failed", resourceType: "sessao", metadata: { motivo: "senha_incorreta" }, req,
       });
-      return NextResponse.json(
-        { error: "Senha incorreta." },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: ERRO_CREDENCIAIS }, { status: 401 });
     }
 
     const member =
