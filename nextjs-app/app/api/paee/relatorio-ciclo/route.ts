@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import { getSession } from "@/lib/session";
+import { requireAnyPermission } from "@/lib/permissions";
 import { getStudent } from "@/lib/students";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
 import { logger } from "@/lib/logger";
@@ -21,6 +22,8 @@ export async function POST(req: Request) {
         if (!session?.workspace_id) {
             return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
         }
+        const semPermissao = requireAnyPermission(session, ["can_paee"]);
+        if (semPermissao) return semPermissao;
 
         const parsed = await parseBody(req, paeeRelatorioCicloSchema);
         if (parsed.error) return parsed.error;

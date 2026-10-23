@@ -92,6 +92,35 @@ export function requirePermission(
 }
 
 /**
+ * SCRUM-68 etapa 2: passa quem tiver QUALQUER uma das permissões listadas (ou for coordenação/admin).
+ * Os conjuntos abaixo seguem as telas: o módulo PEI abre com can_pei OU can_pei_professor
+ * (lib/modules.ts), e a avaliação aceita as quatro pedagógicas (lib/avaliacao-servidor.ts).
+ */
+export function requireAnyPermission(
+    session: SessionPayload,
+    permissoes: readonly PermissionKey[]
+): NextResponse | null {
+    const staff = requireStaff(session);
+    if (staff) return staff;
+    if (session.is_platform_admin || session.user_role === "master") return null;
+
+    const member = session.member as Record<string, unknown> | undefined;
+    if (permissoes.some((p) => member?.[p])) return null;
+
+    return NextResponse.json(
+        { error: "Permissão negada. Contate o administrador da escola." },
+        { status: 403 }
+    );
+}
+
+/** Módulo PEI: coordenação/AEE (can_pei) e professor regente (can_pei_professor). */
+export const PERMISSOES_PEI: readonly PermissionKey[] = ["can_pei", "can_pei_professor"];
+/** Avaliação e diagnóstica: igual a podeAvaliar() em lib/avaliacao-servidor.ts. */
+export const PERMISSOES_AVALIAR: readonly PermissionKey[] = ["can_avaliacao", "can_pei", "can_pei_professor", "can_paee"];
+/** Plano de ensino/curso, usado por vários módulos: qualquer permissão pedagógica. */
+export const PERMISSOES_PEDAGOGICAS: readonly PermissionKey[] = ["can_pei", "can_pei_professor", "can_paee", "can_avaliacao", "can_hub"];
+
+/**
  * Convenience: require auth + permission in one call.
  */
 export async function requireAuthAndPermission(

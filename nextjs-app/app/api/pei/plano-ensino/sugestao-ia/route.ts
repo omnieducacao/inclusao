@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
+import { requireAnyPermission, PERMISSOES_PEDAGOGICAS } from "@/lib/permissions";
 import { logger } from "@/lib/logger";
 
 /**
@@ -15,6 +16,8 @@ export async function POST(req: Request) {
     if (!session?.workspace_id) {
         return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
+    const semPermissao = requireAnyPermission(session, PERMISSOES_PEDAGOGICAS);
+    if (semPermissao) return semPermissao;
 
     const body = await req.json();
     const {

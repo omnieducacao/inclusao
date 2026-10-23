@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { componenteOficial } from "@/lib/matriz-avaliacao";
 import { getSession } from "@/lib/session";
+import { requireAnyPermission, PERMISSOES_PEI } from "@/lib/permissions";
 import { getSupabase } from "@/lib/supabase";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
@@ -20,6 +21,8 @@ export async function POST(req: Request) {
     if (!session?.workspace_id) {
         return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
+    const semPermissao = requireAnyPermission(session, PERMISSOES_PEI);
+    if (semPermissao) return semPermissao;
 
     const body = await req.json();
     const {
@@ -86,7 +89,7 @@ ${conteudo ? `Conteúdo: ${typeof conteudo === "string" ? conteudo.slice(0, 800)
             .single();
 
         if (studentData?.pei_data) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+             
             const pei = studentData.pei_data as Record<string, any>;
             const peiBarreiras = pei.barreiras_selecionadas || barreiras;
             const peiPotencias = pei.potencias || potencialidades;
@@ -130,7 +133,7 @@ ${pei.hipotese_diagnostica ? `- Hipótese diagnóstica: ${pei.hipotese_diagnosti
                 if (match.nivel_omnisfera_identificado != null) {
                     nivelDiag = match.nivel_omnisfera_identificado;
                 }
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                 
                 const resultados = match.resultados as Record<string, any> | null;
                 const analise = resultados?.analise;
 

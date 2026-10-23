@@ -1,6 +1,7 @@
 import { parseBody, pgiGerarAcoesSchema } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
+import { requireAnyPermission } from "@/lib/permissions";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import type { DimensionamentoPGI } from "@/lib/pgi";
@@ -13,6 +14,8 @@ export async function POST(req: Request) {
   if (!session?.workspace_id) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
+  const semPermissao = requireAnyPermission(session, ["can_gestao"]);
+  if (semPermissao) return semPermissao;
 
   try {
     const parsed = await parseBody(req, pgiGerarAcoesSchema);

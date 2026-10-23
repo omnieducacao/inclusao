@@ -41,7 +41,7 @@ function guardaDe(trecho, cabecalho, sub, src, profundidade = 0) {
     ...[...trecho.matchAll(/requireAuthAndPermission\(\s*"(can_[a-z_]+)"/g)].map((m) => m[1]),
   ])].sort();
   const temRequireAuth = /requireAuth\(/.test(trecho) || /requireAuthAndPermission/.test(trecho);
-  const temPermissao = flags.length > 0 || /requirePermission\(/.test(trecho);
+  const temPermissao = flags.length > 0 || /requirePermission\(|requireAnyPermission\(|\bpodeAvaliar\(|\bestudanteParaAvaliar\(/.test(trecho);
   const temStaff = /requireStaff\(/.test(trecho);
   const checaFamilia = /user_role\s*===\s*"family"/.test(trecho);
   const soAdmin = /is_platform_admin/.test(trecho) && !temPermissao && !temRequireAuth;
@@ -112,7 +112,9 @@ export function gerarMarkdown(rotas) {
     "|---|---|",
     ...Object.entries(cont).sort((a, b) => b[1] - a[1]).map(([k, v]) => `| ${k} | ${v} |`),
     "",
-    "As linhas \"só sessão\" são as candidatas à etapa 2 da SCRUM-68: escolher a permissão de cada uma.",
+    "As linhas \"só sessão\" são, em quase todos os casos, leituras por vínculo (professores sem a flag do módulo também",
+    "as usam) ou rotas do próprio usuário. Os métodos que gravam ou gastam IA já exigem a permissão do módulo",
+    "(`requireAnyPermission`, SCRUM-68 etapa 2). `pei/disciplina` e `plano-curso` têm a regra dentro da rota.",
     "",
     "## Tabela",
     "",

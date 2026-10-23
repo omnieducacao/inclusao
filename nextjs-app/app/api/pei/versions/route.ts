@@ -1,6 +1,7 @@
 import { parseBody, peiVersionCreateSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
+import { requireAnyPermission, PERMISSOES_PEI } from "@/lib/permissions";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 
@@ -83,6 +84,8 @@ export async function POST(req: Request) {
     if (!session?.workspace_id) {
         return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
+    const semPermissao = requireAnyPermission(session, PERMISSOES_PEI);
+    if (semPermissao) return semPermissao;
 
     const parsed = await parseBody(req, peiVersionCreateSchema);
     if (parsed.error) return parsed.error;
@@ -140,6 +143,8 @@ export async function PATCH(req: Request) {
     if (!session?.workspace_id) {
         return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
+    const semPermissao = requireAnyPermission(session, PERMISSOES_PEI);
+    if (semPermissao) return semPermissao;
 
     const body = await req.json();
     const { studentId, versionIndex } = body;

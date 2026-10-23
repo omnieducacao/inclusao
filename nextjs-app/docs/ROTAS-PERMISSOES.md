@@ -10,16 +10,18 @@ Antes de chegar a qualquer rota, o `proxy.ts` já recusa (403) o papel **famíli
 
 | Guarda na rota | Quantidade |
 |---|---|
-| só sessão (família barrada pelo proxy) | 49 |
+| equipe + permissão por módulo | 49 |
 | equipe (família recusada na rota) | 48 |
 | admin da plataforma | 46 |
-| equipe + permissão por módulo | 24 |
+| só sessão (família barrada pelo proxy) | 24 |
 | família permitida | 20 |
 | pública | 11 |
 | equipe (função negado* de lib/) | 8 |
 | demonstração | 2 |
 
-As linhas "só sessão" são as candidatas à etapa 2 da SCRUM-68: escolher a permissão de cada uma.
+As linhas "só sessão" são, em quase todos os casos, leituras por vínculo (professores sem a flag do módulo também
+as usam) ou rotas do próprio usuário. Os métodos que gravam ou gastam IA já exigem a permissão do módulo
+(`requireAnyPermission`, SCRUM-68 etapa 2). `pei/disciplina` e `plano-curso` têm a regra dentro da rota.
 
 ## Tabela
 
@@ -66,17 +68,17 @@ As linhas "só sessão" são as candidatas à etapa 2 da SCRUM-68: escolher a pe
 | `/api/avaliacao-processual/evolucao` | GET | só sessão (família barrada pelo proxy) |
 | `/api/avaliacao/confronto` | GET | equipe (família recusada na rota) |
 | `/api/avaliacao/confronto` | POST | equipe (família recusada na rota) |
-| `/api/avaliacao/diagnostica/questoes` | POST | só sessão (família barrada pelo proxy) |
-| `/api/avaliacao/diagnostica` | GET | só sessão (família barrada pelo proxy) |
-| `/api/avaliacao/diagnostica` | POST | só sessão (família barrada pelo proxy) |
-| `/api/avaliacao/matriz` | GET | só sessão (família barrada pelo proxy) |
-| `/api/avaliacao/processual` | GET | só sessão (família barrada pelo proxy) |
-| `/api/avaliacao/processual` | POST | só sessão (família barrada pelo proxy) |
-| `/api/avaliacao/prova/item` | POST | só sessão (família barrada pelo proxy) |
-| `/api/avaliacao/prova/ler` | POST | só sessão (família barrada pelo proxy) |
-| `/api/avaliacao/prova` | GET | só sessão (família barrada pelo proxy) |
-| `/api/avaliacao/prova` | PATCH | só sessão (família barrada pelo proxy) |
-| `/api/avaliacao/prova` | POST | só sessão (família barrada pelo proxy) |
+| `/api/avaliacao/diagnostica/questoes` | POST | equipe + permissão por módulo |
+| `/api/avaliacao/diagnostica` | GET | equipe + permissão por módulo |
+| `/api/avaliacao/diagnostica` | POST | equipe + permissão por módulo |
+| `/api/avaliacao/matriz` | GET | equipe + permissão por módulo |
+| `/api/avaliacao/processual` | GET | equipe + permissão por módulo |
+| `/api/avaliacao/processual` | POST | equipe + permissão por módulo |
+| `/api/avaliacao/prova/item` | POST | equipe + permissão por módulo |
+| `/api/avaliacao/prova/ler` | POST | equipe + permissão por módulo |
+| `/api/avaliacao/prova` | GET | equipe + permissão por módulo |
+| `/api/avaliacao/prova` | PATCH | equipe + permissão por módulo |
+| `/api/avaliacao/prova` | POST | equipe + permissão por módulo |
 | `/api/bncc/ef` | GET | equipe (família recusada na rota) |
 | `/api/bncc/ei` | GET | equipe (família recusada na rota) |
 | `/api/bncc/em` | GET | equipe (família recusada na rota) |
@@ -131,7 +133,7 @@ As linhas "só sessão" são as candidatas à etapa 2 da SCRUM-68: escolher a pe
 | `/api/members` | GET | equipe + permissão por módulo |
 | `/api/members` | POST | equipe + can_gestao |
 | `/api/monitoring/assessment` | POST | equipe + can_avaliacao |
-| `/api/monitoring/sugerir-rubricas` | POST | só sessão (família barrada pelo proxy) |
+| `/api/monitoring/sugerir-rubricas` | POST | equipe + permissão por módulo |
 | `/api/notifications/dismiss` | POST | família permitida |
 | `/api/notifications` | GET | família permitida |
 | `/api/paee/diagnostico-barreiras` | POST | equipe (família recusada na rota) |
@@ -139,15 +141,15 @@ As linhas "só sessão" são as candidatas à etapa 2 da SCRUM-68: escolher a pe
 | `/api/paee/jornada-gamificada` | POST | equipe (família recusada na rota) |
 | `/api/paee/mapa-mental` | POST | equipe (família recusada na rota) |
 | `/api/paee/plano-habilidades` | POST | equipe (família recusada na rota) |
-| `/api/paee/relatorio-ciclo` | POST | só sessão (família barrada pelo proxy) |
+| `/api/paee/relatorio-ciclo` | POST | equipe + permissão por módulo |
 | `/api/paee/tecnologia-assistiva` | POST | equipe (família recusada na rota) |
 | `/api/pei-regente/meus-alunos` | GET | só sessão (família barrada pelo proxy) |
-| `/api/pei/adaptar-plano` | POST | só sessão (família barrada pelo proxy) |
-| `/api/pei/avaliacao-diagnostica/salvar` | POST | só sessão (família barrada pelo proxy) |
-| `/api/pei/avaliacao-diagnostica` | DELETE | só sessão (família barrada pelo proxy) |
+| `/api/pei/adaptar-plano` | POST | equipe + permissão por módulo |
+| `/api/pei/avaliacao-diagnostica/salvar` | POST | equipe + permissão por módulo |
+| `/api/pei/avaliacao-diagnostica` | DELETE | equipe + permissão por módulo |
 | `/api/pei/avaliacao-diagnostica` | GET | só sessão (família barrada pelo proxy) |
-| `/api/pei/avaliacao-diagnostica` | PATCH | só sessão (família barrada pelo proxy) |
-| `/api/pei/avaliacao-diagnostica` | POST | só sessão (família barrada pelo proxy) |
+| `/api/pei/avaliacao-diagnostica` | PATCH | equipe + permissão por módulo |
+| `/api/pei/avaliacao-diagnostica` | POST | equipe + permissão por módulo |
 | `/api/pei/ciencia` | GET | equipe (família recusada na rota) |
 | `/api/pei/ciencia` | POST | equipe (família recusada na rota) |
 | `/api/pei/consolidar` | GET | só sessão (família barrada pelo proxy) |
@@ -166,22 +168,22 @@ As linhas "só sessão" são as candidatas à etapa 2 da SCRUM-68: escolher a pe
 | `/api/pei/gerar-pdf-oficial` | POST | equipe (família recusada na rota) |
 | `/api/pei/mapa-mental` | POST | equipe (família recusada na rota) |
 | `/api/pei/meus-peis` | GET | equipe (família recusada na rota) |
-| `/api/pei/plano-ensino/sugestao-ia` | POST | só sessão (família barrada pelo proxy) |
-| `/api/pei/plano-ensino/upload` | POST | só sessão (família barrada pelo proxy) |
-| `/api/pei/plano-ensino` | DELETE | só sessão (família barrada pelo proxy) |
+| `/api/pei/plano-ensino/sugestao-ia` | POST | equipe + permissão por módulo |
+| `/api/pei/plano-ensino/upload` | POST | equipe + permissão por módulo |
+| `/api/pei/plano-ensino` | DELETE | equipe + permissão por módulo |
 | `/api/pei/plano-ensino` | GET | só sessão (família barrada pelo proxy) |
-| `/api/pei/plano-ensino` | POST | só sessão (família barrada pelo proxy) |
+| `/api/pei/plano-ensino` | POST | equipe + permissão por módulo |
 | `/api/pei/relatorio-transicao` | GET | só sessão (família barrada pelo proxy) |
 | `/api/pei/resumo-familia/liberar` | DELETE | equipe + can_pei |
 | `/api/pei/resumo-familia/liberar` | POST | equipe + can_pei |
 | `/api/pei/resumo-familia` | POST | equipe (família recusada na rota) |
 | `/api/pei/transcrever-laudo` | POST | equipe (família recusada na rota) |
 | `/api/pei/versions` | GET | só sessão (família barrada pelo proxy) |
-| `/api/pei/versions` | PATCH | só sessão (família barrada pelo proxy) |
-| `/api/pei/versions` | POST | só sessão (família barrada pelo proxy) |
+| `/api/pei/versions` | PATCH | equipe + permissão por módulo |
+| `/api/pei/versions` | POST | equipe + permissão por módulo |
 | `/api/perfil` | GET | só sessão (família barrada pelo proxy) |
 | `/api/perfil` | PATCH | só sessão (família barrada pelo proxy) |
-| `/api/pgi/gerar-acoes` | POST | só sessão (família barrada pelo proxy) |
+| `/api/pgi/gerar-acoes` | POST | equipe + permissão por módulo |
 | `/api/pgi` | GET | só sessão (família barrada pelo proxy) |
 | `/api/pgi` | PATCH | equipe + can_gestao |
 | `/api/plano-curso/habilidades` | GET | só sessão (família barrada pelo proxy) |

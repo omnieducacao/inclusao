@@ -29,6 +29,7 @@ vi.mock("@/lib/session", () => ({
 // ─── Mock Permission ─────────────────────────────────────────────────────────────
 vi.mock("@/lib/permissions", () => ({
     requirePermission: vi.fn(() => null),
+    requireAnyPermission: vi.fn(() => null), // o guarda real é testado em api-permissoes-modulo.test.ts
 }));
 
 // ─── Mock Rate Limit ─────────────────────────────────────────────────────────────

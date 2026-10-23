@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
+import { requireAnyPermission, PERMISSOES_PEDAGOGICAS } from "@/lib/permissions";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 
@@ -15,6 +16,8 @@ export async function POST(req: NextRequest) {
     if (!session?.workspace_id) {
         return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
+    const semPermissao = requireAnyPermission(session, PERMISSOES_PEDAGOGICAS);
+    if (semPermissao) return semPermissao;
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
