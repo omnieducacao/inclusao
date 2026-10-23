@@ -2,6 +2,8 @@
  * Política de Privacidade — página pública (LGPD), acessível sem login.
  * Onda 20: levada ao design system, com a mesma identidade do login (fundo, marca e cartões).
  * O conteúdo jurídico é o mesmo de antes; só foi reorganizado e revisado no português.
+ * SCRUM-71 (23/10/2026): seções 3, 5 e 8 passaram a dizer só o que o código faz (IA, onde ficam os
+ * dados, segurança). Se mudar lib/ai-engines.ts, lib/encryption.ts ou lib/audit.ts, revise.
  */
 import Link from "next/link";
 import { ArrowLeft, Mail } from "lucide-react";
@@ -51,7 +53,7 @@ export default function PrivacidadePage() {
           <h1 style={{ margin: 0, font: "800 clamp(30px, 5vw, 40px)/1.1 var(--font-sans)", letterSpacing: "-.03em", color: "var(--tinta)" }}>
             Política de Privacidade
           </h1>
-          <p className="omni-apoio" style={{ margin: 0 }}>Última atualização: fevereiro de 2025</p>
+          <p className="omni-apoio" style={{ margin: 0 }}>Última atualização: outubro de 2026</p>
         </div>
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "flex-start" }}>
@@ -99,7 +101,7 @@ export default function PrivacidadePage() {
                 <li><strong style={forte}>Pessoas usuárias (professores, gestores e profissionais do AEE, o Atendimento Educacional Especializado):</strong> e-mail, nome, senha (guardada só em forma embaralhada, o chamado <em>hash</em>), permissões e vínculos com turmas e estudantes. Finalidade: login, controle de acesso e funcionamento da plataforma.</li>
                 <li><strong style={forte}>Estudantes:</strong> nome, data de nascimento, série, turma, diagnóstico, laudos e dados do PEI e do PAEE. Finalidade: elaborar e acompanhar os planos educacionais individualizados.</li>
                 <li><strong style={forte}>Responsáveis (módulo família):</strong> nome, e-mail e vínculo com o estudante. Finalidade: participação da família e ciência do PEI.</li>
-                <li><strong style={forte}>Uso de inteligência artificial (IA):</strong> conteúdos anonimizados são enviados a provedores de IA (OpenAI, Google, Anthropic e outros) para gerar sugestões. Não enviamos dados identificáveis a esses provedores.</li>
+                <li><strong style={forte}>Uso de inteligência artificial (IA):</strong> para gerar sugestões, parte do conteúdo é enviada a provedores de IA. Pedidos com informações de estudante vão só para a OpenAI, o Google (Gemini) e, no plano Robusto, a Anthropic (Claude); a DeepSeek e a Moonshot (Kimi) recebem apenas pedidos sem dados de estudante. Antes do envio, o nome do estudante e dados de identificação e contato (como CPF, RG, telefone, e-mail, data de nascimento e nomes de responsáveis e profissionais) são trocados por códigos (pseudonimização). Informações pedagógicas e de saúde necessárias à sugestão, como o diagnóstico, podem seguir no pedido. Fotos de laudo enviadas pela escola vão inteiras ao Google ou à OpenAI, para leitura do texto.</li>
               </ul>
             </section>
 
@@ -118,7 +120,7 @@ export default function PrivacidadePage() {
             <section id="compartilhamento" aria-labelledby="t-compartilhamento">
               <h2 id="t-compartilhamento" style={tituloSecao}>5. Compartilhamento</h2>
               <p style={paragrafo}>
-                Os dados ficam armazenados em infraestrutura na nuvem (Supabase/PostgreSQL) e podem ser enviados, de forma anonimizada, a provedores de IA para gerar conteúdos. Não vendemos nem compartilhamos dados pessoais com terceiros para fins de marketing.
+                Os dados ficam no banco de dados do Supabase (PostgreSQL), em São Paulo; o servidor do aplicativo fica nos Estados Unidos (Render). Para gerar sugestões, parte do conteúdo é enviada, sem o nome do estudante e sem dados de contato, aos provedores de IA indicados na seção 3, que processam os pedidos nos próprios servidores, em geral fora do Brasil. Não vendemos nem compartilhamos dados pessoais com terceiros para fins de marketing.
               </p>
             </section>
 
@@ -139,7 +141,7 @@ export default function PrivacidadePage() {
             <section id="seguranca" aria-labelledby="t-seguranca">
               <h2 id="t-seguranca" style={tituloSecao}>8. Segurança</h2>
               <p style={paragrafo}>
-                Adotamos medidas técnicas e organizacionais para proteger os dados contra acesso não autorizado, alteração, divulgação ou destruição, incluindo criptografia, controle de acesso e auditoria. Veja também a página <Link href="/seguranca">Segurança e transparência</Link>.
+                Adotamos medidas técnicas e organizacionais para proteger os dados contra acesso não autorizado, alteração, divulgação ou destruição, incluindo: conexão segura (HTTPS); criptografia, no banco, dos dados de saúde (diagnóstico, laudos, medicação e mensagens com a família); controle de acesso por escola e por papel; e registro das exportações e exclusões de dados. Veja também a página <Link href="/seguranca">Segurança e transparência</Link>.
               </p>
             </section>
 

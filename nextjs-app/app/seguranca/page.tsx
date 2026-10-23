@@ -2,6 +2,8 @@
  * Segurança e transparência — página pública, acessível sem login.
  * Onda 20: levada ao design system, com a mesma identidade do login (fundo, marca, círculos e cartões).
  * O conteúdo é o mesmo de antes; só foi reorganizado e revisado no português (sem termos em inglês).
+ * SCRUM-71 (23/10/2026): só afirma o que o código faz. Se mudar a criptografia (lib/encryption.ts),
+ * a auditoria (lib/audit.ts) ou os motores de IA (lib/ai-engines.ts), revise este texto.
  */
 import { Shield, Lock, Server, CheckCircle2, Baseline, HeartHandshake, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -18,8 +20,8 @@ const PILARES = [
         Icone: Lock,
         modulo: "pei",
         titulo: "Proteção de dados (LGPD)",
-        texto: "Os laudos e os dados sensíveis dos estudantes ficam guardados na nuvem (Supabase), criptografados no armazenamento e na transmissão (conexão segura, HTTPS). Cada escola só enxerga os próprios estudantes.",
-        itens: ["Registro de quem acessou, exportou ou apagou dados", "Exportar e apagar dados de um membro a pedido (direitos da LGPD)"],
+        texto: "Os dados de saúde dos estudantes (diagnóstico, laudos, medicação e mensagens com a família) são cifrados pela própria plataforma antes de ir para o banco, e toda conexão é segura (HTTPS). Cada escola só enxerga os próprios estudantes, e cada pessoa só vê o que o seu papel permite.",
+        itens: ["Registro de exportações e de exclusões de dados", "Exportar e apagar dados de um membro a pedido (direitos da LGPD)"],
     },
     {
         Icone: Server,
@@ -104,7 +106,7 @@ export default function SegurancaPage() {
                         Transparência é inclusão
                     </h2>
                     <p style={{ margin: 0, font: "400 17px/28px var(--font-sans)", color: "var(--tinta-2)" }}>
-                        A Omnisfera usa modelos de inteligência artificial (IA) de vários fornecedores (DeepSeek, Kimi, Claude, Gemini e OpenAI). Antes de cada pedido sair para a IA, o nome do estudante é trocado por um apelido e volta só na resposta, dentro da plataforma. Diagnóstico não entra nos textos gerados. E todo conteúdo da IA é uma sugestão: a professora revisa antes de usar.
+                        A Omnisfera usa modelos de inteligência artificial (IA) de vários fornecedores. Pedidos com informações de um estudante só vão para a OpenAI, o Google (Gemini) e, no plano Robusto, a Anthropic (Claude); a DeepSeek e a Kimi só recebem pedidos sem dados de estudante. Antes de sair, o nome do estudante e dados como CPF, telefone, e-mail, data de nascimento e nomes de responsáveis e profissionais são trocados por códigos, que voltam só na resposta, dentro da plataforma. O que a sugestão precisa, como o diagnóstico e as metas do PEI, pode seguir no pedido. Fotos de laudo vão inteiras para o Google ou a OpenAI, para leitura. E todo conteúdo da IA é uma sugestão: a professora revisa antes de usar.
                     </p>
                     <Link href="/" className="omni-btn omni-btn--secundario omni-btn--grande" style={{ marginTop: 16 }}>
                         <ArrowLeft aria-hidden /> Voltar para a página inicial

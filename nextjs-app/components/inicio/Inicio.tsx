@@ -182,7 +182,7 @@ export function Inicio({
           <div className="omni-aviso__titulo">A IA ajuda, a pessoa decide</div>
           <div className="omni-aviso__texto">
             O que a IA escreve pode ter erros: revise sempre antes de usar com a turma.
-            O nome do estudante nunca vai para a IA; ela recebe um apelido.
+            Nos textos, o nome do estudante é trocado por um código antes de ir para a IA (fotos de laudo vão inteiras, para leitura).
           </div>
         </div>
         <span />
