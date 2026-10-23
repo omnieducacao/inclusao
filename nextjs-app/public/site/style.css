@@ -517,6 +517,15 @@ svg.grow .vl{font-family:var(--f);font-weight:800;font-size:17px;fill:var(--ink)
 .cta-demo:hover{opacity:.9}
 @media (max-width:1120px){.top .wrap{gap:8px}.cta-demo{order:1;margin-left:auto;padding:0 12px;font-size:14px}.burger{order:2;margin-left:0;min-height:44px}}
 @media (max-width:385px){.top .brand b{display:none}}
+/* Entrar (login): no computador, botão com contorno no fim do menu; no tablet, ao lado da
+   Demonstração; no celular estreito, dentro do menu */
+.nav .entrar{margin-left:6px;border:1.5px solid var(--ink);color:var(--ink)}
+.cta-entrar{display:none;align-items:center;justify-content:center;min-height:44px;padding:0 12px;border-radius:999px;border:1.5px solid var(--ink);color:var(--ink);font-weight:700;font-size:14px;text-decoration:none;white-space:nowrap}
+.cta-entrar:hover{background:var(--soft)}
+@media (max-width:1120px){.nav .entrar{margin:8px 0 0;justify-content:center}.cta-entrar{display:inline-flex;order:1;margin-left:auto}.top .wrap > .cta-demo{margin-left:0}}
+@media (max-width:560px){.cta-entrar{display:none}.top .wrap > .cta-demo{margin-left:auto}}
+/* notebook (1121 a 1400 px): menu mais compacto para caber inteiro, sem rolagem lateral */
+@media (min-width:1121px) and (max-width:1400px){.top .wrap{padding-left:24px;padding-right:24px;gap:12px}.nav{gap:0}.nav > a,.nav summary{padding:8px 8px;font-size:14px}.cta-mini{padding:9px 12px !important}.cta-demo{padding:0 14px;font-size:14px}}
 .campo .oque{font-size:clamp(18px,2vw,21px);line-height:1.4;color:var(--ink);max-width:50ch;margin-top:20px;text-wrap:pretty}
 .campo .oque b{font-weight:800}
 .ctas-link{display:inline-flex;align-items:center;min-height:44px;margin-top:6px;font-weight:600;color:var(--ak);text-decoration:none}
