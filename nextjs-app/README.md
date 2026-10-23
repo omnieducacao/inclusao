@@ -44,7 +44,7 @@ Edite `.env.local` com suas chaves:
 | Variável | Obrigatória | Descrição |
 |---|---|---|
 | `SUPABASE_URL` | ✅ | URL do projeto Supabase |
-| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Service role key do Supabase |
+| `SUPABASE_SERVICE_KEY` | ✅ | Chave de serviço (service role) do Supabase |
 | `SESSION_SECRET` | ✅ Produção | Secret JWT (gere com `openssl rand -base64 32`) |
 | `OPENAI_API_KEY` | ✅ | Chave para engines de IA |
 | `GEMINI_API_KEY` | ⬡ | OmniYellow (Gemini) |

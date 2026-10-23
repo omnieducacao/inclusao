@@ -3,7 +3,7 @@
  *
  * Diferente de um mock fixo por rota, este aplica de verdade os filtros `.eq()` e `.in()` nas
  * linhas guardadas: se uma rota esquecer o `workspace_id`, a linha da outra escola aparece.
- * Cobre só o que as rotas usam: select, insert, update, eq, in, order, limit, single, maybeSingle.
+ * Cobre só o que as rotas usam: select, insert, update, eq, in, order, limit, range, single, maybeSingle.
  */
 type Linha = Record<string, unknown>;
 type Filtro = { col: string; vals: unknown[] };
@@ -29,6 +29,7 @@ class Consulta implements PromiseLike<{ data: unknown; error: null | { message: 
   private contar = false;
   private somenteContagem = false;
   private limite: number | null = null;
+  private faixa: [number, number] | null = null;
 
   constructor(private db: FakeDb, private tabela: string) {}
 
@@ -62,6 +63,10 @@ class Consulta implements PromiseLike<{ data: unknown; error: null | { message: 
     this.limite = n;
     return this;
   }
+  range(de: number, ate: number) {
+    this.faixa = [de, ate];
+    return this;
+  }
 
   private linhasQueCasam(): Linha[] {
     const todas = this.db.tabelas[this.tabela] || [];
@@ -82,6 +87,7 @@ class Consulta implements PromiseLike<{ data: unknown; error: null | { message: 
       return alvo;
     }
     let achadas = this.linhasQueCasam();
+    if (this.faixa) achadas = achadas.slice(this.faixa[0], this.faixa[1] + 1);
     if (this.limite !== null) achadas = achadas.slice(0, this.limite);
     return achadas;
   }

@@ -55,6 +55,21 @@ function getKey(): Buffer {
     return Buffer.from(hex, "hex");
 }
 
+/**
+ * SCRUM-66: chave anterior, SÓ para ler. Durante a rotação da ENCRYPTION_KEY o app grava com a
+ * chave nova e ainda abre o que está na antiga, até o script de recriptografia terminar.
+ * Fora de uma rotação a variável não existe. Ver docs/SEGREDOS.md.
+ */
+function getKeyAnterior(): Buffer | null {
+    const hex = process.env.ENCRYPTION_KEY_ANTERIOR;
+    if (!hex) return null;
+    if (!/^[0-9a-fA-F]{64}$/.test(hex)) {
+        logger.error("[encryption] ENCRYPTION_KEY_ANTERIOR deve ter 64 caracteres hex; ignorada");
+        return null;
+    }
+    return Buffer.from(hex, "hex");
+}
+
 // ─── Core encrypt / decrypt ──────────────────────────────────────
 
 /**
@@ -95,18 +110,27 @@ export function decryptField(encrypted: string): string {
         }
 
         const [ivB64, tagB64, ciphertextB64] = parts;
-        const key = getKey();
         const iv = Buffer.from(ivB64, "base64");
         const authTag = Buffer.from(tagB64, "base64");
 
-        const decipher = createDecipheriv(ALGORITHM, key, iv, {
-            authTagLength: AUTH_TAG_LENGTH,
-        });
-        decipher.setAuthTag(authTag);
+        const abrirCom = (key: Buffer): string => {
+            const decipher = createDecipheriv(ALGORITHM, key, iv, {
+                authTagLength: AUTH_TAG_LENGTH,
+            });
+            decipher.setAuthTag(authTag);
+            let decrypted = decipher.update(ciphertextB64, "base64", "utf8");
+            decrypted += decipher.final("utf8");
+            return decrypted;
+        };
 
-        let decrypted = decipher.update(ciphertextB64, "base64", "utf8");
-        decrypted += decipher.final("utf8");
-        return decrypted;
+        try {
+            return abrirCom(getKey());
+        } catch (errAtual) {
+            // GCM é autenticado: chave errada falha aqui. Em rotação, tenta a chave anterior.
+            const anterior = getKeyAnterior();
+            if (!anterior) throw errAtual;
+            return abrirCom(anterior);
+        }
     } catch (err) {
         logger.error({ err }, "[encryption] Erro ao descriptografar");
         return ""; // Falha silenciosa — evita expor dados corrompidos

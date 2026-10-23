@@ -31,9 +31,9 @@ describe("Criptografia LGPD — lib/encryption.ts", () => {
 
     afterEach(() => {
         if (ORIGINAL_KEY) {
-            (process.env as Record<string, unknown>).ENCRYPTION_KEY = ORIGINAL_KEY; // eslint-disable-line @typescript-eslint/no-explicit-any
+            (process.env as Record<string, unknown>).ENCRYPTION_KEY = ORIGINAL_KEY;  
         } else {
-            delete (process.env as Record<string, unknown>).ENCRYPTION_KEY; // eslint-disable-line @typescript-eslint/no-explicit-any
+            delete (process.env as Record<string, unknown>).ENCRYPTION_KEY;  
         }
     });
 
@@ -229,5 +229,65 @@ describe("Criptografia LGPD — lib/encryption.ts", () => {
             const { encryptField } = await import("@/lib/encryption");
             expect(() => encryptField("test")).toThrow("64 caracteres hex");
         });
+    });
+});
+
+// SCRUM-66: rotação da ENCRYPTION_KEY sem parada (chave anterior só para leitura)
+describe("Rotação de chave — ENCRYPTION_KEY_ANTERIOR", () => {
+    const CHAVE_A = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    const CHAVE_B = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+    const ORIGINAL_ANTERIOR = process.env.ENCRYPTION_KEY_ANTERIOR;
+
+    afterEach(() => {
+        if (ORIGINAL_ANTERIOR === undefined) delete process.env.ENCRYPTION_KEY_ANTERIOR;
+        else process.env.ENCRYPTION_KEY_ANTERIOR = ORIGINAL_ANTERIOR;
+        if (ORIGINAL_KEY === undefined) delete process.env.ENCRYPTION_KEY;
+        else process.env.ENCRYPTION_KEY = ORIGINAL_KEY;
+        vi.resetModules();
+    });
+
+    async function cifrarCom(chave: string, texto: string): Promise<string> {
+        process.env.ENCRYPTION_KEY = chave;
+        delete process.env.ENCRYPTION_KEY_ANTERIOR;
+        vi.resetModules();
+        const { encryptField } = await import("@/lib/encryption");
+        return encryptField(texto);
+    }
+
+    async function abrirCom(atual: string, anterior: string | undefined, valor: string): Promise<string> {
+        process.env.ENCRYPTION_KEY = atual;
+        if (anterior === undefined) delete process.env.ENCRYPTION_KEY_ANTERIOR;
+        else process.env.ENCRYPTION_KEY_ANTERIOR = anterior;
+        vi.resetModules();
+        const { decryptField } = await import("@/lib/encryption");
+        return decryptField(valor);
+    }
+
+    it("com a chave nova e a anterior, abre o que foi cifrado com qualquer das duas", async () => {
+        const velho = await cifrarCom(CHAVE_A, "diagnóstico antigo");
+        const novo = await cifrarCom(CHAVE_B, "diagnóstico novo");
+        expect(await abrirCom(CHAVE_B, CHAVE_A, velho)).toBe("diagnóstico antigo");
+        expect(await abrirCom(CHAVE_B, CHAVE_A, novo)).toBe("diagnóstico novo");
+    });
+
+    it("sem a chave anterior, o dado da chave antiga não abre (devolve vazio)", async () => {
+        const velho = await cifrarCom(CHAVE_A, "diagnóstico antigo");
+        expect(await abrirCom(CHAVE_B, undefined, velho)).toBe("");
+    });
+
+    it("a gravação usa sempre a chave atual, nunca a anterior", async () => {
+        process.env.ENCRYPTION_KEY = CHAVE_B;
+        process.env.ENCRYPTION_KEY_ANTERIOR = CHAVE_A;
+        vi.resetModules();
+        const { encryptField } = await import("@/lib/encryption");
+        const gravado = encryptField("dado novo");
+        // só a chave B abre; a A (sozinha) não
+        expect(await abrirCom(CHAVE_B, undefined, gravado)).toBe("dado novo");
+        expect(await abrirCom(CHAVE_A, undefined, gravado)).toBe("");
+    });
+
+    it("ENCRYPTION_KEY_ANTERIOR inválida é ignorada, sem derrubar a leitura normal", async () => {
+        const novo = await cifrarCom(CHAVE_B, "dado");
+        expect(await abrirCom(CHAVE_B, "curta", novo)).toBe("dado");
     });
 });

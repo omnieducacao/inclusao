@@ -33,8 +33,10 @@ CREATE INDEX IF NOT EXISTS idx_aval_proc_workspace
 
 ALTER TABLE avaliacao_processual ENABLE ROW LEVEL SECURITY;
 
+-- SCRUM-66: sem "TO service_role" esta política valia para todos os papéis, inclusive a chave pública.
 CREATE POLICY "Service role full access avaliacao_processual"
     ON avaliacao_processual FOR ALL
+    TO service_role
     USING (true)
     WITH CHECK (true);
 
