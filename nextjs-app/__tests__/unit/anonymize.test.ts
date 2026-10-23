@@ -28,11 +28,12 @@ describe("anonymize", () => {
             expect(result).toBe("[ESTUDANTE] gosta de ciências. [ESTUDANTE] sempre participa.");
         });
 
-        it("não substitui primeiro nome curto (<=3 chars) para evitar falsos positivos", () => {
-            const prompt = "Ana é uma ótima aluna. Ana gosta de ler.";
-            // "Ana" tem 3 caracteres, então não deve ser substituído
+        it("primeiro nome curto (<=3 chars) só é trocado como palavra inteira (SCRUM-69)", () => {
+            // Antes ficava no texto, e o nome do estudante vazava para a IA. Palavra inteira evita
+            // o falso positivo que justificava deixar passar.
+            const prompt = "Ana é uma ótima aluna. Ana gosta de ler. A banana e a Anabela não mudam.";
             const result = anonymizePrompt(prompt, "Ana Clara");
-            expect(result).toBe("Ana é uma ótima aluna. Ana gosta de ler.");
+            expect(result).toBe("[ESTUDANTE] é uma ótima aluna. [ESTUDANTE] gosta de ler. A banana e a Anabela não mudam.");
         });
 
         it("substitui múltiplas ocorrências do nome completo", () => {
@@ -105,7 +106,8 @@ describe("anonymize", () => {
         it("trata nomes compostos", () => {
             const prompt = "Ana Maria Silva tem autismo. Ana Maria é verbal.";
             const result = anonymizePrompt(prompt, "Ana Maria Silva");
-            expect(result).toBe("[ESTUDANTE] tem autismo. Ana Maria é verbal.");
+            // "Ana Maria" não é o nome completo; o primeiro nome (curto) também sai, como palavra inteira
+            expect(result).toBe("[ESTUDANTE] tem autismo. [ESTUDANTE] Maria é verbal.");
         });
 
         it("preserva pontuação e formatação", () => {
@@ -115,10 +117,10 @@ describe("anonymize", () => {
         });
 
         it("não substitui substring de outras palavras", () => {
-            // "Ana" não deve substituir "Banana" ou "Análise"
+            // "Ana" não deve substituir "Banana" ou "Análise" (palavra inteira), mas sai quando é o nome
             const prompt = "Ana comeu banana. Ana fez análise.";
             const result = anonymizePrompt(prompt, "Ana Clara");
-            expect(result).toBe("Ana comeu banana. Ana fez análise.");
+            expect(result).toBe("[ESTUDANTE] comeu banana. [ESTUDANTE] fez análise.");
         });
 
         it("lida com texto grande eficientemente", () => {

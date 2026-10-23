@@ -38,14 +38,15 @@ describe("ai-engines configuration", () => {
             expect(blueBlock).toContain("max_tokens");
         });
 
-        it("tem fallback automático para OmniRed", () => {
+        it("não cai em silêncio para o OmniRed (SCRUM-69): a falha sobe e chatCompletionText escolhe o reserva", () => {
             const blueBlock = aiEnginesSource.slice(
                 aiEnginesSource.indexOf('// Blue (Kimi'),
                 aiEnginesSource.indexOf('// Green (Claude')
             );
-            expect(blueBlock).toContain("fallback");
-            expect(blueBlock).toContain('"red"');
             expect(blueBlock).toContain("catch");
+            expect(blueBlock).toContain("throw err");
+            expect(blueBlock).not.toContain("chatCompletionTextMotor(");
+            expect(blueBlock).not.toContain('"red"');
         });
 
         it("valida resposta não vazia", () => {

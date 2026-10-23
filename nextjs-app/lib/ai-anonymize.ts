@@ -12,40 +12,41 @@
  */
 
 import { anonymizePrompt, deanonymizeResponse } from "./anonymize";
+import { criarMascaraPII, type OpcoesPII } from "./pii";
+import { marcarSensivel } from "./ai-sensivel";
 
 export type ChatMessage = { role: string; content: string };
 
 /**
- * Anonimiza todas as mensagens (system + user) substituindo nomes por tokens.
- * Retorna as mensagens anonimizadas e uma função `restore` para reverter
- * a anonimização na resposta da IA.
+ * Anonimiza todas as mensagens (system + user): nome do estudante e nomes adicionais viram
+ * tokens ([ESTUDANTE]...) e CPF, RG, e-mail, telefone, nascimento, registro profissional e
+ * nomes de responsável/médico viram tokens numerados ([CPF_1]...). Retorna as mensagens
+ * anonimizadas e uma função `restore` que devolve tudo na resposta da IA.
+ *
+ * Se a conversa tem dados de estudante (nome informado ou algum dado pessoal achado), o
+ * resultado fica marcado como sensível: chatCompletionText não usa DeepSeek nem Kimi nela.
  *
  * @param messages - Array de mensagens {role, content} enviadas para a IA
  * @param studentName - Nome completo do estudante (pode ser null/undefined)
  * @param additionalNames - Mapa de nomes adicionais {TOKEN: "nome"} (responsáveis, médicos)
+ * @param opcoes - Nomes que a rota conhece (escola, responsáveis) para a máscara de PII
  */
 export function anonymizeMessages(
     messages: ChatMessage[],
     studentName?: string | null,
-    additionalNames?: Record<string, string>
+    additionalNames?: Record<string, string>,
+    opcoes?: OpcoesPII
 ): { anonymized: ChatMessage[]; restore: (text: string) => string } {
-    // Se não há nome para anonimizar, retorna as mensagens originais
-    if (!studentName?.trim() && (!additionalNames || Object.keys(additionalNames).length === 0)) {
-        return {
-            anonymized: messages,
-            restore: (text: string) => text,
-        };
-    }
-
+    const mascara = criarMascaraPII(opcoes);
     const anonymized = messages.map((msg) => ({
         role: msg.role,
-        content: anonymizePrompt(msg.content, studentName, additionalNames),
+        content: mascara.mascarar(anonymizePrompt(msg.content, studentName, additionalNames)),
     }));
 
-    const restore = (text: string): string => {
-        return deanonymizeResponse(text, studentName, additionalNames);
-    };
+    const temNome = Boolean(studentName?.trim()) || Boolean(additionalNames && Object.keys(additionalNames).length > 0);
+    if (temNome || mascara.total > 0) marcarSensivel(anonymized);
 
+    const restore = (text: string): string => mascara.restaurar(deanonymizeResponse(text, studentName, additionalNames));
     return { anonymized, restore };
 }
 
@@ -56,14 +57,12 @@ export function anonymizeMessages(
 export function anonymizeText(
     text: string,
     studentName?: string | null,
-    additionalNames?: Record<string, string>
-): { anonymized: string; restore: (text: string) => string } {
-    if (!studentName?.trim() && (!additionalNames || Object.keys(additionalNames).length === 0)) {
-        return { anonymized: text, restore: (t: string) => t };
-    }
-
-    const anonymized = anonymizePrompt(text, studentName, additionalNames);
-    const restore = (t: string): string => deanonymizeResponse(t, studentName, additionalNames);
-
-    return { anonymized, restore };
+    additionalNames?: Record<string, string>,
+    opcoes?: OpcoesPII
+): { anonymized: string; restore: (text: string) => string; sensivel: boolean } {
+    const mascara = criarMascaraPII(opcoes);
+    const anonymized = mascara.mascarar(anonymizePrompt(text, studentName, additionalNames));
+    const temNome = Boolean(studentName?.trim()) || Boolean(additionalNames && Object.keys(additionalNames).length > 0);
+    const restore = (t: string): string => mascara.restaurar(deanonymizeResponse(t, studentName, additionalNames));
+    return { anonymized, restore, sensivel: temNome || mascara.total > 0 };
 }

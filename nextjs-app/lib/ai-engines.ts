@@ -6,6 +6,7 @@
  */
 
 import { aiCache } from "./ai-cache";
+import { ehSensivel } from "./ai-sensivel";
 import { getSupabase } from "./supabase";
 import { logger } from "@/lib/logger";
 
@@ -109,9 +110,35 @@ const ORDEM_RESERVA: EngineId[] = ["red", "orange", "yellow", "blue"];
 const TEMPO_PRINCIPAL_MS = 90_000; // o Render não corta a rota; um PEI longo pode levar mais de 1 min
 const TEMPO_RESERVA_MS = 75_000;
 
-export function motoresParaTentar(escolhido: EngineId, temErro: (e: EngineId) => boolean): EngineId[] {
-  const reserva = ORDEM_RESERVA.find((e) => e !== escolhido && !(escolhido === "blue" && e === "red") && !temErro(e));
+/**
+ * SCRUM-69: dados de saúde e de estudante não vão para DeepSeek (red) nem para Kimi/Moonshot (blue),
+ * nem como motor reserva. O motor pedido é trocado por OmniOrange (OpenAI) ou OmniYellow (Gemini).
+ */
+export const MOTORES_PROIBIDOS_SENSIVEL: readonly EngineId[] = ["red", "blue"];
+const MOTORES_PARA_SENSIVEL: readonly EngineId[] = ["orange", "yellow"];
+
+export function motoresParaTentar(
+  escolhido: EngineId,
+  temErro: (e: EngineId) => boolean,
+  proibidos: readonly EngineId[] = []
+): EngineId[] {
+  const reserva = ORDEM_RESERVA.find(
+    (e) => e !== escolhido && !(escolhido === "blue" && e === "red") && !proibidos.includes(e) && !temErro(e)
+  );
   return reserva ? [escolhido, reserva] : [escolhido];
+}
+
+/** Motor permitido para dados sensíveis: o pedido, se for permitido; senão o primeiro configurado de orange/yellow. */
+export function motorParaDadosSensiveis(escolhido: EngineId, temErro: (e: EngineId) => boolean): EngineId {
+  if (!MOTORES_PROIBIDOS_SENSIVEL.includes(escolhido)) return escolhido;
+  const permitido = MOTORES_PARA_SENSIVEL.find((e) => !temErro(e));
+  if (!permitido) {
+    throw new Error(
+      "Esta função usa dados do estudante e não pode usar o motor escolhido (OmniRed ou OmniBlue). " +
+      "Configure o OmniOrange (OpenAI) ou o OmniYellow (Gemini) para usá-la."
+    );
+  }
+  return permitido;
 }
 
 export async function comFallback<T>(
@@ -148,16 +175,25 @@ function usoOpenAI(resp: { model?: string; usage?: { prompt_tokens?: number; com
   return { model: resp.model || "desconhecido", tokensIn: resp.usage?.prompt_tokens, tokensOut: resp.usage?.completion_tokens, durationMs: Date.now() - inicio };
 }
 
-/** Chat completion com tempo-limite e motor reserva (use esta). */
+/**
+ * Chat completion com tempo-limite e motor reserva (use esta).
+ * `sensivel: true` (ou mensagens vindas de anonymizeMessages com dados de estudante) proíbe
+ * DeepSeek e Kimi, também como reserva.
+ */
 export async function chatCompletionText(
   engine: EngineId,
   messages: Array<{ role: string; content: string }>,
-  options?: { temperature?: number; apiKey?: string; workspaceId?: string; source?: string; trackUsage?: boolean; useCache?: boolean; max_tokens?: number }
+  options?: { temperature?: number; apiKey?: string; workspaceId?: string; source?: string; trackUsage?: boolean; useCache?: boolean; max_tokens?: number; sensivel?: boolean }
 ): Promise<string> {
-  const motores = motoresParaTentar(engine, (e) => Boolean(getEngineError(e)));
+  const temErro = (e: EngineId) => Boolean(getEngineError(e));
+  const sensivel = options?.sensivel === true || ehSensivel(messages);
+  const principal = sensivel ? motorParaDadosSensiveis(engine, temErro) : engine;
+  // chave informada para o motor pedido não vale para o motor que o substituiu
+  const opcoes = principal === engine ? options : { ...options, apiKey: undefined };
+  const motores = motoresParaTentar(principal, temErro, sensivel ? MOTORES_PROIBIDOS_SENSIVEL : []);
   return comFallback(
     motores,
-    (motor, i) => chatCompletionTextMotor(motor, messages, i === 0 ? options : { ...options, apiKey: undefined }),
+    (motor, i) => chatCompletionTextMotor(motor, messages, i === 0 ? opcoes : { ...opcoes, apiKey: undefined }),
     undefined,
     (r) => typeof r === "string" && r.trim().length > 0
   );
@@ -255,12 +291,10 @@ export async function chatCompletionTextMotor(
       }
       return result;
     } catch (err) {
-      logger.error({ err: err instanceof Error ? err : new Error(String(err)) }, "OmniBlue falhou, ativando fallback para OmniRed");
-      // Fallback automático para OmniRed (DeepSeek)
-      return await chatCompletionTextMotor("red", messages, {
-        ...options,
-        temperature: temp,
-      });
+      // SCRUM-69: não cai mais em silêncio para o DeepSeek (o texto iria a outro provedor sem
+      // ninguém saber). Quem chamou decide: chatCompletionText tenta um motor reserva permitido.
+      logger.error({ err: err instanceof Error ? err : new Error(String(err)) }, "OmniBlue falhou");
+      throw err;
     }
   }
 

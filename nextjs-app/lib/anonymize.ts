@@ -24,10 +24,14 @@ export function anonymizePrompt(
         const name = studentName.trim();
         // Nome completo primeiro (para não deixar sobrenome solto)
         result = replaceAllCaseInsensitive(result, name, "[ESTUDANTE]");
-        // Primeiro nome (se tiver mais de 3 chars para evitar falsos positivos)
+        // Primeiro nome. Com mais de 3 letras troca em qualquer lugar; com 2 ou 3 ("Ana", "Léo")
+        // só como palavra inteira, para não mexer em "banana" ou "Anabela".
         const firstName = name.split(/\s+/)[0];
         if (firstName && firstName.length > 3) {
             result = replaceAllCaseInsensitive(result, firstName, "[ESTUDANTE]");
+        } else if (firstName && firstName.length >= 2) {
+            const palavra = new RegExp(`(?<![\\p{L}\\d])${escaparRegex(firstName)}(?![\\p{L}\\d])`, "giu");
+            result = result.replace(palavra, "[ESTUDANTE]");
         }
     }
 
@@ -67,6 +71,10 @@ export function deanonymizeResponse(
     }
 
     return result;
+}
+
+function escaparRegex(texto: string): string {
+    return texto.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 /** Replace case-insensitive sem depender de regex (performance). */

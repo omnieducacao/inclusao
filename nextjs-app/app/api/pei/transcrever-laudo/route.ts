@@ -1,6 +1,8 @@
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
-import { chatCompletionText, visionAdapt, getEngineError, type EngineId } from "@/lib/ai-engines";
+import { chatCompletionText, visionAdapt, getEngineError, motorParaDadosSensiveis, type EngineId } from "@/lib/ai-engines";
+import { mascararPII } from "@/lib/pii";
+import { delimitarLaudo } from "@/lib/laudo";
 import { requireAuth } from "@/lib/permissions";
 import { logger } from "@/lib/logger";
 
@@ -33,7 +35,7 @@ Se houver partes ilegíveis, indique com [ilegível].`;
 
 export async function POST(req: Request) {
     const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
-    const { error: authError } = await requireAuth(); if (authError) return authError;
+    const { session, error: authError } = await requireAuth(); if (authError) return authError;
     try {
         const formData = await req.formData();
         const file = formData.get("file") as File | null;
@@ -69,7 +71,7 @@ export async function POST(req: Request) {
 
             try {
                 transcricao = await visionAdapt(prompt, base64, mime);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
             } catch (visionErr: any) {
                 logger.error({ err: visionErr }, "Erro na visão:");
                 return NextResponse.json(
@@ -93,17 +95,22 @@ export async function POST(req: Request) {
             // Para PDFs com texto bom, retornar direto. Se curto, usar IA para organizar.
             if (textoPdf.length > 200) {
                 // Texto já extraído é suficiente — usar IA apenas para formatar
-                const engine: EngineId = "red"; // DeepSeek — mais barato
-                const engineErr = getEngineError(engine);
-                if (engineErr) {
+                // SCRUM-69: laudo é dado de saúde. DeepSeek e Kimi ficam de fora; sem OmniOrange nem
+                // OmniYellow configurados, devolve o texto extraído sem passar por IA nenhuma.
+                let engine: EngineId | null = null;
+                try {
+                    engine = motorParaDadosSensiveis("red", (e) => Boolean(getEngineError(e)));
+                } catch { /* sem motor permitido: cai no texto bruto abaixo */ }
+                if (!engine) {
                     // Fallback: retornar texto bruto
                     transcricao = textoPdf;
                 } else {
-                    const textoLimitado = textoPdf.slice(0, 12000);
-                    const prompt = `${PROMPT_TRANSCREVER}\n\nTexto extraído do documento:\n\n${textoLimitado}`;
+                    // CPF, RG, contatos, nascimento e registros profissionais saem do prompt e voltam na resposta
+                    const mascara = mascararPII(textoPdf.slice(0, 12000), { nomes: { ESCOLA: session?.workspace_name } });
+                    const prompt = `${PROMPT_TRANSCREVER}\nCódigos entre colchetes, como [CPF_1], são dados pessoais ocultados: copie-os exatamente como estão.\n\n${delimitarLaudo(mascara.texto)}`;
 
                     try {
-                        transcricao = (await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.1 })).trim();
+                        transcricao = mascara.restaurar((await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.1, sensivel: true })).trim());
                     } catch { /* expected fallback */
                         // Fallback: retornar texto bruto em caso de erro da IA
                         transcricao = textoPdf;

@@ -4,6 +4,7 @@ import { requireAnyPermission, PERMISSOES_AVALIAR } from "@/lib/permissions";
 import { getSupabase } from "@/lib/supabase";
 import { componenteOficial } from "@/lib/matriz-avaliacao";
 import { chatCompletionText } from "@/lib/ai-engines";
+import { anonymizeMessages } from "@/lib/ai-anonymize";
 import {
     buildContextoAluno,
     buildPromptCompleto,
@@ -211,11 +212,16 @@ export async function POST(req: Request) {
             { role: "user" as const, content: user },
         ];
 
-        const aiResponse = await chatCompletionText(
+        // SCRUM-69: sai sem o nome do estudante e sem dado pessoal; a conversa fica marcada como
+        // sensível, então "red" é trocado por OmniOrange/OmniYellow dentro de chatCompletionText.
+        const { anonymized, restore } = anonymizeMessages(messages, student.name, undefined, {
+            nomes: { ESCOLA: session.workspace_name },
+        });
+        const aiResponse = restore(await chatCompletionText(
             "red",
-            messages,
+            anonymized,
             { temperature: 0.4, source: "pei-avaliacao-diagnostica" },
-        );
+        ));
 
         // Tentar parsear JSON da resposta
         let questoesGeradas: unknown = null;

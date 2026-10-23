@@ -1,6 +1,8 @@
 import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
-import { chatCompletionText, visionAdapt, getEngineErrorWithWorkspace, type EngineId } from "@/lib/ai-engines";
+import { chatCompletionText, visionAdapt, getEngineError, getEngineErrorWithWorkspace, motorParaDadosSensiveis, type EngineId } from "@/lib/ai-engines";
+import { mascararPII } from "@/lib/pii";
+import { delimitarLaudo, lerLaudoExtraido } from "@/lib/laudo";
 import { requireAuth } from "@/lib/permissions";
 import { logger } from "@/lib/logger";
 
@@ -25,7 +27,7 @@ async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise
   return textoFinal;
 }
 
-const PROMPT_EXTRAIR = `Analise este laudo médico/escolar. Extraia: 1) Diagnóstico; 2) Medicamentos. Responda APENAS em JSON, sem markdown, sem backticks: { "diagnostico": "...", "medicamentos": [ {"nome": "...", "posologia": "..."} ] }. Se não houver medicamentos, retorne lista vazia.`;
+const PROMPT_EXTRAIR = `Analise este laudo médico/escolar. Extraia: 1) Diagnóstico; 2) Medicamentos. Responda APENAS em JSON, sem markdown, sem backticks: { "diagnostico": "...", "medicamentos": [ {"nome": "...", "posologia": "..."} ] }. Se não houver medicamentos, retorne lista vazia. Códigos entre colchetes, como [CPF_1], são dados pessoais ocultados: ignore-os.`;
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
@@ -60,6 +62,8 @@ export async function POST(req: Request) {
 
     const buf = Buffer.from(await file.arrayBuffer());
     let raw: string;
+    // laudo é dado de saúde: DeepSeek e Kimi ficam de fora (SCRUM-69); o PDF passa pela máscara de dados pessoais
+    let restaurar: (t: string) => string = (t) => t;
 
     if (isImage) {
       // ── Imagem: usar visionAdapt (Gemini Flash ou GPT-4o) ──
@@ -69,7 +73,7 @@ export async function POST(req: Request) {
 
       try {
         raw = await visionAdapt(prompt, base64, mime);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
       } catch (visionErr: any) {
         logger.error({ err: visionErr }, "Erro na visão:");
         return NextResponse.json(
@@ -80,7 +84,13 @@ export async function POST(req: Request) {
     } else {
       // ── PDF: extrair texto e enviar para IA ──
       // Verificar engine para PDF
-      if (engine === "orange") {
+      let motor: EngineId;
+      try {
+        motor = motorParaDadosSensiveis(engine, (e) => Boolean(getEngineError(e)));
+      } catch (e) {
+        return NextResponse.json({ error: e instanceof Error ? e.message : "Nenhum motor permitido para laudo." }, { status: 500 });
+      }
+      if (motor === "orange") {
         const openaiKey = process.env.OPENAI_API_KEY || "";
         if (openaiKey.startsWith("sk-or-")) {
           return NextResponse.json(
@@ -97,7 +107,7 @@ export async function POST(req: Request) {
       }
 
       const wsId = session?.simulating_workspace_id || session?.workspace_id;
-      const engineErr = await getEngineErrorWithWorkspace(engine, wsId);
+      const engineErr = await getEngineErrorWithWorkspace(motor, wsId);
       if (engineErr) {
         return NextResponse.json({ error: engineErr }, { status: 500 });
       }
@@ -113,12 +123,13 @@ export async function POST(req: Request) {
         );
       }
 
-      const textoLimitado = textoPdf.slice(0, 6000);
-      const prompt = `${PROMPT_EXTRAIR}\n\nTexto do laudo:\n\n${textoLimitado}`;
+      const mascara = mascararPII(textoPdf.slice(0, 6000), { nomes: { ESCOLA: session?.workspace_name } });
+      restaurar = mascara.restaurar;
+      const prompt = `${PROMPT_EXTRAIR}\n\n${delimitarLaudo(mascara.texto)}`;
 
       try {
-        raw = (await chatCompletionText(engine, [{ role: "user", content: prompt }], { temperature: 0.2 })).trim();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        raw = (await chatCompletionText(motor, [{ role: "user", content: prompt }], { temperature: 0.2, sensivel: true })).trim();
+         
       } catch (apiErr: any) {
         const errorMsg = apiErr?.message || String(apiErr);
         if (errorMsg.includes("API key") || errorMsg.includes("401") || errorMsg.includes("Incorrect API key")) {
@@ -138,38 +149,22 @@ export async function POST(req: Request) {
       );
     }
 
-    // Parse do JSON (com fallbacks robustos)
-    let jsonStr = raw;
-    const codeBlock = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (codeBlock) jsonStr = codeBlock[1].trim();
-
-    const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
-    if (jsonMatch) jsonStr = jsonMatch[0];
-
-    let parsed: {
-      diagnostico?: string;
-      medicamentos?: { nome?: string; posologia?: string }[];
-    };
-
-    try {
-      parsed = JSON.parse(jsonStr);
-    } catch { /* expected fallback */
-      logger.error({ data: raw.substring(0, 500) }, "Erro ao fazer parse do JSON. Texto recebido");
-      const diagnosticoMatch = raw.match(/(?:diagnóstico|diagnostico)[\s:"]*([^",\n}]+)/i);
-      parsed = {
-        diagnostico: diagnosticoMatch ? diagnosticoMatch[1].trim() : "",
-        medicamentos: [],
-      };
+    // Resposta validada por schema (Zod), sem adivinhar por expressão regular
+    const lido = lerLaudoExtraido(raw);
+    if (!lido.ok) {
+      logger.error({ motivo: lido.motivo, tamanho: raw.length }, "extrair-laudo: resposta fora do formato");
+      return NextResponse.json(
+        { error: "Não conseguimos ler o laudo com segurança. Tente de novo ou preencha o diagnóstico à mão." },
+        { status: 502 }
+      );
     }
 
     return NextResponse.json({
-      diagnostico: parsed.diagnostico || "",
-      medicamentos: Array.isArray(parsed.medicamentos)
-        ? parsed.medicamentos.map((m) => ({
-          nome: String(m.nome || "").trim(),
-          posologia: String(m.posologia || "").trim(),
-        }))
-        : [],
+      diagnostico: restaurar(lido.dados.diagnostico).trim(),
+      medicamentos: lido.dados.medicamentos.map((m) => ({
+        nome: restaurar(m.nome).trim(),
+        posologia: restaurar(m.posologia).trim(),
+      })),
     });
   } catch (err) {
     logger.error({ err: err }, "Erro extrair-laudo:");
