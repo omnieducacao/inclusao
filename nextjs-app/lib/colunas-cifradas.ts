@@ -18,6 +18,9 @@ export const COLUNAS_CIFRADAS: Readonly<Record<string, readonly string[]>> = {
   workspace_masters: ["telefone", "email"],
   family_responsibles: ["telefone", "email"],
   platform_admins: ["email"],
+  // etapa 4: nome do estudante. Nenhuma consulta busca ou ordena por ele no banco (a exportação
+  // do admin ordena no próprio app).
+  students: ["name"],
 };
 
 /**

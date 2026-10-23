@@ -58,10 +58,18 @@ describe("colunas cifradas", () => {
     expect(t("c")).toBeNull();
   });
 
-  it("tabela fora da lista não é tocada", async () => {
+  it("coluna fora da lista não é tocada", async () => {
     const { db, sb } = await montar();
-    await sb.from("students").insert({ id: "s1", telefone: "(51) 92222-2222" });
-    expect(db.tabelas.students[0].telefone).toBe("(51) 92222-2222");
+    await sb.from("students").insert({ id: "s1", grade: "5º ano" });
+    expect(db.tabelas.students[0].grade).toBe("5º ano");
+  });
+
+  it("etapa 4: o nome do estudante é gravado cifrado e lido aberto", async () => {
+    const { db, sb } = await montar();
+    await sb.from("students").insert({ id: "s2", name: "Beatriz Almeida", grade: "5º ano" });
+    expect(String(db.tabelas.students[0].name).startsWith("enc:")).toBe(true);
+    const { data } = await sb.from("students").select("id, name").eq("id", "s2").maybeSingle();
+    expect((data as Record<string, unknown>).name).toBe("Beatriz Almeida");
   });
 });
 

@@ -27,7 +27,7 @@ beforeEach(() => {
   admin = true;
   db = criarFakeDb({
     students: [{
-      id: "s1", diagnosis: "TEA", paee_data: { conteudo_diagnostico_barreiras: "barreiras" },
+      id: "s1", name: "Beatriz Almeida", diagnosis: "TEA", paee_data: { conteudo_diagnostico_barreiras: "barreiras" },
       pei_data: { nome: "Beatriz Almeida", nasc: "2016-03-12", serie: "5º ano", _versions: [{ version: 1, snapshot: { nome: "Beatriz Almeida", diagnostico: "TEA" } }] },
     }],
     workspace_members: [{ id: "m1", workspace_id: "ws-A", telefone: "(11) 91234-5678", email: "Prof@escola.test", email_hash: null }, { id: "m2", telefone: null }],
@@ -50,7 +50,7 @@ describe("POST /api/admin/cifrar-dados", () => {
     const antes = JSON.stringify(db.tabelas);
     const r = await (await POST(post({}))).json();
     expect(r.aplicado).toBe(false);
-    expect(r.total_a_mudar).toBe(6); // estudante, 3 linhas de equipe/coordenação/família, 1 IP, 1 ciência
+    expect(r.total_a_mudar).toBe(7); // estudante (dados e nome), 3 linhas de equipe/coordenação/família, 1 IP, 1 ciência
     expect(r.relatorio.colunas_workspace_masters.erros).toBe(0);
     expect(JSON.stringify(db.tabelas)).toBe(antes);
   });
@@ -62,6 +62,7 @@ describe("POST /api/admin/cifrar-dados", () => {
 
     const s = db.tabelas.students[0] as Record<string, any>;
     expect(String(s.diagnosis).startsWith("enc:")).toBe(true);
+    expect(String(s.name).startsWith("enc:")).toBe(true); // etapa 4
     expect(String(s.pei_data.nome).startsWith("enc:")).toBe(true);
     expect(String(s.pei_data.nasc).startsWith("enc:")).toBe(true);
     expect(s.pei_data.serie).toBe("5º ano");

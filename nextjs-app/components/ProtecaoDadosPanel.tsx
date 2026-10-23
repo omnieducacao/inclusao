@@ -18,6 +18,7 @@ const ROTULOS: Record<string, string> = {
     colunas_workspace_masters: "Coordenação (telefone e índice do e-mail)",
     colunas_family_responsibles: "Famílias (telefone e índice do e-mail)",
     colunas_platform_admins: "Admins da plataforma (índice do e-mail)",
+    colunas_students: "Nome dos estudantes",
     ip_audit_log: "IPs no registro de auditoria",
     ciencia_pei: "Ciência do PEI (IP e navegador)",
 };
