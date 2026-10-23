@@ -4,6 +4,7 @@
  * O conteúdo jurídico é o mesmo de antes; só foi reorganizado e revisado no português.
  * SCRUM-71 (23/10/2026): seções 3, 5 e 8 passaram a dizer só o que o código faz (IA, onde ficam os
  * dados, segurança). Se mudar lib/ai-engines.ts, lib/encryption.ts ou lib/audit.ts, revise.
+ * SCRUM-231: a seção 8 segue lib/colunas-cifradas.ts (colunas cifradas) e lib/resumo-acesso.ts (IP).
  */
 import Link from "next/link";
 import { ArrowLeft, Mail } from "lucide-react";
@@ -141,7 +142,7 @@ export default function PrivacidadePage() {
             <section id="seguranca" aria-labelledby="t-seguranca">
               <h2 id="t-seguranca" style={tituloSecao}>8. Segurança</h2>
               <p style={paragrafo}>
-                Adotamos medidas técnicas e organizacionais para proteger os dados contra acesso não autorizado, alteração, divulgação ou destruição, incluindo: conexão segura (HTTPS); criptografia, no banco, dos dados de saúde (diagnóstico, laudos, medicação e mensagens com a família); controle de acesso por escola e por papel; e registro das exportações e exclusões de dados. Veja também a página <Link href="/seguranca">Segurança e transparência</Link>.
+                Adotamos medidas técnicas e organizacionais para proteger os dados contra acesso não autorizado, alteração, divulgação ou destruição, incluindo: conexão segura (HTTPS); criptografia, feita pela própria plataforma antes de gravar no banco, do nome do estudante, dos dados de saúde (diagnóstico, laudos, medicação e mensagens com a família) e dos e-mails e telefones da equipe e das famílias; registros de acesso que guardam só um resumo do endereço de rede (IP), nunca o endereço; controle de acesso por escola e por papel; e registro das exportações e exclusões de dados. Veja também a página <Link href="/seguranca">Segurança e transparência</Link>.
               </p>
             </section>
 

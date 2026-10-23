@@ -4,6 +4,7 @@
  * O conteúdo é o mesmo de antes; só foi reorganizado e revisado no português (sem termos em inglês).
  * SCRUM-71 (23/10/2026): só afirma o que o código faz. Se mudar a criptografia (lib/encryption.ts),
  * a auditoria (lib/audit.ts) ou os motores de IA (lib/ai-engines.ts), revise este texto.
+ * SCRUM-231: o que é cifrado está em lib/colunas-cifradas.ts e lib/encryption.ts (SENSITIVE_PEI_FIELDS).
  */
 import { Shield, Lock, Server, CheckCircle2, Baseline, HeartHandshake, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -20,8 +21,13 @@ const PILARES = [
         Icone: Lock,
         modulo: "pei",
         titulo: "Proteção de dados (LGPD)",
-        texto: "Os dados de saúde dos estudantes (diagnóstico, laudos, medicação e mensagens com a família) são cifrados pela própria plataforma antes de ir para o banco, e toda conexão é segura (HTTPS). Cada escola só enxerga os próprios estudantes, e cada pessoa só vê o que o seu papel permite.",
-        itens: ["Registro de exportações e de exclusões de dados", "Exportar e apagar dados de um membro a pedido (direitos da LGPD)"],
+        texto: "A própria plataforma cifra, antes de ir para o banco, o nome do estudante e os dados de saúde (diagnóstico, laudos, medicação e mensagens com a família), além dos e-mails e telefones da equipe e das famílias. Toda conexão é segura (HTTPS). Cada escola só enxerga os próprios estudantes, e cada pessoa só vê o que o seu papel permite.",
+        itens: [
+            "O login encontra a conta por um código derivado do e-mail, sem guardar o e-mail aberto",
+            "Os registros de acesso guardam só um resumo do endereço de rede (IP), nunca o endereço",
+            "Registro de exportações e de exclusões de dados",
+            "Exportar e apagar dados de um membro a pedido (direitos da LGPD)",
+        ],
     },
     {
         Icone: Server,
