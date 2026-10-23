@@ -17,7 +17,7 @@
  * É seguro repetir: o que já está na chave nova é pulado. O script nunca imprime valores
  * (só contagens e ids), e um valor que nenhuma das duas chaves abre é deixado como está.
  */
-import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 const ALGORITMO = "aes-256-gcm";
@@ -35,10 +35,17 @@ export const ALVOS = [
     { tabela: "family_laudos", colunas: ["transcricao"], json: {} },
     { tabela: "family_mensagens", colunas: ["texto"], json: {} },
     // lib/colunas-cifradas.ts (SCRUM-231)
-    { tabela: "workspace_members", colunas: ["telefone"], json: {} },
-    { tabela: "workspace_masters", colunas: ["telefone"], json: {}, chave: "workspace_id" }, // não tem coluna id
-    { tabela: "family_responsibles", colunas: ["telefone"], json: {} },
+    { tabela: "workspace_members", colunas: ["telefone", "email"], json: {}, indice: "email" },
+    { tabela: "workspace_masters", colunas: ["telefone", "email"], json: {}, chave: "workspace_id", indice: "email" }, // não tem coluna id
+    { tabela: "family_responsibles", colunas: ["telefone", "email"], json: {}, indice: "email" },
+    { tabela: "platform_admins", colunas: ["email"], json: {}, indice: "email" },
 ];
+
+/** Mesmo índice cego de lib/indice-cego.ts: HMAC-SHA256 do e-mail normalizado, chave derivada da chave de cifra. */
+export function indiceDoEmailComChave(email, chave) {
+    const derivada = createHash("sha256").update(`omnisfera-indice-cego:${chave.toString("hex")}`).digest();
+    return "e:" + createHmac("sha256", derivada).update(String(email).trim().toLowerCase()).digest("hex");
+}
 
 export function chaveDeHex(hex, nome) {
     if (!/^[0-9a-fA-F]{64}$/.test(hex || "")) throw new Error(`${nome} deve ter 64 caracteres hex (32 bytes).`);
@@ -97,6 +104,15 @@ export function recifrarLinha(alvo, linha, chaveAntiga, chaveNova) {
         if (linha[coluna] === null || linha[coluna] === undefined) continue;
         const r = contar(recifrarCampo(linha[coluna], chaveAntiga, chaveNova));
         if (r.estado === "recifrado") mudancas[coluna] = r.valor;
+        // índice cego: recalculado com a chave nova sempre que o e-mail abre com alguma das chaves
+        if (alvo.indice === coluna && chaveNova && r.estado !== "desconhecida") {
+            let aberto = null;
+            try { aberto = r.estado === "texto_plano" ? String(linha[coluna]) : abrir(r.valor, chaveNova); } catch { aberto = null; }
+            if (aberto) {
+                const novo = indiceDoEmailComChave(aberto, chaveNova);
+                if (linha.email_hash !== novo) mudancas.email_hash = novo;
+            }
+        }
     }
     for (const [coluna, campos] of Object.entries(alvo.json)) {
         const objeto = linha[coluna];
@@ -130,7 +146,7 @@ function somar(total, parcial) {
 }
 
 function colunasDoAlvo(alvo) {
-    return [alvo.chave || "id", ...alvo.colunas, ...Object.keys(alvo.json)].join(",");
+    return [alvo.chave || "id", ...alvo.colunas, ...Object.keys(alvo.json), ...(alvo.indice ? ["email_hash"] : [])].join(",");
 }
 
 /**

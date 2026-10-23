@@ -47,7 +47,7 @@ dá para trocar sem deixar nada ilegível. O script `scripts/recriptografar.mjs`
 
 Tabelas e colunas cobertas pelo script: `students` (`diagnosis`, e os campos sensíveis de `pei_data` e `paee_data`),
 `family_medicacao_updates` (`medicamento`, `dosagem`, `observacao`), `family_laudos` (`transcricao`) e
-`family_mensagens` (`texto`), e `telefone` de `workspace_members`, `workspace_masters` e `family_responsibles`. Os campos do PEI/PAEE (inclusive nas cópias do histórico de versões) são os de `SENSITIVE_PEI_FIELDS` e `SENSITIVE_PAEE_FIELDS` em
+`family_mensagens` (`texto`), e `telefone` e `email` de `workspace_members`, `workspace_masters` e `family_responsibles` (e `email` de `platform_admins`). O script também **recalcula o índice cego do e-mail** (`email_hash`) com a chave nova; durante a rotação, o login aceita o índice das duas chaves (`lib/indice-cego.ts`), então ninguém fica sem entrar. Os campos do PEI/PAEE (inclusive nas cópias do histórico de versões) são os de `SENSITIVE_PEI_FIELDS` e `SENSITIVE_PAEE_FIELDS` em
 `lib/encryption.ts`. Se um dia a lista de campos cifrados mudar (`lib/encryption.ts` ou `lib/colunas-cifradas.ts`), mude também `ALVOS` e `CAMPOS_PEI` no script.
 
 **Antes de começar**

@@ -71,7 +71,7 @@ describe("POST /api/admin/cifrar-dados", () => {
     expect(db.tabelas.workspace_members[1].telefone).toBeNull();
     const { indiceDoEmail } = await import("@/lib/indice-cego");
     expect(db.tabelas.workspace_members[0].email_hash).toBe(indiceDoEmail("prof@escola.test")); // índice preenchido
-    expect(db.tabelas.workspace_members[0].email).toBe("Prof@escola.test"); // e-mail ainda não é cifrado (deploy A)
+    expect(String(db.tabelas.workspace_members[0].email).startsWith("enc:")).toBe(true); // etapa 3B: e-mail cifrado
     expect(String(db.tabelas.family_responsibles[0].telefone).startsWith("enc:")).toBe(true);
     expect(String(db.tabelas.workspace_masters[0].telefone).startsWith("enc:")).toBe(true); // chave workspace_id
     expect(String(db.tabelas.audit_log[0].ip_address).startsWith("ip:")).toBe(true);

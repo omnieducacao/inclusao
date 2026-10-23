@@ -6,7 +6,7 @@
  * Cobre só o que as rotas usam: select, insert, update, eq, in, order, limit, range, single, maybeSingle.
  */
 type Linha = Record<string, unknown>;
-type Filtro = { col: string; vals: unknown[] };
+type Filtro = { col: string; vals: unknown[] } | { ou: Array<{ col: string; op: "eq" | "is"; val: string }> };
 
 export type FakeDb = {
   tabelas: Record<string, Linha[]>;
@@ -56,6 +56,15 @@ class Consulta implements PromiseLike<{ data: unknown; error: null | { message: 
     this.filtros.push({ col, vals });
     return this;
   }
+  /** Só o formato simples "col.is.null,col.eq.valor" que as rotas usam. */
+  or(expr: string) {
+    const ou = expr.split(",").map((parte) => {
+      const [col, op, ...resto] = parte.split(".");
+      return { col, op: op as "eq" | "is", val: resto.join(".") };
+    });
+    this.filtros.push({ ou });
+    return this;
+  }
   order() {
     return this;
   }
@@ -70,7 +79,14 @@ class Consulta implements PromiseLike<{ data: unknown; error: null | { message: 
 
   private linhasQueCasam(): Linha[] {
     const todas = this.db.tabelas[this.tabela] || [];
-    return todas.filter((l) => this.filtros.every((f) => f.vals.includes(l[f.col])));
+    const casa = (l: Linha, f: Filtro) => {
+      if ("ou" in f) {
+        return f.ou.some((c) =>
+          c.op === "is" ? (c.val === "null" ? l[c.col] == null : String(l[c.col]) === c.val) : String(l[c.col]) === c.val);
+      }
+      return f.vals.includes(l[f.col]);
+    };
+    return todas.filter((l) => this.filtros.every((f) => casa(l, f)));
   }
 
   private executar() {

@@ -14,9 +14,10 @@ import { encryptField, decryptField } from "@/lib/encryption";
 import { indiceDoEmail, indicesDoEmail } from "@/lib/indice-cego";
 
 export const COLUNAS_CIFRADAS: Readonly<Record<string, readonly string[]>> = {
-  workspace_members: ["telefone"],
-  workspace_masters: ["telefone"],
-  family_responsibles: ["telefone"],
+  workspace_members: ["telefone", "email"],
+  workspace_masters: ["telefone", "email"],
+  family_responsibles: ["telefone", "email"],
+  platform_admins: ["email"],
 };
 
 /**
@@ -31,7 +32,7 @@ export const INDICE_CEGO: Readonly<Record<string, { coluna: string; destino: str
   family_responsibles: { coluna: "email", destino: "email_hash" },
   platform_admins: { coluna: "email", destino: "email_hash" },
 };
-export const LER_POR_INDICE = false;
+export const LER_POR_INDICE = true; // etapa 3B: o e-mail gravado está cifrado; a busca é pelo índice
 
 type Linha = Record<string, unknown>;
 

@@ -174,3 +174,20 @@ describe("SCRUM-231: campos novos e cópias do histórico", () => {
     for (const t of ["workspace_members", "workspace_masters", "family_responsibles"]) expect(tabelas).toContain(t);
   });
 });
+
+describe("SCRUM-231 etapa 3: e-mail e índice cego na rotação", () => {
+  it("recifra o e-mail e recalcula o índice com a chave nova, igual ao que o app calcula", async () => {
+    // @ts-expect-error módulo .mjs sem tipos
+    const { indiceDoEmailComChave } = await import("../../scripts/recriptografar.mjs");
+    process.env.ENCRYPTION_KEY = HEX_B;
+    vi.resetModules();
+    const { indiceDoEmail } = await import("@/lib/indice-cego");
+    expect(indiceDoEmailComChave("Prof@Escola.test", B)).toBe(indiceDoEmail("prof@escola.test"));
+
+    const emailVelho = await appCifra(HEX_A, "prof@escola.test");
+    const alvo = ALVOS.find((a: { tabela: string }) => a.tabela === "workspace_members");
+    const { mudancas } = recifrarLinha(alvo, { id: "m1", email: emailVelho, email_hash: indiceDoEmailComChave("prof@escola.test", A) }, A, B);
+    expect(await appAbre(HEX_B, mudancas.email)).toBe("prof@escola.test");
+    expect(mudancas.email_hash).toBe(indiceDoEmailComChave("prof@escola.test", B));
+  });
+});
