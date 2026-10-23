@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 import { gravarLead } from "@/lib/leads-server";
 
@@ -7,6 +8,7 @@ import { gravarLead } from "@/lib/leads-server";
  * Proteções: armadilha para robôs (campo "site"), limite de 5 pedidos por hora por IP e o limitador geral do proxy.
  */
 export async function POST(req: Request) {
+  const rl = rateLimitResponse(req, RATE_LIMITS.FORM_PUBLIC); if (rl) return rl; // SCRUM-229
   let body: unknown;
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Não foi possível ler o formulário." }, { status: 400 }); }
   try {

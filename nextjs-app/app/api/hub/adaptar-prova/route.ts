@@ -1,5 +1,5 @@
 import { parseBody, hubAdaptarProvaSchema } from "@/lib/validation";
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitIA } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import mammoth from "mammoth";
 import { chatCompletionText, getEngineErrorWithWorkspace, type EngineId } from "@/lib/ai-engines";
@@ -12,7 +12,7 @@ import { logger } from "@/lib/logger";
 import { separarAnalise } from "@/lib/ferramentas/separar-analise";
 
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+  const rl = await rateLimitIA(req); if (rl) return rl;
   const { session, error: authError } = await requireAuth(); if (authError) return authError;
   let texto = "";
   let materia = "Geral";

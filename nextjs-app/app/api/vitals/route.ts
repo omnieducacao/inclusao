@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
+  const rl = rateLimitResponse(req, RATE_LIMITS.VITALS); if (rl) return rl; // SCRUM-229
     try {
         const body = await req.json();
 

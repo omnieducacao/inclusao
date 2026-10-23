@@ -1,4 +1,4 @@
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitResponse, limitarPorChave, ipDaRequisicao, RATE_LIMITS } from "@/lib/rate-limit";
 import { parseBody, loginSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import {
@@ -12,11 +12,14 @@ import { logger } from "@/lib/logger";
 import { registrarAcesso } from "@/lib/acessos";
 
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AUTH); if (rl) return rl;
+  // SCRUM-229: teto largo por IP (a escola inteira sai pelo mesmo IP) e limite fino por e-mail
+  const rl = rateLimitResponse(req, RATE_LIMITS.AUTH_IP); if (rl) return rl;
   try {
     const parsed = await parseBody(req, loginSchema);
     if (parsed.error) return parsed.error;
     const { email, password } = parsed.data;
+    const porConta = limitarPorChave(`${ipDaRequisicao(req)}:${String(email).trim().toLowerCase()}`, RATE_LIMITS.AUTH);
+    if (porConta) return porConta;
 
     const found = await findUserByEmail(email);
     if (!found) {

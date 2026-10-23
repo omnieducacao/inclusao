@@ -1,5 +1,5 @@
 import { parseBody, adminLoginSchema } from "@/lib/validation";
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitResponse, limitarPorChave, ipDaRequisicao, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { verifyPlatformAdmin } from "@/lib/auth";
 import { createSession } from "@/lib/session";
@@ -7,11 +7,13 @@ import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AUTH); if (rl) return rl;
+  const rl = rateLimitResponse(req, RATE_LIMITS.AUTH_IP); if (rl) return rl;
   try {
     const parsed = await parseBody(req, adminLoginSchema);
     if (parsed.error) return parsed.error;
     const { email, password } = parsed.data;
+    const porConta = limitarPorChave(`${ipDaRequisicao(req)}:${String(email).trim().toLowerCase()}`, RATE_LIMITS.AUTH);
+    if (porConta) return porConta;
     const ok = await verifyPlatformAdmin(email, password);
     if (!ok) {
       return NextResponse.json(

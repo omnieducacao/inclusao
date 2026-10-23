@@ -1,4 +1,4 @@
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitIA } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, visionAdapt, getEngineError, getEngineErrorWithWorkspace, motorParaDadosSensiveis, type EngineId } from "@/lib/ai-engines";
 import { mascararPII } from "@/lib/pii";
@@ -30,7 +30,7 @@ async function extractTextFromPdf(buffer: Buffer, maxPages: number = 6): Promise
 const PROMPT_EXTRAIR = `Analise este laudo médico/escolar. Extraia: 1) Diagnóstico; 2) Medicamentos. Responda APENAS em JSON, sem markdown, sem backticks: { "diagnostico": "...", "medicamentos": [ {"nome": "...", "posologia": "..."} ] }. Se não houver medicamentos, retorne lista vazia. Códigos entre colchetes, como [CPF_1], são dados pessoais ocultados: ignore-os.`;
 
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+  const rl = await rateLimitIA(req); if (rl) return rl;
   const { session, error: authError } = await requireAuth(); if (authError) return authError;
   try {
     const formData = await req.formData();

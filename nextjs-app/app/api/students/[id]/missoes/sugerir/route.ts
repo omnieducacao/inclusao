@@ -8,7 +8,7 @@ import { getStudent } from "@/lib/students";
 import { negadoForaDoVinculo } from "@/lib/turmas";
 import { chatCompletionText, getEngineErrorWithWorkspace, type EngineId } from "@/lib/ai-engines";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitIA } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 import { extrairMetasEstruturadas } from "@/app/(dashboard)/pei/lib/dashboard-helpers";
 import { promptMissoes, lerSugestoes } from "@/lib/missoes";
@@ -18,7 +18,7 @@ const texto = (v: unknown) => (Array.isArray(v) ? v.filter((x) => typeof x === "
 const definida = (s: string) => (s && !/^definir/i.test(s) ? s : "");
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const limite = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION);
+  const limite = await rateLimitIA(req);
   if (limite) return limite;
   const session = await getSession();
   const negado = negadoMissoes(session);

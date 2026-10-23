@@ -33,7 +33,9 @@ vi.mock("@/lib/validation", async (importOriginal) => {
 
 vi.mock("@/lib/rate-limit", () => ({
   rateLimitResponse: mockRateLimitResponse,
-  RATE_LIMITS: { AUTH: "auth" },
+  limitarPorChave: () => null,
+  ipDaRequisicao: () => "203.0.113.1",
+  RATE_LIMITS: { AUTH: "auth", AUTH_IP: "auth_ip" },
 }));
 
 const mockMaybeSingle = vi.fn();

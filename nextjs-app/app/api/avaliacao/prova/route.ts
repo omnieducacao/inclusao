@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitIA } from "@/lib/rate-limit";
 import { getSession, memberIdDaSessao } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
@@ -60,7 +60,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+  const rl = await rateLimitIA(req); if (rl) return rl;
   const session = await getSession();
   const body = (await req.json().catch(() => ({}))) as {
     studentId?: string; disciplina?: string; tipo?: string; ano_referencia?: number; codigos?: string[]; adaptacoes?: Partial<Adaptacoes>; engine?: string;

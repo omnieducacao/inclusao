@@ -15,6 +15,7 @@ vi.mock("@/lib/permissions", () => ({
 
 vi.mock("@/lib/rate-limit", () => ({
     rateLimitResponse: vi.fn().mockReturnValue(null),
+    rateLimitIA: vi.fn(async () => null),
     RATE_LIMITS: { AI_GENERATION: { maxRequests: 10, windowMs: 60000 } },
 }));
 

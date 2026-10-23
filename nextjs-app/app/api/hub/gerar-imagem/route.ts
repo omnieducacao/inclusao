@@ -1,12 +1,12 @@
 import { parseBody, hubGerarImagemSchema } from "@/lib/validation";
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitIA, RATE_LIMITS } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { gerarImagemInteligente, baixarImagemUrl } from "@/lib/hub-images";
 import { requireAuth } from "@/lib/permissions";
 import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_IMAGE); if (rl) return rl;
+  const rl = await rateLimitIA(req, RATE_LIMITS.AI_IMAGE); if (rl) return rl;
   const { error: authError } = await requireAuth(); if (authError) return authError;
   const parsed = await parseBody(req, hubGerarImagemSchema);
   if (parsed.error) return parsed.error;

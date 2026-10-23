@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 import { getSupabase } from "@/lib/supabase";
 import { ehRobo } from "@/lib/leads";
@@ -13,6 +14,7 @@ const LIMITE_POR_HORA = 5;
  * Grava um contato (lead, origem "certificado") e o certificado, e devolve o endereço da página do certificado.
  */
 export async function POST(req: Request) {
+  const rl = rateLimitResponse(req, RATE_LIMITS.FORM_PUBLIC); if (rl) return rl; // SCRUM-229
   let body: unknown;
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Não foi possível ler o formulário." }, { status: 400 }); }
   if (ehRobo(body)) return NextResponse.json({ ok: true });

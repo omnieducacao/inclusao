@@ -1,4 +1,4 @@
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitIA } from "@/lib/rate-limit";
 import { parseBody, adaptarAtividadeSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { visionAdapt, getVisionError, getVisionApiKey, chatCompletionText, type EngineId } from "@/lib/ai-engines";
@@ -16,7 +16,7 @@ const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB
 const MAX_VISION_BYTES = 3 * 1024 * 1024; // 3MB (limite para APIs de visão)
 
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+  const rl = await rateLimitIA(req); if (rl) return rl;
   const { session, error: authError } = await requireAuth(); if (authError) return authError;
   const err = getVisionError();
   if (err) {

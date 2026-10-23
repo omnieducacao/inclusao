@@ -1,4 +1,4 @@
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitIA } from "@/lib/rate-limit";
 import { enriquecerComPei } from "@/lib/ferramentas/contexto-pei";
 import { parseBody, criarAtividadeSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
@@ -10,7 +10,7 @@ import { saveHubGeneratedContent, PROMPT_VERSION_HUB } from "@/lib/hub-tracking"
 import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+  const rl = await rateLimitIA(req); if (rl) return rl;
   const { session, error: authError } = await requireAuth(); if (authError) return authError;
   const parsed = await parseBody(req, criarAtividadeSchema);
   if (parsed.error) return parsed.error;

@@ -1,5 +1,5 @@
 import { parseBody, paeeJornadaGamificadaSchema } from "@/lib/validation";
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitIA } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
@@ -24,7 +24,7 @@ type CicloPayload = {
 };
 
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+  const rl = await rateLimitIA(req); if (rl) return rl;
   const { error: authError } = await requireAuth(); if (authError) return authError;
   const parsed = await parseBody(req, paeeJornadaGamificadaSchema);
   if (parsed.error) return parsed.error;
@@ -75,11 +75,11 @@ export async function POST(req: Request) {
     const semanas = crono.semanas || [];
     let cronTexto = "";
     if (fases.length > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
       cronTexto += "FASES:\n" + fases.slice(0, 5).map((f: any) => `- ${f.nome || ""}: ${f.objetivo_geral || ""}`).join("\n");
     }
     if (semanas.length > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
       cronTexto += "\n\nSEMANAS (resumo):\n" + semanas.slice(0, 6).map((w: any) => `- Sem ${w.numero}: ${w.tema || ""} — ${w.objetivo || ""}`).join("\n");
     }
 

@@ -5,11 +5,11 @@ import { requireAnyPermission } from "@/lib/permissions";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
 import type { DimensionamentoPGI } from "@/lib/pgi";
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitIA } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+  const rl = await rateLimitIA(req); if (rl) return rl;
   const session = await getSession();
   if (!session?.workspace_id) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });

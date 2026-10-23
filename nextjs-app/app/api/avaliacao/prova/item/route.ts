@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitIA } from "@/lib/rate-limit";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
@@ -10,7 +10,7 @@ import type { ItemProva } from "@/lib/prova";
 
 /** POST { id, itemId } → a IA troca um item (mesmo descritor e mesma ordem) e grava a prova. */
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+  const rl = await rateLimitIA(req); if (rl) return rl;
   const session = await getSession();
   const body = (await req.json().catch(() => ({}))) as { id?: string; itemId?: string };
   const sb = getSupabase();

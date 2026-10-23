@@ -1,6 +1,6 @@
 import { negadoForaDoVinculo } from "@/lib/turmas";
 import { parseBody, paeeRelatorioCicloSchema } from "@/lib/validation";
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitIA } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
@@ -16,7 +16,7 @@ import { logger } from "@/lib/logger";
  * with Diário de Bordo entries from the same period.
  */
 export async function POST(req: Request) {
-    const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+    const rl = await rateLimitIA(req); if (rl) return rl;
     try {
         const session = await getSession();
         if (!session?.workspace_id) {

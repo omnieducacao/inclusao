@@ -1,7 +1,7 @@
 import { parseBody, hubMapaMentalSchema } from "@/lib/validation";
 import { registrarMaterial } from "@/lib/hub-tracking";
 import { enriquecerComPei } from "@/lib/ferramentas/contexto-pei";
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitIA } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineErrorWithWorkspace, type EngineId } from "@/lib/ai-engines";
 import { gerarPromptMapaMentalImagem, gerarPromptMapaMentalHtml } from "@/lib/hub-prompts";
@@ -10,7 +10,7 @@ import { anonymizeText } from "@/lib/ai-anonymize";
 import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
-    const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+    const rl = await rateLimitIA(req); if (rl) return rl;
     const { session, error: authError } = await requireAuth(); if (authError) return authError;
     const parsed = await parseBody(req, hubMapaMentalSchema);
     if (parsed.error) return parsed.error;

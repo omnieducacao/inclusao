@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitIA } from "@/lib/rate-limit";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
@@ -12,7 +12,7 @@ import { extrairJson, RUBRICA_PADRAO, type ItemProva } from "@/lib/prova";
  * e sugere o nível da rubrica. A professora confirma. A foto não é guardada.
  */
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+  const rl = await rateLimitIA(req); if (rl) return rl;
   const session = await getSession();
   const body = (await req.json().catch(() => ({}))) as { id?: string; itemId?: string; imagem?: string; mime?: string };
   if (!body.imagem || body.imagem.length > 6_000_000) return NextResponse.json({ error: "Mande uma foto de até 4 MB." }, { status: 400 });

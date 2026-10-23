@@ -1,5 +1,5 @@
 import { parseBody, diarioAnaliseSchema } from "@/lib/validation";
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitIA } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText, getEngineError } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
@@ -23,7 +23,7 @@ type RegistroResumo = {
 };
 
 export async function POST(req: Request) {
-    const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+    const rl = await rateLimitIA(req); if (rl) return rl;
     const { error: authError } = await requireAuth(); if (authError) return authError;
     let registros: RegistroResumo[] = [];
     let engine: EngineId = "red";

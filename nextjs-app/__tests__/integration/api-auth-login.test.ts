@@ -189,33 +189,35 @@ describe("API /api/auth/login", () => {
       expect(data.error).toContain("Senha incorreta");
     });
 
-    it("rate limiting funciona após muitas requests", async () => {
-        // AUTH rate limit: 10 per 15min
-        // Use a unique IP per test to avoid conflicts
-        const ip = `rate-test-${Math.random().toString(36).slice(2)}`;
-
-        for (let i = 0; i < 10; i++) {
-            const req = new Request("http://localhost:3000/api/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-forwarded-for": ip,
-                },
-                body: JSON.stringify({ email: "test@test.com", password: "123" }),
-            });
-            await POST(req);
-        }
-
-        // 11th request should be rate limited
-        const req = new Request("http://localhost:3000/api/auth/login", {
+    // SCRUM-229: limite fino por e-mail (força bruta) e teto largo por IP (escola atrás de um IP só)
+    function tentativa(ip: string, email: string): Request {
+        return new Request("http://localhost:3000/api/auth/login", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "x-forwarded-for": ip,
-            },
-            body: JSON.stringify({ email: "test@test.com", password: "123" }),
+            headers: { "Content-Type": "application/json", "x-forwarded-for": ip },
+            body: JSON.stringify({ email, password: "senha-errada" }),
         });
-        const res = await POST(req);
+    }
+
+    it("rate limiting: a 11ª tentativa no mesmo e-mail e IP é barrada (429)", async () => {
+        mockFindUserByEmail.mockResolvedValue(null);
+        const ip = `rate-test-${Math.random().toString(36).slice(2)}`;
+        for (let i = 0; i < 10; i++) expect((await POST(tentativa(ip, "alvo@escola.test"))).status).toBe(401);
+        const res = await POST(tentativa(ip, "alvo@escola.test"));
         expect(res.status).toBe(429);
+        expect(res.headers.get("Retry-After")).toBeTruthy();
+    });
+
+    it("rate limiting: outro professor da mesma escola (mesmo IP) continua conseguindo entrar", async () => {
+        mockFindUserByEmail.mockResolvedValue(null);
+        const ip = `rate-test-${Math.random().toString(36).slice(2)}`;
+        for (let i = 0; i < 11; i++) await POST(tentativa(ip, "alvo@escola.test"));
+        expect((await POST(tentativa(ip, "colega@escola.test"))).status).toBe(401); // não é 429
+    });
+
+    it("rate limiting: teto por IP de 60 tentativas a cada 15 min, mesmo com e-mails diferentes", async () => {
+        mockFindUserByEmail.mockResolvedValue(null);
+        const ip = `rate-test-${Math.random().toString(36).slice(2)}`;
+        for (let i = 0; i < 60; i++) await POST(tentativa(ip, `p${i}@escola.test`));
+        expect((await POST(tentativa(ip, "p-novo@escola.test"))).status).toBe(429);
     });
 });

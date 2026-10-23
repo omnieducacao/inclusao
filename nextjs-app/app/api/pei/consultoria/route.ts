@@ -1,5 +1,5 @@
 import { pontosDeAtencaoDaDiagnostica } from "@/lib/avaliacao-servidor";
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitIA } from "@/lib/rate-limit";
 import { estudoCasoParaPrompt, type EstudoCaso } from "@/lib/estudo-caso";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
 import { parseBody, peiConsultoriaSchema } from "@/lib/validation";
@@ -343,7 +343,7 @@ ${habTxt || "(carregue do contexto BNCC do ano/série)"}${promptFeedback}${dossi
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+  const rl = await rateLimitIA(req); if (rl) return rl;
   const { error: authError } = await requireAuth(); if (authError) return authError;
   let dados: PEIDataPayload = {};
   let engine: EngineId = "red";

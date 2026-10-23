@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitIA } from "@/lib/rate-limit";
 import { getSession } from "@/lib/session";
 import { chatCompletionText, type EngineId } from "@/lib/ai-engines";
 import { anonymizeMessages } from "@/lib/ai-anonymize";
@@ -17,7 +17,7 @@ import { itemPorCodigo, saebDoItem } from "@/lib/matriz-avaliacao-servidor";
  * estudante. As questões ajudam a decidir o nível; quem decide é a professora.
  */
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+  const rl = await rateLimitIA(req); if (rl) return rl;
   const session = await getSession();
   const body = (await req.json().catch(() => ({}))) as { studentId?: string; disciplina?: string; codigo?: string; ano_referencia?: number; engine?: string };
   const r = await estudanteParaAvaliar(session, body.studentId);

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 import { gravarLead } from "@/lib/leads-server";
 import { PAPEIS_DEMO, papelDemoValido } from "@/lib/demo";
@@ -9,6 +10,7 @@ import { abrirSessaoDemo } from "@/lib/demo-sessao";
  * na Escola Demo, no papel escolhido. Rota pública: "/api/public/" está liberada no proxy.ts.
  */
 export async function POST(req: Request) {
+  const rl = rateLimitResponse(req, RATE_LIMITS.FORM_PUBLIC); if (rl) return rl; // SCRUM-229
   let body: Record<string, unknown>;
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Não foi possível ler o formulário." }, { status: 400 }); }
   const papel = body.papel;

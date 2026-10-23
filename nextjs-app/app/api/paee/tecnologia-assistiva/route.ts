@@ -1,5 +1,5 @@
 import { parseBody, paeeTecnologiaAssistivaSchema } from "@/lib/validation";
-import { rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitIA } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { chatCompletionText } from "@/lib/ai-engines";
 import type { EngineId } from "@/lib/ai-engines";
@@ -9,7 +9,7 @@ import { anonymizeMessages } from "@/lib/ai-anonymize";
 import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
-  const rl = rateLimitResponse(req, RATE_LIMITS.AI_GENERATION); if (rl) return rl;
+  const rl = await rateLimitIA(req); if (rl) return rl;
   const { session, error: authError } = await requireAuth(); if (authError) return authError;
   try {
     const parsed = await parseBody(req, paeeTecnologiaAssistivaSchema);
