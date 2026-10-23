@@ -89,8 +89,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // SCRUM-227: API sem sessão válida responde 401 em JSON (antes redirecionava para a tela de
+  // login, e quem chamou recebia HTML no lugar dos dados).
+  const ehApi = pathname.startsWith("/api/");
+  const naoAutenticado = () => NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+
   const token = request.cookies.get("omnisfera_session")?.value;
   if (!token) {
+    if (ehApi) return naoAutenticado();
     // Sem sessão, a raiz mostra o site: primeiro o conteúdo sobre inclusão, depois a plataforma (onda 43).
     // Quem tem sessão segue para o app.
     if (pathname === "/") {
@@ -122,6 +128,11 @@ export async function proxy(request: NextRequest) {
     }
     return NextResponse.next();
   } catch {
+    if (ehApi) {
+      const res = naoAutenticado();
+      res.cookies.delete("omnisfera_session");
+      return res;
+    }
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     const res = NextResponse.redirect(loginUrl);
@@ -131,5 +142,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|_vercel|favicon.ico|robots\\.txt|manifest\\.json|sitemap\\.xml|sw\\.js|workbox-.*\\.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|mp4|webm)$).*)"],
+  // SCRUM-227: "/api/:path*" vem primeiro para que nenhuma rota de API escape do proxy; antes,
+  // /api/students/x.png caía na exclusão de imagens e pulava o bloqueio da família e da demonstração.
+  matcher: ["/api/:path*","/((?!_next/static|_next/image|_vercel|favicon.ico|robots\\.txt|manifest\\.json|sitemap\\.xml|sw\\.js|workbox-.*\\.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|mp4|webm)$).*)"],
 };
