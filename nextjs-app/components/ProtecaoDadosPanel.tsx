@@ -14,9 +14,10 @@ type Resposta = { aplicado: boolean; total_a_mudar: number; relatorio: Record<st
 
 const ROTULOS: Record<string, string> = {
     estudantes: "Estudantes (diagnóstico, PEI e PAEE)",
-    telefone_workspace_members: "Telefones da equipe",
-    telefone_workspace_masters: "Telefones da coordenação",
-    telefone_family_responsibles: "Telefones das famílias",
+    colunas_workspace_members: "Equipe (telefone e índice do e-mail)",
+    colunas_workspace_masters: "Coordenação (telefone e índice do e-mail)",
+    colunas_family_responsibles: "Famílias (telefone e índice do e-mail)",
+    colunas_platform_admins: "Admins da plataforma (índice do e-mail)",
     ip_audit_log: "IPs no registro de auditoria",
     ciencia_pei: "Ciência do PEI (IP e navegador)",
 };

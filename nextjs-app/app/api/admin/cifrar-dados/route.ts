@@ -13,12 +13,16 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabaseSemCifra } from "@/lib/supabase";
-import { encryptField, encryptSensitivePeiFields, encryptSensitivePaeeFields } from "@/lib/encryption";
+import { encryptField, decryptField, encryptSensitivePeiFields, encryptSensitivePaeeFields } from "@/lib/encryption";
+import { COLUNAS_CIFRADAS, INDICE_CEGO } from "@/lib/colunas-cifradas";
+import { indiceDoEmail } from "@/lib/indice-cego";
 import { resumirIp, resumirNavegador } from "@/lib/resumo-acesso";
 import { logAction } from "@/lib/audit";
 import { logger } from "@/lib/logger";
 
 const PAGINA = 200;
+/** Tabelas cuja chave não é `id`. */
+const CHAVE_DA_TABELA: Record<string, string> = { workspace_masters: "workspace_id" };
 type Linha = Record<string, unknown>;
 type Contagem = { linhas: number; a_mudar: number; gravadas: number; erros: number };
 
@@ -86,9 +90,23 @@ export async function POST(req: Request) {
     return novo;
   }, aplicar);
 
-  for (const [tabela, chave] of [["workspace_members", "id"], ["workspace_masters", "workspace_id"], ["family_responsibles", "id"]] as const) {
-    relatorio[`telefone_${tabela}`] = await percorrer(sb, tabela, `${chave}, telefone`, (l) =>
-      cifradoOuVazio(l.telefone) ? null : { telefone: encryptField(l.telefone as string) }, aplicar, chave);
+  // Colunas de lib/colunas-cifradas.ts (telefones e, na etapa 3B, e-mails) e o índice cego do e-mail
+  const tabelas = Array.from(new Set([...Object.keys(COLUNAS_CIFRADAS), ...Object.keys(INDICE_CEGO)]));
+  for (const tabela of tabelas) {
+    const chave = CHAVE_DA_TABELA[tabela] || "id";
+    const colunas = COLUNAS_CIFRADAS[tabela] || [];
+    const ind = INDICE_CEGO[tabela];
+    const lidas = Array.from(new Set([chave, ...colunas, ...(ind ? [ind.coluna, ind.destino] : [])]));
+    relatorio[`colunas_${tabela}`] = await percorrer(sb, tabela, lidas.join(", "), (l) => {
+      const novo: Linha = {};
+      if (ind && typeof l[ind.coluna] === "string" && (l[ind.coluna] as string).trim()) {
+        const aberto = decryptField(l[ind.coluna] as string); // o e-mail pode já estar cifrado
+        const certo = indiceDoEmail(aberto);
+        if (aberto && l[ind.destino] !== certo) novo[ind.destino] = certo;
+      }
+      for (const c of colunas) if (!cifradoOuVazio(l[c])) novo[c] = encryptField(l[c] as string);
+      return novo;
+    }, aplicar, chave);
   }
 
   relatorio.ip_audit_log = await percorrer(sb, "audit_log", "id, ip_address", (l) =>

@@ -30,7 +30,7 @@ beforeEach(() => {
       id: "s1", diagnosis: "TEA", paee_data: { conteudo_diagnostico_barreiras: "barreiras" },
       pei_data: { nome: "Beatriz Almeida", nasc: "2016-03-12", serie: "5º ano", _versions: [{ version: 1, snapshot: { nome: "Beatriz Almeida", diagnostico: "TEA" } }] },
     }],
-    workspace_members: [{ id: "m1", telefone: "(11) 91234-5678" }, { id: "m2", telefone: null }],
+    workspace_members: [{ id: "m1", workspace_id: "ws-A", telefone: "(11) 91234-5678", email: "Prof@escola.test", email_hash: null }, { id: "m2", telefone: null }],
     workspace_masters: [{ workspace_id: "ws-A", telefone: "(31) 97777-6666" }],
     family_responsibles: [{ id: "r1", telefone: "(21) 98888-7777" }],
     audit_log: [{ id: "a1", ip_address: "203.0.113.5" }, { id: "a2", ip_address: null }],
@@ -50,8 +50,8 @@ describe("POST /api/admin/cifrar-dados", () => {
     const antes = JSON.stringify(db.tabelas);
     const r = await (await POST(post({}))).json();
     expect(r.aplicado).toBe(false);
-    expect(r.total_a_mudar).toBe(6); // estudante, 3 telefones, 1 IP de auditoria, 1 ciência
-    expect(r.relatorio.telefone_workspace_masters.erros).toBe(0);
+    expect(r.total_a_mudar).toBe(6); // estudante, 3 linhas de equipe/coordenação/família, 1 IP, 1 ciência
+    expect(r.relatorio.colunas_workspace_masters.erros).toBe(0);
     expect(JSON.stringify(db.tabelas)).toBe(antes);
   });
 
@@ -69,6 +69,9 @@ describe("POST /api/admin/cifrar-dados", () => {
     expect(String(s.paee_data.conteudo_diagnostico_barreiras).startsWith("enc:")).toBe(true);
     expect(String(db.tabelas.workspace_members[0].telefone).startsWith("enc:")).toBe(true);
     expect(db.tabelas.workspace_members[1].telefone).toBeNull();
+    const { indiceDoEmail } = await import("@/lib/indice-cego");
+    expect(db.tabelas.workspace_members[0].email_hash).toBe(indiceDoEmail("prof@escola.test")); // índice preenchido
+    expect(db.tabelas.workspace_members[0].email).toBe("Prof@escola.test"); // e-mail ainda não é cifrado (deploy A)
     expect(String(db.tabelas.family_responsibles[0].telefone).startsWith("enc:")).toBe(true);
     expect(String(db.tabelas.workspace_masters[0].telefone).startsWith("enc:")).toBe(true); // chave workspace_id
     expect(String(db.tabelas.audit_log[0].ip_address).startsWith("ip:")).toBe(true);
