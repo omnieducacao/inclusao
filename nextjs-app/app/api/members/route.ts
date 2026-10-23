@@ -8,6 +8,7 @@ import {
   createWorkspaceMaster,
 } from "@/lib/members";
 import { requirePermission } from "@/lib/permissions";
+import { auditar } from "@/lib/audit";
 
 export async function GET(request: NextRequest) {
   const session = await getSession();
@@ -80,6 +81,7 @@ export async function POST(request: NextRequest) {
       // a conta da coordenação aparece na equipe como Coordenação (antes caía no padrão "Professor")
       papel: "coordenacao",
     });
+    await auditar(session, request, { action: "permission_change", resourceType: "conta_principal", resourceId: workspaceId, metadata: { acao: "criar" } });
     return NextResponse.json({ ok: true });
   }
 
@@ -105,5 +107,10 @@ export async function POST(request: NextRequest) {
   if (result.error) {
     return NextResponse.json({ error: result.error }, { status: 400 });
   }
+  const novoId = (result.member as { id?: string } | undefined)?.id || null;
+  await auditar(session, request, {
+    action: "permission_change", resourceType: "membro", resourceId: novoId,
+    metadata: { acao: "criar", can_gestao: body.can_gestao ?? false, link_type: body.link_type ?? "todos" },
+  });
   return NextResponse.json({ member: result.member });
 }

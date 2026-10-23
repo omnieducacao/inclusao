@@ -25,13 +25,15 @@ export function AuditoriaTab({ workspaces, isPlatformAdmin = false }: { workspac
 
     const [wsFilter, setWsFilter] = useState("");
     const [actionFilter, setActionFilter] = useState("");
+    const [inicio, setInicio] = useState("");
+    const [fim, setFim] = useState("");
     const [offset, setOffset] = useState(0);
     const limit = 50;
 
     useEffect(() => {
         loadAuditLogs();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [wsFilter, actionFilter, offset]);
+    }, [wsFilter, actionFilter, inicio, fim, offset]);
 
     async function loadAuditLogs() {
         setLoading(true);
@@ -39,6 +41,9 @@ export function AuditoriaTab({ workspaces, isPlatformAdmin = false }: { workspac
             const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
             if (wsFilter) params.set("workspace_id", wsFilter);
             if (actionFilter) params.set("action", actionFilter);
+            // Período em dias inteiros, no fuso de quem consulta
+            if (inicio) params.set("start", new Date(`${inicio}T00:00:00`).toISOString());
+            if (fim) params.set("end", new Date(`${fim}T23:59:59.999`).toISOString());
 
             const res = await fetch(`/api/admin/audit-log?${params}`);
             if (res.ok) {
@@ -64,7 +69,32 @@ export function AuditoriaTab({ workspaces, isPlatformAdmin = false }: { workspac
         update: "Alteração",
         delete: "Exclusão",
         login: "Entrada",
-        logout: "Saída"
+        login_failed: "Entrada recusada",
+        logout: "Saída",
+        simulate_start: "Início de simulação",
+        simulate_end: "Fim de simulação",
+        permission_change: "Mudança de acesso",
+    };
+
+    // Nomes simples das áreas
+    const resourceLabels: Record<string, string> = {
+        pei: "PEI",
+        pei_oficial: "PEI oficial",
+        pei_ciencia: "Ciência do PEI",
+        pei_resumo_familia: "Resumo do PEI para a família",
+        paee: "PAEE",
+        diario: "Diário do AEE",
+        monitoramento: "Monitoramento",
+        estudante: "Estudante",
+        student: "Estudante",
+        membro: "Equipe",
+        member: "Equipe",
+        responsavel: "Família",
+        escola: "Escola",
+        conta_principal: "Conta principal",
+        sessao: "Login",
+        sessao_admin: "Login da administração",
+        manutencao_cifra: "Cifra de dados",
     };
 
     const actionColors: Record<string, string> = {
@@ -73,6 +103,10 @@ export function AuditoriaTab({ workspaces, isPlatformAdmin = false }: { workspac
         delete: "omni-estado--erro",
         create: "omni-estado--sucesso",
         update: "omni-estado--atencao",
+        login_failed: "omni-estado--erro",
+        permission_change: "omni-estado--atencao",
+        simulate_start: "omni-estado--info",
+        simulate_end: "omni-estado--info",
     };
 
     return (
@@ -129,6 +163,26 @@ export function AuditoriaTab({ workspaces, isPlatformAdmin = false }: { workspac
                         ))}
                     </select>
                 </label>
+                <label className="omni-campo" style={{ flex: "0 1 170px" }}>
+                    <span className="omni-campo__rotulo">De</span>
+                    <input
+                        type="date"
+                        value={inicio}
+                        max={fim || undefined}
+                        onChange={(e) => { setInicio(e.target.value); setOffset(0); }}
+                        className="omni-entrada"
+                    />
+                </label>
+                <label className="omni-campo" style={{ flex: "0 1 170px" }}>
+                    <span className="omni-campo__rotulo">Até</span>
+                    <input
+                        type="date"
+                        value={fim}
+                        min={inicio || undefined}
+                        onChange={(e) => { setFim(e.target.value); setOffset(0); }}
+                        className="omni-entrada"
+                    />
+                </label>
                 <span className="omni-estado omni-estado--neutro" style={{ alignSelf: "center" }}>
                     {total} {total === 1 ? "registro" : "registros"}
                 </span>
@@ -174,13 +228,16 @@ export function AuditoriaTab({ workspaces, isPlatformAdmin = false }: { workspac
                                                     <span className={`omni-estado ${actionColors[log.action] || "omni-estado--neutro"}`}>
                                                         {actionLabels[log.action] || log.action}
                                                     </span>
-                                                    <span style={{ color: "var(--tinta-2)", fontWeight: 600, textTransform: "capitalize" }}>
-                                                        {log.resource_type}
+                                                    <span style={{ color: "var(--tinta-2)", fontWeight: 600 }}>
+                                                        {resourceLabels[log.resource_type] || log.resource_type}
                                                     </span>
+                                                    {log.metadata?.simulando_escola || log.metadata?.simulando_membro ? (
+                                                        <span className="omni-estado omni-estado--info">em simulação</span>
+                                                    ) : null}
                                                 </div>
                                             </td>
                                             <td className="omni-tabela__nome" title={log.actor_id} style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                                {log.actor_id || "Sistema"}
+                                                {log.actor_id ? `#${log.actor_id.split("-")[0]}` : "Não identificado"}
                                             </td>
                                             <td>
                                                 <span className="omni-estado omni-estado--neutro" style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>

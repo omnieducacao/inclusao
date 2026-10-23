@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/permissions";
+import { logExport } from "@/lib/audit";
 import { chatCompletionText } from "@/lib/ai-engines";
 import { serializarPeiParaTexto, promptDocumentoOficial } from "@/lib/pei-documento-oficial";
 import { gerarPdfDocumentoOficial } from "@/lib/pei-pdf-oficial";
@@ -15,7 +16,7 @@ const peiPdfOficialSchema = z.object({
 });
 
 export async function POST(req: Request) {
-    const { error: authError } = await requireAuth();
+    const { session, error: authError } = await requireAuth();
     if (authError) return authError;
     try {
         const body = await req.json();
@@ -54,6 +55,7 @@ export async function POST(req: Request) {
         const buffer = Buffer.from(pdfBytes);
         const filename = `PEI_Oficial_${nomeEstudante.replace(/\s+/g, "_")}.pdf`;
 
+        await logExport(session, req, { resourceType: "pei_oficial", format: "pdf" });
         return new NextResponse(buffer, {
             headers: {
                 "Content-Type": "application/pdf",

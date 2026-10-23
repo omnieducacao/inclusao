@@ -5,6 +5,7 @@ import { verifyPlatformAdmin } from "@/lib/auth";
 import { createSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
+import { logAction } from "@/lib/audit";
 
 export async function POST(req: Request) {
   const rl = rateLimitResponse(req, RATE_LIMITS.AUTH_IP); if (rl) return rl;
@@ -16,6 +17,7 @@ export async function POST(req: Request) {
     if (porConta) return porConta;
     const ok = await verifyPlatformAdmin(email, password);
     if (!ok) {
+      await logAction({ actorRole: "platform_admin", action: "login_failed", resourceType: "sessao_admin", req });
       return NextResponse.json(
         { error: "Credenciais inválidas." },
         { status: 401 }
@@ -25,7 +27,7 @@ export async function POST(req: Request) {
     const sb = getSupabase();
     const { data } = await sb
       .from("platform_admins")
-      .select("nome")
+      .select("id, nome")
       .eq("email", (email as string).trim().toLowerCase())
       .single();
 
@@ -33,10 +35,13 @@ export async function POST(req: Request) {
       workspace_id: null,
       workspace_name: "Administração",
       usuario_nome: (data?.nome as string) || email,
+      usuario_id: (data?.id as string) || null,
       user_role: "platform_admin",
       is_platform_admin: true,
       member: {}, // evita crash em componentes que acessam session.member
     });
+
+    await logAction({ actorId: (data?.id as string) || null, actorRole: "platform_admin", action: "login", resourceType: "sessao_admin", req });
 
     return NextResponse.json({
       ok: true,

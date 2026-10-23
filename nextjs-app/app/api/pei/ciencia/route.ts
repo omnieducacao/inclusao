@@ -3,7 +3,7 @@ import { getSession, memberIdDaSessao } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { getStudent } from "@/lib/students";
 import { negadoForaDoVinculo, membrosDoEstudante } from "@/lib/turmas";
-import { logAction } from "@/lib/audit";
+import { auditar } from "@/lib/audit";
 import type { Vigencia } from "@/lib/estudo-caso";
 
 /**
@@ -87,10 +87,7 @@ export async function POST(req: Request) {
     );
   if (error) return NextResponse.json({ error: "Não foi possível registrar." }, { status: 500 });
 
-  await logAction({
-    workspaceId: session.workspace_id,
-    actorName: memberId,
-    actorRole: session.user_role,
+  await auditar(session, req, {
     action: "update",
     resourceType: "pei_ciencia",
     resourceId: studentId,

@@ -1,6 +1,7 @@
 import { parseBody, studentPatchDataSchema } from "@/lib/validation";
 import { negadoForaDoVinculo } from "@/lib/turmas";
 import { NextResponse } from "next/server";
+import { auditar } from "@/lib/audit";
 import { getSession } from "@/lib/session";
 import {
   getStudent,
@@ -9,7 +10,7 @@ import {
 import { requirePermission } from "@/lib/permissions";
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getSession();
@@ -25,6 +26,7 @@ export async function GET(
     return NextResponse.json({ error: "Estudante não encontrado." }, { status: 404 });
   }
 
+  await auditar(session, req, { action: "view", resourceType: "pei", resourceId: id });
   return NextResponse.json({
     student: { id: student.id, name: student.name, grade: student.grade, class_group: student.class_group },
     pei_data: (student.pei_data as Record<string, unknown>) || {},
@@ -67,5 +69,6 @@ export async function PATCH(
       { status: 500 }
     );
   }
+  await auditar(session, req, { action: "update", resourceType: "pei", resourceId: id });
   return NextResponse.json({ ok: true });
 }

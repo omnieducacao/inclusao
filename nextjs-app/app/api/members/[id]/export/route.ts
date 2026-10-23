@@ -8,6 +8,7 @@
  */
 import { NextResponse } from "next/server";
 import { getSession, memberIdDaSessao } from "@/lib/session";
+import { logExport } from "@/lib/audit";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 
@@ -57,6 +58,7 @@ export async function GET(
         };
 
         const nomeArquivo = String(member.nome || id).normalize("NFD").replace(/[^\w]+/g, "_");
+        await logExport(session, req, { resourceType: "membro", resourceId: id });
         return new NextResponse(JSON.stringify(exportData, null, 2), {
             headers: {
                 "Content-Type": "application/json",

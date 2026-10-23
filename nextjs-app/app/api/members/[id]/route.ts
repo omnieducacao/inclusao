@@ -12,6 +12,10 @@ import {
   membroDaEscola,
 } from "@/lib/members";
 import { requirePermission } from "@/lib/permissions";
+import { auditar } from "@/lib/audit";
+
+/** SCRUM-70: campos que mudam o que a pessoa pode abrir (entram como mudança de permissão). */
+const CAMPOS_DE_ACESSO = ["papel", "can_estudantes", "can_pei", "can_pei_professor", "can_paee", "can_hub", "can_diario", "can_avaliacao", "can_gestao", "link_type", "teacher_assignments", "student_ids"] as const;
 
 export async function PATCH(
   request: NextRequest,
@@ -45,12 +49,14 @@ export async function PATCH(
 
   if (action === "deactivate") {
     const ok = await deactivateMember(id);
+    if (ok) await auditar(session, request, { action: "permission_change", resourceType: "membro", resourceId: id, metadata: { acao: "desativar" } });
     return ok
       ? NextResponse.json({ ok: true })
       : NextResponse.json({ error: "Erro ao desativar" }, { status: 500 });
   }
   if (action === "reactivate") {
     const ok = await reactivateMember(id);
+    if (ok) await auditar(session, request, { action: "permission_change", resourceType: "membro", resourceId: id, metadata: { acao: "reativar" } });
     return ok
       ? NextResponse.json({ ok: true })
       : NextResponse.json({ error: "Erro ao reativar" }, { status: 500 });
@@ -90,11 +96,23 @@ export async function PATCH(
   if (result.error) {
     return NextResponse.json({ error: result.error }, { status: 400 });
   }
+  // Só o nome dos campos e os valores de acesso (sim/não, papel); nunca nome, e-mail ou senha.
+  const mudouAcesso = CAMPOS_DE_ACESSO.filter((c) => body[c] !== undefined);
+  const outros = ["nome", "email", "password", "telefone", "cargo"].filter((c) => body[c as keyof typeof body] !== undefined);
+  if (mudouAcesso.length) {
+    const valores = Object.fromEntries(
+      mudouAcesso.filter((c) => typeof body[c] === "boolean" || c === "papel" || c === "link_type").map((c) => [c, body[c]])
+    );
+    await auditar(session, request, { action: "permission_change", resourceType: "membro", resourceId: id, metadata: { campos: mudouAcesso.join(","), ...valores } });
+  }
+  if (outros.length) {
+    await auditar(session, request, { action: "update", resourceType: "membro", resourceId: id, metadata: { campos: outros.map((c) => c === "password" ? "senha" : c).join(",") } });
+  }
   return NextResponse.json({ ok: true });
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getSession();
@@ -121,5 +139,6 @@ export async function DELETE(
       { status: 500 }
     );
   }
+  await auditar(session, request, { action: "delete", resourceType: "membro", resourceId: id });
   return NextResponse.json({ ok: true });
 }

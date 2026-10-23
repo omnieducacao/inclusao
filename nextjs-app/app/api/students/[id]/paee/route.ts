@@ -1,6 +1,7 @@
 import { parseBody, studentPatchDataSchema } from "@/lib/validation";
 import { negadoForaDoVinculo } from "@/lib/turmas";
 import { NextResponse } from "next/server";
+import { auditar } from "@/lib/audit";
 import { getSession } from "@/lib/session";
 import { updateStudentPaeeCiclos } from "@/lib/students";
 import { requirePermission } from "@/lib/permissions";
@@ -50,5 +51,6 @@ export async function PATCH(
       { status: 500 }
     );
   }
+  await auditar(session, req, { action: "update", resourceType: "paee", resourceId: id });
   return NextResponse.json({ ok: true });
 }

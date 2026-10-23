@@ -8,6 +8,8 @@ export type SessionPayload = {
   workspace_id: string | null;
   workspace_name: string;
   usuario_nome: string;
+  /** SCRUM-70: id de quem entrou (membro, responsável, escola da conta principal ou admin), para a auditoria */
+  usuario_id?: string | null;
   user_role: "master" | "member" | "platform_admin" | "family";
   member?: Record<string, unknown>;
   family_responsible_id?: string;

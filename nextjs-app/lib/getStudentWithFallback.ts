@@ -10,11 +10,14 @@ import { getStudent, type Student } from "@/lib/students";
 import { getSession } from "@/lib/session";
 import { vinculoDaSessao, filtrarPorVinculo, vinculoInclui } from "@/lib/turmas";
 import { listStudents } from "@/lib/students";
+import { auditar } from "@/lib/audit";
+
+/** SCRUM-70: telas cuja abertura de um estudante entra na trilha de auditoria. */
+const MODULO_AUDITADO: Record<string, string> = { PEI: "pei", PAEE: "paee", "Diário": "diario", Monitoramento: "monitoramento" };
 
 export async function getStudentsWithFallback(
   workspaceId: string | null | undefined,
   studentId: string | null | undefined,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   moduleName: string = "Module"
 ): Promise<{
   students: Student[];
@@ -36,5 +39,7 @@ export async function getStudentsWithFallback(
   if (!student || !vinculoInclui(vinculo, student)) {
     return { students, student: null };
   }
+  const recurso = MODULO_AUDITADO[moduleName];
+  if (recurso) await auditar(session, undefined, { action: "view", resourceType: recurso, resourceId: studentId });
   return { students, student };
 }

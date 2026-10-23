@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAuthAndPermission } from "@/lib/permissions";
 import { getStudent, updateStudentPeiData } from "@/lib/students";
 import { negadoForaDoVinculo } from "@/lib/turmas";
-import { logAction } from "@/lib/audit";
+import { auditar } from "@/lib/audit";
 
 /**
  * Onda 5 · resumo do PEI para a família.
@@ -30,10 +30,7 @@ async function salvar(studentId: string, texto: string | null) {
   }
   const ok = await updateStudentPeiData(workspaceId, studentId, pei);
   if (!ok) return NextResponse.json({ error: "Não conseguimos salvar agora. Tente de novo." }, { status: 500 });
-  await logAction({
-    workspaceId,
-    actorName: session.usuario_nome,
-    actorRole: session.user_role,
+  await auditar(session, undefined, {
     action: "update",
     resourceType: "pei_resumo_familia",
     resourceId: studentId,

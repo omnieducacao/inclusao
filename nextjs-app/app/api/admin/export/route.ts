@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
+import { logExport } from "@/lib/audit";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 
@@ -68,6 +69,7 @@ export async function GET(request: NextRequest) {
 
         // Add BOM for Excel UTF-8 compatibility
         const bom = "\uFEFF";
+        await logExport(session, request, { resourceType: `admin_${type}`, format: "csv" });
         return new NextResponse(bom + csv, {
             headers: {
                 "Content-Type": "text/csv; charset=utf-8",

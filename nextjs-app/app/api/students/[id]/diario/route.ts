@@ -1,6 +1,7 @@
 import { parseBody, studentPatchDataSchema } from "@/lib/validation";
 import { negadoForaDoVinculo } from "@/lib/turmas";
 import { NextResponse } from "next/server";
+import { auditar } from "@/lib/audit";
 import { getSession } from "@/lib/session";
 import { updateStudentDailyLogs } from "@/lib/students";
 import { requirePermission } from "@/lib/permissions";
@@ -40,6 +41,7 @@ export async function PATCH(
       { status: 500 }
     );
   }
+  await auditar(session, req, { action: "update", resourceType: "diario", resourceId: id });
   return NextResponse.json({ ok: true });
 }
 
@@ -91,6 +93,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const r = await semFuncao(p.workspaceId, p.id, (lista) => [...lista.filter((x) => x.registro_id !== registro.registro_id), registro]);
     if (!r.success) return NextResponse.json({ error: r.error || "Erro ao salvar o registro." }, { status: 500 });
   }
+  await auditar(p.session, req, { action: registro.atualizado_em ? "update" : "create", resourceType: "diario", resourceId: p.id, metadata: { registro_id: registro.registro_id } });
   return NextResponse.json({ ok: true, registro });
 }
 
@@ -105,5 +108,6 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     const r = await semFuncao(p.workspaceId, p.id, (lista) => lista.filter((x) => x.registro_id !== registroId));
     if (!r.success) return NextResponse.json({ error: r.error || "Erro ao excluir o registro." }, { status: 500 });
   }
+  await auditar(p.session, req, { action: "delete", resourceType: "diario", resourceId: p.id, metadata: { registro_id: registroId } });
   return NextResponse.json({ ok: true });
 }

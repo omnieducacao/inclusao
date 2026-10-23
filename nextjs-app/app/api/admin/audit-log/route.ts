@@ -81,7 +81,9 @@ export async function GET(request: NextRequest) {
             .select("action")
             .limit(500);
 
-        const actionsList = [...new Set((uniqueActions || []).map((t: Record<string, unknown>) => t.action))].sort();
+        // SCRUM-70: as ações que a plataforma registra aparecem no filtro mesmo antes do primeiro registro
+        const ACOES = ["view", "create", "update", "delete", "export", "login", "login_failed", "simulate_start", "simulate_end", "permission_change"];
+        const actionsList = [...new Set([...ACOES, ...(uniqueActions || []).map((t: Record<string, unknown>) => String(t.action))])].sort();
 
         return NextResponse.json({ logs, total: count || 0, available_actions: actionsList });
     } catch (err) {

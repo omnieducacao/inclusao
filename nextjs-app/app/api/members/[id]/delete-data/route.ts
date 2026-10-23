@@ -9,7 +9,7 @@
 import { NextResponse } from "next/server";
 import { getSession, memberIdDaSessao } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
-import { logAction } from "@/lib/audit";
+import { auditar } from "@/lib/audit";
 import { logger } from "@/lib/logger";
 
 export async function POST(
@@ -59,10 +59,7 @@ export async function POST(
             return NextResponse.json({ error: "Erro ao processar exclusão." }, { status: 500 });
         }
 
-        await logAction({
-            workspaceId: session.workspace_id,
-            actorName: session.usuario_nome,
-            actorRole: session.user_role,
+        await auditar(session, req, {
             action: "delete",
             resourceType: "member",
             resourceId: id,

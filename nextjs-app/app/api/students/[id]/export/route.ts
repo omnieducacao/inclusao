@@ -79,14 +79,7 @@ export async function GET(
         };
 
         // Log the export action (LGPD compliance)
-        await logExport({
-            workspaceId: session.workspace_id,
-            actorName: session.usuario_nome,
-            actorRole: session.user_role,
-            resourceType: "student",
-            resourceId: studentId,
-            format: "json",
-        });
+        await logExport(session, request, { resourceType: "student", resourceId: studentId, format: "json" });
 
         return NextResponse.json(exportData);
     } catch (err) {

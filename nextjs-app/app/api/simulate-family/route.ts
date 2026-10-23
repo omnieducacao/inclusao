@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession, createSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
+import { auditar } from "@/lib/audit";
 
 /**
  * POST /api/simulate-family
@@ -58,6 +59,7 @@ export async function POST(req: Request) {
         workspace_id: session.workspace_id,
         workspace_name: session.workspace_name,
         usuario_nome: responsible.nome,
+        usuario_id: session.usuario_id,
         user_role: "family",
         is_platform_admin: session.is_platform_admin || false,
         member: undefined,
@@ -70,10 +72,11 @@ export async function POST(req: Request) {
         simulating_workspace_name: session.simulating_workspace_name,
     });
 
+    await auditar(session, req, { action: "simulate_start", resourceType: "responsavel", resourceId: responsible.id });
     return NextResponse.json({ ok: true, responsible_name: responsible.nome });
 }
 
-export async function DELETE() {
+export async function DELETE(req: Request) {
     const session = await getSession();
     if (!session) {
         return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
@@ -89,6 +92,7 @@ export async function DELETE() {
             workspace_id: restored.workspace_id,
             workspace_name: restored.workspace_name,
             usuario_nome: restored.usuario_nome,
+            usuario_id: restored.usuario_id,
             user_role: restored.user_role,
             is_platform_admin: restored.is_platform_admin || false,
             member: restored.member || {},
@@ -97,6 +101,7 @@ export async function DELETE() {
             simulating_workspace_name: restored.simulating_workspace_name,
         });
 
+        await auditar(session, req, { action: "simulate_end", resourceType: "responsavel", resourceId: session.simulating_member_id });
         return NextResponse.json({ ok: true });
     } catch (err) {
         logger.error({ err: err }, "End family simulation error:");

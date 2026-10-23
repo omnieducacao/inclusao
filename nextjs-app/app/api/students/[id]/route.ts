@@ -1,12 +1,13 @@
 import { parseBody, studentPatchDataSchema } from "@/lib/validation";
 import { negadoForaDoVinculo, resolverTurma } from "@/lib/turmas";
 import { NextResponse } from "next/server";
+import { auditar } from "@/lib/audit";
 import { getSession } from "@/lib/session";
 import { getStudent, deleteStudent, updateStudent } from "@/lib/students";
 import { requirePermission, requireStaff } from "@/lib/permissions";
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getSession();
@@ -24,6 +25,7 @@ export async function GET(
     return NextResponse.json({ error: "Estudante não encontrado." }, { status: 404 });
   }
 
+  await auditar(session, req, { action: "view", resourceType: "pei", resourceId: id });
   return NextResponse.json({
     id: student.id,
     name: student.name,
@@ -86,7 +88,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getSession();
@@ -109,5 +111,6 @@ export async function DELETE(
     );
   }
 
+  await auditar(session, req, { action: "delete", resourceType: "estudante", resourceId: id });
   return NextResponse.json({ ok: true });
 }

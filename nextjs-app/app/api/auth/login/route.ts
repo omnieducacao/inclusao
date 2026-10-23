@@ -10,6 +10,7 @@ import {
 import { createSession } from "@/lib/session";
 import { logger } from "@/lib/logger";
 import { registrarAcesso } from "@/lib/acessos";
+import { logAction } from "@/lib/audit";
 
 export async function POST(req: Request) {
   // SCRUM-229: teto largo por IP (a escola inteira sai pelo mesmo IP) e limite fino por e-mail
@@ -23,6 +24,7 @@ export async function POST(req: Request) {
 
     const found = await findUserByEmail(email);
     if (!found) {
+      await logAction({ action: "login_failed", resourceType: "sessao", metadata: { motivo: "conta_inexistente" }, req });
       return NextResponse.json(
         { error: "Email não encontrado. Verifique o endereço ou entre em contato com a escola." },
         { status: 401 }
@@ -50,7 +52,14 @@ export async function POST(req: Request) {
       );
     }
 
+    // SCRUM-70: id de quem entrou (a conta principal da escola não tem id próprio: usa o da escola)
+    const usuarioId = found.role === "master" ? found.workspace_id : ((found.user.id as string) || null);
+
     if (!ok) {
+      await logAction({
+        workspaceId: found.workspace_id, actorId: usuarioId, actorRole: found.role,
+        action: "login_failed", resourceType: "sessao", metadata: { motivo: "senha_incorreta" }, req,
+      });
       return NextResponse.json(
         { error: "Senha incorreta." },
         { status: 401 }
@@ -79,6 +88,7 @@ export async function POST(req: Request) {
       workspace_id: found.workspace_id,
       workspace_name: found.workspace_name,
       usuario_nome: (found.user.nome as string) || email,
+      usuario_id: usuarioId,
       user_role: found.role,
       member: member as Record<string, unknown> | undefined,
       family_responsible_id: found.role === "family" ? (found.user.id as string) : undefined,
@@ -90,6 +100,11 @@ export async function POST(req: Request) {
       tipo: "login", workspace_id: found.workspace_id, workspace_nome: found.workspace_name,
       usuario_nome: (found.user.nome as string) || email,
       papel: found.role === "master" ? "gestão (conta principal)" : found.role === "family" ? "família" : ((found.user.papel as string) || (found.user.cargo as string) || "equipe"),
+    });
+
+    await logAction({
+      workspaceId: found.workspace_id, actorId: usuarioId, actorRole: found.role,
+      action: "login", resourceType: "sessao", req,
     });
 
     return NextResponse.json({

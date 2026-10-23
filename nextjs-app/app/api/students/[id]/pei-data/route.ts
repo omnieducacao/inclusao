@@ -1,6 +1,7 @@
 import { parseBody, studentPatchDataSchema } from "@/lib/validation";
 import { negadoForaDoVinculo } from "@/lib/turmas";
 import { NextResponse } from "next/server";
+import { auditar } from "@/lib/audit";
 import { getSession } from "@/lib/session";
 import { requireStaff } from "@/lib/permissions";
 import { getSupabase } from "@/lib/supabase";
@@ -14,7 +15,7 @@ import { updateStudentPeiData } from "@/lib/students";
  * Sempre filtra pela escola da sessão (onda 0: antes buscava por id sem checar a escola).
  */
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getSession();
@@ -57,6 +58,7 @@ export async function GET(
   if (pei) {
     try { pei = decryptSensitivePeiFields(pei); } catch { /* dados antigos sem criptografia */ }
   }
+  await auditar(session, req, { action: "view", resourceType: "pei", resourceId: id });
   return NextResponse.json({ pei_data: pei });
 }
 
@@ -96,5 +98,6 @@ export async function PATCH(
     );
   }
 
+  await auditar(session, req, { action: "update", resourceType: "pei", resourceId: id });
   return NextResponse.json({ ok: true });
 }

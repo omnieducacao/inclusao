@@ -4,10 +4,11 @@ import { textToDocxBuffer } from "@/lib/docx-simples";
 import { peiDataToFullText } from "@/lib/pei-export";
 import type { PEIData } from "@/lib/pei";
 import { requireAuth } from "@/lib/permissions";
+import { logExport } from "@/lib/audit";
 import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
-  const { error: authError } = await requireAuth(); if (authError) return authError;
+  const { session, error: authError } = await requireAuth(); if (authError) return authError;
   try {
     const parsed = await parseBody(req, peiExportSchema);
     if (parsed.error) return parsed.error;
@@ -20,6 +21,7 @@ export async function POST(req: Request) {
     const buffer = await textToDocxBuffer(texto, titulo);
     // Converter Buffer para Uint8Array para compatibilidade com NextResponse
     const uint8Array = new Uint8Array(buffer);
+    await logExport(session, req, { resourceType: "pei", format: "docx" });
     return new NextResponse(uint8Array, {
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

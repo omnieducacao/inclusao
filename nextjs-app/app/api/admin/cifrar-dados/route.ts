@@ -17,7 +17,7 @@ import { encryptField, decryptField, encryptSensitivePeiFields, encryptSensitive
 import { COLUNAS_CIFRADAS, INDICE_CEGO } from "@/lib/colunas-cifradas";
 import { indiceDoEmail } from "@/lib/indice-cego";
 import { resumirIp, resumirNavegador } from "@/lib/resumo-acesso";
-import { logAction } from "@/lib/audit";
+import { auditar } from "@/lib/audit";
 import { logger } from "@/lib/logger";
 
 const PAGINA = 200;
@@ -123,10 +123,7 @@ export async function POST(req: Request) {
 
   const total = Object.values(relatorio).reduce((n, c) => n + c.a_mudar, 0);
   if (aplicar) {
-    await logAction({
-      workspaceId: null,
-      actorName: "admin da plataforma", // sem nome no log (SCRUM-70)
-      actorRole: session.user_role,
+    await auditar(session, req, {
       action: "update",
       resourceType: "manutencao_cifra",
       metadata: { total, gravadas: Object.values(relatorio).reduce((n, c) => n + c.gravadas, 0) },

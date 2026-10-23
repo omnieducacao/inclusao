@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { getSession, createSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
+import { auditar } from "@/lib/audit";
 
 // POST: Start simulation — admin enters a school's workspace
 export async function POST(req: Request) {
@@ -41,6 +42,7 @@ export async function POST(req: Request) {
             workspace_id: workspace.id,
             workspace_name: workspace.name,
             usuario_nome: session.usuario_nome,
+            usuario_id: session.usuario_id,
             user_role: "master",
             is_platform_admin: true,
             simulating_workspace_id: workspace.id,
@@ -58,6 +60,7 @@ export async function POST(req: Request) {
             },
         });
 
+        await auditar(session, req, { action: "simulate_start", resourceType: "escola", resourceId: workspace.id });
         return NextResponse.json({ ok: true, workspace_name: workspace.name });
     } catch (err) {
         logger.error({ err: err }, "Simulate error:");
@@ -66,7 +69,7 @@ export async function POST(req: Request) {
 }
 
 // DELETE: End simulation — restore admin session
-export async function DELETE() {
+export async function DELETE(req: Request) {
     const session = await getSession();
     if (!session?.is_platform_admin) {
         return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
@@ -82,11 +85,13 @@ export async function DELETE() {
             workspace_id: null,
             workspace_name: "Administração",
             usuario_nome: session.usuario_nome,
+            usuario_id: session.usuario_id,
             user_role: "platform_admin",
             is_platform_admin: true,
             member: {},
         });
 
+        await auditar(session, req, { action: "simulate_end", resourceType: "escola", resourceId: session.simulating_workspace_id });
         return NextResponse.json({ ok: true });
     } catch (err) {
         logger.error({ err: err }, "End simulate error:");
