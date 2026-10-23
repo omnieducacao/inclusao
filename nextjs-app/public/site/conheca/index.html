@@ -40,7 +40,7 @@ button{font:inherit;cursor:pointer}
 .escuro .marca{color:#eef1f6}
 .marca span{display:flex;align-items:center;gap:8px}
 .marca svg{width:24px;height:24px}
-.marca button{background:none;border:0;color:inherit;opacity:.6;font-size:14px;font-weight:600;padding:6px}
+.marca button{background:none;border:0;color:inherit;opacity:.85;font-size:14px;font-weight:600;padding:0 8px;min-height:44px}
 /* cenas */
 .palco{position:relative;overflow:hidden}
 .cena{position:absolute;inset:0;overflow-y:auto;padding:8px 22px calc(env(safe-area-inset-bottom,0px) + 28px);display:flex;flex-direction:column;gap:16px;
@@ -70,6 +70,8 @@ h2{font-size:30px}
 .abre{justify-content:center;color:#eef1f6;text-align:left}
 .abre h1{font-size:44px;color:#eef1f6}
 .abre p{color:#c9d1df}
+.abre .oque{color:#eef1f6;font-size:18px;line-height:1.4;margin-top:14px;text-wrap:balance}
+.abre .oque b{font-weight:800}
 .circ{width:150px;height:150px;position:relative;margin-bottom:8px}
 .circ i{position:absolute;width:58%;aspect-ratio:1;border-radius:50%;left:21%;top:21%;opacity:.92;animation:junta 1.6s var(--e) both}
 .circ i:nth-child(1){background:var(--c1);--x:0;--y:-34%;--ox:-120%;--oy:-160%}
@@ -84,7 +86,7 @@ h2{font-size:30px}
 .nota{font-size:13.5px!important;color:#9aa6bb!important}
 /* 1: fichas */
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{border:1.5px solid var(--linha);background:var(--folha);border-radius:999px;padding:10px 14px;font-weight:600;font-size:15px;color:var(--tinta);transition:all .25s var(--e)}
+.chip{border:1.5px solid var(--linha);background:var(--folha);border-radius:999px;padding:10px 14px;min-height:44px;font-weight:600;font-size:15px;color:var(--tinta);transition:all .25s var(--e)}
 .chip[aria-pressed=true]{background:var(--k);border-color:var(--k);color:#fff;transform:scale(1.03)}
 .ficha h3{font-size:13px;font-family:var(--m);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
 .ficha ul{list-style:none;padding:0;display:grid;gap:6px}
@@ -136,7 +138,7 @@ h2{font-size:30px}
 .fim p{color:#c9d1df}
 .fim .acoes{display:grid;gap:10px;margin-top:8px}
 .fim .lei{font-size:13.5px!important;color:#9aa6bb!important}
-.voltar{background:none;border:0;color:#9aa6bb;font-weight:600;font-size:14px;padding:8px;justify-self:center}
+.voltar{background:none;border:0;color:#9aa6bb;font-weight:600;font-size:14px;padding:8px 16px;min-height:44px;justify-self:center}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -144,7 +146,7 @@ h2{font-size:30px}
 <div class="app escuro" id="app">
   <div class="topo">
     <div class="barras" aria-hidden="true"></div>
-    <div class="marca"><span><svg class="sym " viewBox="-12 -12 144 144" aria-hidden="true" focusable="false"><defs><mask id="s58" maskUnits="userSpaceOnUse" x="-40" y="-40" width="200" height="200"><rect x="-40" y="-40" width="200" height="200" fill="#fff"/><g><path d="M61.78,56.92 A21,21 0 0 1 79.01,27.08 A21,21 0 0 1 61.78,56.92Z"/><path d="M63.55,60.00 A21,21 0 0 1 98.02,60.00 A21,21 0 0 1 63.55,60.00Z"/><path d="M61.78,63.08 A21,21 0 0 1 79.01,92.92 A21,21 0 0 1 61.78,63.08Z"/><path d="M58.22,63.08 A21,21 0 0 1 40.99,92.92 A21,21 0 0 1 58.22,63.08Z"/><path d="M56.45,60.00 A21,21 0 0 1 21.98,60.00 A21,21 0 0 1 56.45,60.00Z"/><path d="M58.22,56.92 A21,21 0 0 1 40.99,27.08 A21,21 0 0 1 58.22,56.92Z"/></g></mask></defs><g mask="url(#s58)"><circle cx="60.00" cy="36.00" r="21" fill="#e5484d"/><circle cx="80.78" cy="48.00" r="21" fill="#f5b82e"/><circle cx="80.78" cy="72.00" r="21" fill="#f28c28"/><circle cx="60.00" cy="84.00" r="21" fill="#8e5bd8"/><circle cx="39.22" cy="72.00" r="21" fill="#2f7fd1"/><circle cx="39.22" cy="48.00" r="21" fill="#2eaa6a"/></g><g></g></svg>omnisfera</span><button type="button" id="pular" aria-label="Pular para o final">Pular</button></div>
+    <div class="marca"><span><svg class="sym " viewBox="-12 -12 144 144" aria-hidden="true" focusable="false"><defs><mask id="s58" maskUnits="userSpaceOnUse" x="-40" y="-40" width="200" height="200"><rect x="-40" y="-40" width="200" height="200" fill="#fff"/><g><path d="M61.78,56.92 A21,21 0 0 1 79.01,27.08 A21,21 0 0 1 61.78,56.92Z"/><path d="M63.55,60.00 A21,21 0 0 1 98.02,60.00 A21,21 0 0 1 63.55,60.00Z"/><path d="M61.78,63.08 A21,21 0 0 1 79.01,92.92 A21,21 0 0 1 61.78,63.08Z"/><path d="M58.22,63.08 A21,21 0 0 1 40.99,92.92 A21,21 0 0 1 58.22,63.08Z"/><path d="M56.45,60.00 A21,21 0 0 1 21.98,60.00 A21,21 0 0 1 56.45,60.00Z"/><path d="M58.22,56.92 A21,21 0 0 1 40.99,27.08 A21,21 0 0 1 58.22,56.92Z"/></g></mask></defs><g mask="url(#s58)"><circle cx="60.00" cy="36.00" r="21" fill="#e5484d"/><circle cx="80.78" cy="48.00" r="21" fill="#f5b82e"/><circle cx="80.78" cy="72.00" r="21" fill="#f28c28"/><circle cx="60.00" cy="84.00" r="21" fill="#8e5bd8"/><circle cx="39.22" cy="72.00" r="21" fill="#2f7fd1"/><circle cx="39.22" cy="48.00" r="21" fill="#2eaa6a"/></g><g></g></svg>omnisfera</span><button type="button" id="pular" aria-label="Pular para o final, onde está a demonstração">Ir à demonstração</button></div>
   </div>
   <main class="palco" id="palco" aria-live="polite">
 
@@ -152,6 +154,7 @@ h2{font-size:30px}
       <div class="circ" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
       <h1>A semana da Beatriz</h1>
       <p>Em dois minutos, veja como uma escola inteira cuida da inclusão de uma estudante: do primeiro olhar até a família.</p>
+      <p class="oque"><b>Omnisfera</b> é a plataforma que a escola usa para organizar a inclusão num lugar só.</p>
       <p class="nota">A Beatriz e a escola são fictícias. As telas são da plataforma de verdade.</p>
       <div class="seguir"><button class="btn claro" data-prox>Começar</button></div>
     </section>
