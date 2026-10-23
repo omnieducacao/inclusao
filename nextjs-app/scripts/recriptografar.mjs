@@ -25,7 +25,7 @@ const PREFIXO = "enc:";
 const TAMANHO_PAGINA = 200;
 
 /** Mesmos campos de lib/encryption.ts (SENSITIVE_PEI_FIELDS e SENSITIVE_PAEE_FIELDS). */
-const CAMPOS_PEI = ["diagnostico", "lista_medicamentos", "historico", "orientacoes_especialistas", "orientacoes_por_profissional", "detalhes_diagnostico", "estudo_caso"];
+const CAMPOS_PEI = ["diagnostico", "lista_medicamentos", "historico", "orientacoes_especialistas", "orientacoes_por_profissional", "detalhes_diagnostico", "estudo_caso", "nome", "nasc", "acompanhante_nome"];
 const CAMPOS_PAEE = ["conteudo_diagnostico_barreiras", "input_original_diagnostico_barreiras"];
 
 /** Onde há dado cifrado: colunas de texto e campos dentro de colunas JSON. */
@@ -34,6 +34,10 @@ export const ALVOS = [
     { tabela: "family_medicacao_updates", colunas: ["medicamento", "dosagem", "observacao"], json: {} },
     { tabela: "family_laudos", colunas: ["transcricao"], json: {} },
     { tabela: "family_mensagens", colunas: ["texto"], json: {} },
+    // lib/colunas-cifradas.ts (SCRUM-231)
+    { tabela: "workspace_members", colunas: ["telefone"], json: {} },
+    { tabela: "workspace_masters", colunas: ["telefone"], json: {} },
+    { tabela: "family_responsibles", colunas: ["telefone"], json: {} },
 ];
 
 export function chaveDeHex(hex, nome) {
@@ -97,15 +101,24 @@ export function recifrarLinha(alvo, linha, chaveAntiga, chaveNova) {
     for (const [coluna, campos] of Object.entries(alvo.json)) {
         const objeto = linha[coluna];
         if (!objeto || typeof objeto !== "object") continue;
-        const copia = { ...objeto };
         let mudou = false;
-        for (const campo of campos) {
-            if (copia[campo] === null || copia[campo] === undefined) continue;
-            const r = contar(recifrarCampo(copia[campo], chaveAntiga, chaveNova));
-            if (r.estado === "recifrado") {
-                copia[campo] = r.valor;
-                mudou = true;
+        const nivel = (obj) => {
+            const copia = { ...obj };
+            for (const campo of campos) {
+                if (copia[campo] === null || copia[campo] === undefined) continue;
+                const r = contar(recifrarCampo(copia[campo], chaveAntiga, chaveNova));
+                if (r.estado === "recifrado") {
+                    copia[campo] = r.valor;
+                    mudou = true;
+                }
             }
+            return copia;
+        };
+        const copia = nivel(objeto);
+        // cópias do PEI no histórico de versões (_versions[].snapshot) levam os mesmos campos
+        if (Array.isArray(copia._versions)) {
+            copia._versions = copia._versions.map((v) =>
+                v && typeof v === "object" && v.snapshot && typeof v.snapshot === "object" ? { ...v, snapshot: nivel(v.snapshot) } : v);
         }
         if (mudou) mudancas[coluna] = copia;
     }

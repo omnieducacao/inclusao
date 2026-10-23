@@ -30,6 +30,10 @@ export const SENSITIVE_PEI_FIELDS = [
     "orientacoes_por_profissional",
     "detalhes_diagnostico",
     "estudo_caso", // onda 2: conversa da equipe sobre o estudante (contexto, demandas, apoios)
+    // SCRUM-231: dados pessoais que o formulário do PEI guarda junto (cópia do nome, nascimento, acompanhante)
+    "nome",
+    "nasc",
+    "acompanhante_nome",
 ] as const;
 
 /** Campos sensíveis dentro de paee_data que devem ser criptografados. */
@@ -191,36 +195,43 @@ function decryptValue(value: unknown, fieldName: string): unknown {
  * Criptografa campos sensíveis de um objeto pei_data.
  * Retorna uma cópia do objeto com os campos criptografados.
  */
-export function encryptSensitivePeiFields(
-    data: Record<string, unknown>
+/** Aplica `fn` aos campos sensíveis do PEI e também às cópias guardadas no histórico de versões. */
+function nosCamposDoPei(
+    data: Record<string, unknown>,
+    fn: (valor: unknown, campo: string) => unknown
 ): Record<string, unknown> {
-    if (!data || typeof data !== "object") return data;
-
-    const result = { ...data };
-    for (const field of SENSITIVE_PEI_FIELDS) {
-        if (result[field] !== undefined && result[field] !== null) {
-            result[field] = encryptValue(result[field]);
+    const nivel = (obj: Record<string, unknown>): Record<string, unknown> => {
+        const result = { ...obj };
+        for (const field of SENSITIVE_PEI_FIELDS) {
+            if (result[field] !== undefined && result[field] !== null) result[field] = fn(result[field], field);
         }
+        return result;
+    };
+    const result = nivel(data);
+    // SCRUM-231: cada versão do histórico (_versions[].snapshot) é uma cópia do PEI e leva os mesmos dados
+    if (Array.isArray(result._versions)) {
+        result._versions = (result._versions as unknown[]).map((v) => {
+            if (!v || typeof v !== "object") return v;
+            const versao = v as Record<string, unknown>;
+            const snap = versao.snapshot;
+            return snap && typeof snap === "object" ? { ...versao, snapshot: nivel(snap as Record<string, unknown>) } : versao;
+        });
     }
     return result;
 }
 
-/**
- * Descriptografa campos sensíveis de um objeto pei_data.
- * Retorna uma cópia do objeto com os campos descriptografados.
- */
+export function encryptSensitivePeiFields(
+    data: Record<string, unknown>
+): Record<string, unknown> {
+    if (!data || typeof data !== "object") return data;
+    return nosCamposDoPei(data, (valor) => encryptValue(valor));
+}
+
 export function decryptSensitivePeiFields(
     data: Record<string, unknown>
 ): Record<string, unknown> {
     if (!data || typeof data !== "object") return data;
-
-    const result = { ...data };
-    for (const field of SENSITIVE_PEI_FIELDS) {
-        if (result[field] !== undefined && result[field] !== null) {
-            result[field] = decryptValue(result[field], field);
-        }
-    }
-    return result;
+    return nosCamposDoPei(data, (valor, campo) => decryptValue(valor, campo));
 }
 
 /**

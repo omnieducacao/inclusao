@@ -1,4 +1,5 @@
 import { getSupabase } from "@/lib/supabase";
+import { resumirIp } from "@/lib/resumo-acesso";
 import { logger } from "@/lib/logger";
 
 type AuditAction = "view" | "create" | "update" | "delete" | "export" | "login" | "logout";
@@ -43,7 +44,7 @@ export async function logAction(params: AuditParams): Promise<void> {
             resource_type: params.resourceType,
             resource_id: params.resourceId || null,
             metadata: params.metadata || {},
-            ip_address: params.ipAddress || null,
+            ip_address: resumirIp(params.ipAddress), // SCRUM-231: só o resumo, nunca o IP
         });
     } catch (err) {
         // Audit should never break the main flow

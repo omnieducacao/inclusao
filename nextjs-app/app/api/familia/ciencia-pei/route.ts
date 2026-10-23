@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { resumirIp, ipDoPedido, resumirNavegador } from "@/lib/resumo-acesso";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
@@ -65,10 +66,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const headers = req.headers;
-  const forwarded = headers.get("x-forwarded-for");
-  const ip = forwarded ? forwarded.split(",")[0].trim() : null;
-  const userAgent = headers.get("user-agent") || null;
+  // SCRUM-231: guarda o resumo do IP e só o tipo de navegador, não os dados em si
+  const ip = resumirIp(ipDoPedido(req));
+  const userAgent = resumirNavegador(req.headers.get("user-agent"));
 
   const { error } = await sb.from("family_pei_acknowledgments").insert({
     family_responsible_id: familyId,

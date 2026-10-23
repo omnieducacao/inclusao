@@ -116,8 +116,9 @@ describe("Criptografia LGPD — lib/encryption.ts", () => {
             const encrypted = encryptSensitivePeiFields(peiData);
 
             // Campos não-sensíveis permanecem inalterados
-            expect(encrypted.nome).toBe("João Silva");
             expect(encrypted.serie).toBe("3º Ano (EFAI)");
+            // SCRUM-231: a cópia do nome dentro do PEI passou a ser cifrada
+            expect((encrypted.nome as string).startsWith("enc:")).toBe(true);
             expect(encrypted.potencias).toEqual(["Memória Visual"]);
 
             // Campos sensíveis foram criptografados
@@ -289,5 +290,49 @@ describe("Rotação de chave — ENCRYPTION_KEY_ANTERIOR", () => {
     it("ENCRYPTION_KEY_ANTERIOR inválida é ignorada, sem derrubar a leitura normal", async () => {
         const novo = await cifrarCom(CHAVE_B, "dado");
         expect(await abrirCom(CHAVE_B, "curta", novo)).toBe("dado");
+    });
+});
+
+// SCRUM-231: dados pessoais do PEI e histórico de versões
+describe("PEI: nome, nascimento, acompanhante e versões", () => {
+    const CHAVE = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+    beforeEach(() => {
+        process.env.ENCRYPTION_KEY = CHAVE;
+        vi.resetModules();
+    });
+
+    it("cifra nome, nasc e acompanhante_nome e devolve iguais", async () => {
+        const { encryptSensitivePeiFields, decryptSensitivePeiFields } = await import("@/lib/encryption");
+        const pei = { nome: "Beatriz Almeida", nasc: "2016-03-12", acompanhante_nome: "Carla Souza", serie: "5º ano" };
+        const c = encryptSensitivePeiFields(pei);
+        for (const k of ["nome", "nasc", "acompanhante_nome"]) expect(String(c[k]).startsWith("enc:")).toBe(true);
+        expect(c.serie).toBe("5º ano");
+        expect(decryptSensitivePeiFields(c)).toEqual(pei);
+    });
+
+    it("cifra também as cópias do histórico de versões e as devolve iguais", async () => {
+        const { encryptSensitivePeiFields, decryptSensitivePeiFields } = await import("@/lib/encryption");
+        const pei = {
+            nome: "Beatriz Almeida",
+            diagnostico: "TEA",
+            _versions: [
+                { version: 1, label: "Versão 1", snapshot: { nome: "Beatriz Almeida", diagnostico: "TEA antigo", serie: "4º ano" } },
+                { version: 2, label: "sem cópia" },
+            ],
+        };
+        const c = encryptSensitivePeiFields(pei);
+        const v = c._versions as Array<{ snapshot?: Record<string, unknown>; label: string }>;
+        expect(String(v[0].snapshot!.nome).startsWith("enc:")).toBe(true);
+        expect(String(v[0].snapshot!.diagnostico).startsWith("enc:")).toBe(true);
+        expect(v[0].snapshot!.serie).toBe("4º ano");
+        expect(v[0].label).toBe("Versão 1");
+        expect(v[1]).toEqual({ version: 2, label: "sem cópia" });
+        expect(decryptSensitivePeiFields(c)).toEqual(pei);
+    });
+
+    it("cifrar de novo o que já está cifrado não muda nada (seguro repetir)", async () => {
+        const { encryptSensitivePeiFields } = await import("@/lib/encryption");
+        const uma = encryptSensitivePeiFields({ nome: "Ana", _versions: [{ snapshot: { nome: "Ana" } }] });
+        expect(encryptSensitivePeiFields(uma)).toEqual(uma);
     });
 });

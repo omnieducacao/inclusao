@@ -4,6 +4,7 @@ import { getSession } from "@/lib/session";
 import { requireAnyPermission, PERMISSOES_PEI } from "@/lib/permissions";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
+import { decryptSensitivePeiFields } from "@/lib/encryption";
 
 /**
  * GET /api/pei/versions?studentId=xxx
@@ -57,8 +58,9 @@ export async function GET(req: Request) {
             return NextResponse.json({ error: "Índices de comparação inválidos" }, { status: 400 });
         }
         return NextResponse.json({
-            left: versions[leftIdx].snapshot,
-            right: versions[rightIdx].snapshot,
+            // SCRUM-231: as cópias guardam os campos sensíveis cifrados; a tela compara o texto aberto
+            left: decryptSensitivePeiFields(versions[leftIdx].snapshot || {}),
+            right: decryptSensitivePeiFields(versions[rightIdx].snapshot || {}),
         });
     }
 

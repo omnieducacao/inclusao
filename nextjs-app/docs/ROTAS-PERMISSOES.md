@@ -12,7 +12,7 @@ Antes de chegar a qualquer rota, o `proxy.ts` já recusa (403) o papel **famíli
 |---|---|
 | equipe + permissão por módulo | 49 |
 | equipe (família recusada na rota) | 48 |
-| admin da plataforma | 46 |
+| admin da plataforma | 47 |
 | só sessão (família barrada pelo proxy) | 24 |
 | família permitida | 20 |
 | pública | 11 |
@@ -32,6 +32,7 @@ as usam) ou rotas do próprio usuário. Os métodos que gravam ou gastam IA já 
 | `/api/admin/announcements` | GET | admin da plataforma |
 | `/api/admin/announcements` | POST | admin da plataforma |
 | `/api/admin/audit-log` | GET | admin da plataforma |
+| `/api/admin/cifrar-dados` | POST | admin da plataforma |
 | `/api/admin/cleanup` | POST | admin da plataforma |
 | `/api/admin/dashboard` | GET | admin da plataforma |
 | `/api/admin/export` | GET | admin da plataforma |

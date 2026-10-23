@@ -156,3 +156,21 @@ describe("executar (banco falso)", () => {
     for (const l of db.tabelas.family_mensagens) expect(saida).not.toContain(String(l.texto));
   });
 });
+
+describe("SCRUM-231: campos novos e cópias do histórico", () => {
+  it("recifra nome do PEI e as cópias do histórico de versões", async () => {
+    const nome = await appCifra(HEX_A, "Beatriz Almeida");
+    const diagVelho = await appCifra(HEX_A, "TEA");
+    const alvo = ALVOS.find((a: { tabela: string }) => a.tabela === "students");
+    const linha = { id: "s1", pei_data: { nome, _versions: [{ version: 1, snapshot: { diagnostico: diagVelho, serie: "4º ano" } }] } };
+    const { mudancas } = recifrarLinha(alvo, linha, A, B);
+    expect(await appAbre(HEX_B, mudancas.pei_data.nome)).toBe("Beatriz Almeida");
+    expect(await appAbre(HEX_B, mudancas.pei_data._versions[0].snapshot.diagnostico)).toBe("TEA");
+    expect(mudancas.pei_data._versions[0].snapshot.serie).toBe("4º ano");
+  });
+
+  it("os telefones estão entre os alvos", () => {
+    const tabelas = ALVOS.map((a: { tabela: string }) => a.tabela);
+    for (const t of ["workspace_members", "workspace_masters", "family_responsibles"]) expect(tabelas).toContain(t);
+  });
+});

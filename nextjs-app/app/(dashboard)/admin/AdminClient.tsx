@@ -17,6 +17,7 @@ import { LogsTab } from "./components/LogsTab";
 import { AvisosTab } from "./components/AvisosTab";
 import { InstagramFeedTab } from "./components/InstagramFeedTab";
 import { AuditoriaTab } from "./components/AuditoriaTab";
+import { ProtecaoDadosPanel } from "@/components/ProtecaoDadosPanel";
 import { LeadsTab } from "./components/LeadsTab";
 import { SiteTab } from "./components/SiteTab";
 import { AcessosTab } from "./components/AcessosTab";
@@ -236,7 +237,12 @@ export function AdminClient({ session }: { session: SessionPayload }) {
       {activeTab === "usuarios" && <UsuariosTab workspaces={workspaces} />}
       {activeTab === "dashboard" && <EnhancedDashboardTab />}
       {activeTab === "logs" && <LogsTab workspaces={workspaces} />}
-      {activeTab === "auditoria" && <AuditoriaTab workspaces={workspaces} isPlatformAdmin={session.is_platform_admin} />}
+      {activeTab === "auditoria" && (
+        <div style={{ display: "grid", gap: 24 }}>
+          {session.is_platform_admin && <ProtecaoDadosPanel />}
+          <AuditoriaTab workspaces={workspaces} isPlatformAdmin={session.is_platform_admin} />
+        </div>
+      )}
       {activeTab === "avisos" && <AvisosTab workspaces={workspaces} />}
       {activeTab === "termo" && <TermoTab />}
       {activeTab === "bugs" && <BugsTab />}

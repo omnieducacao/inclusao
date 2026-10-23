@@ -25,7 +25,7 @@ export function criarFakeDb(tabelas: Record<string, Linha[]>): FakeDb {
 class Consulta implements PromiseLike<{ data: unknown; error: null | { message: string }; count?: number }> {
   private filtros: Filtro[] = [];
   private op: "select" | "insert" | "update" = "select";
-  private payload: Linha = {};
+  private payload: Linha | Linha[] = {};
   private contar = false;
   private somenteContagem = false;
   private limite: number | null = null;
@@ -38,7 +38,7 @@ class Consulta implements PromiseLike<{ data: unknown; error: null | { message: 
     if (opts?.head) this.somenteContagem = true;
     return this;
   }
-  insert(linha: Linha) {
+  insert(linha: Linha | Linha[]) {
     this.op = "insert";
     this.payload = linha;
     return this;
@@ -75,15 +75,18 @@ class Consulta implements PromiseLike<{ data: unknown; error: null | { message: 
 
   private executar() {
     if (this.op === "insert") {
-      const linha = { id: `novo-${this.db.inserts.length + 1}`, ...this.payload };
-      this.db.inserts.push({ tabela: this.tabela, linha });
-      (this.db.tabelas[this.tabela] ||= []).push(linha);
-      return [linha];
+      const lote = Array.isArray(this.payload) ? (this.payload as Linha[]) : [this.payload];
+      return lote.map((p) => {
+        const linha = { id: `novo-${this.db.inserts.length + 1}`, ...p };
+        this.db.inserts.push({ tabela: this.tabela, linha });
+        (this.db.tabelas[this.tabela] ||= []).push(linha);
+        return linha;
+      });
     }
     if (this.op === "update") {
       const alvo = this.linhasQueCasam();
-      this.db.updates.push({ tabela: this.tabela, filtros: this.filtros, valores: this.payload });
-      alvo.forEach((l) => Object.assign(l, this.payload));
+      this.db.updates.push({ tabela: this.tabela, filtros: this.filtros, valores: this.payload as Linha });
+      alvo.forEach((l) => Object.assign(l, this.payload as Linha));
       return alvo;
     }
     let achadas = this.linhasQueCasam();
