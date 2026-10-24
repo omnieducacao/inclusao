@@ -70,3 +70,10 @@ Chaves de cifragem e sessão: ENCRYPTION_KEY (e ENCRYPTION_KEY_ANTERIOR durante 
 1. **[decisão]** prazo de guarda da linha 9 (leads e certificados). As linhas 1 e 4 foram decididas em 24/10: 90 dias e 12 meses.
 2. **[jurídico]** papéis (escola controladora, Omnisfera operadora) na política e no contrato.
 3. **[jurídico]** dispensa do encarregado e cláusulas-padrão de transferência internacional.
+
+## Rotinas que apagam (SCRUM-245, 24/10)
+
+Migração `nextjs-app/supabase/migrations/20261024_onda93_lgpd_expurgo.sql`, agendada todo dia de madrugada pelo pg_cron do Supabase:
+- ao desativar a escola, a data de encerramento é gravada sozinha (reativar limpa); 90 dias depois, os dados de estudantes, famílias e equipe são apagados e a escola fica só como "Escola encerrada" na auditoria;
+- auditoria, acessos e eventos de uso com mais de 12 meses são apagados;
+- escolas já desativadas antes da migração não recebem data: nada é apagado sem decisão.
