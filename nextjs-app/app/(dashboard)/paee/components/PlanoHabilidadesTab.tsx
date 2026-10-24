@@ -253,6 +253,7 @@ export function PlanoHabilidadesTab({
               title={`Plano de Habilidades - ${student?.name || ""}`}
             />
             <DocxDownloadButton
+              drive={{ recurso: "paee", recursoId: student?.id }}
               texto={plano}
               filename={`Plano_Habilidades_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
               titulo={`Plano de Habilidades - ${student?.name || ""}`}
@@ -338,6 +339,7 @@ export function PlanoHabilidadesTab({
               title={`Plano de Habilidades - ${student?.name || ""}`}
             />
             <DocxDownloadButton
+              drive={{ recurso: "paee", recursoId: student?.id }}
               texto={plano}
               filename={`Plano_Habilidades_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
               titulo={`Plano de Habilidades - ${student?.name || ""}`}

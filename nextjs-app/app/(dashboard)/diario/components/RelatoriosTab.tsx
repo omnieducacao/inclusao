@@ -4,6 +4,7 @@ import { useState } from "react";
 import { BarChart3, Copy, Download, FileText, Sparkles } from "lucide-react";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
+import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import dynamic from "next/dynamic";
 
 // Gráficos (recharts) e PDF (jsPDF) só chegam ao celular quando a aba pede.
@@ -127,7 +128,14 @@ function AnaliseIADiario({ registros, student }: { registros: RegistroDiario[]; 
             )}
             {resultado && (
                 <div className="omni-cartao omni-cartao--plano" style={{ marginTop: 12 }}>
-                    <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+                    <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "flex-start", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+                        <DocxDownloadButton
+                            texto={resultado}
+                            titulo={`Análise do diário - ${student.name || ""}`}
+                            filename={`Analise_Diario_${(student.name || "estudante").replace(/\s+/g, "_")}.docx`}
+                            className="omni-btn omni-btn--discreto omni-btn--pequeno"
+                            drive={{ recurso: "relatorio", recursoId: student.id }}
+                        />
                         <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" onClick={copiar}>
                             <Copy className="w-4 h-4" aria-hidden />
                             {copiado ? "Copiado" : "Copiar texto"}

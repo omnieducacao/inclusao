@@ -208,6 +208,7 @@ export function TecAssistivaTab({
               title={`Tecnologia Assistiva - ${student?.name || ""}`}
             />
             <DocxDownloadButton
+              drive={{ recurso: "paee", recursoId: student?.id }}
               texto={sugestoes}
               filename={`Tecnologia_Assistiva_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
               titulo={`Tecnologia Assistiva - ${student?.name || ""}`}
@@ -293,6 +294,7 @@ export function TecAssistivaTab({
               title={`Tecnologia Assistiva - ${student?.name || ""}`}
             />
             <DocxDownloadButton
+              drive={{ recurso: "paee", recursoId: student?.id }}
               texto={sugestoes}
               filename={`Tecnologia_Assistiva_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
               titulo={`Tecnologia Assistiva - ${student?.name || ""}`}

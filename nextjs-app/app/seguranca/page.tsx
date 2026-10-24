@@ -26,6 +26,7 @@ const PILARES = [
             "O login encontra a conta por um código derivado do e-mail, sem guardar o e-mail aberto",
             "Os registros de acesso guardam só um resumo do endereço de rede (IP), nunca o endereço",
             "Registro de exportações e de exclusões de dados",
+            "Cópia no Google Drive só quando a escola permite, com aviso e registro de quem salvou",
             "Exportar e apagar dados de um membro a pedido (direitos da LGPD)",
         ],
     },

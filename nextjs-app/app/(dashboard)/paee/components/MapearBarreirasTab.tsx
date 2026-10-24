@@ -206,6 +206,7 @@ export function MapearBarreirasTab({
               title={`Diagnóstico de Barreiras - ${student?.name || ""}`}
             />
             <DocxDownloadButton
+              drive={{ recurso: "paee", recursoId: student?.id }}
               texto={diagnostico}
               filename={`Diagnostico_Barreiras_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
               titulo={`Diagnóstico de Barreiras - ${student?.name || ""}`}
@@ -291,6 +292,7 @@ export function MapearBarreirasTab({
               title={`Diagnóstico de Barreiras - ${student?.name || ""}`}
             />
             <DocxDownloadButton
+              drive={{ recurso: "paee", recursoId: student?.id }}
               texto={diagnostico}
               filename={`Diagnostico_Barreiras_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
               titulo={`Diagnóstico de Barreiras - ${student?.name || ""}`}

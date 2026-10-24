@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Download } from "lucide-react";
 import type { PEIData } from "@/lib/pei";
+import { SalvarNoDrive } from "@/components/SalvarNoDrive";
 
 type Formato = "pdf" | "oficial" | "docx" | "json";
 
@@ -29,7 +30,13 @@ function baixarBlob(blob: Blob, nome: string) {
   URL.revokeObjectURL(url);
 }
 
-export function BaixarPEI({ peiData }: { peiData: PEIData }) {
+async function gerarWord(peiData: PEIData): Promise<{ blob: Blob; nome: string }> {
+  const res = await fetch("/api/pei/exportar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ peiData }) });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || "Não foi possível gerar o arquivo.");
+  return { blob: await res.blob(), nome: nomeArquivo(peiData, "docx") };
+}
+
+export function BaixarPEI({ peiData, studentId }: { peiData: PEIData; studentId?: string | null }) {
   const [aberto, setAberto] = useState(false);
   const [gerando, setGerando] = useState<Formato | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -66,6 +73,8 @@ export function BaixarPEI({ peiData }: { peiData: PEIData }) {
   }
 
   return (
+    <div style={{ display: "flex", gap: 8, alignItems: "flex-start", flexWrap: "wrap" }}>
+    <SalvarNoDrive recurso="pei" recursoId={studentId} gerarArquivo={() => gerarWord(peiData)} />
     <div ref={caixa} style={{ position: "relative" }}>
       <button
         ref={botao}
@@ -94,6 +103,7 @@ export function BaixarPEI({ peiData }: { peiData: PEIData }) {
         </div>
       )}
       {erro && <p role="alert" className="omni-campo__erro" style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", width: 260 }}>{erro}</p>}
+    </div>
     </div>
   );
 }

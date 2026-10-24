@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useConfirmar } from "@/components/Confirmar";
 import { DataCleanupPanel } from "@/components/DataCleanupPanel";
+import { RegraDriveEscola } from "@/components/RegraDriveEscola";
 
 type SchoolYear = { id: string; year: number; name: string; active?: boolean };
 type Grade = { id: string; code: string; label: string; segment_id?: string };
@@ -308,6 +309,7 @@ export function ConfigEscolaClient() {
               onChange={(e) => { const v = e.target.checked; salvarConfig({ allow_avaliacao_fase_1: v }, v ? "Avaliação antes do envio ligada." : "Avaliação antes do envio desligada.", setAllowAvaliacaoFase1Saving, () => setAllowAvaliacaoFase1(v)); }} />
           </div>
         </div>
+        <RegraDriveEscola avisar={setMessage} />
       </section>
 
       {/* 5. Manutenção */}

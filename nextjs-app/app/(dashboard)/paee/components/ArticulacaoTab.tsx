@@ -237,6 +237,7 @@ export function ArticulacaoTab({
               title={`Documento de Articulação - ${student?.name || ""}`}
             />
             <DocxDownloadButton
+              drive={{ recurso: "paee", recursoId: student?.id }}
               texto={documento}
               filename={`Documento_Articulacao_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
               titulo={`Documento de Articulação - ${student?.name || ""}`}
@@ -322,6 +323,7 @@ export function ArticulacaoTab({
               title={`Documento de Articulação - ${student?.name || ""}`}
             />
             <DocxDownloadButton
+              drive={{ recurso: "paee", recursoId: student?.id }}
               texto={documento}
               filename={`Documento_Articulacao_${student?.name?.replace(/\s+/g, "_") || "estudante"}.docx`}
               titulo={`Documento de Articulação - ${student?.name || ""}`}

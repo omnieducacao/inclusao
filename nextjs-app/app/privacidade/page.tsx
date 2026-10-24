@@ -124,6 +124,9 @@ export default function PrivacidadePage() {
               <p style={paragrafo}>
                 Os dados ficam no banco de dados do Supabase (PostgreSQL), em São Paulo; o servidor do aplicativo fica nos Estados Unidos (Render). Para gerar sugestões, parte do conteúdo é enviada, sem o nome do estudante e sem dados de contato, aos provedores de IA indicados na seção 3, que processam os pedidos nos próprios servidores, fora do Brasil; os pedidos com informações de estudante vão só para a Fireworks AI, nos Estados Unidos, com retenção zero. Não vendemos nem compartilhamos dados pessoais com terceiros para fins de marketing.
               </p>
+              <p style={paragrafo}>
+                Salvar no Google Drive: quando a escola permite, a equipe pode salvar uma cópia do PEI, do PAEE ou de um relatório numa conta Google (da escola ou pessoal), na pasta &quot;Omnisfera&quot;. É a própria pessoa que entra na conta e pede a cópia; a Omnisfera só pede acesso aos arquivos que ela mesma criar no Drive, não guarda a senha nem a autorização do Google e registra quem salvou, qual documento e o domínio da conta. A partir daí, a cópia segue as regras do Google e da conta escolhida. A gestão da escola pode limitar o salvamento às contas da escola ou desligá-lo. A família não tem essa opção.
+              </p>
             </section>
 
             <section id="retencao" aria-labelledby="t-retencao">

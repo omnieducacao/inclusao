@@ -109,7 +109,7 @@ function PEIDoEstudante({
         acoes={
           <>
             {estadoSalvar && <span className="omni-apoio" role="status" aria-live="polite">{estadoSalvar}</span>}
-            <BaixarPEI peiData={peiData} />
+            <BaixarPEI peiData={peiData} studentId={studentId} />
           </>
         }
       />
