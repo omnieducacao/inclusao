@@ -5,6 +5,7 @@
  * SCRUM-71 (23/10/2026): seções 3, 5 e 8 passaram a dizer só o que o código faz (IA, onde ficam os
  * dados, segurança). Se mudar lib/ai-engines.ts, lib/encryption.ts ou lib/audit.ts, revise.
  * SCRUM-231: a seção 8 segue lib/colunas-cifradas.ts (colunas cifradas) e lib/resumo-acesso.ts (IP).
+ * Onda 87 (24/10/2026): seções 3 e 5 seguem a Onda 86 (dados de estudante só no Omni IA, na Fireworks, EUA).
  */
 import Link from "next/link";
 import { ArrowLeft, Mail } from "lucide-react";
@@ -102,7 +103,7 @@ export default function PrivacidadePage() {
                 <li><strong style={forte}>Pessoas usuárias (professores, gestores e profissionais do AEE, o Atendimento Educacional Especializado):</strong> e-mail, nome, senha (guardada só em forma embaralhada, o chamado <em>hash</em>), permissões e vínculos com turmas e estudantes. Finalidade: login, controle de acesso e funcionamento da plataforma.</li>
                 <li><strong style={forte}>Estudantes:</strong> nome, data de nascimento, série, turma, diagnóstico, laudos e dados do PEI e do PAEE. Finalidade: elaborar e acompanhar os planos educacionais individualizados.</li>
                 <li><strong style={forte}>Responsáveis (módulo família):</strong> nome, e-mail e vínculo com o estudante. Finalidade: participação da família e ciência do PEI.</li>
-                <li><strong style={forte}>Uso de inteligência artificial (IA):</strong> para gerar sugestões, parte do conteúdo é enviada a provedores de IA. Pedidos com informações de estudante vão só para a OpenAI, o Google (Gemini) e, no plano Robusto, a Anthropic (Claude); a DeepSeek e a Moonshot (Kimi) recebem apenas pedidos sem dados de estudante. Antes do envio, o nome do estudante e dados de identificação e contato (como CPF, RG, telefone, e-mail, data de nascimento e nomes de responsáveis e profissionais) são trocados por códigos (pseudonimização). Informações pedagógicas e de saúde necessárias à sugestão, como o diagnóstico, podem seguir no pedido. Fotos de laudo enviadas pela escola vão inteiras ao Google ou à OpenAI, para leitura do texto.</li>
+                <li><strong style={forte}>Uso de inteligência artificial (IA):</strong> para gerar sugestões, parte do conteúdo é enviada a provedores de IA. Pedidos com informações de estudante vão só para o Omni IA, um modelo aberto que roda na Fireworks AI, em servidores nos Estados Unidos, com retenção zero: o provedor não guarda o pedido nem a resposta e não treina modelos com eles. Se o Omni IA estiver fora do ar, a função avisa e o pedido não vai para outro provedor. A DeepSeek, a Moonshot (Kimi), a OpenAI, o Google (Gemini) e a Anthropic (Claude) recebem apenas pedidos sem dados de estudante. Antes do envio, o nome do estudante e dados de identificação e contato (como CPF, RG, telefone, e-mail, data de nascimento e nomes de responsáveis e profissionais) são trocados por códigos (pseudonimização). Informações pedagógicas e de saúde necessárias à sugestão, como o diagnóstico, podem seguir no pedido. Fotos de laudo enviadas pela escola são a exceção: vão inteiras ao Google ou à OpenAI, para leitura do texto, porque o Omni IA não lê imagens.</li>
               </ul>
             </section>
 
@@ -121,7 +122,7 @@ export default function PrivacidadePage() {
             <section id="compartilhamento" aria-labelledby="t-compartilhamento">
               <h2 id="t-compartilhamento" style={tituloSecao}>5. Compartilhamento</h2>
               <p style={paragrafo}>
-                Os dados ficam no banco de dados do Supabase (PostgreSQL), em São Paulo; o servidor do aplicativo fica nos Estados Unidos (Render). Para gerar sugestões, parte do conteúdo é enviada, sem o nome do estudante e sem dados de contato, aos provedores de IA indicados na seção 3, que processam os pedidos nos próprios servidores, em geral fora do Brasil. Não vendemos nem compartilhamos dados pessoais com terceiros para fins de marketing.
+                Os dados ficam no banco de dados do Supabase (PostgreSQL), em São Paulo; o servidor do aplicativo fica nos Estados Unidos (Render). Para gerar sugestões, parte do conteúdo é enviada, sem o nome do estudante e sem dados de contato, aos provedores de IA indicados na seção 3, que processam os pedidos nos próprios servidores, fora do Brasil; os pedidos com informações de estudante vão só para a Fireworks AI, nos Estados Unidos, com retenção zero. Não vendemos nem compartilhamos dados pessoais com terceiros para fins de marketing.
               </p>
             </section>
 
