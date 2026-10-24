@@ -32,7 +32,7 @@ export function TermoTab() {
           // Valor padrão
           setTermsText(
             "1. Uso profissional: A Omnisfera é uma ferramenta profissional de apoio à inclusão.\n\n" +
-            "2. Confidencialidade: É proibido inserir dados pessoais sensíveis de estudantes.\n\n" +
+            "2. Confidencialidade e dados de estudantes: Dados de estudantes, inclusive os de saúde, só podem ser registrados nos espaços da plataforma feitos para isso (estudo de caso, PEI, PAEE e diário), para a finalidade de inclusão escolar e por quem a instituição autorizou. Não copie esses dados para fora da plataforma sem autorização da escola.\n\n" +
             "3. Responsabilidade: Recomendações da IA devem ser validadas por profissionais.\n\n" +
             "4. Segurança: Credenciais são pessoais e intransferíveis.\n\n" +
             "5. Conformidade: O uso deve seguir políticas e legislação vigente."
