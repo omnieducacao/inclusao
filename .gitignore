@@ -7,3 +7,6 @@ BACKUP_*/
 # Playwright
 playwright-report/
 test-results/
+# Ambiente Python local e segredos do Streamlit: nunca no Git (24/10/2026)
+venv/
+.streamlit/secrets.toml

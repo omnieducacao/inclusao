@@ -23,6 +23,8 @@ SCRUM-232. Feito de fora, contra os sites no ar (www.omniprof.net e www.omnisfer
 
 ## Pendências
 1. **CSP com `'unsafe-eval'`** nos dois: o Next.js em produção não costuma precisar. Testar sem ele num deploy de prévia antes de tirar.
+   - **Conferido em 24/10:** o Next.js não precisa dele, mas os ícones animados (Lottie da Lordicon, nos dois sites) usam *expressões* que só rodam com `eval`. Tirar quebraria as animações. **Fica, como risco aceito**: o ganho é pequeno enquanto `'unsafe-inline'` continua, e todo HTML vindo da IA ou do usuário já passa pelo DOMPurify. Para tirar no futuro: trocar os ícones por versões sem expressão (ou SVG animado em CSS) e usar o player `lottie_light`.
+2. **`.streamlit/secrets.toml` e `venv/` saíram do Git em 24/10** (`git rm --cached`; os arquivos continuam no Mac). O `secrets.toml` nunca teve valor real no histórico, só comentários; a pasta `venv` (cerca de 12 mil arquivos, 411 MB) era o ambiente Python antigo do Streamlit.
 2. **`.streamlit/secrets.toml` no repositório da Omnisfera**: hoje é só modelo, mas o nome engana e convida a colar segredo. Renomear para `.example` ou tirar do Git.
 3. **Rotas com parâmetro** (`[id]`) não entram neste teste de fora; ficam cobertas pelos testes de isolamento entre escolas e pela revisão de 23/10.
 4. Repetir este teste a cada mês no ritual semanal, ou depois de toda mudança em autenticação.
