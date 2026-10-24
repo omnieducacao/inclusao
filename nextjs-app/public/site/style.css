@@ -786,4 +786,31 @@ svg.grow .vl{font-family:var(--f);font-weight:800;font-size:17px;fill:var(--ink)
 /* Omni IA (onda 58) */
 .omni-ia .roles.light .role h3{font-size:21px}
 .omni-ia-leg{margin-top:22px;max-width:760px}
-.omni-ia-sub{margin:28px 0 12px}
+
+
+/* Omni IA (24/10): faixa escura com as seis cores da marca acesas ao fundo */
+.omni-ia{position:relative;overflow:hidden;isolation:isolate}
+.omni-ia::before{content:"";position:absolute;inset:-20% -10% auto;height:120%;z-index:-1;pointer-events:none;opacity:.55;
+  background:radial-gradient(40% 35% at 12% 18%,color-mix(in srgb,var(--c5) 55%,transparent),transparent 70%),
+             radial-gradient(35% 30% at 88% 12%,color-mix(in srgb,var(--c4) 50%,transparent),transparent 70%),
+             radial-gradient(30% 28% at 78% 78%,color-mix(in srgb,var(--c6) 40%,transparent),transparent 70%),
+             radial-gradient(28% 26% at 20% 85%,color-mix(in srgb,var(--c1) 35%,transparent),transparent 70%)}
+.omni-ia .sh{max-width:820px}
+.omni-ia .sh h2{color:#fff;font-size:clamp(30px,4.6vw,54px);line-height:1.08}
+.omni-ia .sh h2 em{font-style:normal;background:linear-gradient(90deg,#7db6f2,#b896f2 45%,#ff8a86);-webkit-background-clip:text;background-clip:text;color:transparent}
+.omni-ia .sh p{color:#c9d1df}
+.oi-badge{justify-self:start;display:inline-flex;align-items:center;gap:10px;padding:7px 16px 7px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;font-weight:700;font-size:14px;letter-spacing:.01em}
+.oi-dots{display:inline-flex}
+.oi-dots i{width:12px;height:12px;border-radius:50%;margin-left:-4px;border:1.5px solid var(--night)}
+.oi-dots i:first-child{margin-left:0}
+.oi-dots i:nth-child(1){background:var(--c1)}.oi-dots i:nth-child(2){background:var(--c2)}.oi-dots i:nth-child(3){background:var(--c3)}
+.oi-dots i:nth-child(4){background:var(--c4)}.oi-dots i:nth-child(5){background:var(--c5)}.oi-dots i:nth-child(6){background:var(--c6)}
+.oi-grupo{display:grid;gap:14px;margin-top:clamp(22px,3vw,34px)}
+.oi-rot{display:inline-flex;align-items:center;gap:10px;justify-self:start;margin:0;font-weight:800;font-size:18px;color:#fff}
+.oi-ico{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:color-mix(in srgb,var(--c5) 30%,transparent);color:#a9cdf6}
+.oi-rot-b .oi-ico{background:color-mix(in srgb,var(--c6) 30%,transparent);color:#8fe0b3}
+.oi-card{position:relative;overflow:hidden;background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);align-content:start}
+.oi-card::before{content:"";position:absolute;inset:0 0 auto;height:4px;background:var(--a)}
+.oi-card h3{color:#fff;font-size:21px}
+.omni-ia .omni-ia-leg{color:#9aa6bb}
+.omni-ia .omni-ia-leg a{color:#a9cdf6}
