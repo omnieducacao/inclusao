@@ -9,7 +9,7 @@
  */
 import { useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
-import { driveConfigurado, emailDaConta, pedirTokenGoogle, prepararGoogle, salvarNoDrive } from "@/lib/google-drive";
+import { driveConfigurado, emailDaConta, pedirTokenGoogle, prepararGoogle, salvarNoDrive, type FormatoGoogle } from "@/lib/google-drive";
 import { dominioDoEmail } from "@/lib/drive-politica";
 
 export type RecursoDrive = "pei" | "paee" | "relatorio";
@@ -48,6 +48,7 @@ export function SalvarNoDrive({
   recurso,
   recursoId,
   rotulo = "Salvar no Google Drive",
+  formato = "docs",
   className,
 }: {
   /** Gera o Word (.docx) do documento. */
@@ -55,6 +56,8 @@ export function SalvarNoDrive({
   recurso: RecursoDrive;
   recursoId?: string | null;
   rotulo?: string;
+  /** "planilhas" envia um .xlsx e o Drive converte em Google Planilhas. */
+  formato?: FormatoGoogle;
   className?: string;
 }) {
   const [liberado, setLiberado] = useState(false);
@@ -87,7 +90,7 @@ export function SalvarNoDrive({
       const resposta = (await reg.json().catch(() => ({}))) as { ok?: boolean; motivo?: string; error?: string };
       if (!reg.ok || !resposta.ok) throw new Error(resposta.motivo || resposta.error || "A escola não permitiu salvar nesta conta.");
       const { blob, nome } = await gerarArquivo();
-      const link = await salvarNoDrive(blob, nome, token);
+      const link = await salvarNoDrive(blob, nome, token, formato);
       setEstado({ fase: "pronto", link });
     } catch (e) {
       setEstado({ fase: "erro", msg: e instanceof Error ? e.message : "Não foi possível salvar no Google Drive." });
@@ -107,7 +110,7 @@ export function SalvarNoDrive({
         onClick={clicar}
         disabled={estado.fase === "salvando"}
       >
-        <LogoDrive /> {estado.fase === "salvando" ? "Salvando no Google Drive…" : rotulo}
+        <LogoDrive /> {estado.fase === "salvando" ? "Salvando no Google…" : rotulo}
       </button>
       {estado.fase === "aviso" && (
         <div className="omni-aviso omni-aviso--atencao" role="alertdialog" aria-label="Antes de salvar no Drive" style={{ maxWidth: 360 }}>
@@ -127,7 +130,7 @@ export function SalvarNoDrive({
       )}
       {estado.fase === "pronto" && (
         <a href={estado.link} target="_blank" rel="noopener noreferrer" role="status" style={{ font: "400 13px/18px var(--font-sans)" }}>
-          Salvo no Drive. Abrir <ExternalLink aria-hidden style={{ width: 12, height: 12, verticalAlign: "-1px" }} />
+          Salvo no Google Drive. Abrir <ExternalLink aria-hidden style={{ width: 12, height: 12, verticalAlign: "-1px" }} />
         </a>
       )}
       {estado.fase === "erro" && <span role="alert" className="omni-campo__erro">{estado.msg}</span>}

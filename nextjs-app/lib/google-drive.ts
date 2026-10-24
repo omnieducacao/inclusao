@@ -91,29 +91,36 @@ async function pastaOmnisfera(token: string): Promise<string> {
   return ((await cria.json()) as { id: string }).id;
 }
 
-/** Corpo multipart: metadados + Word, convertido em Google Doc dentro da pasta. Exportada para teste. */
-export function corpoUpload(nome: string, arquivo: Blob, fronteira: string, pastaId?: string): Blob {
-  const meta: Record<string, unknown> = { name: nome.replace(/\.docx$/i, ""), mimeType: "application/vnd.google-apps.document" };
+export type FormatoGoogle = "docs" | "planilhas";
+const FORMATOS: Record<FormatoGoogle, { destino: string; origem: string; ext: RegExp; url: string }> = {
+  docs: { destino: "application/vnd.google-apps.document", origem: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", ext: /\.docx$/i, url: "https://docs.google.com/document/d/" },
+  planilhas: { destino: "application/vnd.google-apps.spreadsheet", origem: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ext: /\.xlsx$/i, url: "https://docs.google.com/spreadsheets/d/" },
+};
+
+/** Corpo multipart: metadados + arquivo (Word ou Excel), convertido no formato do Google dentro da pasta. Exportada para teste. */
+export function corpoUpload(nome: string, arquivo: Blob, fronteira: string, pastaId?: string, formato: FormatoGoogle = "docs"): Blob {
+  const f = FORMATOS[formato];
+  const meta: Record<string, unknown> = { name: nome.replace(f.ext, ""), mimeType: f.destino };
   if (pastaId) meta.parents = [pastaId];
   return new Blob([
     `--${fronteira}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n`,
-    `--${fronteira}\r\nContent-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document\r\n\r\n`,
+    `--${fronteira}\r\nContent-Type: ${f.origem}\r\n\r\n`,
     arquivo,
     `\r\n--${fronteira}--`,
   ]);
 }
 
-/** Salva o Word na pasta "Omnisfera" do Drive, como Google Doc, e devolve o link. */
-export async function salvarNoDrive(arquivo: Blob, nome: string, token: string): Promise<string> {
+/** Salva o arquivo na pasta "Omnisfera" do Drive, como Google Doc ou Google Planilhas, e devolve o link. */
+export async function salvarNoDrive(arquivo: Blob, nome: string, token: string, formato: FormatoGoogle = "docs"): Promise<string> {
   const pasta = await pastaOmnisfera(token);
   const fronteira = `omnisfera${Math.random().toString(36).slice(2)}`;
   const res = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink", {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": `multipart/related; boundary=${fronteira}` },
-    body: corpoUpload(nome, arquivo, fronteira, pasta),
+    body: corpoUpload(nome, arquivo, fronteira, pasta, formato),
   });
   if (!res.ok) throw new Error("Não foi possível salvar no Google Drive.");
   const d = (await res.json()) as { id?: string; webViewLink?: string };
   if (!d.id) throw new Error("Não foi possível salvar no Google Drive.");
-  return d.webViewLink || `https://docs.google.com/document/d/${d.id}/edit`;
+  return d.webViewLink || `${FORMATOS[formato].url}${d.id}/edit`;
 }

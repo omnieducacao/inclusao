@@ -17,3 +17,12 @@ describe("Onda 92 · corpo do envio ao Drive", () => {
     expect(corpo).not.toContain("parents");
   });
 });
+
+describe("SCRUM-244 · Google Planilhas na Omnisfera", () => {
+  it("o .xlsx vira planilha do Google dentro da pasta", async () => {
+    const corpo = await corpoUpload("Diario_X.xlsx", new Blob(["x"]), "f", "pasta1", "planilhas").text();
+    expect(corpo).toContain('"mimeType":"application/vnd.google-apps.spreadsheet"');
+    expect(corpo).toContain('"name":"Diario_X"');
+    expect(corpo).toContain("spreadsheetml.sheet");
+  });
+});

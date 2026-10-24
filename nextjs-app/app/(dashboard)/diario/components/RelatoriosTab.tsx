@@ -5,6 +5,7 @@ import { BarChart3, Copy, Download, FileText, Sparkles } from "lucide-react";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
+import { SalvarNoDrive } from "@/components/SalvarNoDrive";
 import dynamic from "next/dynamic";
 
 // Gráficos (recharts) e PDF (jsPDF) só chegam ao celular quando a aba pede.
@@ -202,11 +203,23 @@ export default function RelatoriosTab({ registros, student }: { registros: Regis
         .sort(([, a], [, b]) => b - a)
         .slice(0, 10);
 
+    const CABECALHO_DIARIO = [
+        "Data", "Duração (min)", "Modalidade", "Atividade", "Objetivos",
+        "Estratégias", "Engajamento", "Competências"
+    ];
+    const linhasDiario = () => registros.filter((r) => !r.student_id || r.student_id === student.id).map((r) => [
+        r.data_sessao || "",
+        r.duracao_minutos || 0,
+        r.modalidade_atendimento || "",
+        r.atividade_principal || "",
+        r.objetivos_trabalhados || "",
+        r.estrategias_utilizadas || "",
+        r.engajamento_aluno || 0,
+        (r.competencias_trabalhadas || []).join("; "),
+    ]);
+
     const exportarCSV = () => {
-        const headers = [
-            "Data", "Duração (min)", "Modalidade", "Atividade", "Objetivos",
-            "Estratégias", "Engajamento", "Competências"
-        ];
+        const headers = CABECALHO_DIARIO;
         const rows = registros.map((r) => [
             r.data_sessao || "",
             r.duracao_minutos || 0,
@@ -354,6 +367,20 @@ export default function RelatoriosTab({ registros, student }: { registros: Regis
                         <Download className="w-4 h-4" aria-hidden />
                         Baixar planilha (CSV)
                     </button>
+                    <SalvarNoDrive
+                        recurso="relatorio"
+                        recursoId={student.id}
+                        formato="planilhas"
+                        rotulo="Salvar no Google Planilhas"
+                        className="omni-btn omni-btn--secundario"
+                        gerarArquivo={async () => {
+                            const { montarXlsx } = await import("@/lib/xlsx-simples");
+                            return {
+                                blob: montarXlsx([CABECALHO_DIARIO, ...linhasDiario()], "Diário de bordo"),
+                                nome: `Diario_${(student.name || "estudante").replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.xlsx`,
+                            };
+                        }}
+                    />
                     <button type="button" className="omni-btn omni-btn--discreto" onClick={exportarJSON}>
                         <FileText className="w-4 h-4" aria-hidden />
                         Baixar cópia dos dados (JSON)
