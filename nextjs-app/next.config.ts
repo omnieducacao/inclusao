@@ -25,6 +25,8 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
+  // SCRUM-232 (teste de intrusão leve, 24/10): não anunciar o framework no cabeçalho X-Powered-By
+  poweredByHeader: false,
   // Rotas renomeadas para bater com o menu: os endereços antigos continuam funcionando (favoritos, notificações, e-mails)
   async redirects() {
     const antigas: Array<[string, string]> = [
@@ -71,6 +73,11 @@ const nextConfig: NextConfig = {
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
+          },
+          {
+            // SCRUM-232: a plataforma não usa câmera ao vivo, microfone nem localização
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), payment=()',
           },
           {
             key: 'Referrer-Policy',
