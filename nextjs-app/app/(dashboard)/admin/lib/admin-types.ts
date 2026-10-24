@@ -10,6 +10,7 @@ export type Workspace = {
   credits_limit: number | null;
   family_module_enabled?: boolean;
   created_at?: string;
+  contrato_encerrado_em?: string | null;
 };
 export type FeedPost = {
   id: string;

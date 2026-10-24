@@ -7,6 +7,7 @@ import { OmniLoader } from "@/components/OmniLoader";
 import { LottieIcon } from "@/components/LottieIcon";
 import { getSupabase } from "@/lib/supabase";
 import { Workspace } from "../lib/admin-types";
+import { prazoEncerramento, textoPrazo, DIAS_PARA_EXPORTAR } from "@/lib/encerramento";
 import { ENGINE_OPTIONS, SEGMENT_OPTIONS, FEED_CATEGORIES, MODULE_OPTIONS } from "../lib/admin-constants";
 
 import React, { useState, useEffect } from "react";
@@ -25,6 +26,8 @@ export function WorkspaceCard({
   setConfirmDeleteId: (id: string | null) => void;
   onRefresh: () => void;
 }) {
+  const [confirmandoDesativar, setConfirmandoDesativar] = useState(false);
+  const prazo = prazoEncerramento(workspace.active, workspace.contrato_encerrado_em);
   const [localName, setLocalName] = useState(workspace.name);
   const [localSegments, setLocalSegments] = useState(workspace.segments ?? []);
   const [localEngines, setLocalEngines] = useState(workspace.ai_engines ?? []);
@@ -86,6 +89,7 @@ export function WorkspaceCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ active: !workspace.active }),
       });
+      setConfirmandoDesativar(false);
       if (res.ok) {
         onRefresh();
       }
@@ -272,6 +276,11 @@ export function WorkspaceCard({
                 {workspace.active ? "Ativa" : "Inativa"}
               </span>
             </h4>
+            {!workspace.active && (
+              <p className="omni-apoio" style={{ marginTop: 2, color: "var(--tinta)" }}>
+                {prazo ? textoPrazo(prazo) : "Desativada antes da regra dos 90 dias: nada será apagado sozinho."}
+              </p>
+            )}
             <p className="omni-apoio" style={{ marginTop: 2 }}>PIN: <strong style={{ fontFamily: "var(--font-mono)", color: "var(--tinta)" }}>{workspace.pin}</strong></p>
             <div className="omni-apoio" style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 2 }}>
               {(workspace.segments ?? []).length > 0 && (
@@ -287,6 +296,26 @@ export function WorkspaceCard({
               </p>
             </div>
           </div>
+          {confirmandoDesativar && (
+            <div className="omni-aviso omni-aviso--atencao" role="alert" style={{ maxWidth: "none", flexBasis: "100%" }}>
+              <AlertTriangle className="omni-aviso__icone" aria-hidden />
+              <div>
+                <div className="omni-aviso__titulo">Encerrar o contrato de {workspace.name}?</div>
+                <div className="omni-aviso__texto">
+                  A escola verá um aviso para baixar PEI, PAEE e relatórios. Se não for reativada em {DIAS_PARA_EXPORTAR} dias,
+                  os dados de estudantes, famílias e equipe serão apagados para sempre.
+                </div>
+                <div className="omni-aviso__acoes">
+                  <button type="button" onClick={() => setConfirmandoDesativar(false)} className="omni-btn omni-btn--secundario omni-btn--pequeno">
+                    Manter ativa
+                  </button>
+                  <button type="button" onClick={handleToggleActive} className="omni-btn omni-btn--perigo omni-btn--pequeno">
+                    <Pause size={16} aria-hidden /> Desativar e iniciar os {DIAS_PARA_EXPORTAR} dias
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             <button
               type="button"
@@ -298,7 +327,7 @@ export function WorkspaceCard({
             </button>
             <button
               type="button"
-              onClick={handleToggleActive}
+              onClick={workspace.active ? () => setConfirmandoDesativar(true) : handleToggleActive}
               className={`omni-btn omni-btn--pequeno ${workspace.active ? "omni-btn--secundario" : "omni-btn--primario"}`}
             >
               {workspace.active ? (
