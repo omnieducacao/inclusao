@@ -2,6 +2,7 @@ import { parseBody, paeeMapaMentalSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/permissions";
 import { logger } from "@/lib/logger";
+import { semNome } from "@/lib/sem-nome";
 
 export async function POST(req: Request) {
   const { error: authError } = await requireAuth(); if (authError) return authError;
@@ -25,9 +26,12 @@ export async function POST(req: Request) {
     );
   }
 
-  const nome = (body.nome || "").trim() || "estudante";
+  // Onda 88: este mapa usa um gerador de imagem (Gemini), não a Omni IA. Por isso o nome do
+  // estudante nunca vai junto: sai do roteiro (nome completo e cada parte dele) e o protagonista
+  // vira "o estudante".
+  const nome = (body.nome || "").trim();
   const hiperfoco = (body.hiperfoco || "").trim() || "aprendizado";
-  const roteiro = texto.slice(0, 4500);
+  const roteiro = semNome(texto, nome).slice(0, 4500);
 
   const prompt = `Crie um MAPA MENTAL rico e visual a partir deste roteiro gamificado.
 REGRA OBRIGATÓRIA PARA O TEXTO: use APENAS palavras e expressões em português que ESTEJAM NO ROTEIRO abaixo.
@@ -36,7 +40,7 @@ Cada rótulo no mapa mental deve ser uma frase ou palavra curta retirada do rote
 Estrutura: (1) Nó central com tema do roteiro${hiperfoco && hiperfoco !== "aprendizado" ? ` (ou tema: ${hiperfoco})` : ""}. (2) Ramos = cada missão (título extraído do roteiro).
 (3) Sub-ramos = tarefas/etapas de cada missão (texto extraído do roteiro).
 Cores diferentes por ramo, ícones nos nós, linhas centro → missões → etapas.
-Protagonista: ${nome}.
+Protagonista: o estudante.
 Estilo: mapa mental colorido, organizado, fácil de ler. Proporção quadrada (1:1).
 NÃO use inglês. Só português. NÃO invente nem distorça palavras; use somente as que aparecem no roteiro.
 
@@ -92,7 +96,7 @@ ${roteiro}
             }
           }
         }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
       } catch (err: unknown) {
         const errStr = String(err).toLowerCase();
         if (errStr.includes("404") || errStr.includes("not found")) {
@@ -122,3 +126,4 @@ ${roteiro}
     );
   }
 }
+
