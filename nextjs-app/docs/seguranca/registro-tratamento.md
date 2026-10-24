@@ -17,16 +17,16 @@ Não é parecer jurídico; os pontos marcados com **[jurídico]** ficam para a c
 
 **Encarregado (DPO):** a Omnisfera se enquadra como agente de tratamento de pequeno porte (Resolução CD/ANPD 2/2022), que pode deixar de indicar encarregado desde que mantenha um canal de comunicação com o titular. O canal é o e-mail acima, atendido pelo Rodrigo. **[jurídico]** confirmar o enquadramento: a resolução não dispensa quem faz tratamento de alto risco, e dado de saúde de criança pode ser visto assim.
 
-**Ajuste necessário na política de privacidade:** a seção 2 diz que a Omnisfera é "a controladora". Para dados de estudantes, a controladora é a escola; a política e o contrato com a escola precisam dizer isso (o rascunho do contrato já prevê). **[jurídico]**
+**Política de privacidade:** a seção 2 foi corrigida em 24/10 (escola controladora, Omnisfera operadora). **[jurídico]** conferir junto com o contrato.
 
 ## 2. Operações de tratamento
 
 | # | Operação | Titulares | Dados | Finalidade | Base legal (LGPD) | Onde fica | Prazo de guarda proposto |
 |---|---|---|---|---|---|---|---|
-| 1 | Estudo de caso, PEI, PAEE, diário, avaliações | estudantes (em geral crianças e adolescentes) | nome, nascimento, série e turma, **diagnóstico, laudos, medicação** (sensíveis), barreiras, metas, registros de atendimento | planejar e acompanhar a educação inclusiva, como exigem os decretos | da escola: art. 11, II, "a" (obrigação legal) e art. 14 (melhor interesse da criança e do adolescente) | Supabase SP; nome, diagnóstico, laudos, medicação e mensagens **cifrados pelo app** antes de gravar | enquanto o contrato durar; até 90 dias depois do fim, a escola exporta; depois, eliminação **[decisão]** |
+| 1 | Estudo de caso, PEI, PAEE, diário, avaliações | estudantes (em geral crianças e adolescentes) | nome, nascimento, série e turma, **diagnóstico, laudos, medicação** (sensíveis), barreiras, metas, registros de atendimento | planejar e acompanhar a educação inclusiva, como exigem os decretos | da escola: art. 11, II, "a" (obrigação legal) e art. 14 (melhor interesse da criança e do adolescente) | Supabase SP; nome, diagnóstico, laudos, medicação e mensagens **cifrados pelo app** antes de gravar | enquanto o contrato durar; 90 dias depois do fim para a escola exportar; depois, eliminação (decidido em 24/10) |
 | 2 | Área da família | responsáveis | nome, e-mail (cifrado), vínculo, ciência do PEI, mensagens, atualização de medicação | participação da família | da escola: art. 7º, II e art. 11, II, "a" | Supabase SP | igual à 1 |
 | 3 | Contas da equipe da escola | professores, coordenação, AEE, direção | nome, e-mail e telefone (cifrados), papel, permissões, vínculos | login e controle de acesso | art. 7º, V (contrato) | Supabase SP | enquanto ativo; 6 meses depois de desativado |
-| 4 | Registro de acesso e auditoria (`audit_log`, `acessos`, `usage_events`) | todos os usuários | id, papel, ação, recurso, **resumo** do IP, tipo de navegador | segurança e prova de quem fez o quê (art. 37 e Marco Civil) | art. 7º, II e IX | Supabase SP | **6 meses** no mínimo (Marco Civil, art. 15); propor 12 meses **[decisão]** |
+| 4 | Registro de acesso e auditoria (`audit_log`, `acessos`, `usage_events`) | todos os usuários | id, papel, ação, recurso, **resumo** do IP, tipo de navegador | segurança e prova de quem fez o quê (art. 37 e Marco Civil) | art. 7º, II e IX | Supabase SP | **12 meses** (decidido em 24/10; o Marco Civil pede no mínimo 6) |
 | 5 | Sugestões da IA (Omni IA) | estudantes (indireto) | texto do estudo de caso e do PEI **sem nome**, com códigos no lugar de nomes, CPF, telefones e e-mails | gerar rascunhos que o professor revisa | da escola: mesma base da operação 1; Omnisfera como operadora | Fireworks AI (EUA), **retenção zero** | nada fica no provedor; o resultado fica na operação 1 |
 | 6 | Leitura de foto de laudo e desenho do mapa mental | estudantes (indireto) | foto do laudo **sem metadados**, roteiro do mapa sem nome | transcrever o laudo; ilustrar a jornada do PAEE | igual à 5 | Google ou OpenAI (EUA), sem guardar | nada fica no provedor |
 | 7 | Cópia no Google Drive | estudantes (indireto) | PEI, PAEE ou diário escolhidos pela pessoa | cópia para a escola | da escola; a regra da escola define se pode e em que contas | Drive da conta escolhida | regra do Google e da escola; o salvamento fica na auditoria |
@@ -67,6 +67,6 @@ Chaves de cifragem e sessão: ENCRYPTION_KEY (e ENCRYPTION_KEY_ANTERIOR durante 
 - Backup: ver `docs/seguranca/backup-restauracao.md`.
 
 ## 6. Decisões em aberto
-1. **[decisão]** prazos de guarda das linhas 1, 4 e 9.
+1. **[decisão]** prazo de guarda da linha 9 (leads e certificados). As linhas 1 e 4 foram decididas em 24/10: 90 dias e 12 meses.
 2. **[jurídico]** papéis (escola controladora, Omnisfera operadora) na política e no contrato.
 3. **[jurídico]** dispensa do encarregado e cláusulas-padrão de transferência internacional.

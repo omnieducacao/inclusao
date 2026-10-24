@@ -85,7 +85,7 @@ export default function PrivacidadePage() {
             <section id="controlador" aria-labelledby="t-controlador">
               <h2 id="t-controlador" style={tituloSecao}>2. Controlador e encarregado</h2>
               <p style={paragrafo}>
-                O controlador dos dados é a <strong style={forte}>Omnisfera Soluções Educacionais</strong>. Para exercer seus direitos como titular dos dados (acesso, correção, eliminação, portabilidade e revogação do consentimento), fale com o Encarregado de Proteção de Dados (em inglês, DPO, de <em>Data Protection Officer</em>):
+                Para os dados de estudantes, famílias e equipe registrados na plataforma, a controladora é a <strong style={forte}>escola</strong> (ou a rede) que contrata a Omnisfera: é ela quem decide o que registrar e para quê. A <strong style={forte}>Omnisfera Soluções Educacionais Ltda</strong> (CNPJ 66.428.964/0001-43, Ribeirão Preto/SP) atua como operadora, tratando esses dados só para prestar o serviço contratado e conforme as instruções da escola. Para os dados da própria Omnisfera (contas de acesso, contato comercial e uso do site), a Omnisfera é a controladora. Para exercer seus direitos como titular dos dados (acesso, correção, eliminação, portabilidade e revogação do consentimento), fale com o Encarregado de Proteção de Dados (em inglês, DPO, de <em>Data Protection Officer</em>):
               </p>
               <ul style={{ ...lista, listStyle: "none", paddingLeft: 0 }}>
                 <li style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -132,7 +132,7 @@ export default function PrivacidadePage() {
             <section id="retencao" aria-labelledby="t-retencao">
               <h2 id="t-retencao" style={tituloSecao}>6. Retenção</h2>
               <p style={paragrafo}>
-                Mantemos os dados pelo tempo necessário para cumprir as finalidades e as obrigações legais. Depois que o vínculo com a escola termina, os dados podem ser anonimizados ou eliminados, conforme solicitação e política interna de retenção.
+                Enquanto o contrato com a escola estiver ativo, os dados ficam guardados para cumprir as finalidades acima. Quando o contrato termina, a escola tem 90 dias para exportar o que precisar (PDF e Word); depois disso, os dados de estudantes, famílias e equipe são eliminados. Registros de acesso e de auditoria ficam guardados por 12 meses, para segurança e para cumprir o Marco Civil da Internet. Dados que a lei obriga a manter, como os fiscais, ficam pelo prazo legal.
               </p>
             </section>
 
