@@ -1,7 +1,7 @@
 import { rateLimitIA } from "@/lib/rate-limit";
 import { parseBody, adaptarAtividadeSchema } from "@/lib/validation";
 import { NextResponse } from "next/server";
-import { visionAdapt, getVisionError, getVisionApiKey, chatCompletionText, type EngineId } from "@/lib/ai-engines";
+import { visionAdapt, getVisionError, getVisionApiKey, chatCompletionText, GEMINI_MODELO, type EngineId } from "@/lib/ai-engines";
 import { adaptarPromptAtividade } from "@/lib/hub-prompts";
 import { garantirTagImagem } from "@/lib/hub-utils";
 import { comprimirArquivoImagem } from "@/lib/image-compression";
@@ -139,7 +139,7 @@ export async function POST(req: Request) {
       try {
         const { GoogleGenerativeAI } = await import("@google/generative-ai");
         const genAI = new GoogleGenerativeAI(v.key);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({ model: GEMINI_MODELO });
 
         const contents = [
           { text: anonPrompt },

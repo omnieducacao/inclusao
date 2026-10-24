@@ -3,9 +3,10 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/permissions";
 import { logger } from "@/lib/logger";
 import { semNome } from "@/lib/sem-nome";
+import { mascararPII } from "@/lib/pii";
 
 export async function POST(req: Request) {
-  const { error: authError } = await requireAuth(); if (authError) return authError;
+  const { session, error: authError } = await requireAuth(); if (authError) return authError;
   const apiKey = (process.env.GEMINI_API_KEY || "").trim();
   if (!apiKey) {
     return NextResponse.json(
@@ -31,7 +32,8 @@ export async function POST(req: Request) {
   // vira "o estudante".
   const nome = (body.nome || "").trim();
   const hiperfoco = (body.hiperfoco || "").trim() || "aprendizado";
-  const roteiro = semNome(texto, nome).slice(0, 4500);
+  // Onda 90: também saem o nome da escola, CPF, contatos e registros de profissionais (o mapa é imagem: não volta)
+  const roteiro = mascararPII(semNome(texto, nome), { nomes: { ESCOLA: session?.workspace_name } }).texto.slice(0, 4500);
 
   const prompt = `Crie um MAPA MENTAL rico e visual a partir deste roteiro gamificado.
 REGRA OBRIGATÓRIA PARA O TEXTO: use APENAS palavras e expressões em português que ESTEJAM NO ROTEIRO abaixo.

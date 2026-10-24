@@ -379,14 +379,14 @@ export async function chatCompletionTextMotor(
     if (!apiKey) throw new Error("Configure GEMINI_API_KEY no ambiente.");
     const { GoogleGenerativeAI } = await import("@google/generative-ai");
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: GEMINI_MODELO });
     const full = messages.map((m) => `[${m.role}]\n${m.content}`).join("\n\n");
     const result = await model.generateContent(full);
     const resp = result.response;
     const textResult = (resp.text() || "").trim();
     if (shouldTrack && textResult) {
       const { trackAIUsage } = await import("./tracking");
-      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, uso: { model: "gemini-2.0-flash", tokensIn: resp.usageMetadata?.promptTokenCount, tokensOut: resp.usageMetadata?.candidatesTokenCount, durationMs: Date.now() - inicio } }).catch(() => { });
+      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, uso: { model: GEMINI_MODELO, tokensIn: resp.usageMetadata?.promptTokenCount, tokensOut: resp.usageMetadata?.candidatesTokenCount, durationMs: Date.now() - inicio } }).catch(() => { });
     }
     if (shouldCache && textResult) aiCache.set(engine, messages, textResult);
     return textResult;
@@ -415,6 +415,29 @@ export function getVisionError(): string | null {
 }
 
 /**
+ * Onda 90: o Gemini 2.0 Flash foi desligado em 01/06/2026 (o OmniProf já tinha trocado, SCRUM-78).
+ * Mesmo modelo do OmniProf; GEMINI_MODEL no ambiente troca sem deploy de código.
+ */
+export const GEMINI_MODELO = (typeof process !== "undefined" && process.env.GEMINI_MODEL) || "gemini-3.6-flash";
+
+/**
+ * Onda 90: a foto sai sem metadados (local, aparelho, data) antes de ir ao Google ou à OpenAI.
+ * `rotate()` aplica a orientação da câmera; o sharp não copia EXIF, XMP nem ICC para a saída.
+ */
+async function imagemSemMetadados(imageBase64: string, mime: string): Promise<{ base64: string; mime: string }> {
+  try {
+    const sharp = (await import("sharp")).default;
+    const saida = await sharp(Buffer.from(imageBase64, "base64")).rotate().toBuffer({ resolveWithObject: true });
+    const fmt = saida.info.format;
+    return { base64: saida.data.toString("base64"), mime: fmt === "png" ? "image/png" : fmt === "webp" ? "image/webp" : fmt === "jpeg" ? "image/jpeg" : mime };
+  } catch (err) {
+    const { logger } = await import("./logger");
+    logger.warn({ err }, "[visão] não foi possível tirar os metadados da imagem");
+    throw new Error("Não conseguimos preparar a imagem com segurança. Tente outra foto, em JPG ou PNG.");
+  }
+}
+
+/**
  * Vision: OCR + adaptação. Usa Gemini se disponível, senão OpenAI gpt-4o.
  * imageBase64: base64 da imagem (sem prefixo data:...)
  * mime: image/jpeg ou image/png
@@ -427,11 +450,12 @@ export async function visionAdapt(
 ): Promise<string> {
   const v = options?.apiKey ? { engine: "orange" as const, key: options.apiKey } : getVisionApiKey();
   if (!v) throw new Error(getVisionError() || "Chave de visão não configurada.");
+  ({ base64: imageBase64, mime } = await imagemSemMetadados(imageBase64, mime));
 
   if (v.engine === "yellow") {
     const { GoogleGenerativeAI } = await import("@google/generative-ai");
     const genAI = new GoogleGenerativeAI(v.key);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: GEMINI_MODELO });
     const imagePart = {
       inlineData: {
         data: imageBase64,
@@ -458,6 +482,8 @@ export async function visionAdapt(
     ],
     max_tokens: 4096,
     temperature: 0.4,
+    // Onda 90: não guardar o pedido no painel da OpenAI (o monitoramento de abuso da OpenAI segue valendo)
+    store: false,
   });
   return (completion.choices[0]?.message?.content || "").trim();
 }

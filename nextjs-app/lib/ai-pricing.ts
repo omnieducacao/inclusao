@@ -22,6 +22,7 @@ export const MODEL_PRICES: Record<string, ModelPrice> = {
   "claude-haiku-4-5": { inputPerMillionUsd: 1.0, outputPerMillionUsd: 5.0 },
   // Gemini (amarelo)
   "gemini-2.0-flash": { inputPerMillionUsd: 0.1, outputPerMillionUsd: 0.4 },
+  "gemini-3.6-flash": { inputPerMillionUsd: 0.1, outputPerMillionUsd: 0.4 },
   // Imagens
   "gpt-image-1": { inputPerMillionUsd: 0, outputPerMillionUsd: 0, imageUsd: 0.04 },
   "gemini-2.5-flash-image": { inputPerMillionUsd: 0, outputPerMillionUsd: 0, imageUsd: 0.04 },

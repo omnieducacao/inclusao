@@ -177,7 +177,7 @@ export function LaudoPdfSection({
                     <span id="laudo-arquivo-dica" className="omni-soltar__dica">
                         {file
                             ? ehImagem
-                                ? "Imagem escolhida: o texto será lido da foto. Depois, toque em Ler o laudo."
+                                ? "Imagem escolhida. Antes de ler, recorte ou cubra o cabeçalho com o nome do estudante: a foto vai a um serviço de leitura de imagem (Google ou OpenAI), que não é a Omni IA. Depois, toque em Ler o laudo."
                                 : "PDF escolhido. Depois, toque em Ler o laudo."
                             : "PDF, JPG, PNG ou WebP"}
                     </span>
