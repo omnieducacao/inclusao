@@ -132,7 +132,7 @@ export default function PrivacidadePage() {
             <section id="retencao" aria-labelledby="t-retencao">
               <h2 id="t-retencao" style={tituloSecao}>6. Retenção</h2>
               <p style={paragrafo}>
-                Enquanto o contrato com a escola estiver ativo, os dados ficam guardados para cumprir as finalidades acima. Quando o contrato termina, a escola tem 90 dias para exportar o que precisar (PDF e Word); depois disso, os dados de estudantes, famílias e equipe são eliminados. Registros de acesso e de auditoria ficam guardados por 12 meses, para segurança e para cumprir o Marco Civil da Internet. Dados que a lei obriga a manter, como os fiscais, ficam pelo prazo legal.
+                Enquanto o contrato com a escola estiver ativo, os dados ficam guardados para cumprir as finalidades acima. Quando o contrato termina, a escola tem 90 dias para exportar o que precisar (PDF e Word); depois disso, os dados de estudantes, famílias e equipe são eliminados. Registros de acesso e de auditoria ficam guardados por 12 meses, para segurança e para cumprir o Marco Civil da Internet. Os contatos comerciais (pedidos de demonstração e de contato) ficam por 24 meses depois da última conversa, e os certificados das formações, por 24 meses depois da emissão: nesse prazo, a 2ª via e a validação pelo código funcionam. Recomendamos guardar o PDF do certificado. Dados que a lei obriga a manter, como os fiscais, ficam pelo prazo legal.
               </p>
             </section>
 

@@ -31,7 +31,7 @@ Não é parecer jurídico; os pontos marcados com **[jurídico]** ficam para a c
 | 6 | Leitura de foto de laudo e desenho do mapa mental | estudantes (indireto) | foto do laudo **sem metadados**, roteiro do mapa sem nome | transcrever o laudo; ilustrar a jornada do PAEE | igual à 5 | Google ou OpenAI (EUA), sem guardar | nada fica no provedor |
 | 7 | Cópia no Google Drive | estudantes (indireto) | PEI, PAEE ou diário escolhidos pela pessoa | cópia para a escola | da escola; a regra da escola define se pode e em que contas | Drive da conta escolhida | regra do Google e da escola; o salvamento fica na auditoria |
 | 8 | Contas e cobrança da escola | quem contrata | nome, e-mail, CNPJ/CPF, dados de cobrança | contrato e nota fiscal | art. 7º, V e II | fora da plataforma (contrato e nota fiscal da empresa) | 5 anos depois do fim do contrato (prazo fiscal) |
-| 9 | Contato comercial e formação (`leads`, `certificados`) | interessados e cursistas | nome, e-mail, escola, cargo | responder o contato; emitir certificado | art. 7º, I (consentimento) e V | Supabase SP | leads: 12 meses sem conversa, depois eliminação; certificados: enquanto houver pedido de 2ª via **[decisão]** |
+| 9 | Contato comercial e formação (`leads`, `certificados`) | interessados e cursistas | nome, e-mail, escola, cargo | responder o contato; emitir certificado | art. 7º, I (consentimento) e V | Supabase SP | leads: 24 meses depois da última conversa; certificados: 24 meses depois da emissão (decidido em 24/10) |
 | 10 | Métricas do site e desempenho (`site_eventos`, `web_vitals`) | visitantes | página, tempo de carregamento, sem identificação | melhorar o site | art. 7º, IX (legítimo interesse) | Supabase SP | 12 meses |
 
 ## 3. Transferência internacional (art. 33)
@@ -67,7 +67,7 @@ Chaves de cifragem e sessão: ENCRYPTION_KEY (e ENCRYPTION_KEY_ANTERIOR durante 
 - Backup: ver `docs/seguranca/backup-restauracao.md`.
 
 ## 6. Decisões em aberto
-1. **[decisão]** prazo de guarda da linha 9 (leads e certificados). As linhas 1 e 4 foram decididas em 24/10: 90 dias e 12 meses.
+1. Prazos decididos em 24/10: linha 1, 90 dias; linha 4, 12 meses; linha 9, 24 meses (rotina na migração 20261024_onda95_lgpd_contatos.sql).
 2. **[jurídico]** papéis (escola controladora, Omnisfera operadora) na política e no contrato.
 3. **[jurídico]** dispensa do encarregado e cláusulas-padrão de transferência internacional.
 
