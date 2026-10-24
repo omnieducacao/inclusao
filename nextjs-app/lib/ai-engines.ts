@@ -426,7 +426,7 @@ export const GEMINI_MODELO = (typeof process !== "undefined" && process.env.GEMI
  */
 async function imagemSemMetadados(imageBase64: string, mime: string): Promise<{ base64: string; mime: string }> {
   try {
-    const sharp = (await import("sharp")).default;
+    const sharp = (await import(/* webpackIgnore: true */ /* turbopackIgnore: true */ "sharp")).default;
     const saida = await sharp(Buffer.from(imageBase64, "base64")).rotate().toBuffer({ resolveWithObject: true });
     const fmt = saida.info.format;
     return { base64: saida.data.toString("base64"), mime: fmt === "png" ? "image/png" : fmt === "webp" ? "image/webp" : fmt === "jpeg" ? "image/jpeg" : mime };
