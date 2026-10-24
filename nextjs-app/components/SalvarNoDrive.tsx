@@ -8,12 +8,26 @@
  * servidor e registro na auditoria (quem, qual documento e o domínio da conta). Família não vê o botão.
  */
 import { useEffect, useState } from "react";
-import { CloudUpload, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { driveConfigurado, emailDaConta, pedirTokenGoogle, prepararGoogle, salvarNoDrive } from "@/lib/google-drive";
 import { dominioDoEmail } from "@/lib/drive-politica";
 
 export type RecursoDrive = "pei" | "paee" | "relatorio";
 const CHAVE_AVISO = "omnisfera:aviso-drive-v1";
+
+/** Logo do Google Drive (marca do Google, usada para indicar a integração). */
+function LogoDrive() {
+  return (
+    <svg viewBox="0 0 87.3 78" width="18" height="16" aria-hidden="true" focusable="false">
+      <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da" />
+      <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47" />
+      <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335" />
+      <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d" />
+      <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc" />
+      <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00" />
+    </svg>
+  );
+}
 
 function avisoJaVisto(): boolean {
   try { return localStorage.getItem(CHAVE_AVISO) === "1"; } catch { return false; }
@@ -33,7 +47,7 @@ export function SalvarNoDrive({
   gerarArquivo,
   recurso,
   recursoId,
-  rotulo = "Salvar no Drive",
+  rotulo = "Salvar no Google Drive",
   className,
 }: {
   /** Gera o Word (.docx) do documento. */
@@ -86,14 +100,14 @@ export function SalvarNoDrive({
   }
 
   return (
-    <span style={{ display: "inline-flex", flexDirection: "column", gap: 6 }}>
+    <span style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
       <button
         type="button"
         className={className ?? "omni-btn omni-btn--secundario omni-btn--pequeno"}
         onClick={clicar}
         disabled={estado.fase === "salvando"}
       >
-        <CloudUpload aria-hidden /> {estado.fase === "salvando" ? "Salvando no Drive…" : rotulo}
+        <LogoDrive /> {estado.fase === "salvando" ? "Salvando no Google Drive…" : rotulo}
       </button>
       {estado.fase === "aviso" && (
         <div className="omni-aviso omni-aviso--atencao" role="alertdialog" aria-label="Antes de salvar no Drive" style={{ maxWidth: 360 }}>
