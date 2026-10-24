@@ -9,6 +9,8 @@ export const MODEL_PRICES: Record<string, ModelPrice> = {
   // DeepSeek (motor vermelho, padrão)
   "deepseek-chat": { inputPerMillionUsd: 0.14, outputPerMillionUsd: 0.28 },
   "deepseek-flash": { inputPerMillionUsd: 0.14, outputPerMillionUsd: 0.28 },
+  // Omni IA: Fireworks, variante só-EUA (tabela serverless de 24/10/2026)
+  "deepseek-v4p1-flash-us": { inputPerMillionUsd: 0.45, outputPerMillionUsd: 1.8 },
   // OpenAI (laranja)
   "gpt-4o-mini": { inputPerMillionUsd: 0.15, outputPerMillionUsd: 0.6 },
   // Kimi (azul)

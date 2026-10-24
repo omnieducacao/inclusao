@@ -21,9 +21,10 @@ vi.mock("@/lib/supabase", () => ({
 import { ENGINE_NAMES, getEngineError, getVisionError, type EngineId } from "@/lib/ai-engines";
 
 describe("ENGINE_NAMES", () => {
-    it("contém todos os 5 engines", () => {
+    it("contém todos os 6 engines (com o Omni IA)", () => {
         const keys = Object.keys(ENGINE_NAMES);
-        expect(keys).toHaveLength(5);
+        expect(keys).toHaveLength(6);
+        expect(keys).toContain("omni");
         expect(keys).toContain("red");
         expect(keys).toContain("blue");
         expect(keys).toContain("green");

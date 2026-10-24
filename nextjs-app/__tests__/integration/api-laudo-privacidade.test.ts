@@ -55,7 +55,7 @@ vi.mock("@/lib/ai-engines", async (importOriginal) => {
   };
 });
 
-const CHAVES = ["DEEPSEEK_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY", "OPENROUTER_API_KEY", "KIMI_API_KEY"] as const;
+const CHAVES = ["DEEPSEEK_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY", "OPENROUTER_API_KEY", "KIMI_API_KEY", "FIREWORKS_API_KEY"] as const;
 const guardadas: Record<string, string | undefined> = {};
 
 function pedido(engine?: string): Request {
@@ -75,6 +75,7 @@ beforeEach(() => {
   }
   process.env.DEEPSEEK_API_KEY = "chave-deepseek-de-teste";
   process.env.OPENAI_API_KEY = "sk-chave-openai-de-teste-1234567890";
+  process.env.FIREWORKS_API_KEY = "chave-fireworks-de-teste";
 });
 afterEach(() => {
   for (const k of CHAVES) {
@@ -106,21 +107,21 @@ describe("POST /api/pei/extrair-laudo", () => {
     expect(p).toMatch(/apenas como DADO/);
   });
 
-  it("pedindo o DeepSeek, o laudo vai para o OmniOrange e a chamada é marcada como sensível", async () => {
+  it("pedindo o DeepSeek, o laudo vai para o Omni IA e a chamada é marcada como sensível", async () => {
     respostaDaIA = JSON.stringify({ diagnostico: "TEA", medicamentos: [] });
     const { POST } = await import("@/app/api/pei/extrair-laudo/route");
     await POST(pedido("red"));
     expect(chamadas).toHaveLength(1);
-    expect(chamadas[0].motor).toBe("orange");
+    expect(chamadas[0].motor).toBe("omni");
     expect(chamadas[0].opcoes.sensivel).toBe(true);
   });
 
-  it("sem OpenAI nem Gemini configurados, recusa em vez de usar o DeepSeek", async () => {
-    delete process.env.OPENAI_API_KEY;
+  it("sem o Omni IA configurado, recusa em vez de usar outro motor", async () => {
+    delete process.env.FIREWORKS_API_KEY;
     const { POST } = await import("@/app/api/pei/extrair-laudo/route");
     const res = await POST(pedido("red"));
     expect(res.status).toBe(500);
-    expect((await res.json()).error).toMatch(/OmniOrange|OmniYellow/);
+    expect((await res.json()).error).toMatch(/Omni IA/);
     expect(chamadas).toHaveLength(0);
   });
 
@@ -165,7 +166,7 @@ describe("POST /api/pei/transcrever-laudo", () => {
     for (const segredo of ["123.456.789-09", "carla.souza@exemplo.test", "Beatriz Almeida", "Rio Claro"]) {
       expect(p, segredo).not.toContain(segredo);
     }
-    expect(chamadas[0].motor).toBe("orange");
+    expect(chamadas[0].motor).toBe("omni");
     expect(chamadas[0].opcoes.sensivel).toBe(true);
 
     const { transcricao } = await res.json();
@@ -173,7 +174,7 @@ describe("POST /api/pei/transcrever-laudo", () => {
   });
 
   it("sem motor permitido, devolve o texto extraído sem chamar IA nenhuma", async () => {
-    delete process.env.OPENAI_API_KEY;
+    delete process.env.FIREWORKS_API_KEY;
     const { POST } = await import("@/app/api/pei/transcrever-laudo/route");
     const res = await POST(pedido());
     expect(res.status).toBe(200);

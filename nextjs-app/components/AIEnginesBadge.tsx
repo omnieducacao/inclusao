@@ -13,6 +13,7 @@ const ENGINE_COLORS: Record<EngineId, { bg: string; text: string; dot: string }>
   green: { bg: "var(--encontro-verde-suave)", text: "var(--encontro-verde-forte)", dot: "var(--encontro-verde)" },
   yellow: { bg: "var(--encontro-amarelo-suave)", text: "var(--encontro-amarelo-forte)", dot: "var(--encontro-amarelo)" },
   orange: { bg: "var(--encontro-laranja-suave)", text: "var(--encontro-laranja-forte)", dot: "var(--encontro-laranja)" },
+  omni: { bg: "var(--encontro-roxo-suave)", text: "var(--encontro-roxo-forte)", dot: "var(--encontro-roxo)" },
 };
 
 const ENGINE_SHORT_NAMES: Record<EngineId, string> = {
@@ -21,6 +22,7 @@ const ENGINE_SHORT_NAMES: Record<EngineId, string> = {
   green: "Green",
   yellow: "Yellow",
   orange: "Orange",
+  omni: "Omni IA",
 };
 
 export function AIEnginesBadge({ engines }: { engines?: EngineId[] } = {}) {

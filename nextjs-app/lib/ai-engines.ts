@@ -10,7 +10,7 @@ import { ehSensivel } from "./ai-sensivel";
 import { getSupabase } from "./supabase";
 import { logger } from "@/lib/logger";
 
-export type EngineId = "red" | "blue" | "green" | "yellow" | "orange";
+export type EngineId = "red" | "blue" | "green" | "yellow" | "orange" | "omni";
 
 export const ENGINE_NAMES: Record<EngineId, string> = {
   red: "OmniRed (DeepSeek)",
@@ -18,7 +18,16 @@ export const ENGINE_NAMES: Record<EngineId, string> = {
   green: "OmniGreen (Claude)",
   yellow: "OmniYellow (Gemini)",
   orange: "OmniOrange (OpenAI)",
+  omni: "Omni IA",
 };
+
+/**
+ * Omni IA (decisão de 24/10, SCRUM-197): DeepSeek V4.1 Flash na Fireworks, modo só-EUA, retenção zero.
+ * É o único motor para conversas com dados de estudante. Só chat completions: a Responses API da
+ * Fireworks guarda dados por 30 dias. O serverless padrão da Fireworks não informa onde roda.
+ */
+export const OMNI_IA_BASE_URL = "https://us.api.fireworks.ai/inference/v1";
+export const OMNI_IA_MODELO = "accounts/fireworks/routers/deepseek-v4p1-flash-us";
 
 function getEnv(key: string): string {
   return (process.env[key] || "").trim();
@@ -66,6 +75,8 @@ function getApiKey(engine: EngineId, overrideKey?: string): string {
       return getEnv("GEMINI_API_KEY");
     case "orange":
       return validateOpenAIKey(getEnv("OPENAI_API_KEY"));
+    case "omni":
+      return getEnv("FIREWORKS_API_KEY");
     default:
       return validateOpenAIKey(getEnv("OPENAI_API_KEY"));
   }
@@ -111,11 +122,16 @@ const TEMPO_PRINCIPAL_MS = 90_000; // o Render não corta a rota; um PEI longo p
 const TEMPO_RESERVA_MS = 75_000;
 
 /**
- * SCRUM-69: dados de saúde e de estudante não vão para DeepSeek (red) nem para Kimi/Moonshot (blue),
- * nem como motor reserva. O motor pedido é trocado por OmniOrange (OpenAI) ou OmniYellow (Gemini).
+ * SCRUM-69, revisto em 24/10 (SCRUM-197): dados de saúde e de estudante só vão para fornecedor com
+ * retenção zero, ou seja, só para o Omni IA. Nenhum outro motor, nem como reserva: se o Omni IA falhar,
+ * a função avisa em vez de mandar o dado para outro lugar.
  */
-export const MOTORES_PROIBIDOS_SENSIVEL: readonly EngineId[] = ["red", "blue"];
-const MOTORES_PARA_SENSIVEL: readonly EngineId[] = ["orange", "yellow"];
+export const MOTORES_PROIBIDOS_SENSIVEL: readonly EngineId[] = ["red", "blue", "green", "yellow", "orange"];
+const MOTORES_PARA_SENSIVEL: readonly EngineId[] = ["omni"];
+
+export const OMNI_IA_INDISPONIVEL =
+  "Esta função usa dados do estudante e só roda no Omni IA, que está indisponível agora. " +
+  "Tente de novo em alguns minutos. Por segurança, esses dados não vão para outros motores.";
 
 export function motoresParaTentar(
   escolhido: EngineId,
@@ -128,16 +144,11 @@ export function motoresParaTentar(
   return reserva ? [escolhido, reserva] : [escolhido];
 }
 
-/** Motor permitido para dados sensíveis: o pedido, se for permitido; senão o primeiro configurado de orange/yellow. */
+/** Motor para dados sensíveis: sempre o Omni IA, qualquer que seja o motor escolhido. */
 export function motorParaDadosSensiveis(escolhido: EngineId, temErro: (e: EngineId) => boolean): EngineId {
-  if (!MOTORES_PROIBIDOS_SENSIVEL.includes(escolhido)) return escolhido;
+  if (!MOTORES_PROIBIDOS_SENSIVEL.includes(escolhido) && MOTORES_PARA_SENSIVEL.includes(escolhido) && !temErro(escolhido)) return escolhido;
   const permitido = MOTORES_PARA_SENSIVEL.find((e) => !temErro(e));
-  if (!permitido) {
-    throw new Error(
-      "Esta função usa dados do estudante e não pode usar o motor escolhido (OmniRed ou OmniBlue). " +
-      "Configure o OmniOrange (OpenAI) ou o OmniYellow (Gemini) para usá-la."
-    );
-  }
+  if (!permitido) throw new Error(OMNI_IA_INDISPONIVEL);
   return permitido;
 }
 
@@ -190,7 +201,19 @@ export async function chatCompletionText(
   const principal = sensivel ? motorParaDadosSensiveis(engine, temErro) : engine;
   // chave informada para o motor pedido não vale para o motor que o substituiu
   const opcoes = principal === engine ? options : { ...options, apiKey: undefined };
-  const motores = motoresParaTentar(principal, temErro, sensivel ? MOTORES_PROIBIDOS_SENSIVEL : []);
+  // conversa sensível: só o Omni IA, sem reserva
+  const motores = sensivel ? [principal] : motoresParaTentar(principal, temErro);
+  if (sensivel) {
+    return comFallback(
+      motores,
+      (motor) => chatCompletionTextMotor(motor, messages, opcoes),
+      undefined,
+      (r) => typeof r === "string" && r.trim().length > 0
+    ).catch((err) => {
+      logger.warn({ err: err instanceof Error ? err.message : String(err) }, "IA: Omni IA falhou numa conversa sensível");
+      throw new Error(OMNI_IA_INDISPONIVEL);
+    });
+  }
   return comFallback(
     motores,
     (motor, i) => chatCompletionTextMotor(motor, messages, i === 0 ? opcoes : { ...opcoes, apiKey: undefined }),
@@ -215,6 +238,28 @@ export async function chatCompletionTextMotor(
   if (shouldCache) {
     const cached = aiCache.get(engine, messages);
     if (cached) return cached;
+  }
+
+  // Omni IA (Fireworks, só EUA, retenção zero)
+  if (engine === "omni") {
+    if (!apiKey) throw new Error("Configure FIREWORKS_API_KEY no ambiente.");
+    const OpenAI = (await import("openai")).default;
+    const client = new OpenAI({ apiKey, baseURL: getEnv("OMNI_IA_BASE_URL") || OMNI_IA_BASE_URL });
+    const resp = await client.chat.completions.create({
+      model: getEnv("OMNI_IA_MODEL") || OMNI_IA_MODELO,
+      messages: messages as Parameters<typeof client.chat.completions.create>[0]["messages"],
+      temperature: temp,
+      max_tokens: options?.max_tokens || 8192,
+      // benchmark SCRUM-196: sem raciocínio a nota cai de 9,0 para 8,2
+      reasoning_effort: getEnv("OMNI_IA_REASONING_EFFORT") || "medium",
+    } as Parameters<typeof client.chat.completions.create>[0]) as import("openai").default.Chat.Completions.ChatCompletion;
+    const result = (resp.choices[0]?.message?.content || "").replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+    if (shouldCache && result) aiCache.set(engine, messages, result);
+    if (shouldTrack && result) {
+      const { trackAIUsage } = await import("./tracking");
+      trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, uso: usoOpenAI(resp, inicio) }).catch(() => { });
+    }
+    return result;
   }
 
   // Orange (OpenAI)

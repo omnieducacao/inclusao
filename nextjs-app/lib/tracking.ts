@@ -26,7 +26,7 @@ export type EventType =
   | "member_created"
   | "member_updated";
 
-export type AIEngine = "red" | "blue" | "green" | "yellow" | "orange";
+export type AIEngine = "red" | "blue" | "green" | "yellow" | "orange" | "omni";
 
 export type AIFeedbackAction = "validated" | "rejected" | "adjusted" | "regenerated";
 

@@ -144,6 +144,7 @@ export function ConsultoriaTab({
     green: "Green",
     yellow: "Yellow",
     orange: "Orange (reserva)",
+    omni: "Omni IA",
   };
 
   // Onda 18: "O que a IA vai usar" com ícones e texto (antes eram emojis)
