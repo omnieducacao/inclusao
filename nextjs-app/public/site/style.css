@@ -782,3 +782,7 @@ svg.grow .vl{font-family:var(--f);font-weight:800;font-size:17px;fill:var(--ink)
 .cert-modelo[data-estado=liberado] .cm-arco{transform:translate(4px,-2px) rotate(18deg);transform-origin:16px 11px}
 .cert-modelo + .cert-prog{margin-top:18px}
 @media (max-width:520px){.cm-selo{font-size:13px;padding:7px 12px;max-width:92%}}
+
+/* Omni IA (onda 58) */
+.omni-ia .roles.light .role h3{font-size:21px}
+.omni-ia-leg{margin-top:22px;max-width:760px}

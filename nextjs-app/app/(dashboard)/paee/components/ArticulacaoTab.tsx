@@ -5,6 +5,7 @@ import { Trash2, Edit2, CheckCircle2, AlertTriangle, Sparkles, Users } from "luc
 import type { StudentFull } from "../lib/paee-types";
 import { EngineSelector } from "@/components/EngineSelector";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
+import { SeloOmniIA } from "@/components/ia/SeloOmniIA";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import type { EngineId } from "@/lib/ai-engines";
@@ -208,6 +209,7 @@ export function ArticulacaoTab({
         <div style={{ display: "grid", gap: 16 }}>
           <div className="omni-resultado">
             <h3 style={{ margin: 0, font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>Carta para o professor da sala</h3>
+            <SeloOmniIA />
             <div className="omni-resultado__texto">
               <FormattedTextDisplay texto={documento} />
             </div>
@@ -298,6 +300,7 @@ export function ArticulacaoTab({
           </div>
           <div className="omni-resultado">
             <h3 style={{ margin: 0, font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>Carta para o professor da sala</h3>
+            <SeloOmniIA />
             <div className="omni-resultado__texto">
               <FormattedTextDisplay texto={documento} />
             </div>

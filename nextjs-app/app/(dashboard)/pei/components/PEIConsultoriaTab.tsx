@@ -1,4 +1,5 @@
 "use client";
+import { SeloOmniIA } from "@/components/ia/SeloOmniIA";
 import { useConfirmar } from "@/components/Confirmar";
 
 import React, { useState, useEffect } from "react";
@@ -298,6 +299,7 @@ export function ConsultoriaTab({
                   {statusValidacao === "aprovado"
                     ? <span className="omni-estado omni-estado--sucesso">Revisado e aprovado</span>
                     : <span className="omni-estado omni-estado--info">Gerado com IA · revise antes de aprovar</span>}
+                  <SeloOmniIA />
                 </div>
                 {/* Onda 18: texto com títulos e listas formatados (antes "##" e "*" apareciam crus) */}
                 {textoPeiDesatualizado(peiData as Record<string, unknown>) && (

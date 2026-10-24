@@ -5,6 +5,7 @@ import { Trash2, Edit2, CheckCircle2, AlertTriangle, Sparkles, Target } from "lu
 import type { StudentFull } from "../lib/paee-types";
 import { EngineSelector } from "@/components/EngineSelector";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
+import { SeloOmniIA } from "@/components/ia/SeloOmniIA";
 import { PdfDownloadButton } from "@/components/PdfDownloadButton";
 import { DocxDownloadButton } from "@/components/DocxDownloadButton";
 import type { EngineId } from "@/lib/ai-engines";
@@ -223,6 +224,7 @@ export function PlanoHabilidadesTab({
           ) : (
           <div className="omni-resultado">
             <h3 style={{ margin: 0, font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>Plano de habilidades</h3>
+            <SeloOmniIA />
             <div className="omni-resultado__texto">
               <FormattedTextDisplay texto={plano} />
             </div>
@@ -314,6 +316,7 @@ export function PlanoHabilidadesTab({
           </div>
           <div className="omni-resultado">
             <h3 style={{ margin: 0, font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>Plano de habilidades</h3>
+            <SeloOmniIA />
             <div className="omni-resultado__texto">
               <FormattedTextDisplay texto={plano} />
             </div>

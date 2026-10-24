@@ -7,6 +7,7 @@ import type { StudentFull } from "../lib/paee-types";
 import type { CicloPAEE } from "@/lib/paee";
 import { EngineSelector } from "@/components/EngineSelector";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
+import { SeloOmniIA } from "@/components/ia/SeloOmniIA";
 import { gerarPdfJornada } from "@/lib/paee-pdf-export";
 import type { EngineId } from "@/lib/ai-engines";
 import { aiLoadingStart, aiLoadingStop } from "@/hooks/useAILoading";
@@ -464,6 +465,7 @@ export function JornadaTab({
 
           <div className="omni-resultado">
             <h4 style={tituloSecao}>Roteiro (prévia)</h4>
+            <SeloOmniIA />
             <div className="omni-resultado__texto">
               <FormattedTextDisplay texto={texto} titulo="" />
             </div>

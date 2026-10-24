@@ -15,6 +15,7 @@ import {
 } from "@/lib/paee";
 import { AlertTriangle, Target, Search, FileText } from "lucide-react";
 import { FormattedTextDisplay } from "@/components/FormattedTextDisplay";
+import { SeloOmniIA } from "@/components/ia/SeloOmniIA";
 import { ProximosPassos } from "@/components/jornada/ProximosPassos";
 import { PEISummaryPanel } from "@/components/PEISummaryPanel";
 import { ResumoAnexosEstudante } from "@/components/ResumoAnexosEstudante";
@@ -535,6 +536,7 @@ function PAEEClientInner({ students, studentId, student }: Props) {
                     <h4 style={{ margin: 0, font: "800 16px/22px var(--font-sans)", color: "var(--tinta)" }}>Relatório do ciclo</h4>
                     <button type="button" className="omni-btn omni-btn--discreto omni-btn--pequeno" onClick={() => setRelatorio(null)}>Fechar</button>
                   </div>
+                  <SeloOmniIA />
                   <div className="omni-resultado__texto">
                     <FormattedTextDisplay texto={relatorio} />
                   </div>
