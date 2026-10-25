@@ -7,5 +7,10 @@ export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     const { exigirAmbiente } = await import("./lib/ambiente");
     exigirAmbiente(process.env);
+    // SCRUM-73: o sentry.server.config existia, mas nada o carregava; o Sentry nunca ligava no servidor.
+    await import("./sentry.server.config");
   }
 }
+
+// Erros de rotas e páginas do servidor vão para o Sentry (só se SENTRY_DSN estiver configurado).
+export { captureRequestError as onRequestError } from "@sentry/nextjs";

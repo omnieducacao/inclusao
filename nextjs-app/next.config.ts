@@ -99,7 +99,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https:",
-              "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://accounts.google.com https://www.googleapis.com https://openidconnect.googleapis.com",
+              "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://accounts.google.com https://www.googleapis.com https://openidconnect.googleapis.com https://*.ingest.us.sentry.io https://*.ingest.sentry.io",
               "media-src 'self' https://lottie.host",
               "frame-src https://www.youtube-nocookie.com https://accounts.google.com",
               "frame-ancestors 'none'",

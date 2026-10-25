@@ -36,6 +36,9 @@ jobs:
       - name: Checar tipos (TypeScript)
         run: npx tsc --noEmit
 
+      - name: Checar o código (ESLint, só erros)
+        run: npx eslint --quiet .
+
       - name: Run tests
         run: npm test
 

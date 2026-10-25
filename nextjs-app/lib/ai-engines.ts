@@ -236,7 +236,7 @@ export async function chatCompletionTextMotor(
 
   // Verificar cache antes de chamar a IA
   if (shouldCache) {
-    const cached = aiCache.get(engine, messages);
+    const cached = aiCache.get(engine, messages, options?.workspaceId);
     if (cached) return cached;
   }
 
@@ -254,7 +254,7 @@ export async function chatCompletionTextMotor(
       reasoning_effort: getEnv("OMNI_IA_REASONING_EFFORT") || "medium",
     } as Parameters<typeof client.chat.completions.create>[0]) as import("openai").default.Chat.Completions.ChatCompletion;
     const result = (resp.choices[0]?.message?.content || "").replace(/<think>[\s\S]*?<\/think>/g, "").trim();
-    if (shouldCache && result) aiCache.set(engine, messages, result);
+    if (shouldCache && result) aiCache.set(engine, messages, result, undefined, options?.workspaceId);
     if (shouldTrack && result) {
       const { trackAIUsage } = await import("./tracking");
       trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, uso: usoOpenAI(resp, inicio) }).catch(() => { });
@@ -274,7 +274,7 @@ export async function chatCompletionTextMotor(
       max_tokens: options?.max_tokens || 4096,
     });
     const result = (resp.choices[0]?.message?.content || "").trim();
-    if (shouldCache && result) aiCache.set(engine, messages, result);
+    if (shouldCache && result) aiCache.set(engine, messages, result, undefined, options?.workspaceId);
     if (shouldTrack && result) {
       const { trackAIUsage } = await import("./tracking");
       trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, uso: usoOpenAI(resp, inicio) }).catch(() => { });
@@ -296,7 +296,7 @@ export async function chatCompletionTextMotor(
       max_tokens: options?.max_tokens || 8192,
     });
     const result = (resp.choices[0]?.message?.content || "").trim();
-    if (shouldCache && result) aiCache.set(engine, messages, result);
+    if (shouldCache && result) aiCache.set(engine, messages, result, undefined, options?.workspaceId);
     if (shouldTrack && result) {
       const { trackAIUsage } = await import("./tracking");
       trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, uso: usoOpenAI(resp, inicio) }).catch(() => { });
@@ -329,7 +329,7 @@ export async function chatCompletionTextMotor(
         throw new Error("Resposta vazia ou inválida do Kimi K2");
       }
 
-      if (shouldCache && result) aiCache.set(engine, messages, result);
+      if (shouldCache && result) aiCache.set(engine, messages, result, undefined, options?.workspaceId);
       if (shouldTrack && result) {
         const { trackAIUsage } = await import("./tracking");
         trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, uso: usoOpenAI(resp, inicio) }).catch(() => { });
@@ -370,7 +370,7 @@ export async function chatCompletionTextMotor(
       const { trackAIUsage } = await import("./tracking");
       trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, creditsConsumed: 2.0, uso: { model, tokensIn: resp.usage?.input_tokens, tokensOut: resp.usage?.output_tokens, durationMs: Date.now() - inicio } }).catch(() => { });
     }
-    if (shouldCache && result) aiCache.set(engine, messages, result);
+    if (shouldCache && result) aiCache.set(engine, messages, result, undefined, options?.workspaceId);
     return result;
   }
 
@@ -388,7 +388,7 @@ export async function chatCompletionTextMotor(
       const { trackAIUsage } = await import("./tracking");
       trackAIUsage(engine, { workspaceId: options?.workspaceId, source: options?.source, uso: { model: GEMINI_MODELO, tokensIn: resp.usageMetadata?.promptTokenCount, tokensOut: resp.usageMetadata?.candidatesTokenCount, durationMs: Date.now() - inicio } }).catch(() => { });
     }
-    if (shouldCache && textResult) aiCache.set(engine, messages, textResult);
+    if (shouldCache && textResult) aiCache.set(engine, messages, textResult, undefined, options?.workspaceId);
     return textResult;
   }
 
