@@ -70,6 +70,7 @@ if(orb){
   host.addEventListener('pointermove',e=>{const r=orb.getBoundingClientRect();P.x=e.clientX-r.left;P.y=e.clientY-r.top;P.on=true});
   host.addEventListener('pointerleave',()=>P.on=false);
   addEventListener('resize',()=>{S=fit(orb);if(rm)go()});
+  if('ResizeObserver' in window)new ResizeObserver(()=>{S=fit(orb);if(rm)go()}).observe(orb);
   if('IntersectionObserver' in window)new IntersectionObserver(es=>{const v=es[0].isIntersecting;if(v&&!vis){vis=true;go()}else vis=v}).observe(orb);
   go();
 }

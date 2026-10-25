@@ -65,6 +65,9 @@ if(hero){
   hero.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();P.x=e.clientX-r.left;P.y=e.clientY-r.top;P.on=true});
   hero.addEventListener('pointerleave',()=>P.on=false);
   addEventListener('resize',()=>{S=fit(cv);seed()});
+  // A seção muda de altura depois que as fontes carregam; sem isto, o desenho ficava esticado (círculos ovais e grandes)
+  // até a pessoa mexer no tamanho da janela.
+  if('ResizeObserver' in window){let lw=S.w,lh=S.h;new ResizeObserver(()=>{const r=cv.getBoundingClientRect();if(Math.abs(r.width-lw)<1&&Math.abs(r.height-lh)<1)return;lw=r.width;lh=r.height;S=fit(cv);seed()}).observe(cv)}
   if('IntersectionObserver' in window)new IntersectionObserver(es=>{const v=es[0].isIntersecting;if(v&&!vis){vis=true;go()}else vis=v}).observe(hero);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)vis=false;else{vis=true;go()}});
   go();
