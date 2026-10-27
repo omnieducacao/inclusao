@@ -3,7 +3,7 @@
  *
  * Diferente de um mock fixo por rota, este aplica de verdade os filtros `.eq()` e `.in()` nas
  * linhas guardadas: se uma rota esquecer o `workspace_id`, a linha da outra escola aparece.
- * Cobre só o que as rotas usam: select, insert, update, eq, in, order, limit, range, single, maybeSingle.
+ * Cobre só o que as rotas usam: select, insert, update, delete, eq, in, order, limit, range, single, maybeSingle.
  */
 type Linha = Record<string, unknown>;
 type Filtro =
@@ -28,7 +28,7 @@ export function criarFakeDb(tabelas: Record<string, Linha[]>): FakeDb {
 
 class Consulta implements PromiseLike<{ data: unknown; error: null | { message: string }; count?: number }> {
   private filtros: Filtro[] = [];
-  private op: "select" | "insert" | "update" = "select";
+  private op: "select" | "insert" | "update" | "delete" = "select";
   private payload: Linha | Linha[] = {};
   private contar = false;
   private somenteContagem = false;
@@ -50,6 +50,10 @@ class Consulta implements PromiseLike<{ data: unknown; error: null | { message: 
   update(valores: Linha) {
     this.op = "update";
     this.payload = valores;
+    return this;
+  }
+  delete() {
+    this.op = "delete";
     return this;
   }
   eq(col: string, val: unknown) {
@@ -121,6 +125,11 @@ class Consulta implements PromiseLike<{ data: unknown; error: null | { message: 
       this.db.updates.push({ tabela: this.tabela, filtros: this.filtros, valores: this.payload as Linha });
       alvo.forEach((l) => Object.assign(l, this.payload as Linha));
       return alvo;
+    }
+    if (this.op === "delete") {
+      const alvo = new Set(this.linhasQueCasam());
+      this.db.tabelas[this.tabela] = (this.db.tabelas[this.tabela] || []).filter((l) => !alvo.has(l));
+      return [...alvo];
     }
     let achadas = this.linhasQueCasam();
     if (this.faixa) achadas = achadas.slice(this.faixa[0], this.faixa[1] + 1);
