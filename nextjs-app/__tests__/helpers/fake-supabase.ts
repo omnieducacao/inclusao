@@ -16,10 +16,13 @@ export type FakeDb = {
   tabelas: Record<string, Linha[]>;
   inserts: Array<{ tabela: string; linha: Linha }>;
   updates: Array<{ tabela: string; filtros: Filtro[]; valores: Linha }>;
+  /** ids novos no formato uuid (para rotas que conferem o formato do id) */
+  uuid?: boolean;
 };
 
-export function criarFakeDb(tabelas: Record<string, Linha[]>): FakeDb {
+export function criarFakeDb(tabelas: Record<string, Linha[]>, opcoes: { uuid?: boolean } = {}): FakeDb {
   return {
+    uuid: opcoes.uuid,
     tabelas: Object.fromEntries(Object.entries(tabelas).map(([k, v]) => [k, v.map((l) => ({ ...l }))])),
     inserts: [],
     updates: [],
@@ -114,7 +117,9 @@ class Consulta implements PromiseLike<{ data: unknown; error: null | { message: 
     if (this.op === "insert") {
       const lote = Array.isArray(this.payload) ? (this.payload as Linha[]) : [this.payload];
       return lote.map((p) => {
-        const linha = { id: `novo-${this.db.inserts.length + 1}`, ...p };
+        const n = this.db.inserts.length + 1;
+        const id = this.db.uuid ? `00000000-0000-4000-8000-${String(n).padStart(12, "0")}` : `novo-${n}`;
+        const linha = { id, ...p };
         this.db.inserts.push({ tabela: this.tabela, linha });
         (this.db.tabelas[this.tabela] ||= []).push(linha);
         return linha;

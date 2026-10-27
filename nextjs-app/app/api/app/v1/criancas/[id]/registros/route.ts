@@ -3,6 +3,7 @@ import { getSupabase } from "@/lib/supabase";
 import { pessoaDoPedido } from "@/lib/app/sessao";
 import { acessoACrianca, categoriaDoRegistro, type Categoria } from "@/lib/app/acesso";
 import { logAction } from "@/lib/audit";
+import { avaliarConquistas } from "@/lib/app/conquistas";
 
 /**
  * Frente 6 · linha do tempo da criança.
@@ -101,5 +102,7 @@ export async function POST(req: Request, ctx: Ctx) {
   const { data, error } = await sb.from("registros").insert(linha).select("id").single();
   if (error || !data) return NextResponse.json({ error: "Não deu para registrar agora." }, { status: 500 });
   await logAction({ actorId: pessoaId, actorRole: acesso.papel, action: "create", resourceType: "registro", resourceId: (data as { id: string }).id, metadata: { tipo, categoria }, req });
-  return NextResponse.json({ ok: true, id: (data as { id: string }).id }, { status: 201 });
+  // o humor conta para a conquista "10 dias me ouvindo"
+  const conquistas_novas = tipo === "humor" ? await avaliarConquistas(id) : [];
+  return NextResponse.json({ ok: true, id: (data as { id: string }).id, conquistas_novas }, { status: 201 });
 }
