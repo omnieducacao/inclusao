@@ -80,14 +80,18 @@ export function acessoAte(entrada: unknown, agora = new Date()): string | null {
   return entrada;
 }
 
-/** Token do convite: vai no link que a família manda (WhatsApp, e-mail); no banco fica só o hash. */
+/**
+ * Token do convite: vai no link que a família manda (WhatsApp, e-mail); no banco fica só o hash.
+ * O token vai depois do "#": essa parte do endereço não é enviada ao servidor, então não aparece
+ * em log de acesso nem de proxy. O app lê o token e chama convites/ver e convites/aceitar.
+ */
 export function novoTokenDeConvite(): string {
   return randomBytes(24).toString("base64url");
 }
 
 export function linkDoConvite(token: string): string {
   const base = (process.env.NEXT_PUBLIC_APP_URL || "https://omnisfera.net").replace(/\/+$/, "");
-  return `${base}/app/convite/${token}`;
+  return `${base}/app/convite#${token}`;
 }
 
 export function linhasDePermissao(membroId: string, permissoes: Permissao[]) {

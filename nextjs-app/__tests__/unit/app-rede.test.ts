@@ -42,7 +42,7 @@ async function chamar(rota: { [k: string]: unknown }, metodo: string, pessoa: st
   const r = await fn(req, params ? { params: Promise.resolve(params) } : undefined);
   return { status: r.status, json: (await r.json()) as Record<string, unknown> };
 }
-const tokenDoLink = (link: unknown) => String(link).split("/").pop()!;
+const tokenDoLink = (link: unknown) => String(link).split("#")[1];
 
 beforeEach(async () => {
   db = base();
@@ -106,6 +106,7 @@ describe("convite → aceite → acesso", () => {
 
     const c = await chamar(rede, "POST", MAE, { tipo: "profissional", nome: "Dra. Lúcia", especialidade: "fonoaudióloga", consentimento: true }, { id: PEDRO });
     expect(c.status).toBe(201);
+    expect(String(c.json.link)).toMatch(/^https:\/\/omnisfera\.net\/app\/convite#[A-Za-z0-9_-]{32}$/);
     const tk = tokenDoLink(c.json.link);
     const membro = db.tabelas.rede_membros[0];
     expect(membro.status).toBe("convidado");
