@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { getSupabase } from "./supabase";
 import { logger } from "@/lib/logger";
 import type { Papel } from "./papeis";
+import { checarSenhaNova } from "@/lib/senha-regras";
 
 export type WorkspaceMember = {
   id: string;
@@ -108,10 +109,10 @@ export async function createWorkspaceMaster(
   nome: string,
   opts?: { telefone?: string; cargo?: string }
 ): Promise<{ error?: string }> {
+  const erroSenha = await checarSenhaNova(password);
+  if (erroSenha) return { error: erroSenha };
   const ph = hashPassword(password);
-  if (!ph || password.length < 4) {
-    return { error: "Senha deve ter no mínimo 4 caracteres." };
-  }
+  if (!ph) return { error: "Erro ao gerar hash da senha." };
 
   const sb = getSupabase();
   const { error } = await sb.from("workspace_masters").insert({
@@ -135,9 +136,8 @@ export async function createMember(
   if (!nome?.trim() || !email?.trim()) {
     return { error: "Nome e email são obrigatórios." };
   }
-  if (!password || password.length < 4) {
-    return { error: "Senha obrigatória com no mínimo 4 caracteres." };
-  }
+  const erroSenha = await checarSenhaNova(password);
+  if (erroSenha) return { error: erroSenha };
 
   const ph = hashPassword(password);
   if (!ph) return { error: "Erro ao gerar hash da senha." };
@@ -225,7 +225,9 @@ export async function updateMember(
   if (input.can_gestao != null) updates.can_gestao = input.can_gestao;
   if (input.link_type != null) updates.link_type = input.link_type;
 
-  if (input.password && input.password.length >= 4) {
+  if (input.password) {
+    const erroSenha = await checarSenhaNova(input.password);
+    if (erroSenha) return { error: erroSenha };
     const ph = hashPassword(input.password);
     if (ph) updates.password_hash = ph;
   }

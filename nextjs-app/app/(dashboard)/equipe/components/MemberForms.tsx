@@ -123,7 +123,7 @@ function EscolhaEstudantes({ id, rotulo, escolhidos, setEscolhidos, estudantes }
 }
 
 /** A lista de /api/students vem como array (ou {students} em versões antigas). */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 function listaDeEstudantes(d: any): any[] {
     return Array.isArray(d) ? d : d?.students || [];
 }
@@ -161,7 +161,7 @@ export function NovoUsuarioForm({
         if (linkType === "turma") {
             Promise.all([
                 fetch("/api/school/classes").then((r) => r.json()).then((d) => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                     
                     const classesData = (d.classes || []).map((c: any) => ({
                         id: c.id,
                         label: `${(c.grade || c.grades)?.label || c.grade_id || ""} - Turma ${c.class_group || ""}`,
@@ -169,7 +169,7 @@ export function NovoUsuarioForm({
                     setClasses(classesData);
                 }),
                 fetch("/api/school/components").then((r) => r.json()).then((d) => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                     
                     setComponents((d.components || []).map((c: any) => ({
                         id: c.id,
                         label: c.label || c.id,
@@ -180,7 +180,7 @@ export function NovoUsuarioForm({
             fetch("/api/students")
                 .then((r) => r.json())
                 .then((d) => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                     
                     setStudents(listaDeEstudantes(d).map((s: any) => ({
                         id: s.id,
                         name: s.name,
@@ -198,8 +198,8 @@ export function NovoUsuarioForm({
             onError("Nome e e-mail são obrigatórios.");
             return;
         }
-        if (!password || password.length < 4) {
-            onError("A senha precisa ter pelo menos 4 caracteres.");
+        if (!password || password.length < 8) {
+            onError("A senha precisa ter pelo menos 8 caracteres.");
             return;
         }
         setSaving(true);
@@ -239,7 +239,7 @@ export function NovoUsuarioForm({
                 <div style={{ display: "grid", gap: 12, alignContent: "start" }}>
                     <Campo rotulo="Nome"><input type="text" autoComplete="off" value={nome} onChange={(e) => setNome(e.target.value)} className="omni-entrada" aria-required="true" /></Campo>
                     <Campo rotulo="E-mail"><input type="email" autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} className="omni-entrada" aria-required="true" /></Campo>
-                    <Campo rotulo="Senha" ajuda="Pelo menos 4 caracteres."><input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} className="omni-entrada" aria-required="true" /></Campo>
+                    <Campo rotulo="Senha" ajuda="Pelo menos 8 caracteres."><input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} className="omni-entrada" aria-required="true" /></Campo>
                     <Campo rotulo="Telefone" opcional><input type="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="omni-entrada" /></Campo>
                     <Campo rotulo="Cargo" opcional ajuda="Como a escola chama. Ex.: Professora de Matemática."><input type="text" value={cargo} onChange={(e) => setCargo(e.target.value)} className="omni-entrada" /></Campo>
                     <SeletorPapel valor={papel} onEscolher={escolherPapel} id="papel-novo" />
@@ -321,7 +321,7 @@ export function EditarUsuarioForm({
         if (linkType === "turma") {
             Promise.all([
                 fetch("/api/school/classes").then((r) => r.json()).then((d) => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                     
                     const classesData = (d.classes || []).map((c: any) => ({
                         id: c.id,
                         label: `${(c.grade || c.grades)?.label || c.grade_id || ""} - Turma ${c.class_group || ""}`,
@@ -329,7 +329,7 @@ export function EditarUsuarioForm({
                     setClasses(classesData);
                 }),
                 fetch("/api/school/components").then((r) => r.json()).then((d) => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                     
                     setComponents((d.components || []).map((c: any) => ({
                         id: c.id,
                         label: c.label || c.id,
@@ -337,7 +337,7 @@ export function EditarUsuarioForm({
                 }),
                 fetch(`/api/members/${member.id}/assignments`).then((r) => r.json()).then((d) => {
                     if (d.assignments) {
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                         
                         setTeacherAssignments(d.assignments.map((a: any) => ({
                             class_id: a.class_id || "",
                             component_id: a.component_id || "",
@@ -348,7 +348,7 @@ export function EditarUsuarioForm({
         } else if (linkType === "tutor") {
             Promise.all([
                 fetch("/api/students").then((r) => r.json()).then((d) => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                     
                     setStudents(listaDeEstudantes(d).map((s: any) => ({
                         id: s.id,
                         name: s.name,
@@ -518,8 +518,8 @@ export function NovoFamiliaForm({
             onError("Nome, e-mail e senha são obrigatórios.");
             return;
         }
-        if (senha.length < 4) {
-            onError("A senha precisa ter pelo menos 4 caracteres.");
+        if (senha.length < 8) {
+            onError("A senha precisa ter pelo menos 8 caracteres.");
             return;
         }
         setSaving(true);
@@ -555,7 +555,7 @@ export function NovoFamiliaForm({
                 <div style={{ display: "grid", gap: 12, alignContent: "start" }}>
                     <Campo rotulo="Nome completo"><input type="text" autoComplete="off" value={nome} onChange={(e) => setNome(e.target.value)} className="omni-entrada" aria-required="true" /></Campo>
                     <Campo rotulo="E-mail"><input type="email" autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} className="omni-entrada" aria-required="true" /></Campo>
-                    <Campo rotulo="Senha" ajuda="Pelo menos 4 caracteres."><input type="password" autoComplete="new-password" value={senha} onChange={(e) => setSenha(e.target.value)} className="omni-entrada" aria-required="true" /></Campo>
+                    <Campo rotulo="Senha" ajuda="Pelo menos 8 caracteres."><input type="password" autoComplete="new-password" value={senha} onChange={(e) => setSenha(e.target.value)} className="omni-entrada" aria-required="true" /></Campo>
                     <Campo rotulo="Telefone" opcional><input type="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="omni-entrada" /></Campo>
                     <Campo rotulo="Parentesco" opcional ajuda="Ex.: mãe, pai, avó, tutor."><input type="text" value={parentesco} onChange={(e) => setParentesco(e.target.value)} className="omni-entrada" /></Campo>
                 </div>

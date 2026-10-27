@@ -64,6 +64,9 @@ vi.mock("@/lib/session", () => ({
   getSession: vi.fn(() => Promise.resolve(mockSession)),
 }));
 
+// A checagem de senha vazada consulta a internet: aqui ela é testada à parte (unit/senha-regras).
+vi.mock("@/lib/senha-regras", () => ({ checarSenhaNova: vi.fn(async () => null) }));
+
 vi.mock("bcryptjs", () => ({
   default: { hashSync: vi.fn(() => "$2a$10$hashed") },
 }));

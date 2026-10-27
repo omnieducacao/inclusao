@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import bcrypt from "bcryptjs";
+import { checarSenhaNova } from "@/lib/senha-regras";
 
 /**
  * GET /api/perfil
@@ -168,8 +169,9 @@ export async function PATCH(req: Request) {
     if (!senha_atual || !nova_senha) {
         return NextResponse.json({ error: "Senha atual e nova senha são obrigatórias." }, { status: 400 });
     }
-    if (nova_senha.length < 4) {
-        return NextResponse.json({ error: "Nova senha deve ter no mínimo 4 caracteres." }, { status: 400 });
+    const erroSenha = await checarSenhaNova(nova_senha);
+    if (erroSenha) {
+        return NextResponse.json({ error: erroSenha }, { status: 400 });
     }
 
     const sb = getSupabase();

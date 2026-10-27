@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import bcrypt from "bcryptjs";
+import { checarSenhaNova } from "@/lib/senha-regras";
 
 /**
  * GET /api/familia/responsaveis?studentId=xxx
@@ -92,6 +93,9 @@ export async function POST(req: Request) {
   if (!ws?.family_module_enabled) {
     return NextResponse.json({ error: "Módulo Família não está habilitado para esta escola" }, { status: 400 });
   }
+
+  const erroSenha = await checarSenhaNova(senha);
+  if (erroSenha) return NextResponse.json({ error: erroSenha }, { status: 400 });
 
   const passwordHash = bcrypt.hashSync(senha, 10);
 

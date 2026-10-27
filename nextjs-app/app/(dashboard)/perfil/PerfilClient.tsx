@@ -95,8 +95,8 @@ export default function PerfilClient() {
             setMessage({ type: "error", text: "A nova senha e a confirmação estão diferentes. Digite as duas iguais." });
             return;
         }
-        if (novaSenha.length < 4) {
-            setMessage({ type: "error", text: "A nova senha precisa ter pelo menos 4 caracteres." });
+        if (novaSenha.length < 8) {
+            setMessage({ type: "error", text: "A nova senha precisa ter pelo menos 8 caracteres." });
             return;
         }
         setSaving(true);
@@ -260,7 +260,7 @@ export default function PerfilClient() {
                     <PasswordInput
                         id="perfil-senha-nova"
                         label="Nova senha"
-                        ajuda="Pelo menos 4 caracteres."
+                        ajuda="Pelo menos 8 caracteres."
                         autoComplete="new-password"
                         value={novaSenha}
                         onChange={setNovaSenha}

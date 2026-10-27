@@ -23,8 +23,8 @@ export function MasterSetupForm({
             onError("Nome, e-mail e senha são obrigatórios.");
             return;
         }
-        if (password.length < 4) {
-            onError("A senha precisa ter pelo menos 4 caracteres.");
+        if (password.length < 8) {
+            onError("A senha precisa ter pelo menos 8 caracteres.");
             return;
         }
         setSaving(true);
@@ -78,7 +78,7 @@ export function MasterSetupForm({
             <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12, maxWidth: 480 }} noValidate>
                 {campo("Nome completo", false, <input type="text" autoComplete="name" value={nome} onChange={(e) => setNome(e.target.value)} className="omni-entrada" aria-required="true" />)}
                 {campo("E-mail", false, <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="omni-entrada" aria-required="true" />)}
-                {campo("Senha", false, <input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} className="omni-entrada" aria-required="true" />, "Pelo menos 4 caracteres.")}
+                {campo("Senha", false, <input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} className="omni-entrada" aria-required="true" />, "Pelo menos 8 caracteres.")}
                 {campo("Telefone", true, <input type="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} className="omni-entrada" />)}
                 {campo("Cargo", true, <input type="text" value={cargo} onChange={(e) => setCargo(e.target.value)} className="omni-entrada" />, "Ex.: coordenadora pedagógica.")}
                 <div>

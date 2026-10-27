@@ -5,7 +5,7 @@
  * - GET retorna dados do perfil
  * - GET requer auth
  * - PATCH requer campos obrigatórios
- * - PATCH rejeita senha curta
+ * - PATCH rejeita senha curta (mínimo 8)
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -89,7 +89,7 @@ describe("API Perfil", () => {
         expect(data.error).toContain("obrigatórias");
     });
 
-    it("PATCH rejeita senha menor que 4 caracteres", async () => {
+    it("PATCH rejeita senha menor que 8 caracteres", async () => {
         const req = new Request("http://localhost/api/perfil", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -98,7 +98,7 @@ describe("API Perfil", () => {
         const res = await PATCH(req);
         expect(res.status).toBe(400);
         const data = await res.json();
-        expect(data.error).toContain("mínimo 4");
+        expect(data.error).toContain("pelo menos 8");
     });
 
     it("PATCH retorna 401 sem sessão", async () => {
