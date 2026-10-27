@@ -6,7 +6,9 @@ import { checkRateLimit } from "@/lib/upstash-rate-limit"; // V5 Rate Limiter
 import { demoComEstudante, demoPaginaBloqueada, demoPodeChamar, MENSAGEM_DEMO } from "@/lib/demo";
 
 
-const PUBLIC_PATHS = ["/login", "/demonstracao", "/contato", "/privacidade", "/seguranca", "/site/", "/api/auth/login", "/api/auth/admin-login", "/api/public/contato", "/api/public/demonstracao", "/certificado/", "/api/public/certificado", "/api/public/evento", "/api/vitals", "/api/health"];
+const PUBLIC_PATHS = ["/login", "/demonstracao", "/contato", "/privacidade", "/seguranca", "/site/", "/api/auth/login", "/api/auth/admin-login", "/api/public/contato", "/api/public/demonstracao", "/certificado/", "/api/public/certificado", "/api/public/evento", "/api/vitals", "/api/health", "/api/app/"];
+// /api/app/ (Frente 6): o app do celular não usa o cookie do site. Passa pelo limite por IP acima e cada
+// rota confere o token do app (lib/app/sessao.ts → pessoaDoPedido); o teste app-rotas-guardadas garante isso.
 
 // Família (responsáveis): só enxerga a área /familia e as APIs feitas para ela.
 // Tudo o mais é negado aqui, antes de chegar às rotas, para que um esquecimento numa rota
