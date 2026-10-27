@@ -6,7 +6,11 @@
  * Cobre só o que as rotas usam: select, insert, update, eq, in, order, limit, range, single, maybeSingle.
  */
 type Linha = Record<string, unknown>;
-type Filtro = { col: string; vals: unknown[] } | { ou: Array<{ col: string; op: "eq" | "is"; val: string }> };
+type Filtro =
+  | { col: string; vals: unknown[] }
+  | { ou: Array<{ col: string; op: "eq" | "is" | "in"; val: string }> }
+  | { col: string; nulo: true }
+  | { col: string; menorQue: string };
 
 export type FakeDb = {
   tabelas: Record<string, Linha[]>;
@@ -56,11 +60,20 @@ class Consulta implements PromiseLike<{ data: unknown; error: null | { message: 
     this.filtros.push({ col, vals });
     return this;
   }
-  /** Só o formato simples "col.is.null,col.eq.valor" que as rotas usam. */
+  is(col: string, val: null) {
+    if (val === null) this.filtros.push({ col, nulo: true });
+    return this;
+  }
+  lt(col: string, val: string) {
+    this.filtros.push({ col, menorQue: val });
+    return this;
+  }
+  /** Só os formatos simples que as rotas usam: "col.is.null,col.eq.valor,col.in.(a,b)". */
   or(expr: string) {
-    const ou = expr.split(",").map((parte) => {
+    const partes = expr.match(/[^,(]+(?:\([^)]*\))?/g) || [];
+    const ou = partes.map((parte) => {
       const [col, op, ...resto] = parte.split(".");
-      return { col, op: op as "eq" | "is", val: resto.join(".") };
+      return { col, op: op as "eq" | "is" | "in", val: resto.join(".") };
     });
     this.filtros.push({ ou });
     return this;
@@ -82,8 +95,12 @@ class Consulta implements PromiseLike<{ data: unknown; error: null | { message: 
     const casa = (l: Linha, f: Filtro) => {
       if ("ou" in f) {
         return f.ou.some((c) =>
-          c.op === "is" ? (c.val === "null" ? l[c.col] == null : String(l[c.col]) === c.val) : String(l[c.col]) === c.val);
+          c.op === "is" ? (c.val === "null" ? l[c.col] == null : String(l[c.col]) === c.val)
+            : c.op === "in" ? c.val.replace(/^\(|\)$/g, "").split(",").includes(String(l[c.col]))
+              : String(l[c.col]) === c.val);
       }
+      if ("nulo" in f) return l[f.col] == null;
+      if ("menorQue" in f) return String(l[f.col]) < f.menorQue;
       return f.vals.includes(l[f.col]);
     };
     return todas.filter((l) => this.filtros.every((f) => casa(l, f)));

@@ -52,6 +52,11 @@ function guardaDe(trecho, cabecalho, sub, src, profundidade = 0) {
   // guarda em função de lib/ com nome negado*(session) (ex.: negadoCaixaFamilia, negadoMissoes)
   const viaNegado = /\bnegado(?!ForaDoVinculo)[A-Z]\w*\(/.test(trecho); // negadoForaDoVinculo checa vínculo, não papel
 
+  // Frente 6: o app do celular não usa o cookie do site. Login e renovação são públicos (com limite
+  // por IP); as outras rotas de /api/app/ exigem o token do app (pessoaDoPedido) e conferem o
+  // acesso à criança em lib/app/acesso.ts.
+  if (sub.startsWith("app/v1/auth/")) return "pública (login do app)";
+  if (sub.startsWith("app/") && /pessoaDoPedido\(/.test(trecho)) return "token do app (lib/app/acesso)";
   if (publica) return "pública";
   if (familiaPermitida) return "família permitida";
   if (temPermissao) return flags.length ? `equipe + ${flags.join(", ")}` : "equipe + permissão por módulo";
