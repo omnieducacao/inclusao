@@ -21,6 +21,11 @@ export const COLUNAS_CIFRADAS: Readonly<Record<string, readonly string[]>> = {
   // etapa 4: nome do estudante. Nenhuma consulta busca ou ordena por ele no banco (a exportação
   // do admin ordena no próprio app).
   students: ["name"],
+  // Frente 6 (onda 100): app da família e Rede de apoio
+  pessoas: ["telefone", "email"],
+  criancas: ["nome"],
+  registros: ["texto"],
+  medicacoes: ["nome"],
 };
 
 /**
@@ -34,6 +39,7 @@ export const INDICE_CEGO: Readonly<Record<string, { coluna: string; destino: str
   workspace_masters: { coluna: "email", destino: "email_hash" },
   family_responsibles: { coluna: "email", destino: "email_hash" },
   platform_admins: { coluna: "email", destino: "email_hash" },
+  pessoas: { coluna: "email", destino: "email_hash" },
 };
 export const LER_POR_INDICE = true; // etapa 3B: o e-mail gravado está cifrado; a busca é pelo índice
 
