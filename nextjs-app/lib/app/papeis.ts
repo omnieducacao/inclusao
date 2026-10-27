@@ -3,6 +3,13 @@
  * ("mãe do Pedro", "professora no Colégio Modelo", "fono convidada por 3 famílias").
  */
 import { getSupabase } from "@/lib/supabase";
+import { abrirDados } from "@/lib/colunas-cifradas";
+
+/** O nome da criança é cifrado; a decifragem automática só vale para a tabela principal da consulta,
+ *  então as crianças que vêm embutidas (familias → criancas, rede_membros → criancas) são abertas aqui. */
+function abrirCriancas<T>(x: T): T {
+  return abrirDados("criancas", x) as T;
+}
 
 export type CriancaResumo = { id: string; nome: string; nascimento: string | null; modo: string };
 export type Papeis = {
@@ -26,7 +33,7 @@ export async function papeisDaPessoa(pessoaId: string): Promise<Papeis | null> {
   type F = { parentesco: string | null; familias: { id: string; nome: string; plano: string; criancas: CriancaResumo[] } | null };
   const familias = ((fr as F[] | null) || [])
     .filter((x) => x.familias)
-    .map((x) => ({ ...x.familias!, parentesco: x.parentesco, criancas: x.familias!.criancas || [] }));
+    .map((x) => ({ ...x.familias!, parentesco: x.parentesco, criancas: abrirCriancas(x.familias!.criancas || []) }));
 
   const { data: ad } = await sb
     .from("criancas")
@@ -43,7 +50,7 @@ export async function papeisDaPessoa(pessoaId: string): Promise<Papeis | null> {
   type R = { id: string; tipo: string; acesso_ate: string | null; criancas: CriancaResumo | null };
   const rede = ((rm as R[] | null) || [])
     .filter((r) => r.criancas && (!r.acesso_ate || r.acesso_ate >= hoje))
-    .map((r) => ({ membro_id: r.id, tipo: r.tipo, crianca: r.criancas!, acesso_ate: r.acesso_ate }));
+    .map((r) => ({ membro_id: r.id, tipo: r.tipo, crianca: abrirCriancas(r.criancas!), acesso_ate: r.acesso_ate }));
 
   const { data: eq } = await sb
     .from("workspace_members")
