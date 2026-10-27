@@ -9,6 +9,8 @@
  *   node --env-file=.env.local scripts/escola-modelo.mjs            simulação: mostra o plano, não grava
  *   node --env-file=.env.local scripts/escola-modelo.mjs --criar    cria a escola e mostra os logins
  *   node --env-file=.env.local scripts/escola-modelo.mjs --apagar   apaga o Colégio Modelo inteiro
+ *   node --env-file=.env.local scripts/escola-modelo.mjs --guardar  guarda o estado atual (para resetar depois)
+ *   node --env-file=.env.local scripts/escola-modelo.mjs --restaurar volta a escola ao estado guardado
  *
  * As senhas são geradas aqui e aparecem só no Terminal. Não ficam em arquivo nem no repositório.
  */
@@ -19,6 +21,7 @@ import { createWorkspaceMaster, createMember } from "@/lib/members";
 import { createSchoolYear, setWorkspaceGrades, createClass } from "@/lib/school";
 import { encryptField, encryptSensitivePeiFields } from "@/lib/encryption";
 import { PAPEIS } from "@/lib/papeis";
+import { guardar, restaurar } from "./estado";
 import { ESCOLA, DIRETORA, EQUIPE, ESTUDANTES, FAMILIAS, DOMINIO, type ChaveTurma } from "./personas";
 
 type Login = { persona: string; papel: string; email: string; senha: string };
@@ -232,6 +235,8 @@ async function apagar() {
 
 export async function main(args: string[]) {
   if (args.includes("--apagar")) { await apagar(); return; }
+  if (args.includes("--guardar")) { await guardar(); return; }
+  if (args.includes("--restaurar")) { await restaurar(apagar); return; }
   plano();
   const existentes = await acharEscola();
   if (existentes.length) {
