@@ -37,6 +37,12 @@ export async function POST(req: Request, ctx: Ctx) {
     const { data: ja } = await sb.from("registros").select("id").eq("crianca_id", id).eq("id_local", idLocal).maybeSingle();
     if (ja) return NextResponse.json({ ok: true, id: (ja as { id: string }).id, repetido: true });
   }
+  // onda 101: dose marcada pelo adesivo do armário (Omniband) sai com origem "pulseira"
+  let origem = "app";
+  if (ehUuid(b.objeto_id)) {
+    const { data: obj } = await sb.from("omniband_objetos").select("id").eq("id", b.objeto_id).eq("crianca_id", id).maybeSingle();
+    if (obj) origem = "pulseira";
+  }
   const { data: r, error } = await sb.from("registros").insert({
     crianca_id: id,
     tipo: "dose",
@@ -45,10 +51,10 @@ export async function POST(req: Request, ctx: Ctx) {
     quando: quando.toISOString(),
     local: acesso.papel === "responsavel" ? "casa" : "escola",
     texto: typeof b.observacao === "string" && b.observacao.trim() ? b.observacao.trim().slice(0, 300) : null,
-    dados: { medicacao_id: medId, horario },
+    dados: origem === "pulseira" ? { medicacao_id: medId, horario, objeto_id: b.objeto_id } : { medicacao_id: medId, horario },
     autor_pessoa_id: pessoaId,
     autor_membro_id: acesso.membroId || null,
-    origem: "app",
+    origem,
     id_local: idLocal,
   }).select("id").single();
   if (error || !r) return NextResponse.json({ error: "Não deu para marcar agora." }, { status: 500 });

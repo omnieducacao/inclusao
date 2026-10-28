@@ -150,6 +150,18 @@ describe("toque no app", () => {
   });
 });
 
+describe("dose pelo adesivo do armário", () => {
+  it("a dose marcada a partir do toque sai com origem 'pulseira'", async () => {
+    const MED = "c1111111-1111-4111-8111-111111111111";
+    db.tabelas.medicacoes = [{ id: MED, crianca_id: PEDRO, nome: "Remédio A", ativa: true, na_escola: false }];
+    const { id } = await ligarSimples("medicamento");
+    const doses = await import("@/app/api/app/v1/criancas/[id]/medicacoes/[medId]/doses/route");
+    const r = await chamar(doses, "POST", MAE, { dada: true, objeto_id: id }, { id: PEDRO, medId: MED });
+    expect(r.status).toBe(201);
+    expect(db.tabelas.registros.at(-1)).toMatchObject({ tipo: "dose", origem: "pulseira", dados: { objeto_id: id } });
+  });
+});
+
 describe("página de ajuda e quem encontrou", () => {
   it("a família escreve; telefone confere; contatos guardados juntos", async () => {
     const rota = await import("@/app/api/app/v1/criancas/[id]/pagina-ajuda/route");
