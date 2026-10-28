@@ -4,6 +4,7 @@ import { pessoaDoPedido } from "@/lib/app/sessao";
 import { acessoACrianca, categoriaDoRegistro, type Categoria } from "@/lib/app/acesso";
 import { logAction } from "@/lib/audit";
 import { avaliarConquistas } from "@/lib/app/conquistas";
+import { ehUuid } from "@/lib/app/acesso";
 
 /**
  * Frente 6 · linha do tempo da criança.
@@ -11,11 +12,14 @@ import { avaliarConquistas } from "@/lib/app/conquistas";
  * POST → novo registro, se a pessoa pode escrever na categoria. `id_local` (gerado no celular sem
  *        internet) evita duplicar quando o app reenviar o mesmo registro.
  * O app só registra; nunca sugere dose nem diagnóstico (Anvisa, RDC 657/2022).
+ * `objeto_id` (onda 101): o registro veio de um toque na Omniband; origem "pulseira".
  */
 const TIPOS = new Set(["evento", "dose", "medicacao", "terapia", "orientacao", "humor", "sinal"]);
 const LOCAIS = new Set(["casa", "escola", "terapia", "rua", "outro"]);
 const SUBTIPOS_EVENTO = new Set([
   "crise", "agitacao", "apatia", "agressividade", "choro", "autolesao", "sono", "alimentacao", "avanco",
+  // Omniband (onda 101): adesivos de rotina e chegada/saída da escola pelo crachá ou pela pulseira
+  "banho", "calma", "chegada", "saida",
 ]);
 const POR_PAGINA = 50;
 
@@ -95,6 +99,10 @@ export async function POST(req: Request, ctx: Ctx) {
     id_local: texto(b.id_local, 64),
   };
   const sb = getSupabase();
+  if (ehUuid(b.objeto_id)) {
+    const { data: obj } = await sb.from("omniband_objetos").select("id").eq("id", b.objeto_id).eq("crianca_id", id).maybeSingle();
+    if (obj) Object.assign(linha, { origem: "pulseira", dados: { objeto_id: b.objeto_id } });
+  }
   if (linha.id_local) {
     const { data: ja } = await sb.from("registros").select("id").eq("crianca_id", id).eq("id_local", linha.id_local).maybeSingle();
     if (ja) return NextResponse.json({ ok: true, id: (ja as { id: string }).id, repetido: true });

@@ -26,6 +26,8 @@ export const COLUNAS_CIFRADAS: Readonly<Record<string, readonly string[]>> = {
   criancas: ["nome"],
   registros: ["texto"],
   medicacoes: ["nome"],
+  // Omniband (onda 101): a página de ajuda escrita pela família
+  paginas_ajuda: ["apelido", "mensagem", "contatos"],
 };
 
 /**
