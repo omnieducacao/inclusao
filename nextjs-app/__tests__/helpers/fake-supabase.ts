@@ -10,7 +10,8 @@ type Filtro =
   | { col: string; vals: unknown[] }
   | { ou: Array<{ col: string; op: "eq" | "is" | "in"; val: string }> }
   | { col: string; nulo: true }
-  | { col: string; menorQue: string };
+  | { col: string; menorQue: string }
+  | { col: string; maiorOuIgual: string };
 
 export type FakeDb = {
   tabelas: Record<string, Linha[]>;
@@ -75,6 +76,10 @@ class Consulta implements PromiseLike<{ data: unknown; error: null | { message: 
     this.filtros.push({ col, menorQue: val });
     return this;
   }
+  gte(col: string, val: string) {
+    this.filtros.push({ col, maiorOuIgual: val });
+    return this;
+  }
   /** Só os formatos simples que as rotas usam: "col.is.null,col.eq.valor,col.in.(a,b)". */
   or(expr: string) {
     const partes = expr.match(/[^,(]+(?:\([^)]*\))?/g) || [];
@@ -108,6 +113,7 @@ class Consulta implements PromiseLike<{ data: unknown; error: null | { message: 
       }
       if ("nulo" in f) return l[f.col] == null;
       if ("menorQue" in f) return String(l[f.col]) < f.menorQue;
+      if ("maiorOuIgual" in f) return String(l[f.col]) >= f.maiorOuIgual;
       return f.vals.includes(l[f.col]);
     };
     return todas.filter((l) => this.filtros.every((f) => casa(l, f)));

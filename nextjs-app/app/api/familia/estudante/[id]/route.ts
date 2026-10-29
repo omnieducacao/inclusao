@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
-import { snapshotDaVersao } from "@/lib/familia-caixa";
+import { resumoParaFamilia } from "@/lib/familia-resumo";
 
 /**
  * GET /api/familia/estudante/[id]
  * Retorna dados do estudante para o responsável (apenas se vinculado).
- * Dados limitados: básicos, resumo PEI, evolução processual.
+ * Dados limitados: básicos, resumo PEI, evolução processual (cálculo em lib/familia-resumo, o mesmo do app).
  */
 export async function GET(
   _req: Request,
@@ -44,102 +44,14 @@ export async function GET(
     return NextResponse.json({ error: "Estudante não vinculado" }, { status: 403 });
   }
 
-  // Buscar dados do estudante — usar colunas seguras (mesmas de listStudents)
-  const { data: student, error: studentError } = await sb
-    .from("students")
-    .select("id, name, grade, class_group, pei_data, paee_ciclos, planejamento_ativo")
-    .eq("id", studentId)
-    .eq("workspace_id", session.workspace_id)
-    .maybeSingle();
-
-  if (studentError) {
-    logger.error({ err: studentError.message }, "[familia/estudante] student query error:");
+  let resumo;
+  try {
+    resumo = await resumoParaFamilia({ studentId, workspaceId: session.workspace_id, familyId });
+  } catch {
     return NextResponse.json({ error: "Erro ao buscar estudante" }, { status: 500 });
   }
-
-  if (!student) {
+  if (!resumo) {
     return NextResponse.json({ error: "Estudante não encontrado" }, { status: 404 });
   }
-
-  const peiData = (student.pei_data || {}) as Record<string, unknown>;
-  const paeeCiclos = (student.paee_ciclos || []) as Array<{ ciclo_id?: string; config_ciclo?: { data_inicio?: string; data_fim?: string; foco_principal?: string } }>;
-  const planejamentoAtivo = student.planejamento_ativo;
-  const paeeAtivo = planejamentoAtivo
-    ? paeeCiclos.find((c) => c.ciclo_id === planejamentoAtivo)
-    : null;
-
-  // Avaliação processual (tabela pode não existir)
-  let registros: Array<{ disciplina: string; bimestre: number; habilidades?: Array<{ nivel_atual?: number }> }> = [];
-  try {
-    const { data: processualData } = await sb
-      .from("avaliacao_processual")
-      .select("disciplina, bimestre, habilidades")
-      .eq("student_id", studentId)
-      .eq("workspace_id", session.workspace_id)
-      .order("bimestre", { ascending: true });
-    registros = (processualData || []) as typeof registros;
-  } catch (err) {
-    logger.warn({ err: err }, "[familia/estudante] avaliacao_processual query failed (table may not exist):");
-  }
-
-  const disciplinas = [...new Set(registros.map((r) => r.disciplina))];
-
-  // Ciência do PEI (tabela pode não existir)
-  let ack: { id: string; acknowledged_at: string | null } | null = null;
-  try {
-    // Vale a ciência da versão vigente; antes, uma ciência antiga valia para sempre
-    const { data: ackData } = await sb
-      .from("family_pei_acknowledgments")
-      .select("id, acknowledged_at, pei_snapshot_id")
-      .eq("family_responsible_id", familyId)
-      .eq("student_id", studentId)
-      .order("acknowledged_at", { ascending: false });
-    const snap = snapshotDaVersao(peiData);
-    const rows = (ackData || []) as Array<{ id: string; acknowledged_at: string | null; pei_snapshot_id: string | null }>;
-    ack = rows.find((r) => r.pei_snapshot_id === snap) || (snap === "sem-versao" ? rows[0] || null : null);
-  } catch (err) {
-    logger.warn({ err: err }, "[familia/estudante] family_pei_acknowledgments query failed (table may not exist):");
-  }
-
-  const evolucaoPorDisciplina = disciplinas.map((disc: string) => {
-    const regs = registros
-      .filter((r) => r.disciplina === disc)
-      .sort((a, b) => a.bimestre - b.bimestre);
-    const medias = regs.map((r) => {
-      const h = r.habilidades || [];
-      return h.length > 0 ? h.reduce((acc, x) => acc + (x.nivel_atual || 0), 0) / h.length : null;
-    }).filter((m): m is number => m !== null);
-    const mediaRecente = medias.length > 0 ? Math.round(medias[medias.length - 1] * 10) / 10 : null;
-    return { disciplina: disc, periodos: regs.length, media_mais_recente: mediaRecente };
-  });
-
-  return NextResponse.json({
-    estudante: {
-      id: student.id,
-      name: student.name,
-      grade: student.grade,
-      class_group: student.class_group,
-    },
-    pei_resumo: {
-      nome: peiData.nome,
-      serie: peiData.serie,
-      turma: peiData.turma,
-      // Onda 5: a família vê só o resumo escrito para ela e liberado pela coordenação (antes via o texto técnico da IA)
-      resumo: ((peiData.resumo_familia as { texto?: string } | undefined)?.texto) || null,
-      resumo_liberado_em: ((peiData.resumo_familia as { liberado_em?: string } | undefined)?.liberado_em) || null,
-      versao: (peiData.vigencia as { versao?: number; status?: string } | undefined)?.versao || null,
-    },
-    paee_resumo: paeeAtivo
-      ? {
-        periodo: paeeAtivo.config_ciclo
-          ? `${paeeAtivo.config_ciclo.data_inicio || ""} a ${paeeAtivo.config_ciclo.data_fim || ""}`
-          : null,
-        // o foco do ciclo é texto da equipe (pode ter diagnóstico); não vai para a família
-      }
-      : null,
-    evolucao: { evolucao: evolucaoPorDisciplina },
-    ciencia_pei: ack
-      ? { acknowledged: true, acknowledged_at: ack.acknowledged_at }
-      : { acknowledged: false, acknowledged_at: null },
-  });
+  return NextResponse.json(resumo);
 }

@@ -3,6 +3,7 @@
  * ("mãe do Pedro", "professora no Colégio Modelo", "fono convidada por 3 famílias").
  */
 import { getSupabase } from "@/lib/supabase";
+import { garantirCriancasDaEscola } from "@/lib/app/escola";
 import { abrirDados } from "@/lib/colunas-cifradas";
 
 /** O nome da criança é cifrado; a decifragem automática só vale para a tabela principal da consulta,
@@ -25,6 +26,8 @@ export async function papeisDaPessoa(pessoaId: string): Promise<Papeis | null> {
   const { data: p } = await sb.from("pessoas").select("id, nome, ativo").eq("id", pessoaId).maybeSingle();
   const pessoa = p as { id: string; nome: string; ativo: boolean } | null;
   if (!pessoa?.ativo) return null;
+  // onda 102: a família da escola cliente ganha a criança no app (idempotente)
+  await garantirCriancasDaEscola(pessoaId);
 
   const { data: fr } = await sb
     .from("familia_responsaveis")

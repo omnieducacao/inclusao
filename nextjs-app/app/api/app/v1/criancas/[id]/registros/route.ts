@@ -13,6 +13,7 @@ import { ehUuid } from "@/lib/app/acesso";
  *        internet) evita duplicar quando o app reenviar o mesmo registro.
  * O app só registra; nunca sugere dose nem diagnóstico (Anvisa, RDC 657/2022).
  * `objeto_id` (onda 101): o registro veio de um toque na Omniband; origem "pulseira".
+ * `ajudou` (onda 102): o que ajudou a passar (vai em dados; entra no resumo do período).
  */
 const TIPOS = new Set(["evento", "dose", "medicacao", "terapia", "orientacao", "humor", "sinal"]);
 const LOCAIS = new Set(["casa", "escola", "terapia", "rua", "outro"]);
@@ -93,6 +94,7 @@ export async function POST(req: Request, ctx: Ctx) {
     gatilho: texto(b.gatilho, 80),
     local,
     texto: texto(b.texto, 1000),
+    dados: texto(b.ajudou, 120) ? { ajudou: texto(b.ajudou, 120) } : {},
     autor_pessoa_id: pessoaId,
     autor_membro_id: acesso.membroId || null,
     origem: "app",
@@ -101,7 +103,7 @@ export async function POST(req: Request, ctx: Ctx) {
   const sb = getSupabase();
   if (ehUuid(b.objeto_id)) {
     const { data: obj } = await sb.from("omniband_objetos").select("id").eq("id", b.objeto_id).eq("crianca_id", id).maybeSingle();
-    if (obj) Object.assign(linha, { origem: "pulseira", dados: { objeto_id: b.objeto_id } });
+    if (obj) Object.assign(linha, { origem: "pulseira", dados: { ...linha.dados, objeto_id: b.objeto_id } });
   }
   if (linha.id_local) {
     const { data: ja } = await sb.from("registros").select("id").eq("crianca_id", id).eq("id_local", linha.id_local).maybeSingle();
