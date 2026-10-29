@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { pessoaDoPedido } from "@/lib/app/sessao";
 import { acessoACrianca } from "@/lib/app/acesso";
-import { lerEtapas } from "@/lib/app/conquistas";
+import { avaliarConquistas, lerEtapas } from "@/lib/app/conquistas";
+import { sincronizarMissoesDaEscola } from "@/lib/app/jornada";
 import { logAction } from "@/lib/audit";
 
 /**
  * Frente 6 · missões em etapas.
- * GET  → quem vê "missoes" (?arquivadas=1 inclui as arquivadas)
+ * GET  → quem vê "missoes" (?arquivadas=1 inclui as arquivadas). Onda 103: antes, traz as missões
+ *        que a escola tirou do PEI (origem "pei"); as que a escola confirmou rendem conquistas.
  * POST → quem escreve "missoes" (família, adolescente, professor convidado)
  *        {titulo, etapas: [{texto, figura?}], onde?, ate?, trilha?, meta_ref?}
  */
@@ -21,11 +23,13 @@ export async function GET(req: Request, ctx: Ctx) {
   const { id } = await ctx.params;
   const acesso = await acessoACrianca(pessoaId, id);
   if (!acesso?.ver.has("missoes")) return NextResponse.json({ error: "Sem acesso às missões desta criança." }, { status: 403 });
+  const { confirmadas } = await sincronizarMissoesDaEscola(id);
+  const conquistas_novas = confirmadas ? await avaliarConquistas(id) : [];
   let q = getSupabase().from("app_missoes").select(CAMPOS).eq("crianca_id", id).order("created_at", { ascending: false }).limit(100);
   if (new URL(req.url).searchParams.get("arquivadas") !== "1") q = q.in("status", ["ativa", "feita", "confirmada"]);
   const { data, error } = await q;
   if (error) return NextResponse.json({ error: "Não deu para carregar as missões." }, { status: 500 });
-  return NextResponse.json({ missoes: data || [] });
+  return NextResponse.json({ missoes: data || [], conquistas_novas });
 }
 
 export async function POST(req: Request, ctx: Ctx) {

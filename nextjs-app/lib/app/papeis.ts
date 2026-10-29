@@ -3,7 +3,8 @@
  * ("mãe do Pedro", "professora no Colégio Modelo", "fono convidada por 3 famílias").
  */
 import { getSupabase } from "@/lib/supabase";
-import { garantirCriancasDaEscola } from "@/lib/app/escola";
+import { garantirCriancasDaEscola, criancasSemEscola, type EscolaPendente } from "@/lib/app/escola";
+import { recursosDasCriancas, type Recursos } from "@/lib/app/recursos";
 import { abrirDados } from "@/lib/colunas-cifradas";
 
 /** O nome da criança é cifrado; a decifragem automática só vale para a tabela principal da consulta,
@@ -19,6 +20,10 @@ export type Papeis = {
   adolescente: CriancaResumo[];
   rede: { membro_id: string; tipo: string; crianca: CriancaResumo; acesso_ate: string | null }[];
   escolas: { workspace_id: string; nome: string; papel: string | null }[];
+  /** onda 103: o que cada criança tem (escola, plano da família, adolescente). Chave = id da criança. */
+  recursos: Record<string, Recursos>;
+  /** Combo: alunos da escola que podem ser uma criança que a família já acompanha (a família decide). */
+  escola_pendente: (EscolaPendente & { opcoes: { id: string; nome: string }[] })[];
 };
 
 export async function papeisDaPessoa(pessoaId: string): Promise<Papeis | null> {
@@ -27,7 +32,7 @@ export async function papeisDaPessoa(pessoaId: string): Promise<Papeis | null> {
   const pessoa = p as { id: string; nome: string; ativo: boolean } | null;
   if (!pessoa?.ativo) return null;
   // onda 102: a família da escola cliente ganha a criança no app (idempotente)
-  await garantirCriancasDaEscola(pessoaId);
+  const pendentes = await garantirCriancasDaEscola(pessoaId);
 
   const { data: fr } = await sb
     .from("familia_responsaveis")
@@ -62,11 +67,18 @@ export async function papeisDaPessoa(pessoaId: string): Promise<Papeis | null> {
   type E = { workspace_id: string; papel: string | null; workspaces: { name: string } | null };
   const escolas = ((eq as E[] | null) || []).map((e) => ({ workspace_id: e.workspace_id, nome: e.workspaces?.name || "", papel: e.papel }));
 
+  const adolescente = (ad as CriancaResumo[] | null) || [];
+  const ids = [...familias.flatMap((f) => f.criancas.map((c) => c.id)), ...adolescente.map((c) => c.id), ...rede.map((r) => r.crianca.id)];
+  const recursos = await recursosDasCriancas(ids);
+  const opcoes = pendentes.length ? await criancasSemEscola(pessoaId) : [];
+
   return {
     pessoa: { id: pessoa.id, nome: pessoa.nome },
     familias,
-    adolescente: (ad as CriancaResumo[] | null) || [],
+    adolescente,
     rede,
     escolas,
+    recursos,
+    escola_pendente: pendentes.map((p) => ({ ...p, opcoes })),
   };
 }
