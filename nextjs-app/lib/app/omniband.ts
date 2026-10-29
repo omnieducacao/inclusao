@@ -42,8 +42,13 @@ export function ehCodigo(x: unknown): x is string {
   return typeof x === "string" && /^[2-9a-hjkmnp-z]{10}$/.test(x);
 }
 
+/**
+ * O endereço gravado no chip. É o www: o omnisfera.net sem www redireciona para ele, e o iPhone
+ * (Universal Links) e o Android (App Links) não seguem redirecionamento para conferir o app.
+ * Os dois continuam aceitos na leitura (lerLinkDoChip).
+ */
 export function basePublica(): string {
-  return (process.env.APP_URL_PUBLICA || "https://omnisfera.net").replace(/\/+$/, "");
+  return (process.env.APP_URL_PUBLICA || "https://www.omnisfera.net").replace(/\/+$/, "");
 }
 export function linkDoObjeto(codigo: string): string {
   return `${basePublica()}/t/${codigo}`;

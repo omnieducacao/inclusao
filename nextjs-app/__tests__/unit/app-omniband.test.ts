@@ -93,7 +93,7 @@ describe("ligar uma Omniband", () => {
     expect((await chamar(rota, "POST", MAE, { tipo: "adesivo" }, { id: PEDRO })).status).toBe(400);
     const ok = await chamar(rota, "POST", MAE, { tipo: "adesivo", rotina: "medicamento", linha: "joaninha" }, { id: PEDRO });
     expect(ok.status).toBe(201);
-    expect(String(ok.json.gravar)).toMatch(/^https:\/\/omnisfera\.net\/t\/[2-9a-hjkmnp-z]{10}$/);
+    expect(String(ok.json.gravar)).toMatch(/^https:\/\/www\.omnisfera\.net\/t\/[2-9a-hjkmnp-z]{10}$/);
     const lista = await chamar(rota, "GET", MAE, undefined, { id: PEDRO });
     const objetos = lista.json.objetos as Record<string, unknown>[];
     expect(objetos).toHaveLength(1);
