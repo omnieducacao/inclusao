@@ -150,7 +150,7 @@ describe("jornada: o PEI vira missões, as missões viram conquistas", () => {
     expect(doPei).toHaveLength(2);
     expect(doPei.find((m) => m.estudante_missao_id === MI_APROVADA)).toMatchObject({ status: "ativa", meta_ref: "Autonomia na rotina", etapas: [{ texto: "Tirar a lancheira" }, { texto: "Pendurar no gancho" }] });
     expect(doPei.find((m) => m.estudante_missao_id === MI_CONFIRMADA)).toMatchObject({ status: "confirmada", etapas: [{ texto: "Pedir água com palavras" }] });
-    expect(r.json.conquistas_novas).toEqual([{ nome: "Primeira missão", figura: "estrela" }]);
+    expect(r.json.conquistas_novas).toMatchObject([{ nome: "Primeira missão", figura: "estrela" }]);
     // sincronizar de novo não duplica nem dá a conquista outra vez
     const r2 = await chamar(missoes, "GET", TEEN, undefined, { id: PEDRO });
     expect(db.tabelas.app_missoes).toHaveLength(2);

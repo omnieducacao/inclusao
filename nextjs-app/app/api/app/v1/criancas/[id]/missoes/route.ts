@@ -4,6 +4,7 @@ import { pessoaDoPedido } from "@/lib/app/sessao";
 import { acessoACrianca } from "@/lib/app/acesso";
 import { avaliarConquistas, lerEtapas } from "@/lib/app/conquistas";
 import { sincronizarMissoesDaEscola } from "@/lib/app/jornada";
+import { lerDominio } from "@/lib/app/insignias";
 import { logAction } from "@/lib/audit";
 
 /**
@@ -11,11 +12,14 @@ import { logAction } from "@/lib/audit";
  * GET  → quem vê "missoes" (?arquivadas=1 inclui as arquivadas). Onda 103: antes, traz as missões
  *        que a escola tirou do PEI (origem "pei"); as que a escola confirmou rendem conquistas.
  * POST → quem escreve "missoes" (família, adolescente, professor convidado)
- *        {titulo, etapas: [{texto, figura?}], onde?, ate?, trilha?, meta_ref?}
+ *        {titulo, etapas: [{texto, figura?}], onde?, ate?, trilha?, meta_ref?, dominio?}
+ * Onda 104: "dominio" é a cor da missão (a família de insígnia). Antes da migração 104, a coluna
+ * não existe: as consultas tentam sem ela, para nada quebrar.
  */
 type Ctx = { params: Promise<{ id: string }> };
 const ONDE = new Set(["casa", "escola", "terapia", "casa e escola"]);
-const CAMPOS = "id, titulo, etapas, origem, meta_ref, trilha, onde, ate, status, criada_por, confirmada_em, created_at";
+const CAMPOS_ANTIGOS = "id, titulo, etapas, origem, meta_ref, trilha, onde, ate, status, criada_por, confirmada_em, created_at";
+const CAMPOS = `${CAMPOS_ANTIGOS}, dominio`;
 
 export async function GET(req: Request, ctx: Ctx) {
   const pessoaId = await pessoaDoPedido(req);
@@ -25,9 +29,13 @@ export async function GET(req: Request, ctx: Ctx) {
   if (!acesso?.ver.has("missoes")) return NextResponse.json({ error: "Sem acesso às missões desta criança." }, { status: 403 });
   const { confirmadas } = await sincronizarMissoesDaEscola(id);
   const conquistas_novas = confirmadas ? await avaliarConquistas(id) : [];
-  let q = getSupabase().from("app_missoes").select(CAMPOS).eq("crianca_id", id).order("created_at", { ascending: false }).limit(100);
-  if (new URL(req.url).searchParams.get("arquivadas") !== "1") q = q.in("status", ["ativa", "feita", "confirmada"]);
-  const { data, error } = await q;
+  const todas = new URL(req.url).searchParams.get("arquivadas") === "1";
+  const consulta = (campos: string) => {
+    const q = getSupabase().from("app_missoes").select(campos).eq("crianca_id", id).order("created_at", { ascending: false }).limit(100);
+    return todas ? q : q.in("status", ["ativa", "feita", "confirmada"]);
+  };
+  let { data, error } = await consulta(CAMPOS);
+  if (error) ({ data, error } = await consulta(CAMPOS_ANTIGOS));
   if (error) return NextResponse.json({ error: "Não deu para carregar as missões." }, { status: 500 });
   return NextResponse.json({ missoes: data || [], conquistas_novas });
 }
@@ -49,7 +57,8 @@ export async function POST(req: Request, ctx: Ctx) {
   const { data: ativas } = await sb.from("app_missoes").select("id").eq("crianca_id", id).eq("status", "ativa");
   if (((ativas as unknown[] | null) || []).length >= 30) return NextResponse.json({ error: "Muitas missões abertas. Termine ou arquive algumas." }, { status: 400 });
 
-  const { data, error } = await sb.from("app_missoes").insert({
+  const dominio = lerDominio(b.dominio);
+  const linha: Record<string, unknown> = {
     crianca_id: id,
     titulo,
     etapas,
@@ -60,7 +69,9 @@ export async function POST(req: Request, ctx: Ctx) {
     ate,
     status: "ativa",
     criada_por: pessoaId,
-  }).select("id").single();
+  };
+  let { data, error } = await sb.from("app_missoes").insert(dominio ? { ...linha, dominio } : linha).select("id").single();
+  if (error && dominio) ({ data, error } = await sb.from("app_missoes").insert(linha).select("id").single());
   if (error || !data) return NextResponse.json({ error: "Não deu para criar a missão agora." }, { status: 500 });
   await logAction({ actorId: pessoaId, actorRole: acesso.papel, action: "create", resourceType: "missao", resourceId: (data as { id: string }).id, req });
   return NextResponse.json({ ok: true, id: (data as { id: string }).id }, { status: 201 });

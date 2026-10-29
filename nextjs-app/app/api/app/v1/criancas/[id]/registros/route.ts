@@ -112,7 +112,7 @@ export async function POST(req: Request, ctx: Ctx) {
   const { data, error } = await sb.from("registros").insert(linha).select("id").single();
   if (error || !data) return NextResponse.json({ error: "Não deu para registrar agora." }, { status: 500 });
   await logAction({ actorId: pessoaId, actorRole: acesso.papel, action: "create", resourceType: "registro", resourceId: (data as { id: string }).id, metadata: { tipo, categoria }, req });
-  // o humor conta para a conquista "10 dias me ouvindo"
-  const conquistas_novas = tipo === "humor" ? await avaliarConquistas(id) : [];
+  // o humor conta para "10 dias me ouvindo"; humor e calma enchem o anel Sentir (onda 104)
+  const conquistas_novas = tipo === "humor" || (tipo === "evento" && subtipo === "calma") ? await avaliarConquistas(id) : [];
   return NextResponse.json({ ok: true, id: (data as { id: string }).id, conquistas_novas }, { status: 201 });
 }

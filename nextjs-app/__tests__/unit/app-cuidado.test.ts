@@ -126,10 +126,12 @@ describe("missões e conquistas", () => {
     expect(r.json).toMatchObject({ status: "ativa", conquistas_novas: [] });
     expect((await chamar(uma, "PATCH", MAE, { acao: "confirmar" }, { id: PEDRO, missaoId: MID })).status).toBe(400);
     r = await chamar(uma, "PATCH", MAE, { acao: "etapa", indice: 1, feita: true }, { id: PEDRO, missaoId: MID });
-    expect(r.json.status).toBe("feita");
-    expect(r.json.conquistas_novas).toEqual([{ nome: "Primeira missão", figura: "estrela" }]);
+    // onda 104: a mãe marcou a última etapa, estava junto: a missão já fica confirmada (anel Junto)
+    expect(r.json.status).toBe("confirmada");
+    expect(r.json.conquistas_novas).toMatchObject([{ nome: "Primeira missão", figura: "estrela" }]);
+    expect(db.tabelas.app_missoes[0]).toMatchObject({ confirmada_por: expect.any(String) });
     r = await chamar(uma, "PATCH", PROF, { acao: "confirmar" }, { id: PEDRO, missaoId: MID });
-    expect(r.json).toMatchObject({ status: "confirmada", conquistas_novas: [] }); // não ganha de novo
+    expect(r.status).toBe(400); // já confirmada, não ganha de novo
     expect((await chamar(uma, "PATCH", MAE, { acao: "etapa", indice: 0, feita: false }, { id: PEDRO, missaoId: MID })).status).toBe(400);
     expect((await chamar(uma, "PATCH", PROF, { acao: "arquivar" }, { id: PEDRO, missaoId: MID })).status).toBe(200); // quem criou arquiva
   });
@@ -209,6 +211,6 @@ describe("modo adolescente", () => {
     for (let d = 1; d <= 9; d++) db.tabelas.registros.push({ id: `h${d}`, crianca_id: PEDRO, tipo: "humor", quando: `2026-10-${String(d).padStart(2, "0")}T10:00:00Z`, apagado_em: null });
     const r = await chamar(reg, "POST", TEEN, { tipo: "humor", subtipo: "bom", texto: "dia legal" }, { id: PEDRO });
     expect(r.status).toBe(201);
-    expect(r.json.conquistas_novas).toEqual([{ nome: "10 dias me ouvindo", figura: "coracao" }]);
+    expect(r.json.conquistas_novas).toMatchObject([{ nome: "10 dias me ouvindo", figura: "coracao" }]);
   });
 });

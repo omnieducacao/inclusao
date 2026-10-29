@@ -4,6 +4,7 @@ import { pessoaDoPedido } from "@/lib/app/sessao";
 import { acessoACrianca, ehUuid } from "@/lib/app/acesso";
 import { avaliarConquistas, terminouEm, type Etapa } from "@/lib/app/conquistas";
 import { avisarEscolaQueFez } from "@/lib/app/jornada";
+import { lerDominio } from "@/lib/app/insignias";
 import { logAction } from "@/lib/audit";
 
 /**
@@ -12,6 +13,10 @@ import { logAction } from "@/lib/audit";
  *                                   todas marcadas → a missão fica "feita"
  *   {acao: "confirmar"}             um adulto confirma (família ou rede; o adolescente não confirma a própria)
  *   {acao: "arquivar"}              a família ou quem criou
+ *   {acao: "cor", dominio}          a família escolhe a cor da missão (também nas que vieram do PEI)
+ * Onda 104: quando um adulto marca a última etapa de uma missão que não veio do PEI, ele estava
+ * junto: a missão já fica "confirmada" (é o anel Junto). A do adolescente, sozinho, fica "feita"
+ * até um adulto confirmar.
  * Ao terminar ou confirmar, as conquistas automáticas são conferidas e as novas voltam na resposta.
  * Onda 103: missão que veio do PEI (origem "pei") avisa a escola ao terminar; quem confirma ou
  * arquiva essa missão é a escola, na Omnisfera.
@@ -45,12 +50,27 @@ export async function PATCH(req: Request, ctx: Ctx) {
     if (m.status === "confirmada") return NextResponse.json({ error: "Missão já confirmada." }, { status: 400 });
     const statusAntes = m.status;
     etapas[i] = { ...etapas[i], feita_em: b.feita ? agora : null };
-    const status = terminouEm(etapas) ? "feita" : "ativa";
-    await sb.from("app_missoes").update({ etapas, status, updated_at: agora }).eq("id", missaoId);
+    const terminou = !!terminouEm(etapas);
+    const adultoJunto = terminou && acesso.papel !== "adolescente" && m.origem !== "pei";
+    const status = adultoJunto ? "confirmada" : terminou ? "feita" : "ativa";
+    await sb.from("app_missoes").update({
+      etapas, status, updated_at: agora,
+      ...(adultoJunto ? { confirmada_por: pessoaId, confirmada_em: agora } : {}),
+    }).eq("id", missaoId);
     await registrar(b.feita ? "marcou_etapa" : "desmarcou_etapa");
     if (status === "feita" && statusAntes !== "feita" && m.estudante_missao_id) await avisarEscolaQueFez(m.estudante_missao_id, agora);
-    const novas = status === "feita" && statusAntes !== "feita" ? await avaliarConquistas(id) : [];
+    // cada etapa enche o anel Fazer: as insígnias são conferidas a cada marcação
+    const novas = b.feita ? await avaliarConquistas(id) : [];
     return NextResponse.json({ ok: true, status, conquistas_novas: novas });
+  }
+  if (b.acao === "cor") {
+    if (acesso.papel === "membro" && m.criada_por !== pessoaId) return NextResponse.json({ error: "A família escolhe a cor." }, { status: 403 });
+    const dominio = b.dominio === null ? null : lerDominio(b.dominio);
+    if (dominio === null && b.dominio !== null) return NextResponse.json({ error: "Cor inválida." }, { status: 400 });
+    const { error } = await sb.from("app_missoes").update({ dominio, updated_at: agora }).eq("id", missaoId);
+    if (error) return NextResponse.json({ error: "As cores chegam em breve." }, { status: 503 });
+    await registrar("cor");
+    return NextResponse.json({ ok: true, dominio, conquistas_novas: await avaliarConquistas(id) });
   }
   if ((b.acao === "confirmar" || b.acao === "arquivar") && m.origem === "pei") {
     return NextResponse.json({ error: "Esta missão veio do plano da escola: quem confirma ou arquiva é a escola." }, { status: 403 });
