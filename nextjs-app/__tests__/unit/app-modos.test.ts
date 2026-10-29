@@ -186,6 +186,18 @@ describe("jornada: o PEI vira missões, as missões viram conquistas", () => {
     expect((reaberta.etapas as { feita_em: string | null }[]).every((e) => e.feita_em === null)).toBe(true);
   });
 
+  it("criança que veio da escola sem nascimento: a família informa ao gerar o código do adolescente", async () => {
+    familiaDireta();
+    db.tabelas.adolescente_codigos = [];
+    const rota = await import("@/app/api/app/v1/criancas/[id]/adolescente/route");
+    expect((await chamar(rota, "POST", MAE, { acao: "gerar" }, { id: PEDRO })).status).toBe(400);
+    expect((await chamar(rota, "POST", MAE, { acao: "gerar", nascimento: "2050-01-01" }, { id: PEDRO })).status).toBe(400);
+    const ok = await chamar(rota, "POST", MAE, { acao: "gerar", nascimento: "2013-05-10" }, { id: PEDRO });
+    expect(ok.status).toBe(200);
+    expect(db.tabelas.criancas[0].nascimento).toBe("2013-05-10");
+    expect(String(ok.json.codigo)).toMatch(/^[A-Z0-9]{4}-[A-Z0-9]{4}$/);
+  });
+
   it("estados da escola → estado no app", async () => {
     const { statusNoApp, etapasDaEscola } = await import("@/lib/app/jornada");
     expect(statusNoApp("aprovada", null)).toBe("ativa");

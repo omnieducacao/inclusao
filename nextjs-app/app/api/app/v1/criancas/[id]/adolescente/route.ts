@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { pessoaDoPedido } from "@/lib/app/sessao";
 import { acessoACrianca } from "@/lib/app/acesso";
+import { dadosDaCrianca } from "@/lib/app/familia";
 import {
   CODIGO_MINUTOS, IDADE_MINIMA_ADOLESCENTE, VERSAO_TERMO_ADOLESCENTE, hashDoCodigo, idadeEm, novoCodigo,
 } from "@/lib/app/adolescente";
@@ -9,7 +10,8 @@ import { logAction } from "@/lib/audit";
 
 /**
  * Frente 6 · POST /api/app/v1/criancas/:id/adolescente — só a família:
- *   {acao: "gerar"}    código de 8 caracteres para o filho ativar o app dele (vale 15 min, uma vez)
+ *   {acao: "gerar", nascimento?}  código de 8 caracteres para o filho ativar o app dele (vale 15 min, uma vez).
+ *                      Onda 103: a criança que veio da escola chega sem nascimento; a família informa aqui.
  *   {acao: "pausar"} · {acao: "retomar"}   suspende ou devolve o acesso do adolescente
  *   {acao: "encerrar"} volta ao modo criança e desliga o acesso dele em todos os aparelhos
  */
@@ -27,13 +29,19 @@ export async function POST(req: Request, ctx: Ctx) {
   const c = data as Crianca | null;
   if (!c) return NextResponse.json({ error: "Criança não encontrada." }, { status: 404 });
 
-  const b = (await req.json().catch(() => ({}))) as { acao?: unknown };
+  const b = (await req.json().catch(() => ({}))) as { acao?: unknown; nascimento?: unknown };
   const agora = new Date().toISOString();
   const registrar = (acao: string) =>
     logAction({ actorId: pessoaId, actorRole: "responsavel", action: "permission_change", resourceType: "modo_adolescente", resourceId: id, metadata: { acao }, req });
 
   switch (b.acao) {
     case "gerar": {
+      if (!c.nascimento && b.nascimento) {
+        const d = dadosDaCrianca({ nome: "Criança", nascimento: b.nascimento });
+        if ("erro" in d || !d.nascimento) return NextResponse.json({ error: "erro" in d ? d.erro : "Confira a data de nascimento." }, { status: 400 });
+        await sb.from("criancas").update({ nascimento: d.nascimento, updated_at: agora }).eq("id", id);
+        c.nascimento = d.nascimento;
+      }
       const idade = idadeEm(c.nascimento);
       if (idade === null) return NextResponse.json({ error: "Cadastre a data de nascimento antes." }, { status: 400 });
       if (idade < IDADE_MINIMA_ADOLESCENTE) {
