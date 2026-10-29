@@ -180,4 +180,27 @@ describe("resumo do período", () => {
     expect(r.status).toBe(201);
     expect(db.tabelas.registros.at(-1)).toMatchObject({ dados: { ajudou: "abraço firme" } });
   });
+
+  it("desfazer: quem registrou apaga nos primeiros minutos; a família a qualquer hora; a rede não apaga o dos outros", async () => {
+    const PEDRO = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const FONO = "33333333-3333-4333-8333-333333333333";
+    db.tabelas.criancas = [{ id: PEDRO, familia_id: "fam1", nome: "Pedro", modo: "crianca", adolescente_pessoa_id: null, adolescente_pausado: false }];
+    db.tabelas.familia_responsaveis = [{ id: "fr1", familia_id: "fam1", pessoa_id: MAE }];
+    db.tabelas.pessoas.push({ id: FONO, nome: "Lúcia", ativo: true });
+    db.tabelas.rede_membros = [{ id: "m-fono", crianca_id: PEDRO, pessoa_id: FONO, workspace_id: null, status: "ativo", acesso_ate: null }];
+    db.tabelas.rede_permissoes = [{ membro_id: "m-fono", categoria: "eventos_casa", pode_ver: true, pode_escrever: true }];
+    const antigo = new Date(Date.now() - 60 * 60_000).toISOString();
+    db.tabelas.registros = [
+      { id: "r-fono", crianca_id: PEDRO, tipo: "evento", categoria: "eventos_casa", subtipo: "avanco", autor_pessoa_id: FONO, created_at: new Date().toISOString(), apagado_em: null },
+      { id: "r-fono-velho", crianca_id: PEDRO, tipo: "evento", categoria: "eventos_casa", subtipo: "avanco", autor_pessoa_id: FONO, created_at: antigo, apagado_em: null },
+      { id: "r-mae", crianca_id: PEDRO, tipo: "evento", categoria: "eventos_casa", subtipo: "crise", autor_pessoa_id: MAE, created_at: antigo, apagado_em: null },
+    ];
+    const rota = await import("@/app/api/app/v1/criancas/[id]/registros/[regId]/route");
+    expect((await chamar(rota, "DELETE", FONO, undefined, { id: PEDRO, regId: "r-mae" })).status).toBe(403);
+    expect((await chamar(rota, "DELETE", FONO, undefined, { id: PEDRO, regId: "r-fono-velho" })).status).toBe(403);
+    expect((await chamar(rota, "DELETE", FONO, undefined, { id: PEDRO, regId: "r-fono" })).status).toBe(200);
+    expect(db.tabelas.registros[0].apagado_em).toBeTruthy();
+    expect((await chamar(rota, "DELETE", MAE, undefined, { id: PEDRO, regId: "r-fono-velho" })).status).toBe(200);
+    expect((await chamar(rota, "DELETE", MAE, undefined, { id: PEDRO, regId: "r-fono" })).status).toBe(404);
+  });
 });
