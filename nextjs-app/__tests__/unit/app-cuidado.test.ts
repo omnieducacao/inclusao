@@ -194,6 +194,12 @@ describe("modo adolescente", () => {
     const { idadeEm } = await import("@/lib/app/adolescente");
     expect(idadeEm("2015-10-28", new Date("2026-10-27T12:00:00Z"))).toBe(10);
     expect(idadeEm("2015-10-27", new Date("2026-10-27T12:00:00Z"))).toBe(11);
+    // a partir dos 12 (decisão de 29/10/2026): com 11 anos ainda não
+    const onzeAnos = new Date(Date.now() - 11.5 * 365.25 * 864e5).toISOString().slice(0, 10);
+    db.tabelas.criancas[0].nascimento = onzeAnos;
+    expect((await chamar(familia, "POST", MAE, { acao: "gerar" }, { id: PEDRO })).json.error).toMatch(/12 anos/);
+    const { faixaEtaria } = await import("@/lib/app/adolescente");
+    expect([faixaEtaria(3), faixaEtaria(5), faixaEtaria(6), faixaEtaria(11), faixaEtaria(12), faixaEtaria(null)]).toEqual(["infantil", "infantil", "crianca", "crianca", "adolescente", null]);
   });
 
   it("o humor do adolescente em 10 dias rende a conquista", async () => {

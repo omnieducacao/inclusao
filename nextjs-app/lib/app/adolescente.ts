@@ -1,6 +1,6 @@
 /**
- * Frente 6 · modo adolescente. A partir dos 11 anos (pedido do Rodrigo; o ECA, Estatuto da Criança
- * e do Adolescente, considera adolescente a partir dos 12), a família pode dar ao filho o próprio
+ * Frente 6 · modo adolescente. A partir dos 12 anos (decisão do Rodrigo em 29/10/2026, igual ao ECA,
+ * Estatuto da Criança e do Adolescente), a família pode dar ao filho o próprio
  * acesso: ele registra como se sente, vê as missões e as orientações; a família vê o humor só como
  * dia bom ou difícil, sem a frase.
  *
@@ -11,7 +11,20 @@
 import { randomInt } from "node:crypto";
 import { hashToken } from "@/lib/app/sessao";
 
-export const IDADE_MINIMA_ADOLESCENTE = 11;
+export const IDADE_MINIMA_ADOLESCENTE = 12;
+
+/**
+ * As três faixas do app (29/10/2026): até 5 anos, educação infantil (a família marca tudo);
+ * de 6 a 11, anos iniciais e 6º ano (a família marca, a criança acompanha); a partir de 12,
+ * o adolescente pode ter o próprio acesso. Cada faixa tem o seu estilo de insígnia.
+ */
+export type FaixaEtaria = "infantil" | "crianca" | "adolescente";
+export function faixaEtaria(idade: number | null): FaixaEtaria | null {
+  if (idade === null) return null;
+  if (idade <= 5) return "infantil";
+  if (idade < IDADE_MINIMA_ADOLESCENTE) return "crianca";
+  return "adolescente";
+}
 export const CODIGO_MINUTOS = 15;
 export const VERSAO_TERMO_ADOLESCENTE = "adolescente-v1-2026-10";
 /** Sem 0/O, 1/I/L: fácil de ler em voz alta e de digitar. */
