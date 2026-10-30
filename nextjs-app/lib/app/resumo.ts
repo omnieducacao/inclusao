@@ -33,6 +33,12 @@ export type Resumo = {
   palavras: number;
   marcos: { quando: string; texto: string | null }[];
   eventos_por_tipo: { subtipo: string; total: number }[];
+  /**
+   * onda 112: até três frases comparando com o período anterior de mesmo tamanho, só com números
+   * ("Crises: 3 neste período e 5 no anterior."). Sem "melhorou" ou "piorou": quem avalia é o profissional.
+   * Vazio quando o período anterior não tem registro.
+   */
+  o_que_mudou: string[];
 };
 
 const FAIXAS = ["6–9h", "9–12h", "12–14h", "14–17h", "17–20h", "20–23h", "noite"] as const;
@@ -83,12 +89,60 @@ function media(ns: number[]): number | null {
   return ns.length ? Math.round(ns.reduce((a, b) => a + b, 0) / ns.length) : null;
 }
 
-export function resumir(registros: RegistroResumo[], dias: number, agora = new Date()): Resumo {
+type Contagem = { crises: number; duracao: number | null; agitadas: number; avancos: number; leitura: number; naoDadas: number; calma: number; palavras: number };
+
+function contar_(lista: RegistroResumo[]): Contagem {
+  const ev = (s: string) => lista.filter((r) => r.tipo === "evento" && r.subtipo === s);
+  const crises = ev("crise");
+  return {
+    crises: crises.length,
+    duracao: media(crises.map((c) => minutosDe(c.duracao)).filter((m): m is number => m !== null)),
+    agitadas: ev("sono").filter((s) => (s.dados?.agitada as boolean) === true || (s.gatilho || "").length > 0).length,
+    avancos: ev("avanco").length,
+    leitura: ev("leitura").reduce((t, r) => t + (Number(r.dados?.minutos) || 0), 0),
+    naoDadas: lista.filter((r) => r.tipo === "dose" && r.subtipo === "nao_dada").length,
+    calma: ev("calma").length,
+    palavras: ev("palavra").length,
+  };
+}
+
+/** As três maiores diferenças entre o período e o anterior, em frases só com números. */
+export function oQueMudou(atual: RegistroResumo[], anterior: RegistroResumo[]): string[] {
+  if (!anterior.length || !atual.length) return [];
+  const a = contar_(atual);
+  const p = contar_(anterior);
+  const linhas: { peso: number; frase: string }[] = [];
+  // o peso é a diferença relativa, com menos peso para números pequenos (1 contra 0 não é notícia);
+  // as crises vêm sempre primeiro quando mudaram, porque é o que a família e o médico olham primeiro
+  const comparar = (agora: number, antes: number, frase: (x: number, y: number) => string, extra = 0) => {
+    if (agora === antes) return;
+    const maior = Math.max(agora, antes, 1);
+    linhas.push({ peso: (Math.abs(agora - antes) / maior) * Math.min(1, maior / 4) + extra, frase: frase(agora, antes) });
+  };
+  comparar(a.crises, p.crises, (x, y) => `Crises: ${x} neste período e ${y} no anterior.`, 1);
+  if (a.duracao !== null && p.duracao !== null) comparar(a.duracao, p.duracao, (x, y) => `Duração média das crises: ${x} min neste período e ${y} min no anterior.`);
+  comparar(a.agitadas, p.agitadas, (x, y) => `Noites agitadas: ${x} neste período e ${y} no anterior.`);
+  comparar(a.avancos, p.avancos, (x, y) => `Avanços registrados: ${x} neste período e ${y} no anterior.`);
+  comparar(a.leitura, p.leitura, (x, y) => `Leitura: ${x} minutos neste período e ${y} no anterior.`);
+  comparar(a.naoDadas, p.naoDadas, (x, y) => `Doses não dadas: ${x} neste período e ${y} no anterior.`);
+  comparar(a.calma, p.calma, (x, y) => `Momentos de calma registrados: ${x} neste período e ${y} no anterior.`);
+  comparar(a.palavras, p.palavras, (x, y) => `Palavras novas: ${x} neste período e ${y} no anterior.`);
+  return linhas.sort((x, y) => y.peso - x.peso).slice(0, 3).map((l) => l.frase);
+}
+
+export function resumir(todos: RegistroResumo[], dias: number, agora = new Date()): Resumo {
   const fim = agora;
   const inicio = new Date(agora.getTime() - dias * 864e5);
+  const antesDe = inicio.getTime() - dias * 864e5;
+  // as perguntas para a consulta (onda 112) são da família e não entram nas contas
+  const registros = todos.filter((r) => r.subtipo !== "pergunta");
   const dentro = registros.filter((r) => {
     const t = Date.parse(r.quando);
     return !Number.isNaN(t) && t >= inicio.getTime() && t <= fim.getTime();
+  });
+  const anterior = registros.filter((r) => {
+    const t = Date.parse(r.quando);
+    return !Number.isNaN(t) && t >= antesDe && t < inicio.getTime();
   });
 
   const episodios = dentro.filter((r) => r.tipo === "evento" && r.subtipo && EPISODIOS.has(r.subtipo));
@@ -149,5 +203,6 @@ export function resumir(registros: RegistroResumo[], dias: number, agora = new D
     palavras: dentro.filter((r) => r.tipo === "evento" && r.subtipo === "palavra").length,
     marcos: dentro.filter((r) => r.tipo === "evento" && r.subtipo === "marco").map((r) => ({ quando: r.quando, texto: (r.dados?.marco as string | undefined) ?? null })).slice(0, 20),
     eventos_por_tipo: [...porTipo].map(([subtipo, total]) => ({ subtipo, total })).sort((a, b) => b.total - a.total),
+    o_que_mudou: oQueMudou(dentro, anterior),
   };
 }

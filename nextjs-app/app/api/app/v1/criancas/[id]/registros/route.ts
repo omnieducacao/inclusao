@@ -56,7 +56,8 @@ export async function GET(req: Request, ctx: Ctx) {
 
   // O responsável vê o humor do adolescente só como dia bom/difícil, sem a frase.
   // onda 106: o registro de sessão reservado (psicologia) só aparece para quem escreveu e para a família
-  const linhas = ((data as Record<string, unknown>[] | null) || []).filter((r) => podeVerRegistro(r as { autor_pessoa_id?: string; dados?: unknown }, pessoaId, acesso.papel)).map((r) =>
+  // onda 112: as perguntas para a consulta têm tela própria e não entram na linha do tempo
+  const linhas = ((data as Record<string, unknown>[] | null) || []).filter((r) => r.subtipo !== "pergunta").filter((r) => podeVerRegistro(r as { autor_pessoa_id?: string; dados?: unknown }, pessoaId, acesso.papel)).map((r) =>
     acesso.papel === "responsavel" && r.tipo === "humor" && r.autor_pessoa_id !== pessoaId ? { ...r, texto: null } : r,
   );
   await logAction({ actorId: pessoaId, actorRole: acesso.papel, action: "view", resourceType: "linha_do_tempo", resourceId: id, req });

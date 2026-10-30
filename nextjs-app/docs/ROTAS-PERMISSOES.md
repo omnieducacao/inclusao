@@ -10,7 +10,7 @@ Antes de chegar a qualquer rota, o `proxy.ts` já recusa (403) o papel **famíli
 
 | Guarda na rota | Quantidade |
 |---|---|
-| token do app (lib/app/acesso) | 51 |
+| token do app (lib/app/acesso) | 55 |
 | equipe (família recusada na rota) | 51 |
 | equipe + permissão por módulo | 49 |
 | admin da plataforma | 47 |
@@ -107,6 +107,10 @@ as usam) ou rotas do próprio usuário. Os métodos que gravam ou gastam IA já 
 | `/api/app/v1/criancas/[id]/omniband` | POST | token do app (lib/app/acesso) |
 | `/api/app/v1/criancas/[id]/pagina-ajuda` | GET | token do app (lib/app/acesso) |
 | `/api/app/v1/criancas/[id]/pagina-ajuda` | PUT | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/perguntas/[pid]` | DELETE | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/perguntas/[pid]` | PATCH | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/perguntas` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/perguntas` | POST | token do app (lib/app/acesso) |
 | `/api/app/v1/criancas/[id]/rede/[membroId]` | PATCH | token do app (lib/app/acesso) |
 | `/api/app/v1/criancas/[id]/rede` | GET | token do app (lib/app/acesso) |
 | `/api/app/v1/criancas/[id]/rede` | POST | token do app (lib/app/acesso) |

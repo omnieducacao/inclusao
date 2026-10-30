@@ -23,7 +23,8 @@ export async function GET(req: Request, ctx: Ctx) {
   const url = new URL(req.url);
   const pedido = Number(url.searchParams.get("dias") || 30);
   const dias = Number.isFinite(pedido) ? Math.min(90, Math.max(7, Math.round(pedido))) : 30;
-  const desde = new Date(Date.now() - dias * 864e5).toISOString();
+  // onda 112: o dobro do período, para comparar com o período anterior ("o que mudou")
+  const desde = new Date(Date.now() - 2 * dias * 864e5).toISOString();
   const categorias = [...acesso.ver].filter((c) => c !== "resumo");
   const { data, error } = await getSupabase()
     .from("registros")
@@ -33,7 +34,7 @@ export async function GET(req: Request, ctx: Ctx) {
     .in("categoria", categorias)
     .gte("quando", desde)
     .order("quando", { ascending: false })
-    .limit(2000);
+    .limit(4000);
   if (error) return NextResponse.json({ error: "Não deu para montar o resumo." }, { status: 500 });
   await logAction({ actorId: pessoaId, actorRole: acesso.papel, action: "view", resourceType: "resumo_periodo", resourceId: id, metadata: { dias }, req });
   return NextResponse.json({ resumo: resumir((data as RegistroResumo[] | null) || [], dias) });
