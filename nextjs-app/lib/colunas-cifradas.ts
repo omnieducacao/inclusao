@@ -23,7 +23,8 @@ export const COLUNAS_CIFRADAS: Readonly<Record<string, readonly string[]>> = {
   students: ["name"],
   // Frente 6 (onda 100): app da família e Rede de apoio
   pessoas: ["telefone", "email"],
-  criancas: ["nome"],
+  // onda 122: o avatar e a família montada (só aparência do desenho)
+  criancas: ["nome", "aparencia"],
   registros: ["texto"],
   medicacoes: ["nome"],
   // Omniband (onda 101): a página de ajuda escrita pela família
