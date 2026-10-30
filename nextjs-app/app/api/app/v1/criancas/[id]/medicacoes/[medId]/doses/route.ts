@@ -7,8 +7,8 @@ import { logAction } from "@/lib/audit";
 
 /**
  * Frente 6 · POST /api/app/v1/criancas/:id/medicacoes/:medId/doses {dada: true|false, horario?, quando?, observacao?, id_local?}
- * Marca que a dose do horário foi dada (ou não). A família marca qualquer remédio; a escola e quem
- * da rede vê a medicação marca só os que a família indicou como "na escola". É a ponte do remédio:
+ * Marca que a dose do horário foi dada (ou não). A família marca qualquer medicação; a escola e quem
+ * da rede vê a medicação marca só os que a família indicou como "na escola". É a ponte da medicação:
  * a família vê no celular que a escola deu a dose do meio-dia.
  */
 type Ctx = { params: Promise<{ id: string; medId: string }> };
@@ -19,13 +19,13 @@ export async function POST(req: Request, ctx: Ctx) {
   const { id, medId } = await ctx.params;
   const acesso = await acessoACrianca(pessoaId, id);
   if (!acesso || acesso.papel === "adolescente") return NextResponse.json({ error: "Sem acesso." }, { status: 403 });
-  if (!ehUuid(medId)) return NextResponse.json({ error: "Remédio não encontrado." }, { status: 404 });
+  if (!ehUuid(medId)) return NextResponse.json({ error: "Medicação não encontrada." }, { status: 404 });
   const sb = getSupabase();
   const { data } = await sb.from("medicacoes").select("id, na_escola, ativa").eq("id", medId).eq("crianca_id", id).maybeSingle();
   const med = data as { id: string; na_escola: boolean; ativa: boolean } | null;
-  if (!med || !med.ativa) return NextResponse.json({ error: "Remédio não encontrado." }, { status: 404 });
+  if (!med || !med.ativa) return NextResponse.json({ error: "Medicação não encontrada." }, { status: 404 });
   const podeMarcar = acesso.papel === "responsavel" || (acesso.ver.has("medicacao") && med.na_escola);
-  if (!podeMarcar) return NextResponse.json({ error: "Você não marca doses deste remédio." }, { status: 403 });
+  if (!podeMarcar) return NextResponse.json({ error: "Você não marca doses desta medicação." }, { status: 403 });
 
   const b = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   if (typeof b.dada !== "boolean") return NextResponse.json({ error: "Diga se a dose foi dada." }, { status: 400 });

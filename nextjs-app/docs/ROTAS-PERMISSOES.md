@@ -10,14 +10,17 @@ Antes de chegar a qualquer rota, o `proxy.ts` já recusa (403) o papel **famíli
 
 | Guarda na rota | Quantidade |
 |---|---|
+| equipe (família recusada na rota) | 51 |
 | equipe + permissão por módulo | 49 |
-| equipe (família recusada na rota) | 48 |
 | admin da plataforma | 47 |
+| token do app (lib/app/acesso) | 47 |
 | só sessão (família barrada pelo proxy) | 24 |
 | família permitida | 20 |
-| pública | 11 |
+| pública | 12 |
 | equipe (função negado* de lib/) | 8 |
+| pública (login do app) | 5 |
 | demonstração | 2 |
+| link secreto do calendário (lib/app/acesso) | 1 |
 
 As linhas "só sessão" são, em quase todos os casos, leituras por vínculo (professores sem a flag do módulo também
 as usam) ou rotas do próprio usuário. Os métodos que gravam ou gastam IA já exigem a permissão do módulo
@@ -63,6 +66,59 @@ as usam) ou rotas do próprio usuário. Os métodos que gravam ou gastam IA já 
 | `/api/ai-engines/available` | GET | só sessão (família barrada pelo proxy) |
 | `/api/announcements/mark-viewed` | POST | família permitida |
 | `/api/announcements/unviewed` | GET | família permitida |
+| `/api/app/v1/auth/adolescente` | POST | pública (login do app) |
+| `/api/app/v1/auth/cadastrar` | POST | pública (login do app) |
+| `/api/app/v1/auth/entrar` | POST | pública (login do app) |
+| `/api/app/v1/auth/renovar` | POST | pública (login do app) |
+| `/api/app/v1/auth/sair` | POST | pública (login do app) |
+| `/api/app/v1/calendario/[token]` | GET | link secreto do calendário (lib/app/acesso) |
+| `/api/app/v1/convites/aceitar` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/convites/ver` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/adolescente` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/agenda/[compromissoId]` | DELETE | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/agenda/[compromissoId]` | PATCH | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/agenda/link` | DELETE | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/agenda/link` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/agenda/link` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/agenda` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/agenda` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/conquistas` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/conquistas` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/escola/ciencia-pei` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/escola/mensagens` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/escola/mensagens` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/escola/missoes` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/escola/missoes` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/escola` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/insignias` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/insignias` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/insignias` | PUT | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/medicacoes/[medId]/doses` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/medicacoes/[medId]` | PATCH | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/medicacoes` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/medicacoes` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/missoes/[missaoId]` | PATCH | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/missoes` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/missoes` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/omniband/[objetoId]` | PATCH | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/omniband` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/omniband` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/pagina-ajuda` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/pagina-ajuda` | PUT | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/rede/[membroId]` | PATCH | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/rede` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/rede` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/registros/[regId]` | DELETE | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/registros` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/registros` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/resumo` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/dispositivos` | DELETE | token do app (lib/app/acesso) |
+| `/api/app/v1/dispositivos` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/escola/ligar` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/eu` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/familias/[id]/criancas` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/familias` | POST | token do app (lib/app/acesso) |
+| `/api/app/v1/omniband/toque` | POST | token do app (lib/app/acesso) |
 | `/api/auth/admin-login` | POST | pública |
 | `/api/auth/login` | POST | pública |
 | `/api/auth/logout` | POST | pública |
@@ -87,6 +143,9 @@ as usam) ou rotas do próprio usuário. Os métodos que gravam ou gastam IA já 
 | `/api/demo/papel` | POST | demonstração |
 | `/api/demo/visita` | POST | demonstração |
 | `/api/diario/analise-ia` | POST | equipe (família recusada na rota) |
+| `/api/drive/politica` | GET | equipe (família recusada na rota) |
+| `/api/drive/politica` | PATCH | equipe (família recusada na rota) |
+| `/api/drive/registro` | POST | equipe (família recusada na rota) |
 | `/api/familia-caixa` | GET | equipe (função negado* de lib/) |
 | `/api/familia/ciencia-pei` | POST | família permitida |
 | `/api/familia/estudante/[id]` | GET | família permitida |
@@ -196,6 +255,7 @@ as usam) ou rotas do próprio usuário. Os métodos que gravam ou gastam IA já 
 | `/api/public/contato` | POST | pública |
 | `/api/public/demonstracao` | POST | pública |
 | `/api/public/evento` | POST | pública |
+| `/api/public/omniband/localizacao` | POST | pública |
 | `/api/public/platform-config` | GET | pública |
 | `/api/school/classes/[id]` | DELETE | equipe + can_gestao |
 | `/api/school/classes` | GET | só sessão (família barrada pelo proxy) |

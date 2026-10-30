@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { pessoaDoPedido } from "@/lib/app/sessao";
 import { acessoACrianca, ehUuid } from "@/lib/app/acesso";
-import { lerMedicacao } from "@/lib/app/medicacao";
+import { CAMPOS_105, lerMedicacao } from "@/lib/app/medicacao";
 import { logAction } from "@/lib/audit";
 
 /**
  * Frente 6 · PATCH /api/app/v1/criancas/:id/medicacoes/:medId — a família edita (campos enviados)
- * ou encerra {encerrar: true}. O remédio encerrado sai da lista do dia mas fica no histórico.
+ * ou encerra {encerrar: true}. A medicação encerrada sai da lista do dia mas fica no histórico.
  */
 type Ctx = { params: Promise<{ id: string; medId: string }> };
 
@@ -17,10 +17,10 @@ export async function PATCH(req: Request, ctx: Ctx) {
   const { id, medId } = await ctx.params;
   const acesso = await acessoACrianca(pessoaId, id);
   if (acesso?.papel !== "responsavel") return NextResponse.json({ error: "Só a família muda a medicação." }, { status: 403 });
-  if (!ehUuid(medId)) return NextResponse.json({ error: "Remédio não encontrado." }, { status: 404 });
+  if (!ehUuid(medId)) return NextResponse.json({ error: "Medicação não encontrada." }, { status: 404 });
   const sb = getSupabase();
   const { data: med } = await sb.from("medicacoes").select("id").eq("id", medId).eq("crianca_id", id).maybeSingle();
-  if (!med) return NextResponse.json({ error: "Remédio não encontrado." }, { status: 404 });
+  if (!med) return NextResponse.json({ error: "Medicação não encontrada." }, { status: 404 });
 
   const b = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const agora = new Date().toISOString();
@@ -32,7 +32,12 @@ export async function PATCH(req: Request, ctx: Ctx) {
   const dados = lerMedicacao(b, true);
   if ("erro" in dados) return NextResponse.json({ error: dados.erro }, { status: 400 });
   if (!Object.keys(dados).length) return NextResponse.json({ error: "Nada para mudar." }, { status: 400 });
-  await sb.from("medicacoes").update({ ...dados, updated_at: agora }).eq("id", medId);
+  const { error } = await sb.from("medicacoes").update({ ...dados, updated_at: agora }).eq("id", medId);
+  if (error) {
+    // sem a migração 105: estoque e receita ainda não existem no banco
+    if (CAMPOS_105.some((c) => c in dados)) return NextResponse.json({ error: "O estoque e a receita chegam em breve.", em_breve: true }, { status: 503 });
+    return NextResponse.json({ error: "Não deu para salvar agora." }, { status: 500 });
+  }
   await logAction({ actorId: pessoaId, actorRole: "responsavel", action: "update", resourceType: "medicacao", resourceId: medId, metadata: { campos: Object.keys(dados) }, req });
   return NextResponse.json({ ok: true });
 }

@@ -57,6 +57,9 @@ function guardaDe(trecho, cabecalho, sub, src, profundidade = 0) {
   // acesso à criança em lib/app/acesso.ts.
   if (sub.startsWith("app/v1/auth/")) return "pública (login do app)";
   if (sub.startsWith("app/") && /pessoaDoPedido\(/.test(trecho)) return "token do app (lib/app/acesso)";
+  // Onda 105: o calendário assinável é buscado pelo Google e pelo iPhone sem login; a chave é o
+  // segredo do endereço (só o hash fica no banco) e o acesso à criança é conferido a cada busca.
+  if (sub.startsWith("app/v1/calendario/") && /hashToken\(/.test(trecho) && /acessoACrianca\(/.test(trecho)) return "link secreto do calendário (lib/app/acesso)";
   if (publica) return "pública";
   if (familiaPermitida) return "família permitida";
   if (temPermissao) return flags.length ? `equipe + ${flags.join(", ")}` : "equipe + permissão por módulo";

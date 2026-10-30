@@ -1,7 +1,8 @@
 /**
  * Frente 6: /api/app/ é pública no proxy (o app do celular não tem o cookie do site).
  * Então cada rota precisa conferir o token do app sozinha. Só o login, a renovação e a saída
- * (que recebem o token de renovação no corpo) ficam sem pessoaDoPedido.
+ * (que recebem o token de renovação no corpo) ficam sem pessoaDoPedido, e o calendário assinável
+ * (onda 105), que entra pelo segredo do link e confere o acesso à criança a cada busca.
  */
 import { describe, it, expect, vi } from "vitest";
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -31,6 +32,8 @@ describe("app · rotas guardadas pelo token do app", () => {
     const semGuarda = todas
       .map((p) => relative(RAIZ, p))
       .filter((r) => !r.startsWith(join("v1", "auth")))
+      // onda 105: o calendário assinável (iCal) entra pelo segredo do link e confere o acesso a cada busca
+      .filter((r) => !r.startsWith(join("v1", "calendario")))
       .filter((r) => !/pessoaDoPedido\(/.test(readFileSync(join(RAIZ, r), "utf8")));
     expect(semGuarda).toEqual([]);
   });
