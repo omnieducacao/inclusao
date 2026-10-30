@@ -255,3 +255,29 @@ describe("previsão da medicação", () => {
     expect(lerMedicacao({ estoque: "28", por_dose: 0.5, receita_vence: "2027-01-10" }, true)).toMatchObject({ estoque: 28, por_dose: 0.5, receita_vence: "2027-01-10" });
   });
 });
+
+describe("perfil de apoio e os registros novos (onda 108)", () => {
+  it("a família escolhe o que acompanhar; quem é da rede só lê", async () => {
+    const rota = await import("@/app/api/app/v1/criancas/[id]/apoio/route");
+    const p = { id: PEDRO };
+    expect((await chamar(rota, "GET", MAE, undefined, p)).json).toMatchObject({ apoio: ["crises", "sono", "alimentacao", "rotina"], escolhido: false });
+    expect((await chamar(rota, "PUT", MAE, { apoio: ["leitura", "diagnostico"] }, p)).status).toBe(400);
+    expect((await chamar(rota, "PUT", FONO, { apoio: ["leitura"] }, p)).status).toBe(403);
+    expect((await chamar(rota, "PUT", MAE, { apoio: ["fala", "leitura", "crises"] }, p)).json).toMatchObject({ apoio: ["crises", "leitura", "fala"] });
+    expect((await chamar(rota, "GET", FONO, undefined, p)).json).toMatchObject({ apoio: ["crises", "leitura", "fala"], escolhido: true });
+  });
+
+  it("diário de leitura e palavra nova entram na linha do tempo e no resumo", async () => {
+    const linha = await import("@/app/api/app/v1/criancas/[id]/registros/route");
+    const { resumir } = await import("@/lib/app/resumo");
+    db.tabelas.registros = [];
+    expect((await chamar(linha, "POST", MAE, { tipo: "evento", subtipo: "leitura", local: "casa", minutos: 15, o_que: "Gibi da Turma" }, { id: PEDRO })).status).toBe(201);
+    expect((await chamar(linha, "POST", MAE, { tipo: "evento", subtipo: "palavra", local: "casa", texto: "água" }, { id: PEDRO })).status).toBe(201);
+    expect((await chamar(linha, "POST", MAE, { tipo: "evento", subtipo: "marco", local: "casa", marco: "Andou de bicicleta sozinho" }, { id: PEDRO })).status).toBe(201);
+    expect(db.tabelas.registros[0].dados).toMatchObject({ minutos: 15, o_que: "Gibi da Turma" });
+    const r = resumir(db.tabelas.registros as never, 30);
+    expect(r.leitura).toEqual({ dias: 1, minutos: 15 });
+    expect(r.palavras).toBe(1);
+    expect(r.marcos[0].texto).toBe("Andou de bicicleta sozinho");
+  });
+});

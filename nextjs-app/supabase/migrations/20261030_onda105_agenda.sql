@@ -3,6 +3,7 @@
 --   app_agenda_links    o link secreto do calendário (iCal) que cada pessoa assina no Google ou no iPhone
 --   (onda 106, no mesmo arquivo porque a 105 ainda não foi aplicada: status, proposta_inicio e proposto_por,
 --    para o profissional propor horário ou remarcar e a família confirmar)
+--   criancas.apoio      (onda 108) o perfil de apoio: o que a família escolhe acompanhar
 --   medicacoes          ganha estoque (opcional), quantas unidades por dose e a validade da receita
 --
 -- Como todo o banco: RLS ligado, sem políticas; só o servidor (chave de serviço) acessa.
@@ -55,3 +56,8 @@ alter table public.medicacoes add column if not exists estoque numeric(7,1) chec
 alter table public.medicacoes add column if not exists estoque_em timestamptz;
 alter table public.medicacoes add column if not exists por_dose numeric(4,1) not null default 1 check (por_dose > 0);
 alter table public.medicacoes add column if not exists receita_vence date;
+
+-- ---------- onda 108: o perfil de apoio (o que a família escolhe acompanhar) ----------
+-- Sem diagnóstico: a família marca o que importa (leitura, fala, movimento…) e o app ajusta
+-- os registros, as rotinas e os guias. Mesmo arquivo porque a 105 ainda não foi aplicada.
+alter table public.criancas add column if not exists apoio text[] not null default '{}';

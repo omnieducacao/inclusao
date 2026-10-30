@@ -28,6 +28,10 @@ export type Resumo = {
   medicacao: { doses_dadas: number; doses_nao_dadas: number; dias_com_dose: number };
   avancos: number;
   calma: number;
+  /** onda 108 (perfil de apoio): diário de leitura, palavras novas e marcos do desenvolvimento */
+  leitura: { dias: number; minutos: number };
+  palavras: number;
+  marcos: { quando: string; texto: string | null }[];
   eventos_por_tipo: { subtipo: string; total: number }[];
 };
 
@@ -138,6 +142,12 @@ export function resumir(registros: RegistroResumo[], dias: number, agora = new D
     medicacao: { doses_dadas: doses.filter((d) => d.subtipo === "dada").length, doses_nao_dadas: doses.filter((d) => d.subtipo === "nao_dada").length, dias_com_dose: diasComDose.size },
     avancos: dentro.filter((r) => r.tipo === "evento" && r.subtipo === "avanco").length,
     calma: dentro.filter((r) => r.tipo === "evento" && r.subtipo === "calma").length,
+    leitura: {
+      dias: new Set(dentro.filter((r) => r.tipo === "evento" && r.subtipo === "leitura").map((r) => r.quando.slice(0, 10))).size,
+      minutos: dentro.filter((r) => r.tipo === "evento" && r.subtipo === "leitura").reduce((t, r) => t + (Number(r.dados?.minutos) || 0), 0),
+    },
+    palavras: dentro.filter((r) => r.tipo === "evento" && r.subtipo === "palavra").length,
+    marcos: dentro.filter((r) => r.tipo === "evento" && r.subtipo === "marco").map((r) => ({ quando: r.quando, texto: (r.dados?.marco as string | undefined) ?? null })).slice(0, 20),
     eventos_por_tipo: [...porTipo].map(([subtipo, total]) => ({ subtipo, total })).sort((a, b) => b.total - a.total),
   };
 }

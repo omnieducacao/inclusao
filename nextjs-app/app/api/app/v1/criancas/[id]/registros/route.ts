@@ -22,6 +22,8 @@ const SUBTIPOS_EVENTO = new Set([
   "crise", "agitacao", "apatia", "agressividade", "choro", "autolesao", "sono", "alimentacao", "avanco",
   // Omniband (onda 101): adesivos de rotina e chegada/saída da escola pelo crachá ou pela pulseira
   "banho", "calma", "chegada", "saida",
+  // onda 108 (perfil de apoio): diário de leitura, palavra nova, marco do desenvolvimento, exercício (fisio, TO)
+  "leitura", "palavra", "marco", "exercicio",
 ]);
 const POR_PAGINA = 50;
 
@@ -96,7 +98,13 @@ export async function POST(req: Request, ctx: Ctx) {
     gatilho: texto(b.gatilho, 80),
     local,
     texto: texto(b.texto, 1000),
-    dados: texto(b.ajudou, 120) ? { ajudou: texto(b.ajudou, 120) } : {},
+    dados: {
+      ...(texto(b.ajudou, 120) ? { ajudou: texto(b.ajudou, 120) } : {}),
+      // onda 108: minutos de leitura ou de exercício, o que leu, a palavra ou o marco
+      ...(typeof b.minutos === "number" && Number.isInteger(b.minutos) && b.minutos >= 1 && b.minutos <= 240 ? { minutos: b.minutos } : {}),
+      ...(texto(b.o_que, 120) ? { o_que: texto(b.o_que, 120) } : {}),
+      ...(texto(b.marco, 120) ? { marco: texto(b.marco, 120) } : {}),
+    } as Record<string, unknown>,
     autor_pessoa_id: pessoaId,
     autor_membro_id: acesso.membroId || null,
     origem: "app",
