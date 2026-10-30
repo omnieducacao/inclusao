@@ -11,9 +11,9 @@ Antes de chegar a qualquer rota, o `proxy.ts` já recusa (403) o papel **famíli
 | Guarda na rota | Quantidade |
 |---|---|
 | equipe (família recusada na rota) | 51 |
+| token do app (lib/app/acesso) | 49 |
 | equipe + permissão por módulo | 49 |
 | admin da plataforma | 47 |
-| token do app (lib/app/acesso) | 47 |
 | só sessão (família barrada pelo proxy) | 24 |
 | família permitida | 20 |
 | pública | 12 |
@@ -112,6 +112,8 @@ as usam) ou rotas do próprio usuário. Os métodos que gravam ou gastam IA já 
 | `/api/app/v1/criancas/[id]/registros` | GET | token do app (lib/app/acesso) |
 | `/api/app/v1/criancas/[id]/registros` | POST | token do app (lib/app/acesso) |
 | `/api/app/v1/criancas/[id]/resumo` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/sessoes` | GET | token do app (lib/app/acesso) |
+| `/api/app/v1/criancas/[id]/sessoes` | POST | token do app (lib/app/acesso) |
 | `/api/app/v1/dispositivos` | DELETE | token do app (lib/app/acesso) |
 | `/api/app/v1/dispositivos` | POST | token do app (lib/app/acesso) |
 | `/api/app/v1/escola/ligar` | POST | token do app (lib/app/acesso) |

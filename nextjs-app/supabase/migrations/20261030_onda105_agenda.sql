@@ -1,6 +1,8 @@
 -- Frente 6 · onda 105: a agenda da criança (doc "App da família: crítica e mapa do que vem", onda 1).
 --   app_compromissos    consultas, terapias, escola, exames e marcos; podem repetir toda semana
 --   app_agenda_links    o link secreto do calendário (iCal) que cada pessoa assina no Google ou no iPhone
+--   (onda 106, no mesmo arquivo porque a 105 ainda não foi aplicada: status, proposta_inicio e proposto_por,
+--    para o profissional propor horário ou remarcar e a família confirmar)
 --   medicacoes          ganha estoque (opcional), quantas unidades por dose e a validade da receita
 --
 -- Como todo o banco: RLS ligado, sem políticas; só o servidor (chave de serviço) acessa.
@@ -26,6 +28,10 @@ create table if not exists public.app_compromissos (
   membro_id uuid references public.rede_membros(id) on delete set null,  -- o profissional do compromisso
   lembrar_min smallint[] not null default '{1440,60}',  -- véspera e 1 hora antes
   cancelado_em timestamptz,
+  -- onda 106: o profissional da rede propõe um horário (ou remarca) e a família confirma
+  status text not null default 'confirmado' check (status in ('proposto', 'confirmado', 'recusado')),
+  proposta_inicio timestamptz,          -- remarcação proposta, até a família confirmar
+  proposto_por uuid references public.pessoas(id) on delete set null,
   criado_por uuid references public.pessoas(id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

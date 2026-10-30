@@ -32,6 +32,10 @@ export type Compromisso = {
   membro_id: string | null;
   lembrar_min: number[] | null;
   cancelado_em: string | null;
+  /** onda 106: proposto pelo profissional até a família confirmar; remarcação em proposta_inicio */
+  status?: "proposto" | "confirmado" | "recusado";
+  proposta_inicio?: string | null;
+  proposto_por?: string | null;
   updated_at?: string;
 };
 
@@ -43,7 +47,7 @@ export type Ocorrencia = {
 };
 
 export const CAMPOS_COMPROMISSO =
-  "id, crianca_id, tipo, titulo, inicio, duracao_min, dia_inteiro, local, levar, quem_leva, observacao, repete, repete_ate, pulos, membro_id, lembrar_min, cancelado_em, updated_at";
+  "id, crianca_id, tipo, titulo, inicio, duracao_min, dia_inteiro, local, levar, quem_leva, observacao, repete, repete_ate, pulos, membro_id, lembrar_min, cancelado_em, status, proposta_inicio, proposto_por, updated_at";
 
 const DIA = 86_400_000;
 const SEMANA = 7 * DIA;
@@ -63,7 +67,10 @@ export function dataBrasilia(ms: number): string {
   return new Date(ms - 3 * 3_600_000).toISOString().slice(0, 10);
 }
 
-export type DadosCompromisso = Partial<Omit<Compromisso, "id" | "crianca_id" | "cancelado_em" | "updated_at" | "pulos">>;
+export type DadosCompromisso = Partial<Omit<Compromisso, "id" | "crianca_id" | "cancelado_em" | "updated_at" | "pulos" | "status" | "proposta_inicio" | "proposto_por">>;
+
+/** O que o profissional pode propor: o compromisso com ele, sem os campos que são da família. */
+export const CAMPOS_DA_PROPOSTA = ["titulo", "tipo", "inicio", "duracao_min", "dia_inteiro", "local", "levar", "repete", "repete_ate"] as const;
 
 /** Lê o corpo do app. `parcial` (edição): só os campos enviados. */
 export function lerCompromisso(b: Record<string, unknown>, parcial = false): DadosCompromisso | { erro: string } {
@@ -112,9 +119,11 @@ export function lerCompromisso(b: Record<string, unknown>, parcial = false): Dad
   return out;
 }
 
-/** Quem vê o compromisso: família e adolescente, todos; o membro da rede, só os dele. */
-export function podeVer(acesso: Acesso, c: Pick<Compromisso, "membro_id">): boolean {
-  if (acesso.papel === "responsavel" || acesso.papel === "adolescente") return true;
+/** Quem vê o compromisso: família e adolescente, todos; o membro da rede, só os dele. Recusado não aparece. */
+export function podeVer(acesso: Acesso, c: Pick<Compromisso, "membro_id" | "status">): boolean {
+  if (c.status === "recusado") return false;
+  if (acesso.papel === "responsavel") return true;
+  if (acesso.papel === "adolescente") return c.status !== "proposto";
   return !!acesso.membroId && c.membro_id === acesso.membroId;
 }
 
@@ -195,7 +204,8 @@ export function gerarIcs(lista: Compromisso[], primeiroNome: string, agora = Dat
     "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Omnisfera//Agenda da crianca//PT-BR", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
     `X-WR-CALNAME:${escIcs(`Agenda · ${primeiroNome}`)}`, "X-WR-TIMEZONE:America/Sao_Paulo", "REFRESH-INTERVAL;VALUE=DURATION:PT1H",
   ];
-  for (const o of ocorrencias(lista, de, ate, 1000)) {
+  // proposta ainda não confirmada não vai para o calendário de fora
+  for (const o of ocorrencias(lista.filter((c) => c.status !== "proposto"), de, ate, 1000)) {
     const c = porId.get(o.compromisso_id)!;
     linhas.push("BEGIN:VEVENT", `UID:${c.id}-${o.data}@omnisfera.net`, `DTSTAMP:${carimbo}`);
     if (c.dia_inteiro) {

@@ -4,6 +4,7 @@ import { pessoaDoPedido } from "@/lib/app/sessao";
 import { acessoACrianca, categoriaDoRegistro, type Categoria } from "@/lib/app/acesso";
 import { logAction } from "@/lib/audit";
 import { avaliarConquistas } from "@/lib/app/conquistas";
+import { podeVerRegistro } from "@/lib/app/sessoes";
 import { ehUuid } from "@/lib/app/acesso";
 
 /**
@@ -52,7 +53,8 @@ export async function GET(req: Request, ctx: Ctx) {
   if (error) return NextResponse.json({ error: "Não deu para carregar a linha do tempo." }, { status: 500 });
 
   // O responsável vê o humor do adolescente só como dia bom/difícil, sem a frase.
-  const linhas = ((data as Record<string, unknown>[] | null) || []).map((r) =>
+  // onda 106: o registro de sessão reservado (psicologia) só aparece para quem escreveu e para a família
+  const linhas = ((data as Record<string, unknown>[] | null) || []).filter((r) => podeVerRegistro(r as { autor_pessoa_id?: string; dados?: unknown }, pessoaId, acesso.papel)).map((r) =>
     acesso.papel === "responsavel" && r.tipo === "humor" && r.autor_pessoa_id !== pessoaId ? { ...r, texto: null } : r,
   );
   await logAction({ actorId: pessoaId, actorRole: acesso.papel, action: "view", resourceType: "linha_do_tempo", resourceId: id, req });

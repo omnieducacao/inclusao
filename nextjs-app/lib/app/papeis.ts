@@ -18,7 +18,7 @@ export type Papeis = {
   pessoa: { id: string; nome: string };
   familias: { id: string; nome: string; plano: string; parentesco: string | null; criancas: CriancaResumo[] }[];
   adolescente: CriancaResumo[];
-  rede: { membro_id: string; tipo: string; crianca: CriancaResumo; acesso_ate: string | null }[];
+  rede: { membro_id: string; tipo: string; especialidade: string | null; crianca: CriancaResumo; acesso_ate: string | null }[];
   escolas: { workspace_id: string; nome: string; papel: string | null }[];
   /** onda 103: o que cada criança tem (escola, plano da família, adolescente). Chave = id da criança. */
   recursos: Record<string, Recursos>;
@@ -52,13 +52,13 @@ export async function papeisDaPessoa(pessoaId: string): Promise<Papeis | null> {
   const hoje = new Date().toISOString().slice(0, 10);
   const { data: rm } = await sb
     .from("rede_membros")
-    .select("id, tipo, acesso_ate, criancas(id, nome, nascimento, modo)")
+    .select("id, tipo, especialidade, acesso_ate, criancas(id, nome, nascimento, modo)")
     .eq("pessoa_id", pessoaId)
     .eq("status", "ativo");
-  type R = { id: string; tipo: string; acesso_ate: string | null; criancas: CriancaResumo | null };
+  type R = { id: string; tipo: string; especialidade?: string | null; acesso_ate: string | null; criancas: CriancaResumo | null };
   const rede = ((rm as R[] | null) || [])
     .filter((r) => r.criancas && (!r.acesso_ate || r.acesso_ate >= hoje))
-    .map((r) => ({ membro_id: r.id, tipo: r.tipo, crianca: abrirCriancas(r.criancas!), acesso_ate: r.acesso_ate }));
+    .map((r) => ({ membro_id: r.id, tipo: r.tipo, especialidade: r.especialidade ?? null, crianca: abrirCriancas(r.criancas!), acesso_ate: r.acesso_ate }));
 
   const { data: eq } = await sb
     .from("workspace_members")

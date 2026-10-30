@@ -26,6 +26,8 @@ function base() {
     app_compromissos: [],
     app_agenda_links: [],
     app_sessoes: [],
+    registros: [],
+    app_missoes: [],
   }, { uuid: true });
 }
 
@@ -84,22 +86,27 @@ describe("rotas da agenda", () => {
     expect(fono.status).toBe(201);
     const neuro = await chamar(rota, "POST", MAE, { titulo: "Neuro", tipo: "consulta", inicio: "2026-11-05T09:00:00-03:00", membro_id: "m-neuro" }, p);
     expect(neuro.status).toBe(201);
-    expect((await chamar(rota, "POST", FONO, { titulo: "Fono extra", inicio: "2026-11-04T14:00:00-03:00" }, p)).status).toBe(403);
+    // onda 106: quem é da rede não marca, propõe (com ele mesmo, sem os campos da família)
+    const prop = await chamar(rota, "POST", FONO, { titulo: "Fono extra", inicio: "2026-11-04T14:00:00-03:00", membro_id: "m-neuro", observacao: "x" }, p);
+    expect(prop.status).toBe(201);
+    expect(db.tabelas.app_compromissos.at(-1)).toMatchObject({ status: "proposto", membro_id: "m-fono" });
+    expect(db.tabelas.app_compromissos.at(-1)!.observacao).toBeUndefined();
     expect((await chamar(rota, "POST", MAE, { titulo: "Fono", inicio: "2026-11-04T14:00:00-03:00", membro_id: "m-outro" }, p)).status).toBe(400);
 
     const url = "https://omnisfera.net/api/app/v1/x?de=2026-11-01&ate=2026-11-30";
     const daMae = await chamar(rota, "GET", MAE, undefined, p, url);
-    expect((daMae.json.compromissos as unknown[]).length).toBe(2);
-    expect((daMae.json.ocorrencias as unknown[]).length).toBe(1 + 4);
+    expect((daMae.json.compromissos as unknown[]).length).toBe(3);
+    expect((daMae.json.ocorrencias as unknown[]).length).toBe(1 + 4 + 1);
     expect(daMae.json.pode_editar).toBe(true);
 
     const daFono = await chamar(rota, "GET", FONO, undefined, p, url);
     const lf = daFono.json.compromissos as Record<string, unknown>[];
-    expect(lf.map((c) => c.titulo)).toEqual(["Fono"]);
+    expect(lf.map((c) => c.titulo)).toEqual(["Fono", "Fono extra"]);
     expect(lf[0].observacao).toBeUndefined();
     expect(lf[0].quem_leva).toBeUndefined();
     expect(daFono.json.pode_editar).toBe(false);
 
+    // o adolescente não vê proposta ainda não confirmada
     const doTeen = await chamar(rota, "GET", TEEN, undefined, p, url);
     expect((doTeen.json.compromissos as unknown[]).length).toBe(2);
   });
@@ -120,6 +127,79 @@ describe("rotas da agenda", () => {
     expect((await chamar(um, "DELETE", MAE, undefined, p)).status).toBe(200);
     const g2 = await chamar(rota, "GET", MAE, undefined, { id: PEDRO }, url);
     expect(g2.json.compromissos).toEqual([]);
+  });
+});
+
+describe("propostas do profissional (onda 106)", () => {
+  it("propor, confirmar, remarcar e recusar", async () => {
+    const rota = await import("@/app/api/app/v1/criancas/[id]/agenda/route");
+    const um = await import("@/app/api/app/v1/criancas/[id]/agenda/[compromissoId]/route");
+    const novo = await chamar(rota, "POST", FONO, { titulo: "Fono", tipo: "terapia", inicio: "2026-11-03T14:00:00-03:00", repete: "semanal" }, { id: PEDRO });
+    const p = { id: PEDRO, compromissoId: novo.json.id as string };
+    // o neuro não mexe na proposta da fono; a fono não confirma a própria proposta
+    expect((await chamar(um, "PATCH", NEURO, { acao: "remarcar", inicio: "2026-11-04T14:00:00-03:00" }, p)).status).toBe(403);
+    expect((await chamar(um, "PATCH", FONO, { acao: "confirmar" }, p)).status).toBe(403);
+    expect((await chamar(um, "PATCH", MAE, { acao: "confirmar" }, p)).status).toBe(200);
+    expect(db.tabelas.app_compromissos[0].status).toBe("confirmado");
+    // remarcar um confirmado vira proposta; a família aceita e o horário muda
+    expect((await chamar(um, "PATCH", FONO, { acao: "remarcar", inicio: "2026-11-05T10:00:00-03:00" }, p)).status).toBe(200);
+    expect(db.tabelas.app_compromissos[0]).toMatchObject({ proposta_inicio: "2026-11-05T13:00:00.000Z", inicio: "2026-11-03T17:00:00.000Z" });
+    expect((await chamar(um, "PATCH", MAE, { acao: "confirmar" }, p)).status).toBe(200);
+    expect(db.tabelas.app_compromissos[0]).toMatchObject({ inicio: "2026-11-05T13:00:00.000Z", proposta_inicio: null });
+    expect((await chamar(um, "PATCH", MAE, { acao: "confirmar" }, p)).status).toBe(400);
+    // outra proposta, recusada: some para todos
+    const outro = await chamar(rota, "POST", FONO, { titulo: "Sessão extra", inicio: "2026-11-06T10:00:00-03:00" }, { id: PEDRO });
+    expect((await chamar(um, "PATCH", MAE, { acao: "recusar" }, { id: PEDRO, compromissoId: outro.json.id as string })).status).toBe(200);
+    const g = await chamar(rota, "GET", FONO, undefined, { id: PEDRO }, "https://omnisfera.net/api/app/v1/x?de=2026-11-01&ate=2026-11-30");
+    expect((g.json.compromissos as { titulo: string }[]).map((c) => c.titulo)).toEqual(["Fono"]);
+  });
+});
+
+describe("registro de sessão (onda 106)", () => {
+  it("a fono registra a sessão e a tarefa da semana vira missão em casa", async () => {
+    db.tabelas.rede_membros[0].especialidade = "Fonoaudióloga";
+    db.tabelas.rede_permissoes.push({ membro_id: "m-fono", categoria: "orientacoes", pode_ver: true, pode_escrever: true });
+    db.tabelas.registros = []; db.tabelas.app_missoes = [];
+    const rota = await import("@/app/api/app/v1/criancas/[id]/sessoes/route");
+    const g = await chamar(rota, "GET", FONO, undefined, { id: PEDRO });
+    expect(g.json).toMatchObject({ area: "fono", pode_registrar: true, rotulos: { tarefa: "Exercício da semana" } });
+    expect((await chamar(rota, "POST", FONO, { como_foi: "" }, { id: PEDRO })).status).toBe(400);
+    const r = await chamar(rota, "POST", FONO, { como_foi: "Pediu ajuda com a frase inteira.", trabalhado: "Pedir ajuda", resposta: "bem", tarefa: { titulo: "Pedir água com a frase", etapas: ["Mostrar a figura", "Esperar a frase"] } }, { id: PEDRO });
+    expect(r.status).toBe(201);
+    expect(db.tabelas.registros[0]).toMatchObject({ tipo: "terapia", categoria: "orientacoes", subtipo: "fono", dados: { sessao: true, resposta: "bem", reservado: false } });
+    expect(db.tabelas.app_missoes[0]).toMatchObject({ origem: "orientacao", onde: "casa", meta_ref: "Exercício da semana · Fonoaudiologia" });
+    // o neuro, sem permissão de escrever orientações, não registra sessão
+    expect((await chamar(rota, "POST", NEURO, { como_foi: "Consulta de rotina." }, { id: PEDRO })).status).toBe(403);
+  });
+
+  it("a sessão da psicologia é reservada: a família e a autora veem, o resto da rede não", async () => {
+    db.tabelas.rede_membros[1].especialidade = "Psicóloga";
+    db.tabelas.rede_permissoes.push(
+      { membro_id: "m-neuro", categoria: "orientacoes", pode_ver: true, pode_escrever: true },
+      { membro_id: "m-fono", categoria: "orientacoes", pode_ver: true, pode_escrever: false },
+    );
+    db.tabelas.registros = [];
+    const rota = await import("@/app/api/app/v1/criancas/[id]/sessoes/route");
+    const linha = await import("@/app/api/app/v1/criancas/[id]/registros/route");
+    expect((await chamar(rota, "POST", NEURO, { como_foi: "Falamos da escola nova." }, { id: PEDRO })).status).toBe(201);
+    expect(db.tabelas.registros[0].dados).toMatchObject({ area: "psicologia", reservado: true });
+    const daMae = await chamar(linha, "GET", MAE, undefined, { id: PEDRO });
+    const daPsi = await chamar(linha, "GET", NEURO, undefined, { id: PEDRO });
+    const daFono = await chamar(linha, "GET", FONO, undefined, { id: PEDRO });
+    expect((daMae.json.registros as unknown[]).length).toBe(1);
+    expect((daPsi.json.registros as unknown[]).length).toBe(1);
+    expect((daFono.json.registros as unknown[]).length).toBe(0);
+  });
+
+  it("a área sai da especialidade escrita pela família", async () => {
+    const { areaDoMembro } = await import("@/lib/app/sessoes");
+    expect(areaDoMembro("profissional", "Fonoaudióloga")).toBe("fono");
+    expect(areaDoMembro("profissional", "Psicopedagoga")).toBe("psicopedagogia");
+    expect(areaDoMembro("profissional", "psicólogo")).toBe("psicologia");
+    expect(areaDoMembro("profissional", "TO")).toBe("to");
+    expect(areaDoMembro("profissional", "Neurologista")).toBe("medicina");
+    expect(areaDoMembro("professor", null)).toBe("professor");
+    expect(areaDoMembro("profissional", "Musicoterapeuta")).toBe("outra");
   });
 });
 
